@@ -1,5 +1,5 @@
 import "./globals.css";
-import { Header } from "../components/header/index";
+import { Header, Header2 } from "../components/header/index";
 
 export default function RootLayout({
   children,
@@ -10,10 +10,13 @@ export default function RootLayout({
     <html lang="en">
       <body className={`antialiased`}>
         <div className="flex h-screen">
-          <div className="w-1/3">
+          <div>
             <Header />
           </div>
-          <div className="w-2/3  p-8">{children} </div>
+          <div className="w-full">
+            <Header2 />
+            {children}
+          </div>
         </div>
       </body>
     </html>
