@@ -3,9 +3,9 @@ import { Cairo } from "next/font/google";
 import React, { useState } from "react";
 
 const cairo = Cairo({
-    weight: ["500", "600", "700"], // Você pode especificar os pesos que deseja (normal e negrito)
-    subsets: ["latin"],
-  });
+  weight: ["500", "600", "700"], // Você pode especificar os pesos que deseja (normal e negrito)
+  subsets: ["latin"],
+});
 
 export default function Carteira() {
   const [selectedOption, setSelectedOption] = useState("Selecionar Todos");
@@ -15,12 +15,12 @@ export default function Carteira() {
   };
 
   return (
-    <div className="bg-gray-100 min-h-screen"> 
-      <div className="h-[85px] flex flex-row items-center p-4 gap-8 border-b border-black/10 bg-gray-100"> 
+    <div className="bg-gray-100 min-h-screen">
+      <div className="h-[85px] flex flex-row items-center p-4 gap-8 border-b border-black/10 bg-gray-100">
         <div className="flex items-center gap-4">
-          <h1 className= {`text-[32px] leading-8 ${cairo.className} font-700 text-black text-left`}>Carteira de Clientes</h1>
+          <h1 className={`text-[32px] leading-8 ${cairo.className} font-700 text-black text-left`}>Carteira de Clientes</h1>
 
-          <div className="flex items-center gap-2 ml-4 ">
+          <div className="flex items-center gap-2 ml-4">
             <select
               value={selectedOption}
               onChange={handleSelectChange}
@@ -45,6 +45,20 @@ export default function Carteira() {
             </button>
           </div>
         </div>
+      </div>
+      {/* Gráficos Quadrados (6 quadrados com maior tamanho) */}
+      <div className="w-full h-[112px] flex flex-row p-4 gap-8">
+        <div className="cursor-pointer py-2 px-4 flex flex-row justify-between items-center w-full h-20 bg-white rounded-md shadow-md"></div>
+
+        <div className="cursor-pointer py-2 px-4 flex flex-row justify-between items-center w-full h-20 bg-white rounded-md shadow-md"></div>
+
+        <div className="cursor-pointer py-2 px-4 flex flex-row justify-between items-center w-full h-20 bg-white rounded-md shadow-md"></div>
+
+        <div className="cursor-pointer py-2 px-4 flex flex-row justify-between items-center w-full h-20 bg-white rounded-md shadow-md"></div>
+
+        <div className="cursor-pointer py-2 px-4 flex flex-row justify-between items-center w-full h-20 bg-white rounded-md shadow-md"></div>
+
+        <div className="cursor-pointer py-2 px-4 flex flex-row justify-between items-center w-full h-20 bg-white rounded-md shadow-md"></div>
       </div>
     </div>
   );
