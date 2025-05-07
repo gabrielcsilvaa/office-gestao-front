@@ -12,16 +12,16 @@ const cairo = Cairo({
 export function Header() {
   return (
     <header
-      className={`text-white fixed lg:relative z-40 w-[255px] h-full flex flex-col gap-2 px-2 py-4 bg-[var(--left-menu-gray)]`}
+      className={`text-white fixed lg:relative z-40 w-[220px] h-full flex flex-col gap-2 px-2 py-4 bg-[var(--left-menu-gray)]`}
     >
       <Image
         src="/assets/logos/office.svg"
         alt="Ícone"
-        width={220}
-        height={84}
+        width={200}
+        height={100}
       />
       {/* Adicione os itens de navegação ou outros componentes */}
-      <nav className={`mt-6 text-[17px] ${cairo.className}`}>
+      <nav className={`mt-6 text-[12px] ${cairo.className}`}>
         <ul>
           <li className="mb-4">
             <Link
