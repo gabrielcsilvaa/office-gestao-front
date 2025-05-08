@@ -1,6 +1,13 @@
 "use client";
 import { Cairo } from "next/font/google";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { fetchAnaliseClientes } from "./requests/analise-clientes";
+import { EmpresaAnalise } from "./interface/interfaces";
+
+interface Dados {
+  start_date: string;
+  end_date: string;
+}
 
 const cairo = Cairo({
   weight: ["500", "600", "700"], // Você pode especificar os pesos que deseja (normal e negrito)
@@ -9,10 +16,39 @@ const cairo = Cairo({
 
 export default function Clientes() {
   const [value, setValue] = useState("");
+  const [clientData, setClientData] = useState<EmpresaAnalise[] | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setValue(e.target.value);
   };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const body: Dados = {
+          start_date: "2024-01-01",
+          end_date: "2024-12-31",
+        };
+        const data = await fetchAnaliseClientes(body);
+        setClientData(data);
+      } catch (err) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("Erro desconhecido");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+  console.log(error);
+  console.log(clientData);
+  console.log(loading);
 
   return (
     <div className="max-h-screen bg-gray-100">
