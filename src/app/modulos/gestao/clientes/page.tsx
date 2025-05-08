@@ -2,8 +2,7 @@
 import { Cairo } from "next/font/google";
 import { useState, useEffect } from "react";
 import { EmpresaAnalise } from "./interface/interfaces";
-
-
+import { ListaEmpresas } from "./components/tableCreator";
 const cairo = Cairo({
   weight: ["500", "600", "700"], // Você pode especificar os pesos que deseja (normal e negrito)
   subsets: ["latin"],
@@ -55,6 +54,7 @@ export default function Clientes() {
   if (error) return <div>Erro: {error}</div>;
   console.log(clientData);
 
+
   return (
     <div className="max-h-screen bg-gray-100">
       <div className="h-[85px] flex flex-row items-center p-4 gap-8 border-b border-black/10 bg-gray-100">
@@ -97,7 +97,7 @@ export default function Clientes() {
 
       <div className="h-[calc(80vh-85px)] overflow-y-auto p-4">
         <div className="p-4 overflow-x-auto bg-white shadow-md rounded-lg">
-          
+          {clientData && <ListaEmpresas empresas={clientData} />}
           {/* COMEÇA A LISTA DE EMPRESAS AQUI */}
           <table className="min-w-full table-auto">
             <thead>
@@ -110,7 +110,6 @@ export default function Clientes() {
               </tr>
             </thead>
 
-            
             <tbody>
               <tr>
                 <td className="table-cell">
@@ -192,8 +191,8 @@ export default function Clientes() {
             </tbody>
           </table>
 
-           {/* COMEÇA A LISTA DE EMPRESAS AQUI */}
-           <table className="min-w-full table-auto">
+          {/* COMEÇA A LISTA DE EMPRESAS AQUI */}
+          <table className="min-w-full table-auto">
             <thead>
               <tr>
                 <th className="table-header">Razão Social</th>
@@ -204,7 +203,6 @@ export default function Clientes() {
               </tr>
             </thead>
 
-            
             <tbody>
               <tr>
                 <td className="table-cell">
@@ -286,8 +284,8 @@ export default function Clientes() {
             </tbody>
           </table>
 
-           {/* COMEÇA A LISTA DE EMPRESAS AQUI */}
-           <table className="min-w-full table-auto">
+          {/* COMEÇA A LISTA DE EMPRESAS AQUI */}
+          <table className="min-w-full table-auto">
             <thead>
               <tr>
                 <th className="table-header">Razão Social</th>
@@ -298,7 +296,6 @@ export default function Clientes() {
               </tr>
             </thead>
 
-            
             <tbody>
               <tr>
                 <td className="table-cell">
