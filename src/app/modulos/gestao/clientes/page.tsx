@@ -54,8 +54,8 @@ export default function Clientes() {
         />
       </div>
 
-      <div className="overflow-y-auto max-h-screen p-4">
-        <div className="p-4 overflow-x-auto bg-white shadow-md rounded-lg ">
+      <div className="h-[calc(80vh-85px)] overflow-y-auto p-4">
+        <div className="p-4 overflow-x-auto bg-white shadow-md rounded-lg">
           <table className="min-w-full table-auto">
             <thead>
               <tr>
@@ -66,11 +66,9 @@ export default function Clientes() {
                 <th className="table-header">Sócio</th>
               </tr>
             </thead>
-          </table>
 
-          {/* COMEÇA A LISTA DE EMPRESAS AQUI */}
+            {/* COMEÇA A LISTA DE EMPRESAS AQUI */}
 
-          <table className="min-w-full table-auto">
             <tbody>
               <tr>
                 <td className="table-cell">
