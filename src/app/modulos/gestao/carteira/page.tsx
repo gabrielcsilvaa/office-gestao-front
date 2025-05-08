@@ -8,6 +8,7 @@ import Modal from "./components/modal";
 import AniversariantesParceiros from "./components/aniversario-parceria";
 import AniversariantesSocios from "./components/socios-aniversariantes";
 import { Cairo } from "next/font/google";
+import Evolucao from "./components/evoluçao";
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
