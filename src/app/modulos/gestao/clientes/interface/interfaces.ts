@@ -1,0 +1,42 @@
+export interface Escritorio {
+  escritorio: number;
+  id_cliente: number;
+  valor_contrato: string | null;
+}
+
+export interface Faturamento {
+  [mes: string]: [number, string]; // Ex: ["jan/2024"]: [3000.00, "10.00%"]
+}
+
+export interface Importacoes {
+  entradas?: Record<string, number>;
+  saidas?: Record<string, number>;
+  servicos?: Record<string, number>;
+  lancamentos?: Record<string, number>;
+  lancamentos_manuais?: Record<string, number>;
+  total_entradas?: number;
+  total_saidas?: number;
+  total_servicos?: number;
+  total_lancamentos?: number;
+  total_lancamentos_manuais?: number;
+  total_geral?: number;
+}
+
+export interface EmpresaAnalise {
+  codigo_empresa: string;
+  nome_empresa: string;
+  cnpj: string;
+  email: string | null;
+  situacao: string;
+  data_cadastro: string;
+  data_inicio_atv: string;
+  responsavel: string | null;
+  escritorios: Escritorio[];
+  faturamento: Faturamento;
+  importacoes: Importacoes;
+  empregados: Record<string, number>; // Ex: { "jan/2024": 6 }
+  atividades: {
+    total: number;
+    [mes: string]: number; // Ex: "mar/2024": 951
+  };
+}
