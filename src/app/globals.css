@@ -33,6 +33,9 @@
     @apply px-4 py-2 text-sm font-semibold text-green-600;
   }
 
+  .usuarios-card {
+    @apply bg-white w-1/5 h-[70px];
+  }
 }
 
 body {
