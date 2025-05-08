@@ -1,13 +1,8 @@
 "use client";
 import { Cairo } from "next/font/google";
 import { useState, useEffect } from "react";
-import { fetchAnaliseClientes } from "./requests/analise-clientes";
 import { EmpresaAnalise } from "./interface/interfaces";
 
-interface Dados {
-  start_date: string;
-  end_date: string;
-}
 
 const cairo = Cairo({
   weight: ["500", "600", "700"], // Você pode especificar os pesos que deseja (normal e negrito)
@@ -25,15 +20,24 @@ export default function Clientes() {
   };
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchClientData = async () => {
       try {
-        const body: Dados = {
-          start_date: "2024-01-01",
-          end_date: "2024-12-31",
-        };
-        const data = await fetchAnaliseClientes(body);
+        const body = { start_date: "2024-01-01", end_date: "2024-12-31" };
+        const response = await fetch("/api/analise-clientes", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Erro na API: ${response.statusText}`);
+        }
+
+        const data = await response.json();
         setClientData(data);
-      } catch (err) {
+      } catch (err: unknown) {
         if (err instanceof Error) {
           setError(err.message);
         } else {
@@ -44,11 +48,12 @@ export default function Clientes() {
       }
     };
 
-    fetchData();
-  }, []);
-  console.log(error);
+    fetchClientData();
+  }, []); // executa uma vez no mount
+
+  if (loading) return <div>Carregando...</div>;
+  if (error) return <div>Erro: {error}</div>;
   console.log(clientData);
-  console.log(loading);
 
   return (
     <div className="max-h-screen bg-gray-100">
@@ -92,6 +97,8 @@ export default function Clientes() {
 
       <div className="h-[calc(80vh-85px)] overflow-y-auto p-4">
         <div className="p-4 overflow-x-auto bg-white shadow-md rounded-lg">
+          
+          {/* COMEÇA A LISTA DE EMPRESAS AQUI */}
           <table className="min-w-full table-auto">
             <thead>
               <tr>
@@ -103,8 +110,7 @@ export default function Clientes() {
               </tr>
             </thead>
 
-            {/* COMEÇA A LISTA DE EMPRESAS AQUI */}
-
+            
             <tbody>
               <tr>
                 <td className="table-cell">
@@ -186,7 +192,19 @@ export default function Clientes() {
             </tbody>
           </table>
 
-          <table className="min-w-full table-auto">
+           {/* COMEÇA A LISTA DE EMPRESAS AQUI */}
+           <table className="min-w-full table-auto">
+            <thead>
+              <tr>
+                <th className="table-header">Razão Social</th>
+                <th className="table-header">CPF/CNPJ</th>
+                <th className="table-header">Data Cadastro</th>
+                <th className="table-header">Data Criação</th>
+                <th className="table-header">Sócio</th>
+              </tr>
+            </thead>
+
+            
             <tbody>
               <tr>
                 <td className="table-cell">
@@ -268,7 +286,19 @@ export default function Clientes() {
             </tbody>
           </table>
 
-          <table className="min-w-full table-auto">
+           {/* COMEÇA A LISTA DE EMPRESAS AQUI */}
+           <table className="min-w-full table-auto">
+            <thead>
+              <tr>
+                <th className="table-header">Razão Social</th>
+                <th className="table-header">CPF/CNPJ</th>
+                <th className="table-header">Data Cadastro</th>
+                <th className="table-header">Data Criação</th>
+                <th className="table-header">Sócio</th>
+              </tr>
+            </thead>
+
+            
             <tbody>
               <tr>
                 <td className="table-cell">
@@ -281,7 +311,7 @@ export default function Clientes() {
               </tr>
             </tbody>
           </table>
-          <table className="min-w-full table-auto mt-4 mb-5">
+          <table className="min-w-full table-auto mt-4 mb-7">
             <thead>
               <tr>
                 <th className="table-header"></th>
