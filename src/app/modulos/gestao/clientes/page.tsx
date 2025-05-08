@@ -52,8 +52,6 @@ export default function Clientes() {
 
   if (loading) return <div>Carregando...</div>;
   if (error) return <div>Erro: {error}</div>;
-  console.log(clientData);
-
 
   return (
     <div className="max-h-screen bg-gray-100">
