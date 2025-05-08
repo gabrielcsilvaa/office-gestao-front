@@ -44,7 +44,7 @@ export default function RamoAtividade() {
                                 boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
                             }}
                         />
-                        <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 4, 4]} />
+                        <Bar dataKey="value" fill="#3b82f6" radius={[0,0,0,0,]} />
                     </BarChart>
                 </ResponsiveContainer>
             </div>

@@ -74,7 +74,8 @@ export default function Carteira() {
           <RamoAtividadeChart />
         </div>  
       </div>
-      <div className="p-4">
+
+      <div className="mt-4 p-4">
         <Evolucao />
       </div>
     </div>
