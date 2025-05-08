@@ -17,7 +17,7 @@ const ramoData = [
 
 export default function RamoAtividade() {
     return (
-        <div className="bg-white rounded-2xl shadow-md p-6 w-full h-full border border-gray-200">
+        <div className="bg-white rounded-sm shadow-md p-6 w-full h-full border border-gray-200">
             <h2 className="text-lg font-semibold mb-4">Empresas por Ramo de Atividade</h2>
             <div style={{ width: "100%", height: 350 }}>
                 <ResponsiveContainer width="100%" height="100%">

@@ -4,6 +4,7 @@ import Card from "./components/card";
 import PieChartComponent from "./components/PieChart";
 import RamoAtividadeChart from "./components/RamoAtividade";
 import { Cairo } from "next/font/google";
+import Evolucao from "./components/evoluçao";
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
@@ -72,6 +73,9 @@ export default function Carteira() {
         <div className="bg-card text-card-foreground shadow w-full h-full rounded-sm overflow-auto">
           <RamoAtividadeChart />
         </div>  
+      </div>
+      <div className="p-4">
+        <Evolucao />
       </div>
     </div>
   );
