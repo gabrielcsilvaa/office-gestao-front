@@ -1,9 +1,12 @@
 "use client";
+import { useState } from "react";
+import Card from "./components/card";
+import PieChartComponent from "./components/PieChart";
+import RamoAtividadeChart from "./components/RamoAtividade";
 import { Cairo } from "next/font/google";
-import React, { useState } from "react";
 
 const cairo = Cairo({
-  weight: ["500", "600", "700"], // Você pode especificar os pesos que deseja (normal e negrito)
+  weight: ["500", "600", "700"],
   subsets: ["latin"],
 });
 
@@ -13,9 +16,24 @@ export default function Carteira() {
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedOption(e.target.value);
   };
+  
+  interface CardData {
+    title: string;
+    value: number;
+    icon: string;
+  }
+  
+  const cardsData: CardData[] = [
+    { title: "Clientes Ativos", value: 712, icon: "/assets/icons/Add user 02.svg" },
+    { title: "Novos Clientes", value: 150, icon: "/assets/icons/Add user 03.svg" },
+    { title: "Clientes Inativos", value: 228, icon: "/assets/icons/Add user 01.svg" },
+    { title: "Sem movimento / Baixados", value: 0, icon: "/assets/icons/no user 01.svg" },
+    { title: "Aniversário de Parceria", value: 50, icon: "/assets/icons/clock 01.svg" },
+    { title: "Sócio(s) Aniversariante(s)", value: 50, icon: "/assets/icons/business user 01.svg" }
+  ];
 
   return (
-    <div className="bg-gray-100 min-h-screen">
+    <div className="bg-gray-100 min-h-screen relative">
       <div className="h-[85px] flex flex-row items-center p-4 gap-8 border-b border-black/10 bg-gray-100">
         <div className="flex items-center gap-4">
           <h1 className={`text-[32px] leading-8 ${cairo.className} font-700 text-black text-left`}>Carteira de Clientes</h1>
@@ -31,34 +49,29 @@ export default function Carteira() {
               <option>Opção 2</option>
             </select>
 
-            <button
-              className="p-2 rounded-lg border border-gray-300 bg-white shadow-md hover:bg-gray-100 transition w-32 text-[#9CA3AF]"
-              onClick={() => console.log("Data inicial clicked")}
-            >
+            <button className="p-2 rounded-lg border border-gray-300 bg-white shadow-md hover:bg-gray-100 transition w-32 text-[#9CA3AF]">
               Data inicial
             </button>
-            <button
-              className="p-2 rounded-lg border border-gray-300 bg-white shadow-md hover:bg-gray-100 transition w-32 text-[#9CA3AF]"
-              onClick={() => console.log("Data final clicked")}
-            >
+            <button className="p-2 rounded-lg border border-gray-300 bg-white shadow-md hover:bg-gray-100 transition w-32 text-[#9CA3AF]">
               Data final
             </button>
           </div>
         </div>
       </div>
-      {/* Gráficos Quadrados (6 quadrados com maior tamanho) */}
+
       <div className="w-full h-[112px] flex flex-row p-4 gap-8">
-        <div className="cursor-pointer py-2 px-4 flex flex-row justify-between items-center w-full h-20 bg-white rounded-md shadow-md"></div>
+        {cardsData.map((card, index) => (
+          <Card key={index} title={card.title} value={card.value} icon={card.icon}/>
+        ))}
+      </div>
 
-        <div className="cursor-pointer py-2 px-4 flex flex-row justify-between items-center w-full h-20 bg-white rounded-md shadow-md"></div>
-
-        <div className="cursor-pointer py-2 px-4 flex flex-row justify-between items-center w-full h-20 bg-white rounded-md shadow-md"></div>
-
-        <div className="cursor-pointer py-2 px-4 flex flex-row justify-between items-center w-full h-20 bg-white rounded-md shadow-md"></div>
-
-        <div className="cursor-pointer py-2 px-4 flex flex-row justify-between items-center w-full h-20 bg-white rounded-md shadow-md"></div>
-
-        <div className="cursor-pointer py-2 px-4 flex flex-row justify-between items-center w-full h-20 bg-white rounded-md shadow-md"></div>
+      <div className="flex flex-row gap-2 p-4 justify-between items-center h-[381px]">
+        <div className="bg-card text-card-foreground shadow w-full h-full rounded-sm overflow-auto">
+          <PieChartComponent />
+        </div>
+        <div className="bg-card text-card-foreground shadow w-full h-full rounded-sm overflow-auto">
+          <RamoAtividadeChart />
+        </div>  
       </div>
     </div>
   );
