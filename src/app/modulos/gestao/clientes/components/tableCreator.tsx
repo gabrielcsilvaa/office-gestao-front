@@ -1,5 +1,5 @@
 import { formatadorBRL } from "@/utils/formatadores";
-import {ListaEmpresasProps} from "../interface/interfaces"
+import { ListaEmpresasProps } from "../interface/interfaces";
 
 function gerarIntervaloDeMeses(start: string, end: string): string[] {
   const [startAno, startMes] = start.split("-").map(Number);
@@ -24,13 +24,13 @@ function gerarIntervaloDeMeses(start: string, end: string): string[] {
 }
 
 export function ListaEmpresas({ empresas }: ListaEmpresasProps) {
-  const meses = gerarIntervaloDeMeses("2024-01-01", "2024-12-31");
+  const meses = gerarIntervaloDeMeses("2024-01-01", "2024-05-31");
 
   return (
-    <div className="space-y-4">
+    <div className="w-full space-y-4">
       {empresas.map((empresa, index) => (
         <div key={index}>
-          <table className="min-w-full table-auto">
+          <table className="table-auto min-w-[800px]">
             <thead>
               <tr>
                 <th className="table-header">Razão Social</th>
@@ -51,84 +51,115 @@ export function ListaEmpresas({ empresas }: ListaEmpresasProps) {
               </tr>
             </tbody>
           </table>
-          <table className="min-w-full table-auto mt-4 mb-7">
-            <thead>
-              <tr>
-                <th className="table-header"></th>
-                {meses.map((mes) => (
-                  <th key={mes} className="table-header capitalize">
-                    {mes}
-                  </th>
-                ))}
-                <th className="table-header">Total</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td className="table-cell">Faturamento da Empresa</td>
-                {meses.map((mes, i) => {
-                  const valor = empresa.faturamento?.[mes]?.[0] ?? 0;
-                  return (
-                    <td key={i} className="table-cell">
-                      {formatadorBRL.format(Number(valor))}
-                    </td>
-                  );
-                })}
-              </tr>
-              <tr>
-                <td className="table-cell">Variação de Faturamento</td>
-                <td className="table-cell">0%</td>
-                <td className="table-cell">0,00%</td>
-              </tr>
-              <tr>
-                <td className="table-cell">Tempo Gasto no Sistema</td>
-                <td className="table-cell">00:32:29</td>
-                <td className="table-cell">00:32:29</td>
-              </tr>
-              <tr>
-                <td className="table-cell">Lançamentos</td>
-                <td className="table-cell">0</td>
-                <td className="table-cell">0</td>
-              </tr>
-              <tr>
-                <td className="table-cell">% de Lançamentos Manuais</td>
-                <td className="table-cell">0%</td>
-                <td className="table-cell">0,00%</td>
-              </tr>
-              <tr>
-                <td className="table-cell">Vínculos de Folhas Ativos</td>
-                <td className="table-cell">0</td>
-                <td className="table-cell">0</td>
-              </tr>
-              <tr>
-                <td className="table-cell">Notas Fiscais Emitidas</td>
-                <td className="table-cell">0</td>
-                <td className="table-cell">0</td>
-              </tr>
-              <tr>
-                <td className="table-cell">
-                  Total de Notas Fiscais Movimentadas
-                </td>
-                <td className="table-cell">0</td>
-                <td className="table-cell">0</td>
-              </tr>
-              <tr>
-                <td className="table-cell">Faturamento do Escritório</td>
-                <td className="table-cell">R$ 705,00</td>
-                <td className="table-cell">R$ 705,00</td>
-              </tr>
-              <tr>
-                <td className="table-cell">Custo Operacional</td>
-                <td className="table-cell">R$ 10,83</td>
-                <td className="table-cell">R$ 10,83</td>
-              </tr>
-              <tr>
-                <td className="table-total">Rentabilidade Operacional</td>
-                <td className="table-total">R$ 694,80</td>
-                <td className="table-total">R$ 694,80</td>
-              </tr>
-            </tbody>
-          </table>
+          <div className="max-w-[1100px] overflow-x-auto mt-4 mb-7">
+            <table className="table-auto min-w-[800px]">
+              <thead>
+                <tr>
+                  <th className="table-header"></th>
+                  <th className="table-header"></th>
+                  {meses.map((mes) => (
+                    <th key={mes} className="table-header capitalize">
+                      {mes}
+                    </th>
+                  ))}
+                  <th className="table-header">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="table-cell " colSpan={2}>
+                    Faturamento da Empresa
+                  </td>
+                  {meses.map((mes, i) => {
+                    const valor = empresa.faturamento?.[mes]?.[0] ?? 0;
+                    return (
+                      <td key={i} className="table-cell">
+                        {formatadorBRL.format(Number(valor))}
+                      </td>
+                    );
+                  })}
+                  <td className="table-cell"></td>
+                </tr>
+                <tr>
+                  <td className="table-cell" colSpan={2}>
+                    Variação de Faturamento
+                  </td>
+                  {meses.map((mes, i) => {
+                    const valor = empresa.faturamento?.[mes]?.[1] ?? 0;
+                    return (
+                      <td key={i} className="table-cell">
+                        {valor}
+                      </td>
+                    );
+                  })}
+                  <td className="table-cell"></td>
+                </tr>
+                <tr>
+                  <td className="table-cell" colSpan={2}>
+                    Tempo Gasto no Sistema
+                  </td>
+                  <td className="table-cell">00:32:29</td>
+                  <td className="table-cell">00:32:29</td>
+                </tr>
+                <tr>
+                  <td className="table-cell" colSpan={2}>
+                    Lançamentos
+                  </td>
+                  <td className="table-cell">0</td>
+                  <td className="table-cell">0</td>
+                </tr>
+                <tr>
+                  <td className="table-cell" colSpan={2}>
+                    % Lançamentos Manuais
+                  </td>
+                  <td className="table-cell">0%</td>
+                  <td className="table-cell">0,00%</td>
+                </tr>
+                <tr>
+                  <td className="table-cell" colSpan={2}>
+                    Vínculos de Folha Ativos
+                  </td>
+                  <td className="table-cell">0</td>
+                  <td className="table-cell">0</td>
+                </tr>
+                <tr>
+                  <td className="table-cell" colSpan={2}>
+                    Total NF-e Emitidas
+                  </td>
+                  <td className="table-cell">0</td>
+                  <td className="table-cell">0</td>
+                </tr>
+                <tr>
+                  <td className="table-cell" colSpan={2}>
+                    Total NF-e Movimentadas
+                  </td>
+                  <td className="table-cell">0</td>
+                  <td className="table-cell">0</td>
+                </tr>
+                <tr>
+                  <td className="table-cell" colSpan={2}>
+                    Faturamento do Escritrio
+                  </td>
+                  <td className="table-cell">R$ 705,00</td>
+                  <td className="table-cell">R$ 705,00</td>
+                </tr>
+                <tr>
+                  <td className="table-cell" colSpan={2}>
+                    Custo Operacional
+                  </td>
+                  <td className="table-cell">R$ 10,83</td>
+                  <td className="table-cell">R$ 10,83</td>
+                </tr>
+                <tr>
+                  <td className="table-total" colSpan={2}>
+                    Rentabilidade Operacional
+                  </td>
+                  <td className="table-total">R$ 694,80</td>
+                  <td className="table-total">R$ 694,80</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       ))}
     </div>

@@ -30,9 +30,11 @@
   }
 
   .table-total {
-    @apply px-4 py-2 text-sm font-semibold text-green-600;
+    @apply px-4 py-2 text-sm font-semibold text-gray-800 border-1;
   }
-
+  .table-tr {
+    @apply w-7;
+  }
 }
 
 body {
