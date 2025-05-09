@@ -24,7 +24,7 @@ function gerarIntervaloDeMeses(start: string, end: string): string[] {
 }
 
 export function ListaEmpresas({ empresas }: ListaEmpresasProps) {
-  const meses = gerarIntervaloDeMeses("2024-01-01", "2024-05-31");
+  const meses = gerarIntervaloDeMeses("2024-01-01", "2024-12-31");
 
   return (
     <div className="w-full space-y-4">
