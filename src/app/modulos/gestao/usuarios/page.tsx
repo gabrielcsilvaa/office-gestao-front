@@ -4,6 +4,7 @@ import React, { useState } from "react";
 
 import UserChart from "./components/chart";
 import Calendar from "@/components/calendar";
+import Link from "next/link";
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
@@ -38,7 +39,7 @@ export default function Usuarios() {
               <option>Opção 2</option>
             </select>
             <div className="ml-5">
-              <Calendar/>
+              <Calendar />
             </div>
           </div>
         </div>
@@ -83,9 +84,11 @@ export default function Usuarios() {
 
           <div className="w-full flex justify-center">
             <div className="grid grid-cols-2 gap-4 p-3">
-              <button className="bg-white border border-gray-300 w-[500px] h-[70px]  hover:bg-gray-100  ">
-                Lista de Usuários
-              </button>
+              <Link href={"/modulos/gestao/usuarios/lista_usuario"}>
+                <button className="bg-white border border-gray-300 w-[500px] h-[70px]  hover:bg-gray-100  ">
+                  Lista de Usuários
+                </button>
+              </Link>
               <button className="bg-white border border-gray-300 w-[500px] h-[70px]  hover:bg-gray-100 ">
                 Atividade por Usuário
               </button>
