@@ -3,8 +3,11 @@ import { useState } from "react";
 import Card from "./components/card";
 import PieChartComponent from "./components/PieChart";
 import RamoAtividadeChart from "./components/RamoAtividade";
+import Evolucao from "./components/evolucao";
+import Modal from "./components/modal";
+import AniversariantesParceiros from "./components/aniversario-parceria";
+import AniversariantesSocios from "./components/socios-aniversariantes";
 import { Cairo } from "next/font/google";
-import Evolucao from "./components/evoluçao";
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
@@ -13,17 +16,18 @@ const cairo = Cairo({
 
 export default function Carteira() {
   const [selectedOption, setSelectedOption] = useState("Selecionar Todos");
+  const [isModalOpen, setIsModalOpen] = useState<string | null>(null);
 
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedOption(e.target.value);
   };
-  
+
   interface CardData {
     title: string;
     value: number;
     icon: string;
   }
-  
+
   const cardsData: CardData[] = [
     { title: "Clientes Ativos", value: 712, icon: "/assets/icons/Add user 02.svg" },
     { title: "Novos Clientes", value: 150, icon: "/assets/icons/Add user 03.svg" },
@@ -33,11 +37,20 @@ export default function Carteira() {
     { title: "Sócio(s) Aniversariante(s)", value: 50, icon: "/assets/icons/business user 01.svg" }
   ];
 
+  // Função para abrir o modal ao clicar no card
+  const handleCardClick = (title: string) => {
+    if (title === "Aniversário de Parceria" || title === "Sócio(s) Aniversariante(s)") {
+      setIsModalOpen(title);
+    }
+  };
+
   return (
     <div className="bg-gray-100 min-h-screen relative">
       <div className="h-[85px] flex flex-row items-center p-4 gap-8 border-b border-black/10 bg-gray-100">
         <div className="flex items-center gap-4">
-          <h1 className={`text-[32px] leading-8 ${cairo.className} font-700 text-black text-left`}>Carteira de Clientes</h1>
+          <h1 className={`text-[32px] leading-8 ${cairo.className} font-700 text-black text-left`}>
+            Carteira de Clientes
+          </h1>
 
           <div className="flex items-center gap-2 ml-4">
             <select
@@ -62,7 +75,13 @@ export default function Carteira() {
 
       <div className="w-full h-[112px] flex flex-row p-4 gap-8">
         {cardsData.map((card, index) => (
-          <Card key={index} title={card.title} value={card.value} icon={card.icon}/>
+          <Card
+            key={index}
+            title={card.title}
+            value={card.value}
+            icon={card.icon}
+            onClick={() => handleCardClick(card.title)}
+          />
         ))}
       </div>
 
@@ -78,6 +97,17 @@ export default function Carteira() {
       <div className="mt-4 p-4">
         <Evolucao />
       </div>
+
+      {/* Modal de Aniversário de Parceria e Sócio Aniversariante */}
+      <Modal isOpen={isModalOpen === "Aniversário de Parceria"} onClose={() => setIsModalOpen(null)}>
+        <h2 className="text-2xl font-semibold mb-4">Aniversário de Parceria</h2>
+        <AniversariantesParceiros />
+      </Modal>
+
+      <Modal isOpen={isModalOpen === "Sócio(s) Aniversariante(s)"} onClose={() => setIsModalOpen(null)}>
+        <h2 className="text-2xl font-semibold mb-4">Sócio(s) Aniversariante(s)</h2>
+        <AniversariantesSocios />
+      </Modal>
     </div>
   );
 }
