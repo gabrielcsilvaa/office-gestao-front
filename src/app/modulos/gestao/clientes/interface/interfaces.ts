@@ -40,3 +40,16 @@ export interface EmpresaAnalise {
     [mes: string]: number; // Ex: "mar/2024": 951
   };
 }
+
+export interface Empresa {
+  nome_empresa: string;
+  cnpj: string;
+  responsavel: string | null;
+  data_cadastro: string;
+  data_inicio_atv: string;
+  faturamento: Faturamento;
+}
+
+export interface ListaEmpresasProps {
+  empresas: Empresa[];
+}

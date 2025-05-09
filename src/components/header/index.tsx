@@ -12,7 +12,7 @@ const cairo = Cairo({
 export function Header() {
   return (
     <header
-      className={`text-white fixed lg:relative z-40 w-[220px] h-full flex flex-col gap-2 px-2 py-4 bg-[var(--left-menu-gray)]`}
+      className={`text-white fixed lg:relative z-40 w-[180px] h-full flex flex-col gap-2 px-2 py-4 bg-[var(--left-menu-gray)]`}
     >
       <Image
         src="/assets/logos/office.svg"
@@ -21,14 +21,14 @@ export function Header() {
         height={100}
       />
       {/* Adicione os itens de navegação ou outros componentes */}
-      <nav className={`mt-6 text-[12px] ${cairo.className}`}>
+      <nav className={`mt-6 text-[15px] ${cairo.className}`}>
         <ul>
           <li className="mb-4">
             <Link
               href="/modulos/gestao/carteira"
               className="hover:text-gray-400"
             >
-              <span className="inline-flex items-center text-lg">
+              <span className="inline-flex items-center">
                 <Image
                   src="/assets/icons/Frame Carteira.svg"
                   alt="Ícone"
@@ -45,7 +45,7 @@ export function Header() {
               href="/modulos/gestao/clientes"
               className="hover:text-gray-400"
             >
-              <span className="inline-flex items-center text-lg">
+              <span className="inline-flex items-center">
                 <Image
                   src="/assets/icons/Frame Clientes.svg"
                   alt="Ícone"
@@ -62,7 +62,7 @@ export function Header() {
               href="/modulos/gestao/usuarios"
               className="hover:text-gray-400"
             >
-              <span className="inline-flex items-center text-lg">
+              <span className="inline-flex items-center">
                 <Image
                   src="/assets/icons/Frame 28.svg"
                   alt="Ícone"
@@ -79,7 +79,7 @@ export function Header() {
               href="/modulos/gestao/escritorio"
               className="hover:text-gray-400"
             >
-              <span className="inline-flex items-center text-lg">
+              <span className="inline-flex items-center">
                 <Image
                   src="/assets/icons/Frame Escritorio.svg"
                   alt="Ícone"
@@ -99,10 +99,10 @@ export function Header() {
 
 export function Header2() {
   return (
-    <header className="flex items-center p-2 h-16 bg-white border-[1px] border-[#E5E5E5]">
+    <header className="flex items-center p-2 h-12 bg-white border-[1px] border-[#E5E5E5]">
       <nav className="flex w-full justify-between items-center">
         <span
-          className={`${cairo.className} font-[700] text-[32px] text-[var(--left-menu-gray)]`}
+          className={`${cairo.className} font-[700] text-[28px] text-[var(--left-menu-gray)]`}
         >
           Módulo Gestão
         </span>
@@ -111,26 +111,26 @@ export function Header2() {
           <Image
             src="/assets/icons/Frame 33.svg"
             alt="Ícone"
-            width={40}
-            height={40}
+            width={35}
+            height={35}
           />
           <Image
             src="/assets/icons/Frame 34.svg"
             alt="Ícone"
-            width={40}
-            height={40}
+            width={35}
+            height={35}
           />
           <Image
             src="/assets/icons/Frame 35.svg"
             alt="Ícone"
-            width={40}
-            height={40}
+            width={35}
+            height={35}
           />
           <Image
             src="/assets/icons/Frame 36.svg"
             alt="Ícone"
-            width={40}
-            height={40}
+            width={35}
+            height={35}
           />
         </div>
       </nav>
