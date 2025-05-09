@@ -100,12 +100,10 @@ export default function Carteira() {
 
       {/* Modal de Aniversário de Parceria e Sócio Aniversariante */}
       <Modal isOpen={isModalOpen === "Aniversário de Parceria"} onClose={() => setIsModalOpen(null)}>
-        <h2 className="text-2xl font-semibold mb-4">Aniversário de Parceria</h2>
         <AniversariantesParceiros />
       </Modal>
 
       <Modal isOpen={isModalOpen === "Sócio(s) Aniversariante(s)"} onClose={() => setIsModalOpen(null)}>
-        <h2 className="text-2xl font-semibold mb-4">Sócio(s) Aniversariante(s)</h2>
         <AniversariantesSocios />
       </Modal>
     </div>
