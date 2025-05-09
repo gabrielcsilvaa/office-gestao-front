@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Card from "./components/card";
 import PieChartComponent from "./components/PieChart";  // Importando o PieChartComponent
 import RamoAtividadeChart from "./components/RamoAtividade";
@@ -18,6 +18,9 @@ const cairo = Cairo({
 export default function Carteira() {
   const [selectedOption, setSelectedOption] = useState("Selecionar Todos");
   const [isModalOpen, setIsModalOpen] = useState<string | null>(null);
+  const [empresas, setEmpresas] = useState(Object)
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedOption(e.target.value);
@@ -26,6 +29,42 @@ export default function Carteira() {
   const handleOpenModal = () => {
     setIsModalOpen("Empresas por Regime Tributário");  
   };
+
+
+useEffect(() => {
+    const fetchClientData = async () => {
+      try {
+        
+        const response = await fetch("/api/analise-carteira", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+         
+        });
+
+        if (!response.ok) {
+          throw new Error(`Erro na API: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        setEmpresas(data.Empresas);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("Erro desconhecido");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchClientData();
+  }, []); // executa uma vez no mount
+  console.log(empresas)
+  if (loading) return <div>Carregando...</div>;
+  if (error) return <div>Erro: {error}</div>;
 
   const cardsData = [
     { title: "Clientes Ativos", value: 712, icon: "/assets/icons/Add user 02.svg" },
