@@ -42,6 +42,7 @@ export function ListaEmpresas({ empresas }: ListaEmpresasProps) {
         variacao_faturamento: {},
         atividades: {},
         lancamentos: item.importacoes.lancamentos ?? {},
+        lancamentos_manuais: {},
       };
 
       // Faturamento
@@ -82,8 +83,26 @@ export function ListaEmpresas({ empresas }: ListaEmpresasProps) {
       );
 
       //lancamentos / adicionando apenas o total que falta
+      if (item.importacoes.total_lancamentos) {
+        empresaData.lancamentos.total = item.importacoes.total_lancamentos;
+      }
+      // Lançamentos Manuais, transformando variação em porcentagem
+      if (item.importacoes.lancamentos_manuais) {
+        for (const mes of Object.keys(item.importacoes.lancamentos_manuais)) {
+          // Calculando a variação e aplicando toFixed(2) para garantir 2 casas decimais
+          empresaData.lancamentos_manuais[mes] = (
+            (item.importacoes.lancamentos_manuais[mes] /
+              item.importacoes.lancamentos[mes]) *
+            100
+          ).toFixed(2); // Arredondando para 2 casas decimais
+        }
 
-      empresaData.lancamentos.total = item.importacoes.total_lancamentos;
+        // Calculando o total de lançamentos manuais e aplicando toFixed(2)
+        empresaData.lancamentos_manuais.total = (
+          item.importacoes.total_lancamentos_manuais /
+          Object.keys(item.importacoes.lancamentos_manuais).length
+        ).toFixed(2);
+      }
 
       // Adiciona o objeto da empresa à lista de valores
       values.push(empresaData);
