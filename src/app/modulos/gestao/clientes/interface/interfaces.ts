@@ -13,13 +13,13 @@ export interface Importacoes {
   saidas?: Record<string, number>;
   servicos?: Record<string, number>;
   lancamentos: { [mes: string]: number };
-  lancamentos_manuais?: Record<string, number>;
-  total_entradas?: number;
-  total_saidas?: number;
-  total_servicos?: number;
+  lancamentos_manuais: { [mes: string]: number };
+  total_entradas: number;
+  total_saidas: number;
+  total_servicos: number;
   total_lancamentos: number;
-  total_lancamentos_manuais?: number;
-  total_geral?: number;
+  total_lancamentos_manuais: number;
+  total_geral: number;
 }
 
 export interface EmpresaAnalise {
@@ -64,5 +64,6 @@ export interface EmpresaVar {
   variacao_faturamento: { [mes: string]: string };
   atividades: { [mes: string]: string };
   lancamentos: { [mes: string]: number };
+  lancamentos_manuais: { [mes: string]: number | string };
   // Definindo faturamento como um objeto de string (mes) -> number (valor)
 }
