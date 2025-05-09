@@ -1,13 +1,14 @@
 "use client";
 import { useState } from "react";
 import Card from "./components/card";
-import PieChartComponent from "./components/PieChart";
+import PieChartComponent from "./components/PieChart";  // Importando o PieChartComponent
 import RamoAtividadeChart from "./components/RamoAtividade";
 import Evolucao from "./components/evolucao";
 import Modal from "./components/modal";
 import AniversariantesParceiros from "./components/aniversario-parceria";
 import AniversariantesSocios from "./components/socios-aniversariantes";
 import { Cairo } from "next/font/google";
+import ModalRegimeTributario from "./components/modal-regime-tributario"; // Modal correto para o gráfico
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
@@ -22,13 +23,11 @@ export default function Carteira() {
     setSelectedOption(e.target.value);
   };
 
-  interface CardData {
-    title: string;
-    value: number;
-    icon: string;
-  }
+  const handleOpenModal = () => {
+    setIsModalOpen("Empresas por Regime Tributário");  
+  };
 
-  const cardsData: CardData[] = [
+  const cardsData = [
     { title: "Clientes Ativos", value: 712, icon: "/assets/icons/Add user 02.svg" },
     { title: "Novos Clientes", value: 150, icon: "/assets/icons/Add user 03.svg" },
     { title: "Clientes Inativos", value: 228, icon: "/assets/icons/Add user 01.svg" },
@@ -36,13 +35,6 @@ export default function Carteira() {
     { title: "Aniversário de Parceria", value: 50, icon: "/assets/icons/clock 01.svg" },
     { title: "Sócio(s) Aniversariante(s)", value: 50, icon: "/assets/icons/business user 01.svg" }
   ];
-
-  // Função para abrir o modal ao clicar no card
-  const handleCardClick = (title: string) => {
-    if (title === "Aniversário de Parceria" || title === "Sócio(s) Aniversariante(s)") {
-      setIsModalOpen(title);
-    }
-  };
 
   return (
     <div className="bg-gray-100 min-h-screen relative">
@@ -80,25 +72,15 @@ export default function Carteira() {
             title={card.title}
             value={card.value}
             icon={card.icon}
-            onClick={() => handleCardClick(card.title)}
+            onClick={handleOpenModal}  // Chama handleOpenModal ao clicar no card
           />
         ))}
       </div>
 
-      <div className="flex flex-row gap-2 p-4 justify-between items-center h-[381px]">
-        <div className="bg-card text-card-foreground shadow w-full h-full rounded-sm overflow-auto">
-          <PieChartComponent />
-        </div>
-        <div className="bg-card text-card-foreground shadow w-full h-full rounded-sm overflow-auto">
-          <RamoAtividadeChart />
-        </div>  
-      </div>
+      <Modal isOpen={isModalOpen === "Empresas por Regime Tributário"} onClose={() => setIsModalOpen(null)}>
+        <ModalRegimeTributario />
+      </Modal>
 
-      <div className="mt-4 p-4">
-        <Evolucao />
-      </div>
-
-      {/* Modal de Aniversário de Parceria e Sócio Aniversariante */}
       <Modal isOpen={isModalOpen === "Aniversário de Parceria"} onClose={() => setIsModalOpen(null)}>
         <AniversariantesParceiros />
       </Modal>
@@ -106,6 +88,22 @@ export default function Carteira() {
       <Modal isOpen={isModalOpen === "Sócio(s) Aniversariante(s)"} onClose={() => setIsModalOpen(null)}>
         <AniversariantesSocios />
       </Modal>
+
+      <div className="flex flex-row gap-2 p-4 justify-between items-center h-[381px]">
+        <div className="bg-card text-card-foreground shadow w-full h-full rounded-sm overflow-auto">
+          {/* Passando uma função anônima para o onClick (resumindo erro bobo)*/}
+          <PieChartComponent onClick={() => handleOpenModal()} />
+        </div>
+        <div className="bg-card text-card-foreground shadow w-full h-full rounded-sm overflow-auto">
+          <div>
+            <RamoAtividadeChart />
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 p-4">
+        <Evolucao />
+      </div>
     </div>
   );
 }

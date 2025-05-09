@@ -9,10 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "icons": "^1.0.0",
     "next": "^15.3.2",
     "office-gestao-front": "file:",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-icons": "^5.5.0",
     "recharts": "^2.15.3"
   },
   "devDependencies": {

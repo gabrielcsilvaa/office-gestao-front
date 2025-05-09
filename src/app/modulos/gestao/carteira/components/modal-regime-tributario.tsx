@@ -18,7 +18,6 @@ const dadosEmpresas: Empresa[] = [
   { id: 8, nome_empresa: "A M GONDIM DE AQUINO TORRES", regime_tributario: "Simples Nacional", cnpj: "42365408000140" }
 ];
 
-// Função para formatar CNPJ
 const formatCNPJ = (cnpj: string) => {
   return cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
 };
@@ -51,8 +50,12 @@ export default function ListaEmpresasRegimeTributario() {
         <thead>
           <tr className="bg-gray-200 border-b border-gray-400">
             <th className="px-4 py-2 border-r">#</th>
-            <th className="px-4 py-2 cursor-pointer border-r" onClick={() => sortData("nome_empresa")}>Nome {sortConfig.key === "nome_empresa" && (sortConfig.direction === "asc" ? " ↑" : " ↓")}</th>
-            <th className="px-4 py-2 cursor-pointer border-r" onClick={() => sortData("regime_tributario")}>Regime {sortConfig.key === "regime_tributario" && (sortConfig.direction === "asc" ? " ↑" : " ↓")}</th>
+            <th className="px-4 py-2 cursor-pointer border-r" onClick={() => sortData("nome_empresa")}>
+              Nome {sortConfig.key === "nome_empresa" && (sortConfig.direction === "asc" ? " ↑" : " ↓")}
+            </th>
+            <th className="px-4 py-2 cursor-pointer border-r" onClick={() => sortData("regime_tributario")}>
+              Regime {sortConfig.key === "regime_tributario" && (sortConfig.direction === "asc" ? " ↑" : " ↓")}
+            </th>
             <th className="px-4 py-2">CNPJ</th>
           </tr>
         </thead>
