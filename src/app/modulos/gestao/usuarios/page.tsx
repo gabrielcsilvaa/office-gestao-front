@@ -1,11 +1,22 @@
 "use client";
 import { Cairo } from "next/font/google";
 import React, { useState } from "react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  LabelList,
+} from "recharts";
 
 const cairo = Cairo({
   weight: ["500", "600", "700"], // Você pode especificar os pesos que deseja (normal e negrito)
   subsets: ["latin"],
 });
+
 
 export default function Usuarios() {
   const [selectedOption, setSelectedOption] = useState("Selecionar Todos");
@@ -53,36 +64,87 @@ export default function Usuarios() {
 
       <div className="justify-center">
         <div className="w-full flex gap-[17px]  p-3">
-          <div className="usuarios-card p-4 rouded bg -white shadow w-[200px]">
+          <div className="usuarios-card  p-3">
             <p className="text-xs text-gray-500">
               Total de Atividades Realizadas
             </p>
             <p className="text-xl font-semibold text-black">3.463.508</p>
           </div>
-          <div className="usuarios-card"></div>
-          <div className="usuarios-card"></div>
-          <div className="usuarios-card"></div>
-          <div className="usuarios-card"></div>
+
+          <div className="usuarios-card p-3">
+            <p className="text-xs text-gray-500">Importações totais</p>
+            <p className="text-xl font-semibold text-black">2.236.636</p>
+          </div>
+
+          <div className="usuarios-card p-3">
+            <p className="text-xs text-gray-500">
+              Total de Atividades por Módulos
+            </p>
+            <p className="text-xl font-semibold text-black">1.133.734</p>
+          </div>
+
+          <div className="usuarios-card p-3">
+            <p className="text-xs text-gray-500">
+              Total de Lançamentos Manuais
+            </p>
+            <p className="text-xl font-semibold text-black">93.138</p>
+          </div>
+
+          <div className="usuarios-card p-3">
+            <p className="text-xs text-gray-500">Total de Horas Ativas</p>
+            <p className="text-xl font-semibold text-black">34.662.66 h</p>
+          </div>
         </div>
 
         <div>
           <div className=" w-full h-[300px] p-3">
-            <div className="w-full h-full bg-white"></div>
+            <div className="w-full h-full bg-white">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={[
+                    { name: "Jan", valor: 81.87 },
+                    { name: "Fev", valor: 74.91 },
+                    { name: "Mar", valor: 28.02 },
+                    { name: "Abr", valor: 72.81 },
+                    { name: "Mai", valor: 49.64 },
+                    { name: "Jun", valor: 14.22 },
+                    { name: "Jul", valor: 11.87 },
+                    { name: "Ago", valor: 45.58 },
+                    { name: "Set", valor: 77.97 },
+                    { name: "Out", valor: 47.09 },
+                    { name: "Nov", valor: 86.52 },
+                    { name: "Dez", valor: 43.64 },
+                  ]}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis domain={[0, 100]} />
+                  <Tooltip />
+                  <Bar dataKey="valor" fill="#8884d8" opacity={0.6} >
+                  <LabelList
+                    dataKey="valor"
+                    position="top"
+                    formatter={(value: number) => value.toFixed(2)}
+                  />
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
 
           <div className="w-full flex justify-center">
             <div className="grid grid-cols-2 gap-4 p-3">
-              <button className="bg-white border border-gray-300 w-[500px] h-[100px]  hover:bg-gray-100  ">
+              <button className="bg-white border border-gray-300 w-[500px] h-[70px]  hover:bg-gray-100  ">
                 Lista de Usuários
               </button>
-              <button className="bg-white border border-gray-300 w-[500px] h-[100px]  hover:bg-gray-100 ">
+              <button className="bg-white border border-gray-300 w-[500px] h-[70px]  hover:bg-gray-100 ">
                 Atividade por Usuário
               </button>
 
-              <button className="bg-white border border-gray-300 w-[500px] h-[100px] hover:bg-gray-100">
+              <button className="bg-white border border-gray-300 w-[500px] h-[70px] hover:bg-gray-100">
                 Atividade Por Módulo
               </button>
-              <button className="bg-white border border-gray-300 w-[500px] h-[100px] hover:bg-gray-100">
+              <button className="bg-white border border-gray-300 w-[500px] h-[70px] hover:bg-gray-100">
                 Atividade Por Cliente
               </button>
             </div>
