@@ -3,12 +3,12 @@ import { Cairo } from "next/font/google";
 import React, { useState } from "react";
 
 import UserChart from "./components/chart";
+import Calendar from "@/components/calendar";
 
 const cairo = Cairo({
-  weight: ["500", "600", "700"], // Você pode especificar os pesos que deseja (normal e negrito)
+  weight: ["500", "600", "700"],
   subsets: ["latin"],
 });
-
 
 export default function Usuarios() {
   const [selectedOption, setSelectedOption] = useState("Selecionar Todos");
@@ -27,7 +27,7 @@ export default function Usuarios() {
             Análise de Usuários
           </h1>
 
-          <div className="flex items-center gap-2 ml-4 ">
+          <div className="flex items-center gap-2 ml-4 relative">
             <select
               value={selectedOption}
               onChange={handleSelectChange}
@@ -37,19 +37,9 @@ export default function Usuarios() {
               <option>Opção 1</option>
               <option>Opção 2</option>
             </select>
-
-            <button
-              className="p-2 rounded-lg border border-gray-300 bg-white shadow-md hover:bg-gray-100 transition w-32 text-[#9CA3AF]"
-              onClick={() => console.log("Data inicial clicked")}
-            >
-              Data inicial
-            </button>
-            <button
-              className="p-2 rounded-lg border border-gray-300 bg-white shadow-md hover:bg-gray-100 transition w-32 text-[#9CA3AF]"
-              onClick={() => console.log("Data final clicked")}
-            >
-              Data final
-            </button>
+            <div className="ml-5">
+              <Calendar/>
+            </div>
           </div>
         </div>
       </div>
@@ -89,7 +79,7 @@ export default function Usuarios() {
         </div>
 
         <div>
-          <UserChart/>
+          <UserChart />
 
           <div className="w-full flex justify-center">
             <div className="grid grid-cols-2 gap-4 p-3">
