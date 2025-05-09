@@ -41,7 +41,6 @@ export function ListaEmpresas({ empresas }: ListaEmpresasProps) {
         faturamento: {},
         variacao_faturamento: {},
         atividades: {},
-        
       };
 
       // Faturamento
@@ -71,8 +70,13 @@ export function ListaEmpresas({ empresas }: ListaEmpresasProps) {
       }
       empresaData.variacao_faturamento.total = `${mediaFormatada.toFixed(2)}%`;
 
-
       //Atividades
+      for (const mes of Object.keys(item.atividades)) {
+        empresaData.atividades[mes] = formatadorSegParaHor(
+          item.atividades[mes]
+        );
+      }
+      empresaData.atividades.total = formatadorSegParaHor(item.atividades.total);
 
       // Adiciona o objeto da empresa à lista de valores
       values.push(empresaData);
