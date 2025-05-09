@@ -1,5 +1,6 @@
 import { formatadorBRL } from "@/utils/formatadores";
-import { ListaEmpresasProps } from "../interface/interfaces";
+import { EmpresaVar, ListaEmpresasProps } from "../interface/interfaces";
+import { formatadorSegParaHor } from "@/utils/formatadores";
 
 function gerarIntervaloDeMeses(start: string, end: string): string[] {
   const [startAno, startMes] = start.split("-").map(Number);
@@ -26,6 +27,62 @@ function gerarIntervaloDeMeses(start: string, end: string): string[] {
 export function ListaEmpresas({ empresas }: ListaEmpresasProps) {
   const meses = gerarIntervaloDeMeses("2024-01-01", "2024-05-31");
 
+  function tableValues() {
+    const values = [];
+
+    // Iterando pelas empresas
+    for (const item of empresas) {
+      const empresaData: EmpresaVar = {
+        nome_empresa: item.nome_empresa,
+        cnpj: item.cnpj,
+        data_cadastro: item.data_cadastro,
+        data_inicio_atv: item.data_inicio_atv,
+        responsavel: item.responsavel,
+        faturamento: {},
+        variacao_faturamento: {},
+        atividades: {},
+        
+      };
+
+      // Faturamento
+      let totalFaturamento = 0;
+      for (const mes of Object.keys(item.faturamento)) {
+        empresaData.faturamento[mes] = item.faturamento[mes][0];
+        totalFaturamento += item.faturamento[mes][0];
+      }
+      empresaData.faturamento.total = totalFaturamento;
+
+      // Variação do faturamento
+      let mediaVariacaoFaturamento = 0;
+      for (const mes of Object.keys(item.faturamento)) {
+        empresaData.variacao_faturamento[mes] = item.faturamento[mes][1];
+
+        const numFormatado = parseFloat(
+          item.faturamento[mes][1].replace("%", "")
+        );
+        mediaVariacaoFaturamento += numFormatado;
+      }
+
+      // Calculando a média e verificando se é NaN ou Infinity
+      let mediaFormatada =
+        mediaVariacaoFaturamento / Object.keys(item.faturamento).length;
+      if (isNaN(mediaFormatada) || !isFinite(mediaFormatada)) {
+        mediaFormatada = 0; // Se for NaN ou Infinity, setamos a média como 0
+      }
+      empresaData.variacao_faturamento.total = `${mediaFormatada.toFixed(2)}%`;
+
+
+      //Atividades
+
+      // Adiciona o objeto da empresa à lista de valores
+      values.push(empresaData);
+    }
+
+    return values;
+  }
+
+  const result = tableValues();
+  console.log(result);
   return (
     <div className="w-full space-y-4">
       {empresas.map((empresa, index) => (
@@ -78,77 +135,250 @@ export function ListaEmpresas({ empresas }: ListaEmpresasProps) {
                       </td>
                     );
                   })}
-                  <td className="table-cell"></td>
+                  <td className="table-cell">
+                    {formatadorBRL.format(
+                      meses.reduce((total, mes) => {
+                        const valor = empresa.faturamento?.[mes]?.[0] ?? 0;
+                        return total + valor;
+                      }, 0) // Inicializa a soma com 0
+                    )}
+                  </td>
                 </tr>
                 <tr>
                   <td className="table-cell" colSpan={2}>
                     Variação de Faturamento
                   </td>
                   {meses.map((mes, i) => {
-                    const valor = empresa.faturamento?.[mes]?.[1] ?? 0;
+                    const valor = empresa.faturamento?.[mes]?.[1] ?? "0.00%";
                     return (
                       <td key={i} className="table-cell">
                         {valor}
                       </td>
                     );
                   })}
-                  <td className="table-cell"></td>
+                  <td className="table-cell">
+                    {`${meses
+                      .map((mes) => {
+                        // Remove o '%' e converte para número, tratando valores nulos ou inválidos como 0
+                        const valor =
+                          empresa.faturamento?.[mes]?.[1] ?? "0.00%";
+                        return parseFloat(valor.replace("%", "")) || 0;
+                      })
+                      .reduce((total, valor) => total + valor, 0)
+                      .toFixed(2)}%`}{" "}
+                    {/* Arredondando para 2 casas decimais */}
+                  </td>
                 </tr>
                 <tr>
                   <td className="table-cell" colSpan={2}>
                     Tempo Gasto no Sistema
                   </td>
-                  <td className="table-cell">00:32:29</td>
-                  <td className="table-cell">00:32:29</td>
+                  {meses.map((mes, i) => {
+                    const valor = formatadorSegParaHor(
+                      empresa.atividades?.[mes] ?? 0
+                    );
+                    return (
+                      <td key={i} className="table-cell">
+                        {valor}
+                      </td>
+                    );
+                  })}
+                  <td className="table-cell">
+                    {formatadorSegParaHor(
+                      meses.reduce((total, mes) => {
+                        const valor = empresa.atividades?.[mes] ?? 0;
+                        return total + valor;
+                      }, 0) // Inicializa a soma com 0
+                    )}
+                  </td>
                 </tr>
                 <tr>
                   <td className="table-cell" colSpan={2}>
                     Lançamentos
                   </td>
-                  <td className="table-cell">0</td>
-                  <td className="table-cell">0</td>
+                  {meses.map((mes, i) => {
+                    const valor = empresa.importacoes.lancamentos?.[mes] ?? 0;
+                    return (
+                      <td key={i} className="table-cell">
+                        {valor}
+                      </td>
+                    );
+                  })}
+                  <td className="table-cell">
+                    {
+                      meses.reduce((total, mes) => {
+                        const valor =
+                          empresa.importacoes.lancamentos?.[mes] ?? 0;
+                        return total + valor;
+                      }, 0) // Inicializa a soma com 0
+                    }
+                  </td>
                 </tr>
                 <tr>
                   <td className="table-cell" colSpan={2}>
                     % Lançamentos Manuais
                   </td>
-                  <td className="table-cell">0%</td>
-                  <td className="table-cell">0,00%</td>
+                  {meses.map((mes, i) => {
+                    const lancamentos =
+                      empresa.importacoes.lancamentos?.[mes] ?? 0;
+                    const lancamentosManuais =
+                      empresa.importacoes.lancamentos_manuais?.[mes] ?? 0;
+
+                    // Evitar divisão por zero
+                    const valor =
+                      lancamentos === 0
+                        ? 0
+                        : (lancamentosManuais / lancamentos) * 100;
+
+                    return (
+                      <td key={i} className="table-cell">
+                        {`${valor.toFixed(2)}%`}{" "}
+                        {/* Aqui estou usando toFixed(2) para limitar a 2 casas decimais */}
+                      </td>
+                    );
+                  })}
+                  <td className="table-cell">
+                    {
+                      meses.reduce((total, mes) => {
+                        const lancamentos =
+                          empresa.importacoes.lancamentos?.[mes] ?? 0;
+                        const lancamentosManuais =
+                          empresa.importacoes.lancamentos_manuais?.[mes] ?? 0;
+
+                        return total + (lancamentos / lancamentosManuais) * 100;
+                      }, 0) // Inicializa a soma com 0
+                    }
+                  </td>
                 </tr>
                 <tr>
                   <td className="table-cell" colSpan={2}>
                     Vínculos de Folha Ativos
                   </td>
-                  <td className="table-cell">0</td>
-                  <td className="table-cell">0</td>
+                  {meses.map((mes, i) => {
+                    const valor = empresa.empregados?.[mes] ?? 0;
+                    return (
+                      <td key={i} className="table-cell">
+                        {valor}
+                      </td>
+                    );
+                  })}
+                  <td className="table-cell">
+                    {
+                      meses.reduce((total, mes) => {
+                        const valor = empresa.empregados?.[mes] ?? 0;
+                        return total + valor;
+                      }, 0) // Inicializa a soma com 0
+                    }
+                  </td>
                 </tr>
                 <tr>
                   <td className="table-cell" colSpan={2}>
                     Total NF-e Emitidas
                   </td>
-                  <td className="table-cell">0</td>
-                  <td className="table-cell">0</td>
+                  {meses.map((mes, i) => {
+                    const valor =
+                      (empresa.importacoes.saidas?.[mes] ?? 0) +
+                      (empresa.importacoes.servicos?.[mes] ?? 0);
+                    return (
+                      <td key={i} className="table-cell">
+                        {valor}
+                      </td>
+                    );
+                  })}
+                  <td className="table-cell">
+                    {
+                      meses.reduce((total, mes) => {
+                        const valor =
+                          (empresa.importacoes.saidas?.[mes] ?? 0) +
+                          (empresa.importacoes.servicos?.[mes] ?? 0);
+                        return total + valor;
+                      }, 0) // Inicializa a soma com 0
+                    }
+                  </td>
                 </tr>
                 <tr>
                   <td className="table-cell" colSpan={2}>
                     Total NF-e Movimentadas
                   </td>
-                  <td className="table-cell">0</td>
-                  <td className="table-cell">0</td>
+                  {meses.map((mes, i) => {
+                    const valor =
+                      (empresa.importacoes.saidas?.[mes] ?? 0) +
+                      (empresa.importacoes.servicos?.[mes] ?? 0) +
+                      (empresa.importacoes.entradas?.[mes] ?? 0);
+                    return (
+                      <td key={i} className="table-cell">
+                        {valor}
+                      </td>
+                    );
+                  })}
+                  <td className="table-cell">
+                    {
+                      meses.reduce((total, mes) => {
+                        const valor =
+                          (empresa.importacoes.saidas?.[mes] ?? 0) +
+                          (empresa.importacoes.servicos?.[mes] ?? 0) +
+                          (empresa.importacoes.entradas?.[mes] ?? 0);
+                        return total + valor;
+                      }, 0) // Inicializa a soma com 0
+                    }
+                  </td>
                 </tr>
                 <tr>
                   <td className="table-cell" colSpan={2}>
                     Faturamento do Escritrio
                   </td>
-                  <td className="table-cell">R$ 705,00</td>
-                  <td className="table-cell">R$ 705,00</td>
+                  {meses.map((mes, i) => {
+                    // Encontrar o maior valor de 'valor_contrato' entre os escritórios
+                    const maiorValor = Math.max(
+                      ...empresa.escritorios.map(
+                        (escritorio) => Number(escritorio.valor_contrato) || 0
+                      )
+                    );
+
+                    return (
+                      <td key={i} className="table-cell">
+                        {formatadorBRL.format(maiorValor)}{" "}
+                        {/* Se necessário, formate como moeda */}
+                      </td>
+                    );
+                  })}
+                  <td className="table-cell">
+                    {formatadorBRL.format(
+                      meses.reduce((total) => {
+                        // Calcula o maior valor de cada escritório para cada mês
+                        const maiorValorDoMes = Math.max(
+                          ...empresa.escritorios.map(
+                            (escritorio) =>
+                              Number(escritorio.valor_contrato) || 0
+                          )
+                        );
+
+                        // Acumula o maior valor do mês
+                        return total + maiorValorDoMes;
+                      }, 0) // Inicializa a soma com 0
+                    )}
+                  </td>
                 </tr>
                 <tr>
                   <td className="table-cell" colSpan={2}>
                     Custo Operacional
                   </td>
-                  <td className="table-cell">R$ 10,83</td>
-                  <td className="table-cell">R$ 10,83</td>
+                  {meses.map((mes, i) => {
+                    // Encontrar o maior valor de 'valor_contrato' entre os escritórios
+                    const maiorValor = Math.max(
+                      ...empresa.escritorios.map(
+                        (escritorio) => Number(escritorio.valor_contrato) || 0
+                      )
+                    );
+
+                    return (
+                      <td key={i} className="table-cell">
+                        {formatadorBRL.format(maiorValor)}{" "}
+                        {/* Se necessário, formate como moeda */}
+                      </td>
+                    );
+                  })}
+                  <td className="table-cell">-</td>
                 </tr>
                 <tr>
                   <td className="table-total" colSpan={2}>
@@ -156,6 +386,7 @@ export function ListaEmpresas({ empresas }: ListaEmpresasProps) {
                   </td>
                   <td className="table-total">R$ 694,80</td>
                   <td className="table-total">R$ 694,80</td>
+                  <td className="table-cell">-</td>
                 </tr>
               </tbody>
             </table>

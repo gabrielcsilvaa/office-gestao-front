@@ -51,5 +51,17 @@ export interface Empresa {
 }
 
 export interface ListaEmpresasProps {
-  empresas: Empresa[];
+  empresas: EmpresaAnalise[];
+}
+
+export interface EmpresaVar {
+  nome_empresa: string;
+  cnpj: string;
+  data_cadastro: string;
+  data_inicio_atv: string;
+  responsavel: string | null;
+  faturamento: { [mes: string]: number };
+  variacao_faturamento: { [mes: string]: string };
+  atividades: { [mes: string]: number };
+  // Definindo faturamento como um objeto de string (mes) -> number (valor)
 }
