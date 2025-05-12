@@ -1,9 +1,3 @@
-export interface Escritorio {
-  escritorio: number;
-  id_cliente: number;
-  valor_contrato: string | null;
-}
-
 export interface Faturamento {
   [mes: string]: [number, string]; // Ex: ["jan/2024"]: [3000.00, "10.00%"]
 }
@@ -20,6 +14,11 @@ export interface Importacoes {
   total_lancamentos: number;
   total_lancamentos_manuais: number;
   total_geral: number;
+}
+export interface Escritorio {
+  escritorio: number;
+  id_cliente: number;
+  valor_contrato: number | string | null;
 }
 
 export interface EmpresaAnalise {
@@ -68,5 +67,6 @@ export interface EmpresaVar {
   empregados: { [mes: string]: number | string };
   nfe_emitidas: { [mes: string]: number | string };
   nfe_movimentadas: { [mes: string]: number | string };
+  faturamento_escritorio: Escritorio[];
   // Definindo faturamento como um objeto de string (mes) -> number (valor)
 }
