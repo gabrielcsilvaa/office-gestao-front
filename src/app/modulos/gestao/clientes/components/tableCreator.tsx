@@ -45,6 +45,7 @@ export function ListaEmpresas({ empresas }: ListaEmpresasProps) {
         lancamentos_manuais: {},
         empregados: {},
         nfe_emitidas: {},
+        nfe_movimentadas: {},
       };
 
       // Faturamento
@@ -121,9 +122,18 @@ export function ListaEmpresas({ empresas }: ListaEmpresasProps) {
       if (item.importacoes.servicos || item.importacoes.saidas) {
         for (const mes of Object.keys(item.importacoes.saidas)) {
           empresaData.nfe_emitidas[mes] =
-            item.importacoes.saidas[mes] + item.importacoes.entradas[mes];
+            item.importacoes.saidas[mes] + item.importacoes.servicos[mes];
         }
         empresaData.nfe_emitidas.total = item.importacoes.total_saidas + item.importacoes.total_servicos
+      }
+
+      //Total NF-e movimentadas 
+      if (item.importacoes.servicos || item.importacoes.saidas || item.importacoes.entradas) {
+        for (const mes of Object.keys(item.importacoes.saidas)) {
+          empresaData.nfe_movimentadas[mes] =
+            item.importacoes.saidas[mes] + item.importacoes.entradas[mes] + item.importacoes.servicos[mes];
+        }
+        empresaData.nfe_movimentadas.total = item.importacoes.total_saidas + item.importacoes.total_servicos + item.importacoes.total_entradas
       }
 
       // Adiciona o objeto da empresa à lista de valores
