@@ -61,12 +61,14 @@ export interface EmpresaVar {
   responsavel: string | null;
   faturamento: { [mes: string]: number };
   variacao_faturamento: { [mes: string]: string };
-  atividades: { [mes: string]: string };
+  atividades: { [mes: string]: number };
   lancamentos: { [mes: string]: number };
   lancamentos_manuais: { [mes: string]: number | string };
   empregados: { [mes: string]: number | string };
   nfe_emitidas: { [mes: string]: number | string };
   nfe_movimentadas: { [mes: string]: number | string };
   faturamento_escritorio: Escritorio[];
+  custo_operacional: { [mes: string]: number | string };
+  rentabilidade: { [mes: string]: number | string };
   // Definindo faturamento como um objeto de string (mes) -> number (valor)
 }
