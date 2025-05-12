@@ -1,26 +1,288 @@
 "use client";
+import { useState, useEffect } from "react";
+import Card from "./components/card";
+import PieChartComponent from "./components/PieChart"; // Importando o PieChartComponent
+import RamoAtividade from "./components/RamoAtividade";
+import Evolucao from "./components/evolucao";
+import Modal from "./components/modal";
+import AniversariantesParceiros from "./components/aniversario-parceria";
+import AniversariantesSocios from "./components/socios-aniversariantes";
 import { Cairo } from "next/font/google";
-import React, { useState } from "react";
+import ModalRegimeTributario from "./components/modal-regime-tributario"; // Modal correto para o gráfico
 
 const cairo = Cairo({
-    weight: ["500", "600", "700"], // Você pode especificar os pesos que deseja (normal e negrito)
-    subsets: ["latin"],
-  });
+  weight: ["500", "600", "700"],
+  subsets: ["latin"],
+});
+
+// Tipagem corrigida
+interface Empresa {
+  situacao: string;
+  regime_tributario: string;
+  motivo_inatividade: number;
+  ramo_atividade: string;
+  data_cadastro: string;
+}
+
+interface Regime {
+  name: string;
+  value: number;
+  empresas: Empresa[];
+}
+
+interface Socio {
+  nome: string;
+  aniversario: string;
+}
+
+interface Parceria {
+  nome: string;
+  aniversario: string;
+}
 
 export default function Carteira() {
-  const [selectedOption, setSelectedOption] = useState("Selecionar Todos");
+  const [selectedOption, setSelectedOption] = useState<string>("Selecionar Todos");
+  const [isModalOpen, setIsModalOpen] = useState<string | null>(null);
+  const [empresas, setEmpresas] = useState<Empresa[]>([]);
+  const [socios, setSocios] = useState<Socio[]>([]); // Corrigido a tipagem
+  const [parceria, setParceria] = useState<Parceria[]>([]); // Corrigido a tipagem
+  const [novosClientes, setNovosClientes] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [regimesData, setRegimesData] = useState<Regime[]>([]);
+  const [aniversariosParceria, setAniversariosParceria] = useState<number>(50);
+  const [ramoAtividadeData, setRamoAtividadeData] = useState<Array<{ name: string; value: number }>>([]);
+  const [evolucaoData, setEvolucaoData] = useState<Array<{ name: string; value: number }>>([]);
+  
 
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedOption(e.target.value);
   };
 
-  return (
-    <div className="bg-gray-100 min-h-screen"> 
-      <div className="h-[85px] flex flex-row items-center p-4 gap-8 border-b border-black/10 bg-gray-100"> 
-        <div className="flex items-center gap-4">
-          <h1 className= {`text-[32px] leading-8 ${cairo.className} font-700 text-black text-left`}>Carteira de Clientes</h1>
+  const handleOpenModal = () => {
+    setIsModalOpen("Empresas por Regime Tributário");
+  };
 
-          <div className="flex items-center gap-2 ml-4 ">
+  useEffect(() => {
+    const fetchNovosClientes = async () => {
+      try {
+        const body = {
+          start_date: "2024-01-01", 
+          end_date: "2025-12-31" ,
+        };
+        const response = await fetch("/api/analise-carteira/novos-clientes", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Erro na API: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        const totalNovosClientes = data.reduce((total: number, item: { value: number }) => total + item.value, 0);
+        setNovosClientes(totalNovosClientes);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNovosClientes();
+  }, []);
+
+  useEffect(() => {
+    const fetchAniversariosDeParceria = async () => {
+      try {
+        const body = { start_date: "2024-01-01", end_date: "2024-12-31" };
+        const response = await fetch("/api/analise-carteira/aniversario-parceria", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Erro na API: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        setAniversariosParceria(data.aniversarios.aniversariante_cadastro.total);
+        setParceria(data);
+
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("Erro desconhecido");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAniversariosDeParceria();
+  }, []);
+
+  useEffect(() => {
+    const fetchAniversariosData = async () => {
+      try {
+        const response = await fetch("/api/analise-carteira/aniversarios-socios", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            start_date: "2024-01-01", // teste
+            end_date: "2025-12-31",
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Erro na API: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+
+        if (Array.isArray(data)) {
+          setSocios(data);
+
+        } else {
+          setError("Estrutura de dados inesperada");
+        }
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("Erro desconhecido");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAniversariosData();
+  }, []);
+
+  useEffect(() => {
+    const fetchClientData = async () => {
+      try {
+        const response = await fetch("/api/analise-carteira", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Erro na API: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        setEmpresas(data.Empresas);
+
+        // Process regime data
+        const groupedByRegime = data.Empresas.reduce((acc: { [key: string]: Regime }, empresa: Empresa) => {
+          const regime = empresa.regime_tributario;
+          if (!acc[regime]) acc[regime] = { name: regime, value: 0, empresas: [] };
+          acc[regime].value += 1;
+          acc[regime].empresas.push(empresa);
+          return acc;
+        }, {});
+
+        const regimes: Regime[] = Object.values(groupedByRegime).map((item) => ({
+          name: (item as Regime).name,
+          value: (item as Regime).value,
+          empresas: (item as Regime).empresas,
+        }));
+
+        setRegimesData(regimes);
+
+        // Process ramo atividade data
+        const ramoAtividadeCount = data.Empresas.reduce((acc: { [key: string]: number }, empresa: Empresa) => {
+          const ramo = empresa.ramo_atividade || 'Não especificado';
+          acc[ramo] = (acc[ramo] || 0) + 1;
+          return acc;
+        }, {});
+
+        const ramoAtividadeArray = Object.entries(ramoAtividadeCount)
+          .map(([name, value]) => ({ name, value: Number(value) }))
+          .sort((a, b) => b.value - a.value);
+
+        console.log('Dados do Ramo de Atividade:', ramoAtividadeArray);
+        setRamoAtividadeData(ramoAtividadeArray);
+
+        // Processar evolução
+        const counts: { [key: string]: number } = {};
+        data.Empresas.forEach((empresa: Empresa) => {
+          if (empresa.data_cadastro) {
+            const date = new Date(empresa.data_cadastro);
+            const key = date.toLocaleString('default', { month: 'short', year: 'numeric' }); 
+            counts[key] = (counts[key] || 0) + 1;
+          }
+        });
+
+        // Ordenar por data
+        const evolucaoArray = Object.entries(counts)
+          .map(([name, value]) => ({ name, value }))
+          .sort((a, b) => {
+            const [aMonth, aYear] = a.name.split('/');
+            const [bMonth, bYear] = b.name.split('/');
+            const aDate = new Date(`${aMonth} 1, ${aYear}`);
+            const bDate = new Date(`${bMonth} 1, ${bYear}`);
+            return aDate.getTime() - bDate.getTime();
+          });
+
+        console.log('Evolução de cadastros por mês:', evolucaoArray);
+        setEvolucaoData(evolucaoArray);
+
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("Erro desconhecido");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchClientData();
+  }, []); 
+
+  if (loading) return <div>Carregando...</div>;
+  if (error) return <div>Erro: {error}</div>;
+
+  const clientesAtivos = empresas.filter((item) => item.situacao === "A");
+  const clientesInativos = empresas.filter((item) => item.situacao === "I");
+  const clientesBaixados = empresas.filter((item) => item.motivo_inatividade === 2);
+  const clientesTransferidas = empresas.filter((item) => item.motivo_inatividade === 3);
+
+  const cardsData = [
+    { title: "Clientes Ativos", value: clientesAtivos.length, icon: "/assets/icons/Add user 02.svg" },
+    { title: "Novos Clientes", value: novosClientes, icon: "/assets/icons/Add user 03.svg" },
+    { title: "Clientes Inativos", value: clientesInativos.length, icon: "/assets/icons/Add user 01.svg" },
+    { title: "Bloqueados / Baixados", value: clientesBaixados.length + clientesTransferidas.length, icon: "/assets/icons/no user 01.svg" },
+    { title: "Aniversário de Parceria", value: aniversariosParceria, icon: "/assets/icons/clock 01.svg" },
+    { title: "Sócio(s) Aniversariante(s)", value: socios.length, icon: "/assets/icons/business user 01.svg" }
+  ];
+
+  return (
+    <div className="bg-gray-100 min-h-screen relative">
+      <div className="h-[85px] flex flex-row items-center p-4 gap-8 border-b border-black/10 bg-gray-100">
+        <div className="flex items-center gap-4">
+          <h1 className={`text-[32px] leading-8 ${cairo.className} font-700 text-black text-left`}>
+            Carteira de Clientes
+          </h1>
+
+          <div className="flex items-center gap-2 ml-4">
             <select
               value={selectedOption}
               onChange={handleSelectChange}
@@ -31,20 +293,53 @@ export default function Carteira() {
               <option>Opção 2</option>
             </select>
 
-            <button
-              className="p-2 rounded-lg border border-gray-300 bg-white shadow-md hover:bg-gray-100 transition w-32 text-[#9CA3AF]"
-              onClick={() => console.log("Data inicial clicked")}
-            >
+            <button className="p-2 rounded-lg border border-gray-300 bg-white shadow-md hover:bg-gray-100 transition w-32 text-[#9CA3AF]">
               Data inicial
             </button>
-            <button
-              className="p-2 rounded-lg border border-gray-300 bg-white shadow-md hover:bg-gray-100 transition w-32 text-[#9CA3AF]"
-              onClick={() => console.log("Data final clicked")}
-            >
+            <button className="p-2 rounded-lg border border-gray-300 bg-white shadow-md hover:bg-gray-100 transition w-32 text-[#9CA3AF]">
               Data final
             </button>
           </div>
         </div>
+      </div>
+
+      <div className="w-full h-[112px] flex flex-row p-4 gap-8">
+        {cardsData.map((card, index) => (
+          <Card
+            key={index}
+            title={card.title}
+            value={card.value}
+            icon={card.icon}
+            onClick={handleOpenModal}
+          />
+        ))}
+      </div>
+
+      <Modal isOpen={isModalOpen === "Empresas por Regime Tributário"} onClose={() => setIsModalOpen(null)}>
+        <ModalRegimeTributario dados={empresas}/>
+      </Modal>
+
+      <Modal isOpen={isModalOpen === "Aniversário de Parceria"} onClose={() => setIsModalOpen(null)}>
+        <AniversariantesParceiros/>
+      </Modal>
+
+      <Modal isOpen={isModalOpen === "Sócio(s) Aniversariante(s)"} onClose={() => setIsModalOpen(null)}>
+        <AniversariantesSocios />
+      </Modal>
+
+      <div className="flex flex-row gap-2 p-4 justify-between items-stretch h-[381px]">
+        <div className="bg-card text-card-foreground shadow w-1/2 h-full rounded-sm overflow-hidden">
+          <PieChartComponent 
+          data={regimesData}
+          onClick={() => handleOpenModal()} />
+        </div>
+        <div className="bg-card text-card-foreground shadow w-1/2 h-full rounded-sm overflow-hidden">
+          <RamoAtividade data={ramoAtividadeData} />
+        </div>
+      </div>
+
+      <div className="mt-4 p-4">
+        <Evolucao data={evolucaoData} />
       </div>
     </div>
   );
