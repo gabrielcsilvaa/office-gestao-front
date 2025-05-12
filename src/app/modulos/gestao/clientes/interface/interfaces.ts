@@ -9,9 +9,9 @@ export interface Faturamento {
 }
 
 export interface Importacoes {
-  entradas?: Record<string, number>;
-  saidas?: Record<string, number>;
-  servicos?: Record<string, number>;
+  entradas: Record<string, number>;
+  saidas: Record<string, number>;
+  servicos: Record<string, number>;
   lancamentos: { [mes: string]: number };
   lancamentos_manuais: { [mes: string]: number };
   total_entradas: number;

@@ -117,9 +117,14 @@ export function ListaEmpresas({ empresas }: ListaEmpresasProps) {
         empresaData.empregados.total = totalEmpregados;
       }
 
-      //Total NF-e emitidas
-      
-
+      //Total NF-e emitidas / fazendo dessa forma porque está padronizado sempre vir os meses independente do valor
+      if (item.importacoes.servicos || item.importacoes.saidas) {
+        for (const mes of Object.keys(item.importacoes.saidas)) {
+          empresaData.nfe_emitidas[mes] =
+            item.importacoes.saidas[mes] + item.importacoes.entradas[mes];
+        }
+        empresaData.nfe_emitidas.total = item.importacoes.total_saidas + item.importacoes.total_servicos
+      }
 
       // Adiciona o objeto da empresa à lista de valores
       values.push(empresaData);
