@@ -13,7 +13,8 @@ export default function Clientes() {
   const [clientData, setClientData] = useState<EmpresaAnalise[] | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-
+  const [startDate, setStartDate] = useState<string>("2024-01-01");
+  const [endDate, setEndDate] = useState<string>("2024-12-31");
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setValue(e.target.value);
   };
@@ -97,7 +98,13 @@ export default function Clientes() {
       <div className="h-[calc(95vh-85px)] w-full overflow-y-auto p-4">
         <div className="w-max min-w-full shadow-black shadow-lg">
           <div className="overflow-x-auto p-4 bg-white shadow-md rounded-lg">
-            {clientData && <ListaEmpresas empresas={clientData} />}
+            {clientData && (
+              <ListaEmpresas
+                empresas={clientData}
+                start_date={startDate}
+                end_date={endDate}
+              />
+            )}
           </div>
         </div>
       </div>
