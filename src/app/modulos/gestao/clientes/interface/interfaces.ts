@@ -68,6 +68,7 @@ export interface EmpresaVar {
   nfe_emitidas: { [mes: string]: number | string };
   nfe_movimentadas: { [mes: string]: number | string };
   faturamento_escritorio: Escritorio[];
+  faturamento_escritorio_total: number;
   custo_operacional: { [mes: string]: number | string };
   rentabilidade: { [mes: string]: number | string };
   // Definindo faturamento como um objeto de string (mes) -> number (valor)
