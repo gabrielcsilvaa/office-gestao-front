@@ -16,10 +16,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-br">
-      <head>
-        <style>{`:root { font-family: var(--font-cairo), sans-serif; }`}</style>
-      </head>
-      <body className={`antialiased ${cairo.variable} bg-gray-100`}>
+      <body className={`antialiased`}>
         <div className="flex h-screen">
           <div>
             <Header />

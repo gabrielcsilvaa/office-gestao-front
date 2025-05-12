@@ -35,6 +35,10 @@
   .table-tr {
     @apply w-7;
   }
+
+  .usuarios-card {
+    @apply bg-white w-1/5 h-[70px];
+  }
 }
 
 body {
