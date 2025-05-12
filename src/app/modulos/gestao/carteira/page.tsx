@@ -30,7 +30,8 @@ interface Regime {
 export default function Carteira() {
   const [selectedOption, setSelectedOption] = useState<string>("Selecionar Todos");
   const [isModalOpen, setIsModalOpen] = useState<string | null>(null);
-  const [empresas, setEmpresas] = useState<Empresa[]>([]); 
+  const [empresas, setEmpresas] = useState<Empresa[]>([]);
+  const [Socios, setSocios] = useState<Empresa[]>([]); 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [regimesData, setRegimesData] = useState<Regime[]>([]); 
@@ -42,6 +43,49 @@ export default function Carteira() {
   const handleOpenModal = () => {
     setIsModalOpen("Empresas por Regime Tributário");
   };
+
+useEffect(() => {
+  const fetchAniversariosData = async () => {
+    try {
+      const response = await fetch("/api/analise-carteira/aniversarios-socios", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          start_date: "2024-01-01", // teste
+          end_date: "2025-12-31",
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro na API: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log(data); 
+
+      if (Array.isArray(data)) {
+        setSocios(data);
+
+      } else {
+        setError("Estrutura de dados inesperada");
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Erro desconhecido");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchAniversariosData();
+}, []);
+
+
 
   useEffect(() => {
     const fetchClientData = async () => {
@@ -104,7 +148,7 @@ export default function Carteira() {
     { title: "Clientes Inativos", value: clientesInativos.length, icon: "/assets/icons/Add user 01.svg" },
     { title: "Sem movimento / Baixados", value: 0, icon: "/assets/icons/no user 01.svg" },
     { title: "Aniversário de Parceria", value: 50, icon: "/assets/icons/clock 01.svg" },
-    { title: "Sócio(s) Aniversariante(s)", value: 50, icon: "/assets/icons/business user 01.svg" }
+    { title: "Sócio(s) Aniversariante(s)", value: Socios.length, icon: "/assets/icons/business user 01.svg" }
   ];
 
   return (
