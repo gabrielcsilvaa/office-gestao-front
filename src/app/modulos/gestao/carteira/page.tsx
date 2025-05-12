@@ -31,10 +31,12 @@ export default function Carteira() {
   const [selectedOption, setSelectedOption] = useState<string>("Selecionar Todos");
   const [isModalOpen, setIsModalOpen] = useState<string | null>(null);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
-  const [Socios, setSocios] = useState<Empresa[]>([]); 
+  const [Socios, setSocios] = useState<Empresa[]>([]); //trocar tipagem
+  const [Parceria, setParceria] = useState<Empresa[]>([]); //trocar tipagem
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [regimesData, setRegimesData] = useState<Regime[]>([]); 
+  const [regimesData, setRegimesData] = useState<Regime[]>([]);
+  const [aniversariosParceria, setAniversariosParceria] = useState<number>(50)
 
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedOption(e.target.value);
@@ -44,48 +46,81 @@ export default function Carteira() {
     setIsModalOpen("Empresas por Regime Tributário");
   };
 
-useEffect(() => {
-  const fetchAniversariosData = async () => {
-    try {
-      const response = await fetch("/api/analise-carteira/aniversarios-socios", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          start_date: "2024-01-01", // teste
-          end_date: "2025-12-31",
-        }),
-      });
+  useEffect(() => {
+    const fetchAniversariosDeParceria = async () => {
+      try {
+        const body = { start_date: "2024-01-01", end_date: "2024-12-31" };
+        const response = await fetch("/api/analise-carteira/aniversario-parceria", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        });
 
-      if (!response.ok) {
-        throw new Error(`Erro na API: ${response.statusText}`);
+        if (!response.ok) {
+          throw new Error(`Erro na API: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        setAniversariosParceria(data.aniversarios.aniversariante_cadastro.total);
+        setParceria(data);
+
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("Erro desconhecido");
+        }
+      } finally {
+        setLoading(false);
       }
+    };
 
-      const data = await response.json();
-      console.log(data); 
+    fetchAniversariosDeParceria();
+  }, []);
 
-      if (Array.isArray(data)) {
-        setSocios(data);
+    console.log("ME ACHE ME ACHE ME ACHE", aniversariosParceria);
 
-      } else {
-        setError("Estrutura de dados inesperada");
+  useEffect(() => {
+    const fetchAniversariosData = async () => {
+      try {
+        const response = await fetch("/api/analise-carteira/aniversarios-socios", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            start_date: "2024-01-01", // teste
+            end_date: "2025-12-31",
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Erro na API: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+
+        if (Array.isArray(data)) {
+          setSocios(data);
+
+        } else {
+          setError("Estrutura de dados inesperada");
+        }
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          setError(err.message);
+        } else {
+          setError("Erro desconhecido");
+        }
+      } finally {
+        setLoading(false);
       }
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Erro desconhecido");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
 
-  fetchAniversariosData();
-}, []);
-
-
+    fetchAniversariosData();
+  }, []);
 
   useEffect(() => {
     const fetchClientData = async () => {
@@ -140,14 +175,13 @@ useEffect(() => {
   const clientesAtivos = empresas.filter((item) => item.situacao === "A");
   const clientesInativos = empresas.filter((item) => item.situacao === "I");
 
-  console.log(empresas);
 
   const cardsData = [
     { title: "Clientes Ativos", value: clientesAtivos.length, icon: "/assets/icons/Add user 02.svg" },
     { title: "Novos Clientes", value: 150, icon: "/assets/icons/Add user 03.svg" },
     { title: "Clientes Inativos", value: clientesInativos.length, icon: "/assets/icons/Add user 01.svg" },
     { title: "Sem movimento / Baixados", value: 0, icon: "/assets/icons/no user 01.svg" },
-    { title: "Aniversário de Parceria", value: 50, icon: "/assets/icons/clock 01.svg" },
+    { title: "Aniversário de Parceria", value: aniversariosParceria, icon: "/assets/icons/clock 01.svg" },
     { title: "Sócio(s) Aniversariante(s)", value: Socios.length, icon: "/assets/icons/business user 01.svg" }
   ];
 
