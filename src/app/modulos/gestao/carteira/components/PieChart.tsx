@@ -4,20 +4,17 @@ import React from "react";
 import { Pie, PieChart, Cell, Tooltip, LabelList } from "recharts";
 import Image from "next/image";
 
-const PieChartComponent = ({ onClick }: { onClick: () => void }) => {
-  const data = [
-    { name: "Simples Nacional", value: 405 },
-    { name: "Lucro Presumido", value: 251 },
-    { name: "N/D", value: 45 },
-    { name: "Lucro Real", value: 146 },
-    { name: "Doméstica", value: 56 },
-    { name: "Micro Empresa", value: 0 },
-    { name: "Isenta do IRPJ", value: 0 },
-    { name: "Regime Especial de Tributação", value: 0 },
-    { name: "Imune do IRPJ", value: 0 },
-    { name: "MEI", value: 0 },
-  ];
+interface PieChartComponentProps {
+  data: PieChartData[];  // Substituindo any[] por PieChartData[]
+  onClick: () => void;
+}
 
+interface PieChartData {
+  name: string;
+  value: number;
+}
+
+const PieChartComponent = ({ data, onClick }: PieChartComponentProps) => {
   const generateColors = (n: number) => {
     const vibrantPalette = [
       "#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF",
@@ -28,23 +25,17 @@ const PieChartComponent = ({ onClick }: { onClick: () => void }) => {
 
   const colors = generateColors(data.length);
 
-  const handleClick = () => {
-    onClick();  // Função de clique que abre o modal
-  };
-
   return (
     <div className="flex flex-col bg-white rounded-lg shadow-md w-full h-full">
-      {/* Título com a seta no canto superior direito */}
       <div className="flex flex-row justify-between p-0 pr-1">
         <h2 className="text-lg font-semibold ml-4 mt-4 mb-4">Empresas por Regime Tributário</h2>
         <div onClick={onClick} className="cursor-pointer ml-1.5 p-1">
-          {/* Seta no canto superior direito */}
-          <Image  src="/assets/icons/Vector 1275.svg" width={12} height={13.33} alt="seta" />
+          <Image src="/assets/icons/Vector 1275.svg" width={12} height={13.33} alt="seta" />
         </div>
       </div>
 
       <div className="flex flex-row items-center justify-center">
-        <div className="w-[280px] h-[280px] relative cursor-pointer" onClick={handleClick}>
+        <div className="w-[280px] h-[280px] relative cursor-pointer" onClick={onClick}>
           <PieChart width={280} height={280}>
             <Tooltip />
             <Pie
