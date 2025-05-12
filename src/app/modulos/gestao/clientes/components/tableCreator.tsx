@@ -99,8 +99,9 @@ export function ListaEmpresas({ empresas }: ListaEmpresasProps) {
 
         // Calculando o total de lançamentos manuais e aplicando toFixed(2)
         empresaData.lancamentos_manuais.total = (
-          item.importacoes.total_lancamentos_manuais /
-          Object.keys(item.importacoes.lancamentos_manuais).length
+          (item.importacoes.total_lancamentos_manuais /
+            item.importacoes.total_lancamentos) *
+          100
         ).toFixed(2);
       }
 
