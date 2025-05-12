@@ -1,25 +1,24 @@
-export interface Escritorio {
-  escritorio: number;
-  id_cliente: number;
-  valor_contrato: string | null;
-}
-
 export interface Faturamento {
   [mes: string]: [number, string]; // Ex: ["jan/2024"]: [3000.00, "10.00%"]
 }
 
 export interface Importacoes {
-  entradas?: Record<string, number>;
-  saidas?: Record<string, number>;
-  servicos?: Record<string, number>;
-  lancamentos?: Record<string, number>;
-  lancamentos_manuais?: Record<string, number>;
-  total_entradas?: number;
-  total_saidas?: number;
-  total_servicos?: number;
-  total_lancamentos?: number;
-  total_lancamentos_manuais?: number;
-  total_geral?: number;
+  entradas: Record<string, number>;
+  saidas: Record<string, number>;
+  servicos: Record<string, number>;
+  lancamentos: { [mes: string]: number };
+  lancamentos_manuais: { [mes: string]: number };
+  total_entradas: number;
+  total_saidas: number;
+  total_servicos: number;
+  total_lancamentos: number;
+  total_lancamentos_manuais: number;
+  total_geral: number;
+}
+export interface Escritorio {
+  escritorio: number;
+  id_cliente: number;
+  valor_contrato: number | string | null;
 }
 
 export interface EmpresaAnalise {
@@ -51,5 +50,28 @@ export interface Empresa {
 }
 
 export interface ListaEmpresasProps {
-  empresas: Empresa[];
+  empresas: EmpresaAnalise[];
+  start_date: string;
+  end_date: string;
+}
+
+export interface EmpresaVar {
+  nome_empresa: string;
+  cnpj: string;
+  data_cadastro: string;
+  data_inicio_atv: string;
+  responsavel: string | null;
+  faturamento: { [mes: string]: number };
+  variacao_faturamento: { [mes: string]: string };
+  atividades: { [mes: string]: number };
+  lancamentos: { [mes: string]: number };
+  lancamentos_manuais: { [mes: string]: number | string };
+  empregados: { [mes: string]: number | string };
+  nfe_emitidas: { [mes: string]: number | string };
+  nfe_movimentadas: { [mes: string]: number | string };
+  faturamento_escritorio: Escritorio[];
+  faturamento_escritorio_total: number;
+  custo_operacional: { [mes: string]: number | string };
+  rentabilidade: { [mes: string]: number | string };
+  // Definindo faturamento como um objeto de string (mes) -> number (valor)
 }
