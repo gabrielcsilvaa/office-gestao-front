@@ -48,6 +48,7 @@ export function ListaEmpresas({ empresas }: ListaEmpresasProps) {
         nfe_emitidas: {},
         nfe_movimentadas: {},
         faturamento_escritorio: [],
+        faturamento_escritorio_total: 0,
         custo_operacional: {},
         rentabilidade: {},
       };
@@ -145,13 +146,23 @@ export function ListaEmpresas({ empresas }: ListaEmpresasProps) {
       // Custo operacional e rentabilidade
       const custoHora = parseFloat(process.env.NEXT_PUBLIC_CUSTO_HORA || "0");
       const valorContrato = maxValueContrato(item.escritorios);
+      let rentabilidadeFinal = 0;
+      let custoFinal = 0;
+      let faturamentoFinal = 0;
       for (const mes of meses) {
         const segundos = item.atividades?.[mes] ?? 0;
         const horas = segundos / 3600;
         const custo = parseFloat((horas * custoHora).toFixed(2));
         empresaData.custo_operacional[mes] = custo;
         empresaData.rentabilidade[mes] = (valorContrato - custo).toFixed(2);
+        rentabilidadeFinal += parseFloat(empresaData.rentabilidade[mes]);
+        custoFinal += custo;
+        faturamentoFinal += valorContrato;
       }
+
+      empresaData.rentabilidade.total = rentabilidadeFinal;
+      empresaData.custo_operacional.total = custoFinal;
+      empresaData.faturamento_escritorio_total = faturamentoFinal;
 
       values.push(empresaData);
     }
