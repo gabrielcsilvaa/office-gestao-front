@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import UserChart from "./components/chart";
 import Calendar from "@/components/calendar";
 import Link from "next/link";
+import ListaUsuario from "./lista_usuario/page";
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
@@ -13,6 +14,10 @@ const cairo = Cairo({
 
 export default function Usuarios() {
   const [selectedOption, setSelectedOption] = useState("Selecionar Todos");
+  const [mostrarListaUsuarios, setMostrarListaUsuarios] = useState(false);
+
+  const abrirListaUsuarios = () => setMostrarListaUsuarios(true);
+  const fecharListaUsuarios = () => setMostrarListaUsuarios(false);
 
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedOption(e.target.value);
@@ -84,8 +89,13 @@ export default function Usuarios() {
 
           <div className="w-full flex justify-center">
             <div className="grid grid-cols-2 gap-4 p-3">
-              <Link href={"/modulos/gestao/usuarios/lista_usuario"}>
-                <button className="bg-white border border-gray-300 w-[500px] h-[70px]  hover:bg-gray-100  ">
+              <Link
+                href={"/modulos/gestao/usuarios/lista_usuario/lista_usuario"}
+              >
+                <button
+                  onClick={abrirListaUsuarios}
+                  className="bg-white border border-gray-300 w-[500px] h-[70px]  hover:bg-gray-100  "
+                >
                   Lista de Usuários
                 </button>
               </Link>
@@ -103,6 +113,11 @@ export default function Usuarios() {
           </div>
         </div>
       </div>
+
+      <ListaUsuario
+        mostrarMensagem={mostrarListaUsuarios}
+        fecharMensagem={fecharListaUsuarios}
+      />
     </div>
   );
 }
