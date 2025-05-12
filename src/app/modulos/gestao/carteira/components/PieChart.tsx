@@ -5,7 +5,7 @@ import { Pie, PieChart, Cell, Tooltip, LabelList } from "recharts";
 import Image from "next/image";
 
 interface PieChartComponentProps {
-  data: PieChartData[];  // Substituindo any[] por PieChartData[]
+  data: PieChartData[];
   onClick: () => void;
 }
 
@@ -15,15 +15,23 @@ interface PieChartData {
 }
 
 const PieChartComponent = ({ data, onClick }: PieChartComponentProps) => {
-  const generateColors = (n: number) => {
-    const vibrantPalette = [
-      "#FF6384", "#36A2EB", "#FFCE56", "#4BC0C0", "#9966FF",
-      "#FF9F40", "#00A5A8", "#F7464A", "#46BFBD", "#FDB45C"
-    ];
-    return Array.from({ length: n }, (_, i) => vibrantPalette[i % vibrantPalette.length]);
+  const regimeColors: { [key: string]: string } = {
+    "Lucro Real": "#FF6384",           // Rosa
+    "Lucro Presumido": "#36A2EB",      // Azul
+    "Simples Nacional": "#FFCE56",     // Amarelo
+    "N/D": "#E5E7EB",                  // Cinza claro
+    "Regime Especial de Tributação": "#F7464A", // Vermelho
+    "Isenta de IRPJ": "#98FB98",       // Verde claro
+    "Doméstica": "#006400",            // Verde escuro
+    "Micro Empresa": "#FFA500",        // Laranja
+    "MEI": "#40E0D0",                  // Turquesa
+    "Imune do IRPJ": "#FFEB3B"         // Amarelo claro
   };
 
-  const colors = generateColors(data.length);
+  // Ordena os dados do maior para o menor valor
+  const sortedData = [...data].sort((a, b) => b.value - a.value);
+
+  const colors = sortedData.map(entry => regimeColors[entry.name] || "#808080");
 
   return (
     <div className="flex flex-col bg-white rounded-lg shadow-md w-full h-full">
@@ -39,14 +47,14 @@ const PieChartComponent = ({ data, onClick }: PieChartComponentProps) => {
           <PieChart width={280} height={280}>
             <Tooltip />
             <Pie
-              data={data}
+              data={sortedData}
               dataKey="value"
               nameKey="name"
-              outerRadius={100}
+              outerRadius={110}
               stroke="#ffffff"
               labelLine={false}
             >
-              {data.map((entry, i) => (
+              {sortedData.map((entry, i) => (
                 <Cell key={i} fill={colors[i]} />
               ))}
               <LabelList position="inside" style={{ fontSize: "13px" }} />
@@ -55,7 +63,7 @@ const PieChartComponent = ({ data, onClick }: PieChartComponentProps) => {
         </div>
 
         <div className="flex flex-col gap-2 ml-8">
-          {data.map((entry, index) => (
+          {sortedData.map((entry, index) => (
             <div key={index} className="flex items-center gap-2">
               <span
                 className="w-3 h-3 rounded-full"
