@@ -43,6 +43,8 @@ export function ListaEmpresas({ empresas }: ListaEmpresasProps) {
         atividades: {},
         lancamentos: item.importacoes.lancamentos ?? {},
         lancamentos_manuais: {},
+        empregados: {},
+        nfe_emitidas: {},
       };
 
       // Faturamento
@@ -104,6 +106,20 @@ export function ListaEmpresas({ empresas }: ListaEmpresasProps) {
           100
         ).toFixed(2);
       }
+
+      //Adicionando vinculos de folha ativos
+      let totalEmpregados = 0;
+      if (item.empregados) {
+        for (const mes of Object.keys(item.empregados)) {
+          empresaData.empregados[mes] = item.empregados[mes];
+          totalEmpregados += item.empregados[mes];
+        }
+        empresaData.empregados.total = totalEmpregados;
+      }
+
+      //Total NF-e emitidas
+      
+
 
       // Adiciona o objeto da empresa à lista de valores
       values.push(empresaData);
