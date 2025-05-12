@@ -34,7 +34,6 @@ export default function Modal({ isOpen, onClose, children }: ModalProps) {
           className="absolute top-4 right-6 text-gray-600 hover:text-red-500 text-xl"
           onClick={onClose}
         >
-          ×
         </button>
         {children}
       </div>

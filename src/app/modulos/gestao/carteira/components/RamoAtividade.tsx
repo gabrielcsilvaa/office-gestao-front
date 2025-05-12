@@ -7,7 +7,9 @@ interface RamoAtividadeProps {
     }>;
 }
 
+
 export default function RamoAtividade({ data }: RamoAtividadeProps) {
+    console.log('Dados do gráfico:', data);
     return (
         <div className="bg-white rounded-sm shadow-md p-6 w-full h-full border border-gray-200">
             <h2 className="text-lg font-semibold mb-4">Empresas por Ramo de Atividade</h2>
@@ -15,7 +17,7 @@ export default function RamoAtividade({ data }: RamoAtividadeProps) {
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                         layout="vertical"
-                        data={data}
+                        data={data.slice(0, 10)}
                         margin={{ top: 0, right: 20, bottom: 0, left: 0 }}
                         barSize={20}
                     >
@@ -24,7 +26,7 @@ export default function RamoAtividade({ data }: RamoAtividadeProps) {
                         <YAxis
                             type="category"
                             dataKey="name"
-                            width={200}
+                            width={250}
                             tick={{ fontSize: 14, fill: "#374151", fontWeight: 500 }}
                             tickLine={false}
                         />

@@ -21,6 +21,7 @@ interface Empresa {
   regime_tributario: string;
   motivo_inatividade: number;
   ramo_atividade: string;
+  data_cadastro: string;
 }
 
 interface Regime {
@@ -51,6 +52,7 @@ export default function Carteira() {
   const [regimesData, setRegimesData] = useState<Regime[]>([]);
   const [aniversariosParceria, setAniversariosParceria] = useState<number>(50);
   const [ramoAtividadeData, setRamoAtividadeData] = useState<Array<{ name: string; value: number }>>([]);
+  const [evolucaoData, setEvolucaoData] = useState<Array<{ name: string; value: number }>>([]);
   
 
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -217,6 +219,30 @@ export default function Carteira() {
         console.log('Dados do Ramo de Atividade:', ramoAtividadeArray);
         setRamoAtividadeData(ramoAtividadeArray);
 
+        // Processar evolução
+        const counts: { [key: string]: number } = {};
+        data.Empresas.forEach((empresa: Empresa) => {
+          if (empresa.data_cadastro) {
+            const date = new Date(empresa.data_cadastro);
+            const key = date.toLocaleString('default', { month: 'short', year: 'numeric' }); 
+            counts[key] = (counts[key] || 0) + 1;
+          }
+        });
+
+        // Ordenar por data
+        const evolucaoArray = Object.entries(counts)
+          .map(([name, value]) => ({ name, value }))
+          .sort((a, b) => {
+            const [aMonth, aYear] = a.name.split('/');
+            const [bMonth, bYear] = b.name.split('/');
+            const aDate = new Date(`${aMonth} 1, ${aYear}`);
+            const bDate = new Date(`${bMonth} 1, ${bYear}`);
+            return aDate.getTime() - bDate.getTime();
+          });
+
+        console.log('Evolução de cadastros por mês:', evolucaoArray);
+        setEvolucaoData(evolucaoArray);
+
       } catch (err: unknown) {
         if (err instanceof Error) {
           setError(err.message);
@@ -290,30 +316,30 @@ export default function Carteira() {
       </div>
 
       <Modal isOpen={isModalOpen === "Empresas por Regime Tributário"} onClose={() => setIsModalOpen(null)}>
-        <ModalRegimeTributario />
+        <ModalRegimeTributario dados={empresas}/>
       </Modal>
 
       <Modal isOpen={isModalOpen === "Aniversário de Parceria"} onClose={() => setIsModalOpen(null)}>
-        <AniversariantesParceiros />
+        <AniversariantesParceiros/>
       </Modal>
 
       <Modal isOpen={isModalOpen === "Sócio(s) Aniversariante(s)"} onClose={() => setIsModalOpen(null)}>
         <AniversariantesSocios />
       </Modal>
 
-      <div className="flex flex-row gap-2 p-4 justify-between items-center h-[381px]">
-        <div className="bg-card text-card-foreground shadow w-full h-full rounded-sm overflow-auto">
+      <div className="flex flex-row gap-2 p-4 justify-between items-stretch h-[381px]">
+        <div className="bg-card text-card-foreground shadow w-1/2 h-full rounded-sm overflow-hidden">
           <PieChartComponent 
           data={regimesData}
           onClick={() => handleOpenModal()} />
         </div>
-        <div className="bg-card text-card-foreground shadow w-full h-full rounded-sm overflow-auto">
+        <div className="bg-card text-card-foreground shadow w-1/2 h-full rounded-sm overflow-hidden">
           <RamoAtividade data={ramoAtividadeData} />
         </div>
       </div>
 
       <div className="mt-4 p-4">
-        <Evolucao />
+        <Evolucao data={evolucaoData} />
       </div>
     </div>
   );
