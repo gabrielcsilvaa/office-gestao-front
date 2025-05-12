@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import Card from "./components/card";
-import PieChartComponent from "./components/PieChart";  // Importando o PieChartComponent
+import PieChartComponent from "./components/PieChart"; // Importando o PieChartComponent
 import RamoAtividadeChart from "./components/RamoAtividade";
 import Evolucao from "./components/evolucao";
 import Modal from "./components/modal";
@@ -15,32 +15,42 @@ const cairo = Cairo({
   subsets: ["latin"],
 });
 
+// erro tipagem
+interface Empresa {
+  situacao: string;
+  regime_tributario: string;
+}
+
+interface Regime {
+  name: string;
+  value: number;
+  empresas: Empresa[];
+}
+
 export default function Carteira() {
-  const [selectedOption, setSelectedOption] = useState("Selecionar Todos");
+  const [selectedOption, setSelectedOption] = useState<string>("Selecionar Todos");
   const [isModalOpen, setIsModalOpen] = useState<string | null>(null);
-  const [empresas, setEmpresas] = useState(Object)
+  const [empresas, setEmpresas] = useState<Empresa[]>([]); 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [regimesData, setRegimesData] = useState<Regime[]>([]); 
 
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedOption(e.target.value);
   };
 
   const handleOpenModal = () => {
-    setIsModalOpen("Empresas por Regime Tributário");  
+    setIsModalOpen("Empresas por Regime Tributário");
   };
 
-
-useEffect(() => {
+  useEffect(() => {
     const fetchClientData = async () => {
       try {
-        
         const response = await fetch("/api/analise-carteira", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-         
         });
 
         if (!response.ok) {
@@ -49,6 +59,23 @@ useEffect(() => {
 
         const data = await response.json();
         setEmpresas(data.Empresas);
+
+        const groupedByRegime = data.Empresas.reduce((acc: { [key: string]: Regime }, empresa: Empresa) => {
+          const regime = empresa.regime_tributario;
+          if (!acc[regime]) acc[regime] = { name: regime, value: 0, empresas: [] };
+          acc[regime].value += 1;
+          acc[regime].empresas.push(empresa); // Adiciona a empresa ao regime
+          return acc;
+        }, {});
+
+        const regimes: Regime[] = Object.values(groupedByRegime).map((item) => ({
+          name: (item as Regime).name,
+          value: (item as Regime).value,
+          empresas: (item as Regime).empresas, // Passa as empresas filtradas
+        }));
+
+        setRegimesData(regimes);
+
       } catch (err: unknown) {
         if (err instanceof Error) {
           setError(err.message);
@@ -61,15 +88,20 @@ useEffect(() => {
     };
 
     fetchClientData();
-  }, []); // executa uma vez no mount
-  console.log(empresas)
+  }, []); 
+
   if (loading) return <div>Carregando...</div>;
   if (error) return <div>Erro: {error}</div>;
 
+  const clientesAtivos = empresas.filter((item) => item.situacao === "A");
+  const clientesInativos = empresas.filter((item) => item.situacao === "I");
+
+  console.log(empresas);
+
   const cardsData = [
-    { title: "Clientes Ativos", value: 712, icon: "/assets/icons/Add user 02.svg" },
+    { title: "Clientes Ativos", value: clientesAtivos.length, icon: "/assets/icons/Add user 02.svg" },
     { title: "Novos Clientes", value: 150, icon: "/assets/icons/Add user 03.svg" },
-    { title: "Clientes Inativos", value: 228, icon: "/assets/icons/Add user 01.svg" },
+    { title: "Clientes Inativos", value: clientesInativos.length, icon: "/assets/icons/Add user 01.svg" },
     { title: "Sem movimento / Baixados", value: 0, icon: "/assets/icons/no user 01.svg" },
     { title: "Aniversário de Parceria", value: 50, icon: "/assets/icons/clock 01.svg" },
     { title: "Sócio(s) Aniversariante(s)", value: 50, icon: "/assets/icons/business user 01.svg" }
@@ -111,7 +143,7 @@ useEffect(() => {
             title={card.title}
             value={card.value}
             icon={card.icon}
-            onClick={handleOpenModal}  // Chama handleOpenModal ao clicar no card
+            onClick={handleOpenModal}
           />
         ))}
       </div>
@@ -130,8 +162,9 @@ useEffect(() => {
 
       <div className="flex flex-row gap-2 p-4 justify-between items-center h-[381px]">
         <div className="bg-card text-card-foreground shadow w-full h-full rounded-sm overflow-auto">
-          {/* Passando uma função anônima para o onClick (resumindo erro bobo)*/}
-          <PieChartComponent onClick={() => handleOpenModal()} />
+          <PieChartComponent 
+          data={regimesData}
+          onClick={() => handleOpenModal()} />
         </div>
         <div className="bg-card text-card-foreground shadow w-full h-full rounded-sm overflow-auto">
           <div>
