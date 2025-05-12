@@ -1,21 +1,13 @@
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
-const ramoData = [
-    { name: "Comércio", value: 297 },
-    { name: "Educação e Saúde", value: 112 },
-    { name: "Desconhecido", value: 98 },
-    { name: "Administração Pública e Serviços Diversos", value: 85 },
-    { name: "Serviços Profissionais", value: 77 },
-    { name: "Serviços Domésticos", value: 52 },
-    { name: "Indústria", value: 51 },
-    { name: "Construção", value: 39 },
-    { name: "Outros", value: 32 },
-    { name: "Informação e Comunicação", value: 30 },
-    { name: "Hospedagem e Alimentação", value: 29 },
-    { name: "Agropecuária", value: 14 },
-];
+interface RamoAtividadeProps {
+    data: Array<{
+        name: string;
+        value: number;
+    }>;
+}
 
-export default function RamoAtividade() {
+export default function RamoAtividade({ data }: RamoAtividadeProps) {
     return (
         <div className="bg-white rounded-sm shadow-md p-6 w-full h-full border border-gray-200">
             <h2 className="text-lg font-semibold mb-4">Empresas por Ramo de Atividade</h2>
@@ -23,7 +15,7 @@ export default function RamoAtividade() {
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                         layout="vertical"
-                        data={ramoData}
+                        data={data}
                         margin={{ top: 0, right: 20, bottom: 0, left: 0 }}
                         barSize={20}
                     >
