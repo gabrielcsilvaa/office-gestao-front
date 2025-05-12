@@ -1,6 +1,7 @@
 import { formatadorBRL } from "@/utils/formatadores";
 import { EmpresaVar, ListaEmpresasProps } from "../interface/interfaces";
 import { formatadorSegParaHor } from "@/utils/formatadores";
+import { maxValueContrato } from "../services/maxValorContrato";
 
 function gerarIntervaloDeMeses(start: string, end: string): string[] {
   const [startAno, startMes] = start.split("-").map(Number);
@@ -47,112 +48,111 @@ export function ListaEmpresas({ empresas }: ListaEmpresasProps) {
         nfe_emitidas: {},
         nfe_movimentadas: {},
         faturamento_escritorio: [],
+        custo_operacional: {},
+        rentabilidade: {},
       };
 
       // Faturamento
       let totalFaturamento = 0;
-      for (const mes of Object.keys(item.faturamento)) {
-        empresaData.faturamento[mes] = item.faturamento[mes][0];
-        totalFaturamento += item.faturamento[mes][0];
+      for (const mes of meses) {
+        const valor = item.faturamento?.[mes]?.[0] ?? 0;
+        empresaData.faturamento[mes] = valor;
+        totalFaturamento += valor;
       }
       empresaData.faturamento.total = totalFaturamento;
 
       // Variação do faturamento
       let mediaVariacaoFaturamento = 0;
-      for (const mes of Object.keys(item.faturamento)) {
-        empresaData.variacao_faturamento[mes] = item.faturamento[mes][1];
-
-        const numFormatado = parseFloat(
-          item.faturamento[mes][1].replace("%", "")
-        );
-        mediaVariacaoFaturamento += numFormatado;
+      for (const mes of meses) {
+        const variacao = item.faturamento?.[mes]?.[1] ?? "0.00%";
+        empresaData.variacao_faturamento[mes] = variacao;
+        const numFormatado = parseFloat(variacao.replace("%", ""));
+        mediaVariacaoFaturamento += isNaN(numFormatado) ? 0 : numFormatado;
       }
 
-      // Calculando a média e verificando se é NaN ou Infinity
-      let mediaFormatada =
-        mediaVariacaoFaturamento / Object.keys(item.faturamento).length;
+      let mediaFormatada = mediaVariacaoFaturamento / meses.length;
       if (isNaN(mediaFormatada) || !isFinite(mediaFormatada)) {
-        mediaFormatada = 0; // Se for NaN ou Infinity, setamos a média como 0
+        mediaFormatada = 0;
       }
       empresaData.variacao_faturamento.total = `${mediaFormatada.toFixed(2)}%`;
 
-      //Atividades
-      for (const mes of Object.keys(item.atividades)) {
-        empresaData.atividades[mes] = formatadorSegParaHor(
-          item.atividades[mes]
-        );
+      // Atividades
+      let totalAtividades = 0;
+      for (const mes of meses) {
+        const valor = item.atividades?.[mes] ?? 0;
+        empresaData.atividades[mes] = valor;
+        totalAtividades += valor;
       }
-      empresaData.atividades.total = formatadorSegParaHor(
-        item.atividades.total
-      );
+      empresaData.atividades.total = totalAtividades;
 
-      //lancamentos / adicionando apenas o total que falta
-      if (item.importacoes.total_lancamentos) {
-        empresaData.lancamentos.total = item.importacoes.total_lancamentos;
+      // Lançamentos
+      for (const mes of meses) {
+        empresaData.lancamentos[mes] =
+          item.importacoes?.lancamentos?.[mes] ?? 0;
       }
-      // Lançamentos Manuais, transformando variação em porcentagem
-      if (item.importacoes.lancamentos_manuais) {
-        for (const mes of Object.keys(item.importacoes.lancamentos_manuais)) {
-          // Calculando a variação e aplicando toFixed(2) para garantir 2 casas decimais
-          empresaData.lancamentos_manuais[mes] = (
-            (item.importacoes.lancamentos_manuais[mes] /
-              item.importacoes.lancamentos[mes]) *
-            100
-          ).toFixed(2); // Arredondando para 2 casas decimais
-        }
+      empresaData.lancamentos.total = item.importacoes?.total_lancamentos ?? 0;
 
-        // Calculando o total de lançamentos manuais e aplicando toFixed(2)
-        empresaData.lancamentos_manuais.total = (
-          (item.importacoes.total_lancamentos_manuais /
-            item.importacoes.total_lancamentos) *
-          100
-        ).toFixed(2);
+      // Lançamentos Manuais (%)
+      for (const mes of meses) {
+        const manual = item.importacoes?.lancamentos_manuais?.[mes] ?? 0;
+        const normal = item.importacoes?.lancamentos?.[mes] ?? 0;
+        empresaData.lancamentos_manuais[mes] =
+          normal > 0 ? ((manual / normal) * 100).toFixed(2) : "0.00";
       }
+      const totalManual = item.importacoes?.total_lancamentos_manuais ?? 0;
+      const totalNormal = item.importacoes?.total_lancamentos ?? 0;
+      empresaData.lancamentos_manuais.total =
+        totalNormal > 0
+          ? ((totalManual / totalNormal) * 100).toFixed(2)
+          : "0.00";
 
-      //Adicionando vinculos de folha ativos
+      // Empregados
       let totalEmpregados = 0;
-      if (item.empregados) {
-        for (const mes of Object.keys(item.empregados)) {
-          empresaData.empregados[mes] = item.empregados[mes];
-          totalEmpregados += item.empregados[mes];
-        }
-        empresaData.empregados.total = totalEmpregados;
+      for (const mes of meses) {
+        const qtd = item.empregados?.[mes] ?? 0;
+        empresaData.empregados[mes] = qtd;
+        totalEmpregados += qtd;
+      }
+      empresaData.empregados.total = totalEmpregados;
+
+      // NF-e emitidas
+      let totalEmitidas = 0;
+      for (const mes of meses) {
+        const servicos = item.importacoes?.servicos?.[mes] ?? 0;
+        const saidas = item.importacoes?.saidas?.[mes] ?? 0;
+        const total = servicos + saidas;
+        empresaData.nfe_emitidas[mes] = total;
+        totalEmitidas += total;
       }
 
-      //Total NF-e emitidas / fazendo dessa forma porque está padronizado sempre vir os meses independente do valor
-      if (item.importacoes.servicos || item.importacoes.saidas) {
-        for (const mes of Object.keys(item.importacoes.saidas)) {
-          empresaData.nfe_emitidas[mes] =
-            item.importacoes.saidas[mes] + item.importacoes.servicos[mes];
-        }
-        empresaData.nfe_emitidas.total =
-          item.importacoes.total_saidas + item.importacoes.total_servicos;
+      empresaData.nfe_emitidas.total = totalEmitidas ?? 0;
+
+      // NF-e movimentadas
+      let totalMovimentadas = 0;
+      for (const mes of meses) {
+        const entradas = item.importacoes?.entradas?.[mes] ?? 0;
+        const saidas = item.importacoes?.saidas?.[mes] ?? 0;
+        const servicos = item.importacoes?.servicos?.[mes] ?? 0;
+        const total = entradas + saidas + servicos;
+        empresaData.nfe_movimentadas[mes] = total;
+        totalMovimentadas += total;
+      }
+      empresaData.nfe_movimentadas.total = totalMovimentadas ?? 0;
+
+      // Escritórios
+      empresaData.faturamento_escritorio = item.escritorios ?? [];
+
+      // Custo operacional e rentabilidade
+      const custoHora = parseFloat(process.env.NEXT_PUBLIC_CUSTO_HORA || "0");
+      const valorContrato = maxValueContrato(item.escritorios);
+      for (const mes of meses) {
+        const segundos = item.atividades?.[mes] ?? 0;
+        const horas = segundos / 3600;
+        const custo = parseFloat((horas * custoHora).toFixed(2));
+        empresaData.custo_operacional[mes] = custo;
+        empresaData.rentabilidade[mes] = (valorContrato - custo).toFixed(2);
       }
 
-      //Total NF-e movimentadas
-      if (
-        item.importacoes.servicos ||
-        item.importacoes.saidas ||
-        item.importacoes.entradas
-      ) {
-        for (const mes of Object.keys(item.importacoes.saidas)) {
-          empresaData.nfe_movimentadas[mes] =
-            item.importacoes.saidas[mes] +
-            item.importacoes.entradas[mes] +
-            item.importacoes.servicos[mes];
-        }
-        empresaData.nfe_movimentadas.total =
-          item.importacoes.total_saidas +
-          item.importacoes.total_servicos +
-          item.importacoes.total_entradas;
-      }
-
-      //Faturamento do escritório
-      if (item.escritorios) {
-        empresaData.faturamento_escritorio = item.escritorios;
-      }
-
-      // Adiciona o objeto da empresa à lista de valores
       values.push(empresaData);
     }
 
