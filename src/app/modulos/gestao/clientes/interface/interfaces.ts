@@ -67,5 +67,6 @@ export interface EmpresaVar {
   lancamentos_manuais: { [mes: string]: number | string };
   empregados: { [mes: string]: number | string };
   nfe_emitidas: { [mes: string]: number | string };
+  nfe_movimentadas: { [mes: string]: number | string };
   // Definindo faturamento como um objeto de string (mes) -> number (valor)
 }
