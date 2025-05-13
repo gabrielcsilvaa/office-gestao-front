@@ -94,7 +94,7 @@ export default function Login() {
           </a>
           <button
             onClick={fetchLoginAuth} // Chama a função de login ao clicar
-            className={`w-40 rounded-lg bg-[#373A40] h-9 text-sm text-white ${cairo.className}`}
+            className={`cursor-pointer w-40 rounded-lg bg-[#373A40] h-9 text-sm text-white ${cairo.className}`}
           >
             Entrar
           </button>
