@@ -14,6 +14,9 @@ const cairo = Cairo({
 export default function Clientes() {
   const [value, setValue] = useState("");
   const [clientData, setClientData] = useState<EmpresaAnalise[] | null>(null);
+  const [filteredData, setFilteredData] = useState<EmpresaAnalise[] | null>(
+    null
+  ); // dados filtrados
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [startDate, setStartDate] = useState<string | null>(null);
@@ -61,6 +64,7 @@ export default function Clientes() {
 
         const data = await response.json();
         setClientData(data);
+        setFilteredData(data);
       } catch (err: unknown) {
         if (err instanceof Error) {
           setError(err.message);
@@ -77,6 +81,18 @@ export default function Clientes() {
       fetchClientData();
     }
   }, [startDate, endDate]); // Executa quando startDate ou endDate mudam
+
+  // Filtro dinâmico
+  useEffect(() => {
+    if (clientData) {
+      const lowercasedValue = value.toLowerCase(); // Converte o valor digitado para minúsculas
+      const filtered = clientData.filter(
+        (empresa) =>
+          empresa.nome_empresa.toLowerCase().includes(lowercasedValue) // Filtra pelo nome da empresa
+      );
+      setFilteredData(filtered); // Atualiza os dados filtrados
+    }
+  }, [value, clientData]); // Executa o filtro sempre que o valor de pesquisa ou os dados mudarem
 
   return (
     <div className="max-h-screen bg-gray-100">
@@ -115,9 +131,9 @@ export default function Clientes() {
             ) : error ? (
               <div>Erro: {error}</div> // Exibe mensagem de erro se houver
             ) : (
-              clientData && (
+              filteredData && (
                 <ListaEmpresas
-                  empresas={clientData}
+                  empresas={filteredData}
                   start_date={startDate}
                   end_date={endDate}
                 />
