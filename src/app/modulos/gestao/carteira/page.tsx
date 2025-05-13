@@ -35,17 +35,12 @@ interface Socio {
   aniversario: string;
 }
 
-interface Parceria {
-  nome: string;
-  aniversario: string;
-}
-
 export default function Carteira() {
   const [selectedOption, setSelectedOption] = useState<string>("Selecionar Todos");
   const [isModalOpen, setIsModalOpen] = useState<string | null>(null);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [socios, setSocios] = useState<Socio[]>([]); // Corrigido a tipagem
-  const [parceria, setParceria] = useState<Parceria[]>([]); // Corrigido a tipagem
+  const [parceria, setParceria] = useState<Empresa[]>([]); // Corrigido a tipagem
   const [novosClientes, setNovosClientes] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -59,8 +54,8 @@ export default function Carteira() {
     setSelectedOption(e.target.value);
   };
 
-  const handleOpenModal = () => {
-    setIsModalOpen("Empresas por Regime Tributário");
+  const handleOpenModal = (title: string) => {
+    setIsModalOpen(title);
   };
 
   useEffect(() => {
@@ -115,7 +110,7 @@ export default function Carteira() {
 
         const data = await response.json();
         setAniversariosParceria(data.aniversarios.aniversariante_cadastro.total);
-        setParceria(data);
+        setParceria(data.aniversarios.aniversariante_cadastro.empresas);
 
       } catch (err: unknown) {
         if (err instanceof Error) {
@@ -130,6 +125,8 @@ export default function Carteira() {
 
     fetchAniversariosDeParceria();
   }, []);
+
+  console.log("doiasjdoaldlandl", parceria)
 
   useEffect(() => {
     const fetchAniversariosData = async () => {
@@ -216,7 +213,6 @@ export default function Carteira() {
           .map(([name, value]) => ({ name, value: Number(value) }))
           .sort((a, b) => b.value - a.value);
 
-        console.log('Dados do Ramo de Atividade:', ramoAtividadeArray);
         setRamoAtividadeData(ramoAtividadeArray);
 
         // Processar evolução
@@ -240,7 +236,6 @@ export default function Carteira() {
             return aDate.getTime() - bDate.getTime();
           });
 
-        console.log('Evolução de cadastros por mês:', evolucaoArray);
         setEvolucaoData(evolucaoArray);
 
       } catch (err: unknown) {
@@ -310,7 +305,7 @@ export default function Carteira() {
             title={card.title}
             value={card.value}
             icon={card.icon}
-            onClick={handleOpenModal}
+            onClick={() => handleOpenModal(card.title)}
           />
         ))}
       </div>
@@ -320,20 +315,25 @@ export default function Carteira() {
       </Modal>
 
       <Modal isOpen={isModalOpen === "Aniversário de Parceria"} onClose={() => setIsModalOpen(null)}>
-        <AniversariantesParceiros/>
+        <AniversariantesParceiros dados={parceria}/>
       </Modal>
 
       <Modal isOpen={isModalOpen === "Sócio(s) Aniversariante(s)"} onClose={() => setIsModalOpen(null)}>
         <AniversariantesSocios />
       </Modal>
 
-      <div className="flex flex-row gap-2 p-4 justify-between items-stretch h-[381px]">
-        <div className="bg-card text-card-foreground shadow w-1/2 h-full rounded-sm overflow-hidden">
-          <PieChartComponent 
-          data={regimesData}
-          onClick={() => handleOpenModal()} />
+      <div className="flex flex-col md:flex-row gap-4 p-4">
+        <div 
+          className="bg-white shadow rounded-md w-full md:w-1/2 h-[381px] flex items-center justify-center overflow-hidden cursor-pointer"
+        >
+          <PieChartComponent data={regimesData}
+            dados={regimesData} 
+            onClick={() => handleOpenModal("Empresas por Regime Tributário")}  
+            />
         </div>
-        <div className="bg-card text-card-foreground shadow w-1/2 h-full rounded-sm overflow-hidden">
+        <div 
+          className="bg-white shadow rounded-md w-full md:w-1/2 h-[381px] flex items-center justify-center overflow-hidden"
+        >
           <RamoAtividade data={ramoAtividadeData} />
         </div>
       </div>
