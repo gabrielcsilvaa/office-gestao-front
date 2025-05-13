@@ -3,6 +3,13 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Cairo } from "next/font/google";
+
+const cairo = Cairo({
+  weight: ["500", "600", "700"],
+  subsets: ["latin"],
+});
+
 
 export default function Login() {
   const router = useRouter();
@@ -58,10 +65,10 @@ export default function Login() {
       <div className="w-full max-w-[1000px] shadow-[-10px_-10px_15px_rgba(0,_0,_0,_0.35),_10px_10px_15px_rgba(0,_0,_0,_0.35)] rounded-[30px] bg-white h-auto lg:h-[625px] overflow-hidden flex flex-col lg:flex-row">
         {/* Formulário */}
         <div className="w-full lg:w-1/2 h-full flex flex-col gap-4 items-center justify-center px-6 py-10">
-          <b className="text-3xl font-cairo text-black text-center w-full">
+          <b className={`text-3xl ${cairo.className} text-black text-center w-full`}>
             Login
           </b>
-          <span className="text-sm font-medium font-cairo text-black text-center w-full">
+          <span className={`text-sm font-medium ${cairo.className} text-black text-center w-full`}>
             utilize seu email e senha para acessar a plataforma
           </span>
           {error && <div className="text-red-500">{error}</div>}{" "}
@@ -81,13 +88,13 @@ export default function Login() {
             placeholder="Senha"
           />
           <a href="" className="w-full text-center">
-            <span className="text-sm font-medium font-cairo text-black">
+            <span className={`text-sm font-medium ${cairo.className} text-black`}>
               Esqueceu a senha?
             </span>
           </a>
           <button
             onClick={fetchLoginAuth} // Chama a função de login ao clicar
-            className="w-40 rounded-lg bg-[#373A40] h-9 text-sm text-white font-cairo"
+            className={`w-40 rounded-lg bg-[#373A40] h-9 text-sm text-white ${cairo.className}`}
           >
             Entrar
           </button>
