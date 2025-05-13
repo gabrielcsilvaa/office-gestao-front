@@ -5,11 +5,11 @@ import { Pie, PieChart, Cell, Tooltip, LabelList } from "recharts";
 import Image from "next/image";
 
 interface PieChartComponentProps {
-  data: PieChartData[];
+  data: Regime[];
   onClick: () => void;
 }
 
-interface PieChartData {
+interface Regime {
   name: string;
   value: number;
 }

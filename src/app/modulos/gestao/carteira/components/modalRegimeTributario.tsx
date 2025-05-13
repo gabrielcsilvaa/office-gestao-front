@@ -1,6 +1,13 @@
 import { useState } from "react";
 
-interface Empresa {
+import { Cairo } from "next/font/google";
+
+const cairo = Cairo({
+  weight: ["500", "600", "700"], // Você pode especificar os pesos que deseja (normal e negrito)
+  subsets: ["latin"],
+});
+
+interface regimeTributario {
   id: number;
   nome_empresa: string;
   regime_tributario: string;
@@ -11,7 +18,7 @@ interface Empresa {
 }
 
 interface ListaEmpresasRegimeTributarioProps {
-  dados: Empresa[];
+  dados: regimeTributario[];
   onClose: () => void;
 }
 
@@ -66,10 +73,10 @@ export default function ListaEmpresasRegimeTributario({ dados, onClose }: ListaE
     return filteredEmpresas;
   };
 
-  const sortEmpresas = (empresas: Empresa[]) => {
+  const sortEmpresas = (empresas: regimeTributario[]) => {
     return empresas.sort((a, b) => {
-      const aValue = a[sortConfig.key as keyof Empresa];
-      const bValue = b[sortConfig.key as keyof Empresa];
+      const aValue = a[sortConfig.key as keyof regimeTributario];
+      const bValue = b[sortConfig.key as keyof regimeTributario];
       
       if (aValue < bValue) {
         return sortConfig.direction === "asc" ? -1 : 1;
@@ -101,7 +108,7 @@ export default function ListaEmpresasRegimeTributario({ dados, onClose }: ListaE
   return (
     <div className="flex flex-col gap-4 overflow-x-auto max-h-[700px] w-full">
       <div className="flex items-center justify-between p-4 bg-white shadow rounded-md mb-4">
-        <h1 className="text-2xl font-bold font-cairo text-gray-800">Empresas por Regime Tributário</h1>
+        <h1 className={`text-2xl font-bold ${cairo.className} text-gray-800`}>Empresas por Regime Tributário</h1>
         <div className="flex items-center gap-4">
           <input
             type="text"
