@@ -64,7 +64,7 @@ export default function AniversariantesParceiros({ dados, onClose }: Aniversaria
   };
 
   // Função para ordenar os dados
-  const sortData = (key: keyof Empresa) => {
+  const sortData = (key: keyof Parceria) => {
     const direction = sortConfig.direction === "asc" ? "desc" : "asc";
     setSortConfig({ key, direction });
   };

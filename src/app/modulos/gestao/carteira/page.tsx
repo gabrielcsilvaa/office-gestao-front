@@ -22,7 +22,19 @@ interface Parceria {
   data_cadastro: string;
   data_inicio_atividades: string;
 }
-// Tipagem corrigida
+
+interface regimeTributario {
+  id: number;
+  nome_empresa: string;
+  regime_tributario: string;
+  cnpj: string;
+  data_cadastro: string;
+  responsavel_legal: string;
+  data_inatividade: string;
+  motivo_inatividade: number;
+  situacao: string
+}
+
 interface Empresa {
   situacao: string;
   regime_tributario: string;
@@ -38,14 +50,16 @@ interface Regime {
 }
 
 interface Socio {
+  id: number;
   nome: string;
-  aniversario: string;
+  data_nascimento: string;
+  idade?: number; // Tornando idade opcional já que vamos calculá-la
 }
 
 export default function Carteira() {
   const [selectedOption, setSelectedOption] = useState<string>("Selecionar Todos");
   const [isModalOpen, setIsModalOpen] = useState<string | null>(null);
-  const [empresas, setEmpresas] = useState<Empresa[]>([]);
+  const [empresas, setEmpresas] = useState<regimeTributario[]>([]);
   const [socios, setSocios] = useState<Socio[]>([]); // Corrigido a tipagem
   const [parceria, setParceria] = useState<Parceria[]>([]); // Corrigido a tipagem
   const [novosClientes, setNovosClientes] = useState<number>(0);
@@ -114,7 +128,7 @@ export default function Carteira() {
   useEffect(() => {
     const fetchAniversariosDeParceria = async () => {
       try {
-        const body = { start_date: "2024-01-01", end_date: "2024-12-31" };
+        const body = { start_date: startDate, end_date: endDate };
         const response = await fetch("/api/analise-carteira/aniversario-parceria", {
           method: "POST",
           headers: {
@@ -143,7 +157,7 @@ export default function Carteira() {
     };
 
     fetchAniversariosDeParceria();
-  }, []);
+  }, [startDate, endDate]);
 
 
 useEffect(() => {
@@ -155,8 +169,8 @@ useEffect(() => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          start_date: "2024-01-01",
-          end_date: "2025-12-31",
+          start_date: startDate,
+          end_date: endDate,
         }),
       });
 
@@ -178,6 +192,7 @@ useEffect(() => {
       });
 
       setSocios(sociosFormatados);
+      
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -190,19 +205,25 @@ useEffect(() => {
   };
 
   fetchAniversariosData();
-}, []);
+}, [startDate, endDate]);
 
 
-  console.log("onsdfdsnflskndsflsnOI", parceria)
+  console.log("onsdfdsnflskndsflsnOI", socios)
 
   useEffect(() => {
     const fetchClientData = async () => {
       try {
+        const body = {
+          start_date: startDate,
+          end_date: endDate,
+        };
+
         const response = await fetch("/api/analise-carteira", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
+          body: JSON.stringify(body),
         });
 
         if (!response.ok) {
@@ -211,8 +232,9 @@ useEffect(() => {
 
         const data = await response.json();
         setEmpresas(data.Empresas);
+        console.log("Dados Empresas:", data);
 
-        // Process regime data
+        // Processando dados de regime tributário
         const groupedByRegime = data.Empresas.reduce((acc: { [key: string]: Regime }, empresa: Empresa) => {
           const regime = empresa.regime_tributario;
           if (!acc[regime]) acc[regime] = { name: regime, value: 0, empresas: [] };
@@ -229,9 +251,9 @@ useEffect(() => {
 
         setRegimesData(regimes);
 
-        // Process ramo atividade data
+        // Processando dados de ramo de atividade
         const ramoAtividadeCount = data.Empresas.reduce((acc: { [key: string]: number }, empresa: Empresa) => {
-          const ramo = empresa.ramo_atividade || 'Não especificado';
+          const ramo = empresa.ramo_atividade || "Não especificado";
           acc[ramo] = (acc[ramo] || 0) + 1;
           return acc;
         }, {});
@@ -242,27 +264,28 @@ useEffect(() => {
 
         setRamoAtividadeData(ramoAtividadeArray);
 
-        //data teste para o card evoluçao
-        const startEvolucao = new Date("2024-01-01");
-        const endEvolucao = new Date("2025-12-01");
+        // Processando dados de evolução
+        const formatDate = (date: Date) => date.toISOString().split("T")[0];
+        const startEvolucao = startDate ? formatDate(new Date(startDate)) : "";
+        const endEvolucao = endDate ? formatDate(new Date(endDate)) : "";
 
         const counts: { [key: string]: number } = {};
         data.Empresas.forEach((empresa: Empresa) => {
           if (empresa.data_cadastro) {
-            const dataCadastro = new Date(empresa.data_cadastro);
+            const dataCadastro = formatDate(new Date(empresa.data_cadastro));
             if (dataCadastro >= startEvolucao && dataCadastro <= endEvolucao) {
-              const key = dataCadastro.toLocaleString('default', { month: 'short', year: 'numeric' }); 
+              const key = new Date(empresa.data_cadastro).toLocaleString("default", { month: "short", year: "numeric" });
               counts[key] = (counts[key] || 0) + 1;
             }
           }
         });
 
-        // Ordenar por data
+        // Ordenando as datas corretamente
         const evolucaoArray = Object.entries(counts)
           .map(([name, value]) => ({ name, value }))
           .sort((a, b) => {
-            const [aMonth, aYear] = a.name.split('/');
-            const [bMonth, bYear] = b.name.split('/');
+            const [aMonth, aYear] = a.name.split(" ");
+            const [bMonth, bYear] = b.name.split(" ");
             const aDate = new Date(`${aMonth} 1, ${aYear}`);
             const bDate = new Date(`${bMonth} 1, ${bYear}`);
             return aDate.getTime() - bDate.getTime();
@@ -282,7 +305,9 @@ useEffect(() => {
     };
 
     fetchClientData();
-  }, []); 
+  }, [startDate, endDate]);
+
+
 
   if (loading) return <div>Carregando...</div>;
   if (error) return <div>Erro: {error}</div>;
@@ -302,7 +327,7 @@ useEffect(() => {
   ];
 
   return (
-    <div className="bg-gray-100 min-h-screen relative">
+    <div className="bg-gray-100 max-h-screen relative">
       <div className="h-[70px] flex flex-row items-center p-4 gap-8 border-b border-black/10 bg-gray-100">
         <div className="flex items-center gap-4">
           <h1 className={`text-[32px] leading-8 ${cairo.className} font-700 text-black text-left`}>
@@ -357,7 +382,7 @@ useEffect(() => {
           className="bg-white shadow rounded-md w-full md:w-1/2 h-[381px] flex items-center justify-center overflow-hidden cursor-pointer"
         >
           <PieChartComponent data={regimesData}
-            dados={regimesData} 
+      
             onClick={() => handleOpenModal("Empresas por Regime Tributário")}  
             />
         </div>
