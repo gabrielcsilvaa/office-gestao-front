@@ -63,8 +63,14 @@ export default function Clientes() {
         }
 
         const data = await response.json();
-        setClientData(data);
-        setFilteredData(data);
+        // Ordenar as empresas por nome alfabético e remover espaços à esquerda
+        const sortedData = data.sort(
+          (a: EmpresaAnalise, b: EmpresaAnalise) =>
+            a.nome_empresa.trimStart().localeCompare(b.nome_empresa.trimStart()) // Aplicar trimStart() para remover espaços à esquerda antes da comparação
+        );
+
+        setClientData(sortedData); // Armazena os dados ordenados
+        setFilteredData(sortedData); // Inicialmente, os dados filtrados são os mesmos que os dados completos
       } catch (err: unknown) {
         if (err instanceof Error) {
           setError(err.message);
