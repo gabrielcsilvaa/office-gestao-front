@@ -28,22 +28,35 @@ const formatCNPJ = (cnpj: string | null | undefined) => {
   if (onlyDigits.length === 11) {
     return onlyDigits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
   } else if (onlyDigits.length === 14) {
-    return onlyDigits.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
+    return onlyDigits.replace(
+      /(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,
+      "$1.$2.$3/$4-$5"
+    );
   }
   return cnpj;
 };
 
-export default function ListaEmpresasRegimeTributario({ dados, onClose }: ListaEmpresasRegimeTributarioProps) {
-  const [regimeSelecionado, setRegimeSelecionado] = useState<string | null>(null);
+export default function ListaEmpresasRegimeTributario({
+  dados,
+  onClose,
+}: ListaEmpresasRegimeTributarioProps) {
+  const [regimeSelecionado, setRegimeSelecionado] = useState<string | null>(
+    null
+  );
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [sortConfig, setSortConfig] = useState<{ key: string; direction: "asc" | "desc" }>({
+  const [sortConfig, setSortConfig] = useState<{
+    key: string;
+    direction: "asc" | "desc";
+  }>({
     key: "nome_empresa",
     direction: "asc",
   });
 
   const filtrarEmpresas = () => {
     // Primeiro filtra empresas inativas
-    let filteredEmpresas = dados.filter((empresa) => empresa.data_inatividade === null);
+    let filteredEmpresas = dados.filter(
+      (empresa) => empresa.data_inatividade === null
+    );
 
     // Depois filtra por regime tributário se houver seleção
     if (regimeSelecionado) {
@@ -77,7 +90,7 @@ export default function ListaEmpresasRegimeTributario({ dados, onClose }: ListaE
     return empresas.sort((a, b) => {
       const aValue = a[sortConfig.key as keyof regimeTributario];
       const bValue = b[sortConfig.key as keyof regimeTributario];
-      
+
       if (aValue < bValue) {
         return sortConfig.direction === "asc" ? -1 : 1;
       }
@@ -108,7 +121,9 @@ export default function ListaEmpresasRegimeTributario({ dados, onClose }: ListaE
   return (
     <div className="flex flex-col gap-4 overflow-x-auto max-h-[700px] w-full">
       <div className="flex items-center justify-between p-4 bg-white shadow rounded-md mb-4">
-        <h1 className={`text-2xl font-bold ${cairo.className} text-gray-800`}>Empresas por Regime Tributário</h1>
+        <h1 className={`text-2xl font-bold ${cairo.className} text-gray-800`}>
+          Empresas por Regime Tributário
+        </h1>
         <div className="flex items-center gap-4">
           <input
             type="text"
@@ -155,11 +170,14 @@ export default function ListaEmpresasRegimeTributario({ dados, onClose }: ListaE
           <button
             key={regime}
             className={`px-4 py-2 rounded-md shadow-md ${
-              regimeSelecionado === regime || (regime === "Todos" && !regimeSelecionado)
+              regimeSelecionado === regime ||
+              (regime === "Todos" && !regimeSelecionado)
                 ? "bg-blue-500 text-white"
                 : "bg-gray-200 text-gray-700"
             } hover:bg-blue-500 hover:text-white transition`}
-            onClick={() => setRegimeSelecionado(regime === "Todos" ? null : regime)}
+            onClick={() =>
+              setRegimeSelecionado(regime === "Todos" ? null : regime)
+            }
           >
             {regime}
           </button>
@@ -170,25 +188,25 @@ export default function ListaEmpresasRegimeTributario({ dados, onClose }: ListaE
         <thead>
           <tr className="bg-gray-200 border-b border-gray-400">
             <th className="px-4 py-2 border-r">#</th>
-            <th 
+            <th
               className="px-4 py-2 border-r cursor-pointer"
               onClick={() => requestSort("nome_empresa")}
             >
               Nome Empresa {renderSortArrow("nome_empresa")}
             </th>
-            <th 
+            <th
               className="px-4 py-2 border-r cursor-pointer"
               onClick={() => requestSort("regime_tributario")}
             >
               Regime {renderSortArrow("regime_tributario")}
             </th>
-            <th 
+            <th
               className="px-4 py-2 border-r cursor-pointer"
               onClick={() => requestSort("cnpj")}
             >
               CNPJ {renderSortArrow("cnpj")}
             </th>
-            <th 
+            <th
               className="px-4 py-2 cursor-pointer"
               onClick={() => requestSort("responsavel_legal")}
             >
