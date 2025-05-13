@@ -366,14 +366,52 @@ export function ListaEmpresas({
                   <td className="table-total">Rentabilidade Operacional</td>
                   {meses.map((mes, i) => {
                     const valor = empresa.rentabilidade?.[mes] ?? 0;
+                    const valorNumerico =
+                      typeof valor === "number" ? valor : parseFloat(valor); // Garantir que seja um número
+
+                    const cor =
+                      valorNumerico < 0
+                        ? "text-red-600 font-bold"
+                        : "text-green-600 font-bold"; // Cor condicional
+                    const fundo =
+                      valorNumerico < 0 ? "bg-red-100" : "bg-green-100"; // Cor condicional
+
                     return (
-                      <td key={i} className="table-cell">
-                        {formatadorBRL.format(Number(valor))}
+                      <td key={i} className={`table-cell ${fundo}`}>
+                        <span className={`${cor}`}>
+                          {formatadorBRL.format(Number(valor))}
+                        </span>
                       </td>
                     );
                   })}
-                  <td className="table-total">
-                    {formatadorBRL.format(Number(empresa.rentabilidade.total))}
+                  <td
+                    className={
+                      typeof empresa.rentabilidade.total === "number"
+                        ? empresa.rentabilidade.total < 0
+                          ? "table-cell bg-red-100" // Vermelho para valores negativos
+                          : "table-cell bg-green-100" // Verde para valores positivos
+                        : parseFloat(empresa.rentabilidade.total) < 0
+                          ? "table-cell bg-red-100"
+                          : "table-cell bg-green-100"
+                    }
+                  >
+                    <span
+                      className={
+                        typeof empresa.rentabilidade.total === "number"
+                          ? empresa.rentabilidade.total < 0
+                            ? "text-red-600 font-bold " // Vermelho para valores negativos
+                            : "text-green-600 font-bold" // Verde para valores positivos
+                          : parseFloat(empresa.rentabilidade.total) < 0
+                            ? "text-red-600 font-bold"
+                            : "text-green-600 font-bold"
+                      }
+                    >
+                      {formatadorBRL.format(
+                        typeof empresa.rentabilidade.total === "number"
+                          ? empresa.rentabilidade.total
+                          : parseFloat(empresa.rentabilidade.total)
+                      )}
+                    </span>
                   </td>
                 </tr>
               </tbody>
