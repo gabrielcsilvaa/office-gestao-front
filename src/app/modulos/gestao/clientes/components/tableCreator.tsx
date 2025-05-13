@@ -3,7 +3,15 @@ import { EmpresaVar, ListaEmpresasProps } from "../interface/interfaces";
 import { formatadorSegParaHor } from "@/utils/formatadores";
 import { maxValueContrato } from "../services/maxValorContrato";
 
-function gerarIntervaloDeMeses(start: string, end: string): string[] {
+function gerarIntervaloDeMeses(
+  start: string | null,
+  end: string | null
+): string[] {
+  // Verifica se start e end não são nulos ou vazios
+  if (!start || !end) {
+    return []; // Retorna um array vazio se qualquer uma das datas for nula ou vazia
+  }
+
   const [startAno, startMes] = start.split("-").map(Number);
   const [endAno, endMes] = end.split("-").map(Number);
 
@@ -18,7 +26,7 @@ function gerarIntervaloDeMeses(start: string, end: string): string[] {
       .toLocaleString("pt-BR", { month: "short" })
       .replace(".", "");
     const ano = data.getFullYear();
-    meses.push(`${mes}/${ano}`); // <<-- mudou aqui
+    meses.push(`${mes}/${ano}`);
     data.setMonth(data.getMonth() + 1);
   }
 
@@ -366,14 +374,52 @@ export function ListaEmpresas({
                   <td className="table-total">Rentabilidade Operacional</td>
                   {meses.map((mes, i) => {
                     const valor = empresa.rentabilidade?.[mes] ?? 0;
+                    const valorNumerico =
+                      typeof valor === "number" ? valor : parseFloat(valor); // Garantir que seja um número
+
+                    const cor =
+                      valorNumerico < 0
+                        ? "text-red-600 font-bold"
+                        : "text-green-600 font-bold"; // Cor condicional
+                    const fundo =
+                      valorNumerico < 0 ? "bg-red-100" : "bg-green-100"; // Cor condicional
+
                     return (
-                      <td key={i} className="table-cell">
-                        {formatadorBRL.format(Number(valor))}
+                      <td key={i} className={`table-cell ${fundo}`}>
+                        <span className={`${cor}`}>
+                          {formatadorBRL.format(Number(valor))}
+                        </span>
                       </td>
                     );
                   })}
-                  <td className="table-total">
-                    {formatadorBRL.format(Number(empresa.rentabilidade.total))}
+                  <td
+                    className={
+                      typeof empresa.rentabilidade.total === "number"
+                        ? empresa.rentabilidade.total < 0
+                          ? "table-cell bg-red-100" // Vermelho para valores negativos
+                          : "table-cell bg-green-100" // Verde para valores positivos
+                        : parseFloat(empresa.rentabilidade.total) < 0
+                          ? "table-cell bg-red-100"
+                          : "table-cell bg-green-100"
+                    }
+                  >
+                    <span
+                      className={
+                        typeof empresa.rentabilidade.total === "number"
+                          ? empresa.rentabilidade.total < 0
+                            ? "text-red-600 font-bold " // Vermelho para valores negativos
+                            : "text-green-600 font-bold" // Verde para valores positivos
+                          : parseFloat(empresa.rentabilidade.total) < 0
+                            ? "text-red-600 font-bold"
+                            : "text-green-600 font-bold"
+                      }
+                    >
+                      {formatadorBRL.format(
+                        typeof empresa.rentabilidade.total === "number"
+                          ? empresa.rentabilidade.total
+                          : parseFloat(empresa.rentabilidade.total)
+                      )}
+                    </span>
                   </td>
                 </tr>
               </tbody>
