@@ -1,14 +1,14 @@
 "use client";
 import { useState, useEffect } from "react";
 import Card from "./components/card";
-import PieChartComponent from "./components/PieChart"; // Importando o PieChartComponent
-import RamoAtividade from "./components/RamoAtividade";
-import Evolucao from "./components/evolucao";
+import PieChartComponent from "./components/cardRegimeTributario"; // Importando o PieChartComponent
+import RamoAtividade from "./components/cardRamoAtividade";
+import Evolucao from "./components/cardEvolucao";
 import Modal from "./components/modal";
-import AniversariantesParceiros from "./components/aniversario-parceria";
-import AniversariantesSocios from "./components/socios-aniversariantes";
+import AniversariantesParceiros from "./components/modalAniversarioParceria";
+import AniversariantesSocios from "./components/modalAniversarioSocios";
 import { Cairo } from "next/font/google";
-import ModalRegimeTributario from "./components/modal-regime-tributario"; // Modal correto para o gráfico
+import ModalRegimeTributario from "./components/modalRegimeTributario"; // Modal correto para o gráfico
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
