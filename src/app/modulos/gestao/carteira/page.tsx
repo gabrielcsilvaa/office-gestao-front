@@ -280,18 +280,21 @@ useEffect(() => {
           }
         });
 
-        // Ordenando as datas corretamente
-        const evolucaoArray = Object.entries(counts)
-          .map(([name, value]) => ({ name, value }))
-          .sort((a, b) => {
-            const [aMonth, aYear] = a.name.split(" ");
-            const [bMonth, bYear] = b.name.split(" ");
-            const aDate = new Date(`${aMonth} 1, ${aYear}`);
-            const bDate = new Date(`${bMonth} 1, ${bYear}`);
-            return aDate.getTime() - bDate.getTime();
-          });
+        const monthMap = {
+          "jan": 0, "fev": 1, "mar": 2, "abr": 3, "mai": 4, "jun": 5,
+          "jul": 6, "ago": 7, "set": 8, "out": 9, "nov": 10, "dez": 11
+        };
 
-        setEvolucaoData(evolucaoArray);
+        const evolucaoArray = Object.entries(counts)
+          .map(([name, value]) => {
+            // name: "jan. de 2024" ou "jan de 2024"
+            const [mes, , ano] = name.replace(".", "").split(" ");
+            const date = new Date(Number(ano), monthMap[mes as keyof typeof monthMap], 1);
+            return { name, value, date };
+          })
+          .sort((a, b) => a.date.getTime() - b.date.getTime());
+
+        setEvolucaoData(evolucaoArray.map(({ name, value }) => ({ name, value })));
 
       } catch (err: unknown) {
         if (err instanceof Error) {
