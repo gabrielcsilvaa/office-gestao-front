@@ -51,8 +51,8 @@ export interface Empresa {
 
 export interface ListaEmpresasProps {
   empresas: EmpresaAnalise[];
-  start_date: string;
-  end_date: string;
+  start_date: string | null;
+  end_date: string | null;
 }
 
 export interface EmpresaVar {

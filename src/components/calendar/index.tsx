@@ -1,13 +1,46 @@
-"use client";
 import { useState } from "react";
 import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
 
-export default function Calendar() {
+import { registerLocale } from "react-datepicker";
+import { ptBR } from "date-fns/locale/pt-BR";
+registerLocale("pt-BR", ptBR);
+
+import "react-datepicker/dist/react-datepicker.css";
+import { Cairo } from "next/font/google";
+
+const cairo = Cairo({
+  weight: ["500", "600", "700"], // Você pode especificar os pesos que deseja (normal e negrito)
+  subsets: ["latin"],
+});
+
+interface CalendarProps {
+  onStartDateChange: (date: string | null) => void;
+  onEndDateChange: (date: string | null) => void;
+}
+
+export default function Calendar({
+  onStartDateChange,
+  onEndDateChange,
+}: CalendarProps) {
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
+
+  const formatDate = (date: Date | null) => {
+    if (date) {
+      return date.toISOString().split("T")[0]; // Formata para 'yyyy-mm-dd'
+    }
+    return null;
+  };
+
+  const handleSearch = () => {
+    // Quando o botão "Pesquisar" for clicado, passamos as datas formatadas para o componente pai
+    if (startDate && endDate) {
+      onStartDateChange(formatDate(startDate));
+      onEndDateChange(formatDate(endDate));
+    }
+  };
 
   return (
     <div className="flex gap-4">
@@ -24,8 +57,8 @@ export default function Calendar() {
           onSelect={() => setShowStartPicker(false)}
           dateFormat="dd/MM/yyyy"
           placeholderText="Data inicial"
-          className={`p-2 rounded-lg border border-gray-300 bg-white shadow-md  transition w-40 text-sm ${
-            startDate ? "text-black font-medium" : "text-[#9CA3AF]"
+          className={`${cairo.className} p-2 rounded-lg border border-gray-400 bg-white shadow-lg  transition w-30 text-sm ${
+            startDate ? "text-black font-medium" : "text-[#000000]"
           }`}
           showPopperArrow={false}
           open={showStartPicker}
@@ -38,6 +71,7 @@ export default function Calendar() {
           showMonthDropdown
           showYearDropdown
           dropdownMode="select"
+          locale="pt-BR"
         />
       </div>
 
@@ -53,8 +87,8 @@ export default function Calendar() {
           onSelect={() => setShowEndPicker(false)}
           dateFormat="dd/MM/yyyy"
           placeholderText="Data final"
-          className={`p-2 rounded-lg border border-gray-300 bg-white shadow-md transition w-40 text-sm ${
-            endDate ? "text-black font-medium" : "text-[#9CA3AF]"
+          className={`${cairo.className} p-2 rounded-lg border border-gray-400 bg-white shadow-lg transition w-30 text-sm ${
+            endDate ? "text-black font-medium" : "text-[#000000]"
           }`}
           showPopperArrow={false}
           open={showEndPicker}
@@ -67,8 +101,17 @@ export default function Calendar() {
           showMonthDropdown
           showYearDropdown
           dropdownMode="select"
+          locale="pt-BR"
         />
       </div>
+
+      {/* Botão Pesquisar */}
+      <button
+        onClick={handleSearch}
+        className={`${cairo.className} bg-[#373A40] text-white p-2 w-40 rounded-md hover:bg-blue-600 hover:cursor-pointer text-sm`}
+      >
+        Pesquisar
+      </button>
     </div>
   );
 }
