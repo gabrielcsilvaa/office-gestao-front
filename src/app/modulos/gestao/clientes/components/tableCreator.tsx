@@ -3,7 +3,15 @@ import { EmpresaVar, ListaEmpresasProps } from "../interface/interfaces";
 import { formatadorSegParaHor } from "@/utils/formatadores";
 import { maxValueContrato } from "../services/maxValorContrato";
 
-function gerarIntervaloDeMeses(start: string, end: string): string[] {
+function gerarIntervaloDeMeses(
+  start: string | null,
+  end: string | null
+): string[] {
+  // Verifica se start e end não são nulos ou vazios
+  if (!start || !end) {
+    return []; // Retorna um array vazio se qualquer uma das datas for nula ou vazia
+  }
+
   const [startAno, startMes] = start.split("-").map(Number);
   const [endAno, endMes] = end.split("-").map(Number);
 
@@ -18,7 +26,7 @@ function gerarIntervaloDeMeses(start: string, end: string): string[] {
       .toLocaleString("pt-BR", { month: "short" })
       .replace(".", "");
     const ano = data.getFullYear();
-    meses.push(`${mes}/${ano}`); // <<-- mudou aqui
+    meses.push(`${mes}/${ano}`);
     data.setMonth(data.getMonth() + 1);
   }
 

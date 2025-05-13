@@ -3,6 +3,9 @@ import { Cairo } from "next/font/google";
 import { useState, useEffect } from "react";
 import { EmpresaAnalise } from "./interface/interfaces";
 import { ListaEmpresas } from "./components/tableCreator";
+import Calendar from "@/components/calendar";
+import { formatDate } from "./services/formatDate";
+
 const cairo = Cairo({
   weight: ["500", "600", "700"], // Você pode especificar os pesos que deseja (normal e negrito)
   subsets: ["latin"],
@@ -11,10 +14,19 @@ const cairo = Cairo({
 export default function Clientes() {
   const [value, setValue] = useState("");
   const [clientData, setClientData] = useState<EmpresaAnalise[] | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [startDate, setStartDate] = useState<string>("2024-01-01");
-  const [endDate, setEndDate] = useState<string>("2024-12-31");
+  const [startDate, setStartDate] = useState<string | null>(null);
+  const [endDate, setEndDate] = useState<string | null>(null);
+
+  const handleStartDateChange = (date: string | null) => {
+    setStartDate(date);
+  };
+
+  const handleEndDateChange = (date: string | null) => {
+    setEndDate(date);
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setValue(e.target.value);
   };
@@ -22,7 +34,19 @@ export default function Clientes() {
   useEffect(() => {
     const fetchClientData = async () => {
       try {
-        const body = { start_date: "2024-01-01", end_date: "2024-12-31" };
+        setLoading(true);
+
+        // Formata as datas antes de enviar
+        const formattedStartDate = formatDate(
+          startDate ? new Date(startDate) : null
+        );
+        const formattedEndDate = formatDate(endDate ? new Date(endDate) : null);
+
+        const body = {
+          start_date: formattedStartDate,
+          end_date: formattedEndDate,
+        };
+
         const response = await fetch("/api/analise-clientes", {
           method: "POST",
           headers: {
@@ -48,15 +72,15 @@ export default function Clientes() {
       }
     };
 
-    fetchClientData();
-  }, []); // executa uma vez no mount
-
-  if (loading) return <div>Carregando...</div>;
-  if (error) return <div>Erro: {error}</div>;
+    // Só faz a requisição quando as datas estiverem definidas
+    if (startDate && endDate) {
+      fetchClientData();
+    }
+  }, [startDate, endDate]); // Executa quando startDate ou endDate mudam
 
   return (
-    <div className=" max-h-screen bg-gray-100">
-      <div className="h-[85px] flex flex-row items-center p-4 gap-8 border-b border-black/10 bg-gray-100">
+    <div className="max-h-screen bg-gray-100">
+      <div className="h-[65px] flex flex-row items-end p-2 gap-8 border-b border-black/10 bg-gray-100">
         <div className="flex items-center gap-4">
           <h1
             className={`text-[32px] leading-8 ${cairo.className} font-700 text-black text-left`}
@@ -64,21 +88,12 @@ export default function Clientes() {
             Análise de Clientes
           </h1>
 
-          <div className="flex items-center gap-2 ml-4 ">
-            {/*SELEÇÃO DE DATAS  */}
-            <button
-              className="p-2 rounded-lg border border-gray-300 bg-white shadow-md hover:bg-gray-100 transition w-32 text-[#9CA3AF]"
-              onClick={() => console.log("Data inicial clicked")}
-            >
-              Data inicial
-            </button>
-            <button
-              className="p-2 rounded-lg border border-gray-300 bg-white shadow-md hover:bg-gray-100 transition w-32 text-[#9CA3AF]"
-              onClick={() => console.log("Data final clicked")}
-            >
-              Data final
-            </button>
-            {/*SELEÇÃO DE DATAS  */}
+          <div className="flex items-center gap-2 ml-4">
+            {/* SELEÇÃO DE DATAS  */}
+            <Calendar
+              onStartDateChange={handleStartDateChange}
+              onEndDateChange={handleEndDateChange}
+            />
             <input
               type="text"
               id="inputText"
@@ -91,19 +106,22 @@ export default function Clientes() {
         </div>
       </div>
 
-      {/* <div className="flex justify-between items-center w-full p-4">
- 
-      </div> */}
-
+      {/* Conteúdo da Tabela e Loading */}
       <div className="h-[calc(95vh-85px)] w-full overflow-y-auto p-4">
         <div className="w-max min-w-full shadow-black shadow-lg">
           <div className="overflow-x-auto p-4 bg-white shadow-md rounded-lg">
-            {clientData && (
-              <ListaEmpresas
-                empresas={clientData}
-                start_date={startDate}
-                end_date={endDate}
-              />
+            {loading ? (
+              <div>Carregando dados...</div> // Mantenha a indicação de carregamento aqui
+            ) : error ? (
+              <div>Erro: {error}</div> // Exibe mensagem de erro se houver
+            ) : (
+              clientData && (
+                <ListaEmpresas
+                  empresas={clientData}
+                  start_date={startDate}
+                  end_date={endDate}
+                />
+              )
             )}
           </div>
         </div>
