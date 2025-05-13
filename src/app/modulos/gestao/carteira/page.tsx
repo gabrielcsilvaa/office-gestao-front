@@ -126,47 +126,55 @@ export default function Carteira() {
     fetchAniversariosDeParceria();
   }, []);
 
-  console.log("doiasjdoaldlandl", parceria)
 
-  useEffect(() => {
-    const fetchAniversariosData = async () => {
-      try {
-        const response = await fetch("/api/analise-carteira/aniversarios-socios", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            start_date: "2024-01-01", // teste
-            end_date: "2025-12-31",
-          }),
-        });
+useEffect(() => {
+  const fetchAniversariosData = async () => {
+    try {
+      const response = await fetch("/api/analise-carteira/aniversarios-socios", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          start_date: "2024-01-01",
+          end_date: "2025-12-31",
+        }),
+      });
 
-        if (!response.ok) {
-          throw new Error(`Erro na API: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-
-        if (Array.isArray(data)) {
-          setSocios(data);
-
-        } else {
-          setError("Estrutura de dados inesperada");
-        }
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError("Erro desconhecido");
-        }
-      } finally {
-        setLoading(false);
+      if (!response.ok) {
+        throw new Error(`Erro na API: ${response.statusText}`);
       }
-    };
 
-    fetchAniversariosData();
-  }, []);
+      const data = await response.json();
+
+      // Transformar os dados para o formato correto
+      const sociosFormatados = data.map((item: { socio: string; data_nascimento: string }) => {
+        const idade = new Date().getFullYear() - new Date(item.data_nascimento).getFullYear();
+        return {
+          id: Math.random(), // Use um ID real se disponível
+          nome: item.socio,
+          data_nascimento: item.data_nascimento,
+          idade,
+        };
+      });
+
+      setSocios(sociosFormatados);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Erro desconhecido");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchAniversariosData();
+}, []);
+
+
+  console.log("onsdfdsnflskndsflsnOI", socios)
 
   useEffect(() => {
     const fetchClientData = async () => {
@@ -215,13 +223,18 @@ export default function Carteira() {
 
         setRamoAtividadeData(ramoAtividadeArray);
 
-        // Processar evolução
+        //data teste para o card evoluçao
+        const startEvolucao = new Date("2024-01-01");
+        const endEvolucao = new Date("2025-12-01");
+
         const counts: { [key: string]: number } = {};
         data.Empresas.forEach((empresa: Empresa) => {
           if (empresa.data_cadastro) {
-            const date = new Date(empresa.data_cadastro);
-            const key = date.toLocaleString('default', { month: 'short', year: 'numeric' }); 
-            counts[key] = (counts[key] || 0) + 1;
+            const dataCadastro = new Date(empresa.data_cadastro);
+            if (dataCadastro >= startEvolucao && dataCadastro <= endEvolucao) {
+              const key = dataCadastro.toLocaleString('default', { month: 'short', year: 'numeric' }); 
+              counts[key] = (counts[key] || 0) + 1;
+            }
           }
         });
 
@@ -311,15 +324,15 @@ export default function Carteira() {
       </div>
 
       <Modal isOpen={isModalOpen === "Empresas por Regime Tributário"} onClose={() => setIsModalOpen(null)}>
-        <ModalRegimeTributario dados={empresas}/>
+        <ModalRegimeTributario dados={empresas} onClose={() => setIsModalOpen(null)}/>
       </Modal>
 
       <Modal isOpen={isModalOpen === "Aniversário de Parceria"} onClose={() => setIsModalOpen(null)}>
-        <AniversariantesParceiros dados={parceria}/>
+        <AniversariantesParceiros dados={parceria} onClose={() => setIsModalOpen(null)} />
       </Modal>
 
       <Modal isOpen={isModalOpen === "Sócio(s) Aniversariante(s)"} onClose={() => setIsModalOpen(null)}>
-        <AniversariantesSocios />
+        <AniversariantesSocios dados={socios} onClose={() => setIsModalOpen(null)} />
       </Modal>
 
       <div className="flex flex-col md:flex-row gap-4 p-4">
