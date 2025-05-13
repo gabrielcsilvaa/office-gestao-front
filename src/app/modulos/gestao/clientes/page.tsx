@@ -80,7 +80,7 @@ export default function Clientes() {
 
   return (
     <div className="max-h-screen bg-gray-100">
-      <div className="h-[65px] flex flex-row items-end p-2 gap-8 border-b border-black/10 bg-gray-100">
+      <div className="h-[70px] flex flex-row items-end p-2 gap-8 border-b border-black/10 bg-gray-100">
         <div className="flex items-center gap-4">
           <h1
             className={`text-[32px] leading-8 ${cairo.className} font-700 text-black text-left`}
@@ -99,7 +99,7 @@ export default function Clientes() {
               id="inputText"
               value={value}
               onChange={handleChange}
-              className="bg-white border-2 border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400"
+              className={`${cairo.className} bg-white border-2 border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400`}
               placeholder="Buscar Empresa"
             />
           </div>
