@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-interface Empresa {
+interface Parceria {
   codi_emp: number;
   nome: string;
   cnpj: string;
@@ -8,13 +8,15 @@ interface Empresa {
   data_inicio_atividades: string;
 }
 
+
+
 interface AniversariantesParceirosProps {
-  dados: Empresa[];
+  dados: Parceria[];
   onClose: () => void;
 }
 
 export default function AniversariantesParceiros({ dados, onClose }: AniversariantesParceirosProps) {
-  const [sortConfig, setSortConfig] = useState<{ key: keyof Empresa; direction: "asc" | "desc" }>({
+  const [sortConfig, setSortConfig] = useState<{ key: keyof Parceria; direction: "asc" | "desc" }>({
     key: "nome",
     direction: "asc",
   });

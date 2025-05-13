@@ -9,12 +9,19 @@ import AniversariantesParceiros from "./components/modalAniversarioParceria";
 import AniversariantesSocios from "./components/modalAniversarioSocios";
 import { Cairo } from "next/font/google";
 import ModalRegimeTributario from "./components/modalRegimeTributario"; // Modal correto para o gráfico
-
+import Calendar from "@/components/calendar";
 const cairo = Cairo({
   weight: ["500", "600", "700"],
   subsets: ["latin"],
 });
 
+interface Parceria {
+  codi_emp: number;
+  nome: string;
+  cnpj: string;
+  data_cadastro: string;
+  data_inicio_atividades: string;
+}
 // Tipagem corrigida
 interface Empresa {
   situacao: string;
@@ -40,7 +47,7 @@ export default function Carteira() {
   const [isModalOpen, setIsModalOpen] = useState<string | null>(null);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [socios, setSocios] = useState<Socio[]>([]); // Corrigido a tipagem
-  const [parceria, setParceria] = useState<Empresa[]>([]); // Corrigido a tipagem
+  const [parceria, setParceria] = useState<Parceria[]>([]); // Corrigido a tipagem
   const [novosClientes, setNovosClientes] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,7 +55,17 @@ export default function Carteira() {
   const [aniversariosParceria, setAniversariosParceria] = useState<number>(50);
   const [ramoAtividadeData, setRamoAtividadeData] = useState<Array<{ name: string; value: number }>>([]);
   const [evolucaoData, setEvolucaoData] = useState<Array<{ name: string; value: number }>>([]);
-  
+  const [startDate, setStartDate] = useState<string | null>("2024-01-01");
+  const [endDate, setEndDate] = useState<string | null>("2024-12-31");
+
+  const handleStartDateChange = (date: string | null) => {
+    setStartDate(date);
+  };
+
+  const handleEndDateChange = (date: string | null) => {
+    setEndDate(date);
+  };
+
 
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedOption(e.target.value);
@@ -58,12 +75,14 @@ export default function Carteira() {
     setIsModalOpen(title);
   };
 
+
+
   useEffect(() => {
     const fetchNovosClientes = async () => {
       try {
         const body = {
-          start_date: "2024-01-01", 
-          end_date: "2025-12-31" ,
+          start_date: startDate, 
+          end_date: endDate ,
         };
         const response = await fetch("/api/analise-carteira/novos-clientes", {
           method: "POST",
@@ -90,7 +109,7 @@ export default function Carteira() {
     };
 
     fetchNovosClientes();
-  }, []);
+  }, [startDate, endDate]);
 
   useEffect(() => {
     const fetchAniversariosDeParceria = async () => {
@@ -174,7 +193,7 @@ useEffect(() => {
 }, []);
 
 
-  console.log("onsdfdsnflskndsflsnOI", socios)
+  console.log("onsdfdsnflskndsflsnOI", parceria)
 
   useEffect(() => {
     const fetchClientData = async () => {
@@ -284,7 +303,7 @@ useEffect(() => {
 
   return (
     <div className="bg-gray-100 min-h-screen relative">
-      <div className="h-[85px] flex flex-row items-center p-4 gap-8 border-b border-black/10 bg-gray-100">
+      <div className="h-[70px] flex flex-row items-center p-4 gap-8 border-b border-black/10 bg-gray-100">
         <div className="flex items-center gap-4">
           <h1 className={`text-[32px] leading-8 ${cairo.className} font-700 text-black text-left`}>
             Carteira de Clientes
@@ -301,12 +320,10 @@ useEffect(() => {
               <option>Opção 2</option>
             </select>
 
-            <button className="p-2 rounded-lg border border-gray-300 bg-white shadow-md hover:bg-gray-100 transition w-32 text-[#9CA3AF]">
-              Data inicial
-            </button>
-            <button className="p-2 rounded-lg border border-gray-300 bg-white shadow-md hover:bg-gray-100 transition w-32 text-[#9CA3AF]">
-              Data final
-            </button>
+            <Calendar
+            onStartDateChange={handleStartDateChange}
+            onEndDateChange={handleEndDateChange}
+              />
           </div>
         </div>
       </div>
