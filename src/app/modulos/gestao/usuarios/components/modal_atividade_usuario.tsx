@@ -84,7 +84,7 @@ export default function AtividadeUsuario({
 
         <button
           onClick={fecharMensagem}
-          className="mt-6 mb-2 px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+          className="bg-red-500 text-white px-6 py-3 rounded hover:bg-red-600 transition"
         >
           Fechar
         </button>
