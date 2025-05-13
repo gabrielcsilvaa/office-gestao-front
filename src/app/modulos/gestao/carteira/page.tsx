@@ -1,14 +1,14 @@
 "use client";
 import { useState, useEffect } from "react";
 import Card from "./components/card";
-import PieChartComponent from "./components/PieChart"; // Importando o PieChartComponent
-import RamoAtividade from "./components/RamoAtividade";
-import Evolucao from "./components/evolucao";
+import PieChartComponent from "./components/cardRegimeTributario"; // Importando o PieChartComponent
+import RamoAtividade from "./components/cardRamoAtividade";
+import Evolucao from "./components/cardEvolucao";
 import Modal from "./components/modal";
-import AniversariantesParceiros from "./components/aniversario-parceria";
-import AniversariantesSocios from "./components/socios-aniversariantes";
+import AniversariantesParceiros from "./components/modalAniversarioParceria";
+import AniversariantesSocios from "./components/modalAniversarioSocios";
 import { Cairo } from "next/font/google";
-import ModalRegimeTributario from "./components/modal-regime-tributario"; // Modal correto para o gráfico
+import ModalRegimeTributario from "./components/modalRegimeTributario"; // Modal correto para o gráfico
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
@@ -35,17 +35,12 @@ interface Socio {
   aniversario: string;
 }
 
-interface Parceria {
-  nome: string;
-  aniversario: string;
-}
-
 export default function Carteira() {
   const [selectedOption, setSelectedOption] = useState<string>("Selecionar Todos");
   const [isModalOpen, setIsModalOpen] = useState<string | null>(null);
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [socios, setSocios] = useState<Socio[]>([]); // Corrigido a tipagem
-  const [parceria, setParceria] = useState<Parceria[]>([]); // Corrigido a tipagem
+  const [parceria, setParceria] = useState<Empresa[]>([]); // Corrigido a tipagem
   const [novosClientes, setNovosClientes] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -59,8 +54,8 @@ export default function Carteira() {
     setSelectedOption(e.target.value);
   };
 
-  const handleOpenModal = () => {
-    setIsModalOpen("Empresas por Regime Tributário");
+  const handleOpenModal = (title: string) => {
+    setIsModalOpen(title);
   };
 
   useEffect(() => {
@@ -115,7 +110,7 @@ export default function Carteira() {
 
         const data = await response.json();
         setAniversariosParceria(data.aniversarios.aniversariante_cadastro.total);
-        setParceria(data);
+        setParceria(data.aniversarios.aniversariante_cadastro.empresas);
 
       } catch (err: unknown) {
         if (err instanceof Error) {
@@ -131,45 +126,55 @@ export default function Carteira() {
     fetchAniversariosDeParceria();
   }, []);
 
-  useEffect(() => {
-    const fetchAniversariosData = async () => {
-      try {
-        const response = await fetch("/api/analise-carteira/aniversarios-socios", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            start_date: "2024-01-01", // teste
-            end_date: "2025-12-31",
-          }),
-        });
 
-        if (!response.ok) {
-          throw new Error(`Erro na API: ${response.statusText}`);
-        }
+useEffect(() => {
+  const fetchAniversariosData = async () => {
+    try {
+      const response = await fetch("/api/analise-carteira/aniversarios-socios", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          start_date: "2024-01-01",
+          end_date: "2025-12-31",
+        }),
+      });
 
-        const data = await response.json();
-
-        if (Array.isArray(data)) {
-          setSocios(data);
-
-        } else {
-          setError("Estrutura de dados inesperada");
-        }
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError("Erro desconhecido");
-        }
-      } finally {
-        setLoading(false);
+      if (!response.ok) {
+        throw new Error(`Erro na API: ${response.statusText}`);
       }
-    };
 
-    fetchAniversariosData();
-  }, []);
+      const data = await response.json();
+
+      // Transformar os dados para o formato correto
+      const sociosFormatados = data.map((item: { socio: string; data_nascimento: string }) => {
+        const idade = new Date().getFullYear() - new Date(item.data_nascimento).getFullYear();
+        return {
+          id: Math.random(), // Use um ID real se disponível
+          nome: item.socio,
+          data_nascimento: item.data_nascimento,
+          idade,
+        };
+      });
+
+      setSocios(sociosFormatados);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Erro desconhecido");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchAniversariosData();
+}, []);
+
+
+  console.log("onsdfdsnflskndsflsnOI", socios)
 
   useEffect(() => {
     const fetchClientData = async () => {
@@ -216,16 +221,20 @@ export default function Carteira() {
           .map(([name, value]) => ({ name, value: Number(value) }))
           .sort((a, b) => b.value - a.value);
 
-        console.log('Dados do Ramo de Atividade:', ramoAtividadeArray);
         setRamoAtividadeData(ramoAtividadeArray);
 
-        // Processar evolução
+        //data teste para o card evoluçao
+        const startEvolucao = new Date("2024-01-01");
+        const endEvolucao = new Date("2025-12-01");
+
         const counts: { [key: string]: number } = {};
         data.Empresas.forEach((empresa: Empresa) => {
           if (empresa.data_cadastro) {
-            const date = new Date(empresa.data_cadastro);
-            const key = date.toLocaleString('default', { month: 'short', year: 'numeric' }); 
-            counts[key] = (counts[key] || 0) + 1;
+            const dataCadastro = new Date(empresa.data_cadastro);
+            if (dataCadastro >= startEvolucao && dataCadastro <= endEvolucao) {
+              const key = dataCadastro.toLocaleString('default', { month: 'short', year: 'numeric' }); 
+              counts[key] = (counts[key] || 0) + 1;
+            }
           }
         });
 
@@ -240,7 +249,6 @@ export default function Carteira() {
             return aDate.getTime() - bDate.getTime();
           });
 
-        console.log('Evolução de cadastros por mês:', evolucaoArray);
         setEvolucaoData(evolucaoArray);
 
       } catch (err: unknown) {
@@ -310,30 +318,35 @@ export default function Carteira() {
             title={card.title}
             value={card.value}
             icon={card.icon}
-            onClick={handleOpenModal}
+            onClick={() => handleOpenModal(card.title)}
           />
         ))}
       </div>
 
       <Modal isOpen={isModalOpen === "Empresas por Regime Tributário"} onClose={() => setIsModalOpen(null)}>
-        <ModalRegimeTributario dados={empresas}/>
+        <ModalRegimeTributario dados={empresas} onClose={() => setIsModalOpen(null)}/>
       </Modal>
 
       <Modal isOpen={isModalOpen === "Aniversário de Parceria"} onClose={() => setIsModalOpen(null)}>
-        <AniversariantesParceiros/>
+        <AniversariantesParceiros dados={parceria} onClose={() => setIsModalOpen(null)} />
       </Modal>
 
       <Modal isOpen={isModalOpen === "Sócio(s) Aniversariante(s)"} onClose={() => setIsModalOpen(null)}>
-        <AniversariantesSocios />
+        <AniversariantesSocios dados={socios} onClose={() => setIsModalOpen(null)} />
       </Modal>
 
-      <div className="flex flex-row gap-2 p-4 justify-between items-stretch h-[381px]">
-        <div className="bg-card text-card-foreground shadow w-1/2 h-full rounded-sm overflow-hidden">
-          <PieChartComponent 
-          data={regimesData}
-          onClick={() => handleOpenModal()} />
+      <div className="flex flex-col md:flex-row gap-4 p-4">
+        <div 
+          className="bg-white shadow rounded-md w-full md:w-1/2 h-[381px] flex items-center justify-center overflow-hidden cursor-pointer"
+        >
+          <PieChartComponent data={regimesData}
+            dados={regimesData} 
+            onClick={() => handleOpenModal("Empresas por Regime Tributário")}  
+            />
         </div>
-        <div className="bg-card text-card-foreground shadow w-1/2 h-full rounded-sm overflow-hidden">
+        <div 
+          className="bg-white shadow rounded-md w-full md:w-1/2 h-[381px] flex items-center justify-center overflow-hidden"
+        >
           <RamoAtividade data={ramoAtividadeData} />
         </div>
       </div>
