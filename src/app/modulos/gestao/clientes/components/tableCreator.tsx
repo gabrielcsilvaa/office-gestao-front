@@ -183,7 +183,6 @@ export function ListaEmpresas({
   }
 
   const result = tableValues();
-  console.log(result);
   return (
     <div className="w-full space-y-4">
       {result.map((empresa, index) => (

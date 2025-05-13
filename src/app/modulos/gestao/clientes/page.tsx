@@ -5,7 +5,7 @@ import { EmpresaAnalise } from "./interface/interfaces";
 import { ListaEmpresas } from "./components/tableCreator";
 import Calendar from "@/components/calendar";
 import { formatDate } from "./services/formatDate";
-
+import Pagination from "./components/pagination";
 const cairo = Cairo({
   weight: ["500", "600", "700"], // Você pode especificar os pesos que deseja (normal e negrito)
   subsets: ["latin"],
@@ -22,6 +22,10 @@ export default function Clientes() {
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
 
+  //Paginação
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   const handleStartDateChange = (date: string | null) => {
     setStartDate(date);
   };
@@ -32,6 +36,7 @@ export default function Clientes() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setValue(e.target.value);
+    setCurrentPage(1);
   };
 
   useEffect(() => {
@@ -63,8 +68,14 @@ export default function Clientes() {
         }
 
         const data = await response.json();
-        setClientData(data);
-        setFilteredData(data);
+        // Ordenar as empresas por nome alfabético e remover espaços à esquerda
+        const sortedData = data.sort(
+          (a: EmpresaAnalise, b: EmpresaAnalise) =>
+            a.nome_empresa.trimStart().localeCompare(b.nome_empresa.trimStart()) // Aplicar trimStart() para remover espaços à esquerda antes da comparação
+        );
+
+        setClientData(sortedData); // Armazena os dados ordenados
+        setFilteredData(sortedData); // Inicialmente, os dados filtrados são os mesmos que os dados completos
       } catch (err: unknown) {
         if (err instanceof Error) {
           setError(err.message);
@@ -93,6 +104,20 @@ export default function Clientes() {
       setFilteredData(filtered); // Atualiza os dados filtrados
     }
   }, [value, clientData]); // Executa o filtro sempre que o valor de pesquisa ou os dados mudarem
+
+  //Paginação
+
+  // Função para calcular as empresas a serem exibidas na página atual
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+
+  // Verifica se filteredData existe e se não é null
+  const currentItems = filteredData
+    ? filteredData.slice(indexOfFirstItem, indexOfLastItem)
+    : [];
+  const totalPages = filteredData
+    ? Math.ceil(filteredData.length / itemsPerPage)
+    : 0;
 
   return (
     <div className="max-h-screen bg-gray-100">
@@ -131,14 +156,19 @@ export default function Clientes() {
             ) : error ? (
               <div>Erro: {error}</div> // Exibe mensagem de erro se houver
             ) : (
-              filteredData && (
+              currentItems && (
                 <ListaEmpresas
-                  empresas={filteredData}
+                  empresas={currentItems}
                   start_date={startDate}
                   end_date={endDate}
                 />
               )
             )}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={(page) => setCurrentPage(page)}
+            />
           </div>
         </div>
       </div>
