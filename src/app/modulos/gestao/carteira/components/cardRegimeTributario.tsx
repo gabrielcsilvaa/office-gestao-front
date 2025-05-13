@@ -37,7 +37,7 @@ const PieChartComponent = ({ data, onClick }: PieChartComponentProps) => {
     <div className="flex flex-col bg-white rounded-lg shadow-md w-full h-full">
       <div className="flex flex-row justify-between p-0 pr-1">
         <h2 className="text-lg font-semibold ml-4 mt-4 mb-4">Empresas por Regime Tributário</h2>
-        <div onClick={onClick} className="cursor-pointer ml-1.5 p-1">
+        <div onClick={onClick} className="cursor-pointer ml-1.5 p-1.5">
           <Image src="/assets/icons/Vector 1275.svg" width={12} height={13.33} alt="seta" />
         </div>
       </div>
