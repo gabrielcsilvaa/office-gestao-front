@@ -11,6 +11,8 @@ interface ModalProps {
 export default function ModalSocio({ isOpen, onClose, codiEmp, children }: ModalProps) {
   if (!isOpen) return null;
 
+  
+
   const pessoa = {
     id: "1",
     nome: "João",
