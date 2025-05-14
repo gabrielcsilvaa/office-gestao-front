@@ -10,6 +10,8 @@ import AniversariantesSocios from "./components/modalAniversarioSocios";
 import { Cairo } from "next/font/google";
 import ModalRegimeTributario from "./components/modalRegimeTributario"; // Modal correto para o gráfico
 import Calendar from "@/components/calendar";
+import ModalEmpresasCard from "./components/modalEmpresasCards";
+
 const cairo = Cairo({
   weight: ["500", "600", "700"],
   subsets: ["latin"],
@@ -76,6 +78,43 @@ export default function Carteira() {
   >([]);
   const [startDate, setStartDate] = useState<string | null>("2024-01-01");
   const [endDate, setEndDate] = useState<string | null>("2024-12-31");
+  const [isEmpresasCardModalOpen, setIsEmpresasCardModalOpen] = useState(false);
+  const [filtrosSelecionados, setFiltrosSelecionados] = useState<string[]>([]);
+
+  const handleCardClick = (title: string) => {
+    switch (title) {
+      case "Clientes Ativos":
+        setFiltrosSelecionados(["A"]);
+        setIsEmpresasCardModalOpen(true);
+        break;
+      case "Novos Clientes":
+        setFiltrosSelecionados([]);
+        setIsEmpresasCardModalOpen(true);
+        break;
+      case "Clientes Inativos":
+        setFiltrosSelecionados(["I"]);
+        setIsEmpresasCardModalOpen(true);
+        break;
+      case "Bloqueados / Baixados":
+        setFiltrosSelecionados(["baixados"]);
+        setIsEmpresasCardModalOpen(true);
+        break;
+      case "Transferidas":
+        setFiltrosSelecionados(["transferidas"]);
+        setIsEmpresasCardModalOpen(true);
+        break;
+      case "Aniversário de Parceria":
+        setIsModalOpen("Aniversário de Parceria");
+        break;
+      case "Sócio(s) Aniversariante(s)":
+        setIsModalOpen("Sócio(s) Aniversariante(s)");
+        break;
+      default:
+        setFiltrosSelecionados([]);
+        setIsEmpresasCardModalOpen(true);
+    }
+  };
+  console.log("ODASNONÁSNONOFDSNO´DASNO´DSFNO´DAS OLHAA Q", novosClientes)
 
   const handleStartDateChange = (date: string | null) => {
     setStartDate(date);
@@ -221,7 +260,6 @@ export default function Carteira() {
     fetchAniversariosData();
   }, [startDate, endDate]);
 
-  console.log("onsdfdsnflskndsflsnOI", socios);
 
   useEffect(() => {
     const fetchClientData = async () => {
@@ -245,7 +283,7 @@ export default function Carteira() {
 
         const data = await response.json();
         setEmpresas(data.Empresas);
-        console.log("Dados Empresas:", data);
+        console.log("fodsnfklsnfsnfdsafdnsOI", data.Empresas)
 
         // Processando dados de regime tributário
         const groupedByRegime = data.Empresas.reduce(
@@ -431,11 +469,18 @@ export default function Carteira() {
             title={card.title}
             value={card.value}
             icon={card.icon}
-            onClick={() => handleOpenModal(card.title)}
+            onClick={() => handleCardClick(card.title)}
           />
-        ))}
+        ))} 
       </div>
 
+      <Modal isOpen={isEmpresasCardModalOpen} onClose={() => setIsEmpresasCardModalOpen(false)}>
+        <ModalEmpresasCard
+          dados={empresas}
+          onClose={() => setIsEmpresasCardModalOpen(false)}
+          filtrosIniciais={filtrosSelecionados}
+        />
+      </Modal>
       <Modal
         isOpen={isModalOpen === "Empresas por Regime Tributário"}
         onClose={() => setIsModalOpen(null)}
@@ -445,7 +490,6 @@ export default function Carteira() {
           onClose={() => setIsModalOpen(null)}
         />
       </Modal>
-
       <Modal
         isOpen={isModalOpen === "Aniversário de Parceria"}
         onClose={() => setIsModalOpen(null)}
@@ -482,5 +526,5 @@ export default function Carteira() {
         <Evolucao data={evolucaoData} />
       </div>
     </div>
-  );
-}
+    );
+  };
