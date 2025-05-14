@@ -204,7 +204,7 @@ export function ListaEmpresas({
                 <td className="table-cell">{empresa.cnpj}</td>
                 <td className="table-cell">{empresa.data_cadastro}</td>
                 <td className="table-cell">{empresa.data_inicio_atv}</td>
-                <td className="table-cell">{empresa.responsavel}</td>
+                <td className="table-cell">{empresa.responsavel ? empresa.responsavel: "SEM RESPONSÁVEL"}</td>
               </tr>
             </tbody>
           </table>
