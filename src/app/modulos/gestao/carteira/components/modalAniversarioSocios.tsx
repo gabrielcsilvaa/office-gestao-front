@@ -24,6 +24,9 @@ export default function AniversariantesSocios({
     direction: "asc",
   });
 
+  
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
   // Função para formatar a data com tratamento de segurança
   const formatDateBr = (dateString: string) => {
     if (!dateString) return "";
@@ -76,6 +79,18 @@ export default function AniversariantesSocios({
     );
   };
 
+  // Filtrar sócios com base na pesquisa
+  const filtrarSocios = () => {
+    const query = searchQuery.toLowerCase().trim();
+
+    return dados.filter((socio) => {
+      const nomeMatch = socio.nome.toLowerCase().includes(query);
+      const dataNascimentoMatch = formatDateBr(socio.data_nascimento).includes(query);
+
+      return nomeMatch || dataNascimentoMatch;
+    });
+  };
+
   // Função para ordenar os dados
   const sortData = (key: keyof Socio) => {
     const direction = sortConfig.direction === "asc" ? "desc" : "asc";
@@ -83,7 +98,7 @@ export default function AniversariantesSocios({
   };
 
   // Ordenação dos dados com tratamento de tipos
-  const sortedSocios = [...dados].sort((a, b) => {
+  const sortedSocios = filtrarSocios().sort((a, b) => {
     const aValue = a[sortConfig.key];
     const bValue = b[sortConfig.key];
 
@@ -116,26 +131,35 @@ export default function AniversariantesSocios({
         <h1 className="text-2xl font-bold font-cairo text-gray-800">
           Sócios Aniversariantes
         </h1>
-        <button
-          onClick={onClose}
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-          aria-label="Fechar modal"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6 text-gray-500"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+        <div className="flex items-center gap-4">
+          <input
+            type="text"
+            placeholder="Pesquisar por nome..."
+            className="border border-gray-300 rounded-md p-2 w-96 text-sm"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            aria-label="Fechar modal"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6 text-gray-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
 
       <table className="w-full border border-gray-300 text-sm font-cairo">
@@ -146,25 +170,16 @@ export default function AniversariantesSocios({
               className="px-4 py-2 cursor-pointer border-r"
               onClick={() => sortData("nome")}
             >
-              Sócio{" "}
-              {sortConfig.key === "nome" &&
-                (sortConfig.direction === "asc" ? " ↑" : " ↓")}
+              Sócio {sortConfig.key === "nome" && (sortConfig.direction === "asc" ? " ↑" : " ↓")}
             </th>
-            <th
-              className="px-4 py-2 cursor-pointer border-r"
-              onClick={() => sortData("data_nascimento")}
-            >
-              Data de Nascimento{" "}
-              {sortConfig.key === "data_nascimento" &&
-                (sortConfig.direction === "asc" ? " ↑" : " ↓")}
+            <th className="px-4 py-2 cursor-pointer border-r">
+              Data de Nascimento
             </th>
             <th
               className="px-4 py-2 cursor-pointer"
               onClick={() => sortData("idade")}
             >
-              Idade{" "}
-              {sortConfig.key === "idade" &&
-                (sortConfig.direction === "asc" ? " ↑" : " ↓")}
+              Idade {sortConfig.key === "idade" && (sortConfig.direction === "asc" ? " ↑" : " ↓")}
             </th>
           </tr>
         </thead>
@@ -185,9 +200,7 @@ export default function AniversariantesSocios({
               >
                 <td className="px-4 py-2">{index + 1}</td>
                 <td className="px-4 py-2">{socio.nome.toUpperCase()}</td>
-                <td className="px-4 py-2">
-                  {formatDateBr(socio.data_nascimento)}
-                </td>
+                <td className="px-4 py-2">{formatDateBr(socio.data_nascimento)}</td>
                 <td className="px-4 py-2">{idade} anos</td>
               </tr>
             );
