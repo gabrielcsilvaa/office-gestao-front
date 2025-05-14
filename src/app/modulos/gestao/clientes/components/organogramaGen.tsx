@@ -10,6 +10,30 @@ import ReactFlow, {
 import * as dagre from "dagre";
 import "reactflow/dist/style.css";
 
+interface SocioEmpresa {
+  codi_emp: number;
+  nome_emp: string;
+  cnpj: string;
+}
+
+interface DadoSocio {
+  socio: string;
+  CPF: string;
+  empresas: SocioEmpresa[];
+}
+
+interface SocioEmpresaCompleta {
+  codi_emp: number;
+  nome_emp: string;
+  cnpj: string;
+  socios: string[];
+  dados: DadoSocio[];
+}
+
+interface MeuComponenteProps {
+  data: SocioEmpresaCompleta;
+}
+
 const dagreGraph = new dagre.graphlib.Graph();
 dagreGraph.setDefaultEdgeLabel(() => ({}));
 
@@ -47,7 +71,7 @@ const getLayoutedElements = (
   return { nodes: layoutedNodes, edges };
 };
 
-export default function Organograma() {
+export default function Organograma(data: MeuComponenteProps) {
   const initialNodes: Node[] = [
     {
       id: "1",

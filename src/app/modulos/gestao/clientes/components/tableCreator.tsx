@@ -228,13 +228,6 @@ export function ListaEmpresas({
                     ? empresa.responsavel
                     : "SEM RESPONSÁVEL"}
                 </td>
-                <Modal
-                  isOpen={isModalOpen}
-                  onClose={closeModal}
-                  codiEmp={selectedCodiEmp}
-                >
-                  <p>Este é um exemplo de conteúdo dentro do Modal.</p>
-                </Modal>
               </tr>
             </tbody>
           </table>
@@ -456,6 +449,13 @@ export function ListaEmpresas({
           </div>
         </div>
       ))}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        codiEmp={selectedCodiEmp}
+      >
+        {/* conteúdo opcional */}
+      </Modal>
     </div>
   );
 }
