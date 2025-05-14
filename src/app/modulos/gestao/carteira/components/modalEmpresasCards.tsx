@@ -21,9 +21,11 @@ interface Empresa {
 
 interface ModalEmpresasCardProps {
   dados: Empresa[];
+  dadosNovos: Empresa[];
   onClose: () => void;
   filtrosIniciais?: string[];
 }
+
 
 const formatCNPJ = (cnpj: string | null | undefined) => {
   if (!cnpj) return "";
@@ -38,6 +40,7 @@ const formatCNPJ = (cnpj: string | null | undefined) => {
 
 export default function ModalEmpresasCard({
   dados,
+  dadosNovos,
   onClose,
   filtrosIniciais = [],
 }: ModalEmpresasCardProps) {
@@ -59,41 +62,44 @@ export default function ModalEmpresasCard({
   };
 
 // Função para filtrar empresas com base nos filtros selecionados e na barra de pesquisa
-const filtrarEmpresas = () => {
-  let filteredEmpresas = dados;
+  const filtrarEmpresas = () => {
+    // Combina os dados gerais e os novos
+    let allEmpresas = [...dados];
 
-  if (selectedFiltros.length > 0) {
-    filteredEmpresas = filteredEmpresas.filter((empresa) => {
-      const isAtivo = selectedFiltros.includes("A") && empresa.situacao === "A";
-      const isInativo = selectedFiltros.includes("I") && empresa.situacao === "I";
-      const isBaixado = selectedFiltros.includes("baixados") && empresa.motivo_inatividade === 2;
-      const isTransferido = selectedFiltros.includes("transferidas") && empresa.motivo_inatividade === 3;
-      return isAtivo || isInativo || isBaixado || isTransferido;
-    });
-  }
+    if (selectedFiltros.includes("novos-clientes")) {
+      allEmpresas = [...allEmpresas, ...dadosNovos];
+    }
 
-  if (searchQuery) {
-    const query = searchQuery.toLowerCase().trim();
-    const cnpjQuery = searchQuery.replace(/\D/g, "");
+    // Filtra pelas opções de status selecionadas
+    if (selectedFiltros.length > 0) {
+      allEmpresas = allEmpresas.filter((empresa) => {
+        const isAtivo = selectedFiltros.includes("A") && empresa.situacao === "A";
+        const isInativo = selectedFiltros.includes("I") && empresa.situacao === "I";
+        const isBaixado = selectedFiltros.includes("baixados") && empresa.motivo_inatividade === 2;
+        const isTransferido = selectedFiltros.includes("transferidas") && empresa.motivo_inatividade === 3;
+        const isNovoCliente = selectedFiltros.includes("novos-clientes") && dadosNovos.includes(empresa);
+        return isAtivo || isInativo || isBaixado || isTransferido || isNovoCliente;
+      });
+    }
 
-    filteredEmpresas = filteredEmpresas.filter((empresa) => {
-       // Tratamento seguro para nome da empresa
+    // Filtra pelo campo de pesquisa
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase().trim();
+      const cnpjQuery = searchQuery.replace(/\D/g, "");
+
+      allEmpresas = allEmpresas.filter((empresa) => {
         const nomeEmpresa = empresa.nome_empresa?.toLowerCase() || "";
         const nomeMatch = nomeEmpresa.includes(query);
 
-        // Tratamento seguro para CNPJ
         const cnpjEmpresa = empresa.cnpj?.replace(/\D/g, "") || "";
         const cnpjMatch = cnpjQuery ? cnpjEmpresa.includes(cnpjQuery) : false;
 
-      return nomeMatch || cnpjMatch;
-    });
-  }
+        return nomeMatch || cnpjMatch;
+      });
+    }
 
-  return filteredEmpresas;
-};
-
-
-
+    return allEmpresas;
+  };
   return (
     <div className="flex flex-col gap-4 overflow-x-auto max-h-[700px] w-full">
       <div className="flex items-center justify-between p-4 bg-white shadow rounded-md mb-4">
@@ -129,10 +135,10 @@ const filtrarEmpresas = () => {
           </button>
         </div>
       </div>
-
-        <div className="flex flex-wrap gap-2 p-4 bg-white shadow rounded-md mb-4">
+      <div className="flex flex-wrap gap-2 p-4 bg-white shadow rounded-md mb-4">
         {[
             { label: "Clientes Ativos", filtro: "A" },
+            { label: "Novos Clientes", filtro: "novos-clientes" },
             { label: "Clientes Inativos", filtro: "I" },
             { label: "Baixados", filtro: "baixados" },
             { label: "Bloqueados", filtro: "transferidas" },
@@ -150,7 +156,6 @@ const filtrarEmpresas = () => {
             </button>
         ))}
         </div>
-
         <table className="w-full border border-gray-300 text-sm font-cairo">
         <thead>
             <tr className="bg-gray-200 border-b border-gray-400">

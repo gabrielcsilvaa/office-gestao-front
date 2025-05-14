@@ -66,6 +66,7 @@ export default function Carteira() {
   const [socios, setSocios] = useState<Socio[]>([]); // Corrigido a tipagem
   const [parceria, setParceria] = useState<Parceria[]>([]); // Corrigido a tipagem
   const [novosClientes, setNovosClientes] = useState<number>(0);
+  const [dadosTotaisClientesNovos, setDadosTotaisClientesNovos] = useState<Empresa[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [regimesData, setRegimesData] = useState<Regime[]>([]);
@@ -88,7 +89,7 @@ export default function Carteira() {
         setIsEmpresasCardModalOpen(true);
         break;
       case "Novos Clientes":
-        setFiltrosSelecionados([]);
+        setFiltrosSelecionados(["novos-clientes"]);
         setIsEmpresasCardModalOpen(true);
         break;
       case "Clientes Inativos":
@@ -114,7 +115,6 @@ export default function Carteira() {
         setIsEmpresasCardModalOpen(true);
     }
   };
-  console.log("ODASNONÁSNONOFDSNO´DASNO´DSFNO´DAS OLHAA Q", novosClientes)
 
   const handleStartDateChange = (date: string | null) => {
     setStartDate(date);
@@ -132,42 +132,59 @@ export default function Carteira() {
     setIsModalOpen(title);
   };
 
-  useEffect(() => {
-    const fetchNovosClientes = async () => {
-      try {
-        const body = {
-          start_date: startDate,
-          end_date: endDate,
-        };
-        const response = await fetch("/api/analise-carteira/novos-clientes", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(body),
-        });
+useEffect(() => {
+  const fetchNovosClientes = async () => {
+    try {
+      const body = {
+        start_date: startDate,
+        end_date: endDate,
+      };
+      const response = await fetch("/api/analise-carteira/novos-clientes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      });
 
-        if (!response.ok) {
-          throw new Error(`Erro na API: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        const totalNovosClientes = data.reduce(
-          (total: number, item: { value: number }) => total + item.value,
-          0
-        );
-        setNovosClientes(totalNovosClientes);
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          setError(err.message);
-        }
-      } finally {
-        setLoading(false);
+      if (!response.ok) {
+        throw new Error(`Erro na API: ${response.statusText}`);
       }
-    };
 
-    fetchNovosClientes();
-  }, [startDate, endDate]);
+      const data = await response.json();
+
+      // Garantindo que os dados estão no formato correto
+      const dadosTotaisClientesNovos = data.flatMap(
+        (item: { empresas: any[] }) =>
+          item.empresas.map((empresa) => ({
+            nome_empresa: empresa.nome_empresa,
+            cnpj: empresa.cnpj,
+            data_cadastro: empresa.data_cadastro,
+            situacao: empresa.situacao,
+            responsavel_legal: empresa.responsavel || "Sem Responsável",
+            motivo_inatividade: empresa.motivo_inatividade || 0,
+            regime_tributario: empresa.regime_tributario || "Não Especificado",
+          }))
+      );
+
+      const totalNovosClientes = dadosTotaisClientesNovos.length;
+
+      setDadosTotaisClientesNovos(dadosTotaisClientesNovos);
+      setNovosClientes(totalNovosClientes);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  fetchNovosClientes();
+}, [startDate, endDate]);
+
+  console.log("OIIIIIIIIIIIIIIIIIII", novosClientes);
+  console.log("DADOS TOTAIS clientes", dadosTotaisClientesNovos)
 
   useEffect(() => {
     const fetchAniversariosDeParceria = async () => {
@@ -283,7 +300,6 @@ export default function Carteira() {
 
         const data = await response.json();
         setEmpresas(data.Empresas);
-        console.log("fodsnfklsnfsnfdsafdnsOI", data.Empresas)
 
         // Processando dados de regime tributário
         const groupedByRegime = data.Empresas.reduce(
@@ -479,6 +495,7 @@ export default function Carteira() {
           dados={empresas}
           onClose={() => setIsEmpresasCardModalOpen(false)}
           filtrosIniciais={filtrosSelecionados}
+          dadosNovos={dadosTotaisClientesNovos} // Passando os novos clientes
         />
       </Modal>
       <Modal
