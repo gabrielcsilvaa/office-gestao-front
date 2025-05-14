@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect } from 'react';
 import ReactFlow, {
   Node,
   Edge,
@@ -6,33 +6,14 @@ import ReactFlow, {
   useEdgesState,
   Background,
   Controls,
-} from "reactflow";
-import * as dagre from "dagre";
-import "reactflow/dist/style.css";
+} from 'reactflow';
+import * as dagre from 'dagre';
+import 'reactflow/dist/style.css';
 
-interface SocioEmpresa {
-  codi_emp: number;
-  nome_emp: string;
-  cnpj: string;
-}
-
-interface DadoSocio {
-  socio: string;
-  CPF: string;
-  empresas: SocioEmpresa[];
-}
-
-interface SocioEmpresaCompleta {
-  codi_emp: number;
-  nome_emp: string;
-  cnpj: string;
-  socios: string[];
-  dados: DadoSocio[];
-}
-
-interface MeuComponenteProps {
-  data: SocioEmpresaCompleta;
-}
+import {
+  SocioEmpresaCompleta,
+  convertDataToReactFlowNodesEdges,
+} from '../services/dataReactFlowNodeEdges'; // ajuste o caminho conforme seu projeto
 
 const dagreGraph = new dagre.graphlib.Graph();
 dagreGraph.setDefaultEdgeLabel(() => ({}));
@@ -43,9 +24,15 @@ const nodeHeight = 80;
 const getLayoutedElements = (
   nodes: Node[],
   edges: Edge[],
-  direction = "TB"
+  direction = 'TB'
 ) => {
-  dagreGraph.setGraph({ rankdir: direction });
+  dagreGraph.setGraph({
+    rankdir: direction,
+    nodesep: 150,  // espaçamento horizontal maior
+    ranksep: 150,  // espaçamento vertical maior
+    marginx: 20,
+    marginy: 20,
+  });
 
   nodes.forEach((node) => {
     dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
@@ -57,37 +44,36 @@ const getLayoutedElements = (
 
   dagre.layout(dagreGraph);
 
-  const layoutedNodes = nodes.map((node) => {
+  const layoutedNodes = nodes.map((node, i) => {
     const nodeWithPosition = dagreGraph.node(node.id);
+    let yPos = nodeWithPosition.y - nodeHeight / 2;
+
+    // Eleva/rebaixa alternadamente os nós das empresas para evitar cruzamento
+    if (node.id.startsWith('empresa-')) {
+      const offset = i % 2 === 0 ? -25 : 25;
+      yPos += offset;
+    }
+
     return {
       ...node,
       position: {
         x: nodeWithPosition.x - nodeWidth / 2,
-        y: nodeWithPosition.y - nodeHeight / 2,
+        y: yPos,
       },
+      draggable: false,
     };
   });
 
   return { nodes: layoutedNodes, edges };
 };
 
-export default function Organograma(data: MeuComponenteProps) {
-  const initialNodes: Node[] = [
-    {
-      id: "1",
-      data: { label: "CEO\nJoão" },
-      position: { x: 0, y: 0 },
-      style: { width: nodeWidth, height: nodeHeight },
-    },
-    {
-      id: "2",
-      data: { label: "CTO\nMaria" },
-      position: { x: 0, y: 0 },
-      style: { width: nodeWidth, height: nodeHeight },
-    },
-  ];
+interface OrganogramaProps {
+  data: SocioEmpresaCompleta;
+}
 
-  const initialEdges: Edge[] = [{ id: "e1-2", source: "1", target: "2" }];
+export default function Organograma({ data }: OrganogramaProps) {
+  // Converte os dados para nodes e edges
+  const { nodes: initialNodes, edges: initialEdges } = convertDataToReactFlowNodesEdges(data);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
