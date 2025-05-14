@@ -196,21 +196,18 @@ export default function ListaEmpresasRegimeTributario({
             </th>
             <th
               className="px-4 py-2 border-r cursor-pointer"
-              onClick={() => requestSort("regime_tributario")}
             >
-              Regime {renderSortArrow("regime_tributario")}
+              Regime
             </th>
             <th
               className="px-4 py-2 border-r cursor-pointer"
-              onClick={() => requestSort("cnpj")}
             >
-              CNPJ {renderSortArrow("cnpj")}
+              CNPJ
             </th>
             <th
               className="px-4 py-2 cursor-pointer"
-              onClick={() => requestSort("responsavel_legal")}
             >
-              Responsável Legal {renderSortArrow("responsavel_legal")}
+              Responsável Legal
             </th>
           </tr>
         </thead>
@@ -224,7 +221,11 @@ export default function ListaEmpresasRegimeTributario({
               <td className="px-4 py-2">{empresa.nome_empresa}</td>
               <td className="px-4 py-2">{empresa.regime_tributario}</td>
               <td className="px-4 py-2">{formatCNPJ(empresa.cnpj)}</td>
-              <td className="px-4 py-2">{empresa.responsavel_legal}</td>
+              <td className="px-4 py-2">
+                {empresa.responsavel_legal && empresa.responsavel_legal.trim() !== "" 
+                  ? empresa.responsavel_legal 
+                  : "Sem Responsável Legal"}
+              </td>
             </tr>
           ))}
         </tbody>
