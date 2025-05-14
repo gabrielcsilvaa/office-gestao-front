@@ -25,6 +25,8 @@ export default function AniversariantesParceiros({
     direction: "asc",
   });
 
+  const [searchQuery, setSearchQuery] = useState<string>("");
+
   // Função para formatar a data com tratamento de segurança
   const formatDateBr = (dateString: string) => {
     if (!dateString) return "";
@@ -76,32 +78,31 @@ export default function AniversariantesParceiros({
     setSortConfig({ key, direction });
   };
 
+  const filteredClientes = dados.filter((empresa) =>
+    empresa.nome.toLowerCase().includes(searchQuery.toLowerCase().trim())
+  );
+
   // Ordenação dos dados com tratamento de tipos
-  const sortedClientes = Array.isArray(dados)
-    ? [...dados].sort((a, b) => {
-        const aValue = a[sortConfig.key];
-        const bValue = b[sortConfig.key];
+  const sortedClientes = filteredClientes.sort((a, b) => {
+    const aValue = a[sortConfig.key];
+    const bValue = b[sortConfig.key];
 
-        if (
-          sortConfig.key === "data_cadastro" ||
-          sortConfig.key === "data_inicio_atividades"
-        ) {
-          const aDate = new Date(aValue as string);
-          const bDate = new Date(bValue as string);
-          return sortConfig.direction === "asc"
-            ? aDate.getTime() - bDate.getTime()
-            : bDate.getTime() - aDate.getTime();
-        }
+    if (sortConfig.key === "data_cadastro" || sortConfig.key === "data_inicio_atividades") {
+      const aDate = new Date(aValue as string);
+      const bDate = new Date(bValue as string);
+      return sortConfig.direction === "asc"
+        ? aDate.getTime() - bDate.getTime()
+        : bDate.getTime() - aDate.getTime();
+    }
 
-        if (typeof aValue === "string" && typeof bValue === "string") {
-          return sortConfig.direction === "asc"
-            ? aValue.localeCompare(bValue)
-            : bValue.localeCompare(aValue);
-        }
+    if (typeof aValue === "string" && typeof bValue === "string") {
+      return sortConfig.direction === "asc"
+        ? aValue.localeCompare(bValue)
+        : bValue.localeCompare(aValue);
+    }
 
-        return 0;
-      })
-    : [];
+    return 0;
+  });
 
   return (
     <div className="flex flex-col gap-4 overflow-x-auto max-h-[700px] w-full">
@@ -109,31 +110,40 @@ export default function AniversariantesParceiros({
         <h1 className="text-2xl font-bold font-cairo text-gray-800">
           Aniversário de Parceria
         </h1>
-        <button
-          onClick={onClose}
-          className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-          aria-label="Fechar modal"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6 text-gray-500"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
+        <div className="flex items-center gap-4">
+          <input
+            type="text"
+            placeholder="Pesquisar por nome..."
+            className="border border-gray-300 rounded-md p-2 w-96 text-sm"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <button
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            aria-label="Fechar modal"
           >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </button>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6 text-gray-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
 
       <table className="w-full border border-gray-300 text-sm font-cairo">
         <thead>
-          <tr className="bg-gray-200 border-b border-gray-400">
+          <tr className="bg-gray-200 border-b-[1px] border-gray-400">
             <th className="px-4 py-2 border-r">#</th>
             <th
               className="px-4 py-2 cursor-pointer border-r"
@@ -144,23 +154,9 @@ export default function AniversariantesParceiros({
                 (sortConfig.direction === "asc" ? " ↑" : " ↓")}
             </th>
             <th className="px-4 py-2 border-r">CNPJ</th>
-            <th
-              className="px-4 py-2 cursor-pointer border-r"
-              onClick={() => sortData("data_cadastro")}
-            >
-              Data de Cadastro{" "}
-              {sortConfig.key === "data_cadastro" &&
-                (sortConfig.direction === "asc" ? " ↑" : " ↓")}
-            </th>
-            <th className="px-4 py-2">Anos de Parceria</th>
-            <th
-              className="px-4 py-2 cursor-pointer border-r"
-              onClick={() => sortData("data_inicio_atividades")}
-            >
-              Data de Início de Atividades{" "}
-              {sortConfig.key === "data_inicio_atividades" &&
-                (sortConfig.direction === "asc" ? " ↑" : " ↓")}
-            </th>
+            <th className="px-4 py-2 border-r">Data de Cadastro</th>
+            <th className="px-4 py-2 border-r">Anos de Parceria</th>
+            <th className="px-4 py-2 border-r">Data de Início de Atividades</th>
             <th className="px-4 py-2">Anos de Atividade</th>
           </tr>
         </thead>
@@ -168,9 +164,7 @@ export default function AniversariantesParceiros({
           {sortedClientes.map((empresa, index) => {
             const isBirthday = isAniversarioHoje(empresa.data_cadastro);
             const anosParceria = calculateYears(empresa.data_cadastro);
-            const anosAtividade = calculateYears(
-              empresa.data_inicio_atividades
-            );
+            const anosAtividade = calculateYears(empresa.data_inicio_atividades);
 
             const rowClass = isBirthday
               ? "bg-green-100 text-green-700 font-semibold"
@@ -179,25 +173,14 @@ export default function AniversariantesParceiros({
                 : "bg-gray-100";
 
             return (
-              <tr
-                key={empresa.codi_emp}
-                className={`${rowClass} border-b border-gray-300`}
-              >
+              <tr key={empresa.codi_emp} className={`${rowClass} border-b border-gray-300`}>
                 <td className="px-4 py-2">{index + 1}</td>
                 <td className="px-4 py-2">{empresa.nome}</td>
                 <td className="px-4 py-2">{empresa.cnpj}</td>
-                <td className="px-4 py-2">
-                  {formatDateBr(empresa.data_cadastro)}
-                </td>
-                <td className="px-4 py-2">
-                  {anosParceria} {anosParceria === 1 ? "ano" : "anos"}
-                </td>
-                <td className="px-4 py-2">
-                  {formatDateBr(empresa.data_inicio_atividades)}
-                </td>
-                <td className="px-4 py-2">
-                  {anosAtividade} {anosAtividade === 1 ? "ano" : "anos"}
-                </td>
+                <td className="px-4 py-2">{formatDateBr(empresa.data_cadastro)}</td>
+                <td className="px-4 py-2">{anosParceria} {anosParceria === 1 ? "ano" : "anos"}</td>
+                <td className="px-4 py-2">{formatDateBr(empresa.data_inicio_atividades)}</td>
+                <td className="px-4 py-2">{anosAtividade} {anosAtividade === 1 ? "ano" : "anos"}</td>
               </tr>
             );
           })}
