@@ -11,9 +11,7 @@ const cairo = Cairo({
 
 export function Header() {
   return (
-    <header
-      className={`text-white fixed lg:relative z-40 w-[180px] h-full flex flex-col gap-2 px-2 py-4 bg-[var(--left-menu-gray)]`}
-    >
+    <header className="text-white fixed lg:relative z-40 w-[180px] h-full flex flex-col gap-2 px-2 py-4 bg-[var(--left-menu-gray)]">
       <Image
         src="/assets/logos/office.svg"
         alt="Ícone"
@@ -36,7 +34,7 @@ export function Header() {
                   height={22}
                   className="mr-2" // margem à esquerda para espaçamento entre o texto e o ícone
                 />
-                Análise de Carteira
+                Carteira Clientes
               </span>
             </Link>
           </li>
@@ -53,7 +51,7 @@ export function Header() {
                   height={22}
                   className="mr-2" // margem à esquerda para espaçamento entre o texto e o ícone
                 />
-                Análise de Clientes
+                Custo Operacional
               </span>
             </Link>
           </li>
@@ -70,7 +68,7 @@ export function Header() {
                   height={22}
                   className="mr-2" // margem à esquerda para espaçamento entre o texto e o ícone
                 />
-                Análise de Usuários
+                Desempenho de usuarios
               </span>
             </Link>
           </li>
@@ -87,7 +85,7 @@ export function Header() {
                   height={22}
                   className="mr-2" // margem à esquerda para espaçamento entre o texto e o ícone
                 />
-                Análise de Escritório
+                Perfil Escritório
               </span>
             </Link>
           </li>
