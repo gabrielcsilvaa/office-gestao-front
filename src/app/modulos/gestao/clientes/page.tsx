@@ -12,13 +12,17 @@ const cairo = Cairo({
 });
 
 export default function Clientes() {
+  //Dados
   const [value, setValue] = useState("");
   const [clientData, setClientData] = useState<EmpresaAnalise[] | null>(null);
   const [filteredData, setFilteredData] = useState<EmpresaAnalise[] | null>(
     null
-  ); // dados filtrados
+  );
+  //Loading e Erro
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  //Estados de data
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
 
@@ -26,12 +30,18 @@ export default function Clientes() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  //Aguardando colocar data
+    const [awaitDateSelection, setAwaitDateSelection] = useState(true); // Tela de seleção de data
+
+
   const handleStartDateChange = (date: string | null) => {
     setStartDate(date);
+    setAwaitDateSelection(false); // Remove a tela de seleção de data
   };
 
   const handleEndDateChange = (date: string | null) => {
     setEndDate(date);
+    setAwaitDateSelection(false); // Remove a tela de seleção de data
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -151,9 +161,21 @@ export default function Clientes() {
       <div className="h-[calc(95vh-85px)] w-full overflow-y-auto p-4 rounded-lg">
         <div className="w-max min-w-full shadow-gray-300 shadow-md rounded-lg">
           <div className="overflow-x-auto p-4 bg-white shadow-md rounded-lg">
+            {awaitDateSelection && (
+              <div className="flex justify-center items-center h-[100vh] bg-gray-200">
+                <div className={`${cairo.className} text-center p-4`}>
+                  <p className="text-xl mb-4">
+                    Selecione uma data para puxarmos os dados
+                  </p>
+            
+                </div>
+              </div>
+            )}
+
             {loading ? (
               <div className="flex justify-center items-center h-screen bg-gray-200">
                 <div className="loader">
+                  {/* tela de carregamento */}
                   <div className="loader-square"></div>
                   <div className="loader-square"></div>
                   <div className="loader-square"></div>
