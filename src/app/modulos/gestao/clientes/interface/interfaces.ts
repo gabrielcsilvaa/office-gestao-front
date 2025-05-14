@@ -56,6 +56,7 @@ export interface ListaEmpresasProps {
 }
 
 export interface EmpresaVar {
+  codigo_empresa: string | number;
   nome_empresa: string;
   cnpj: string;
   data_cadastro: string;

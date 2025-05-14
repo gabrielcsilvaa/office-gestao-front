@@ -49,6 +49,7 @@ export function ListaEmpresas({
     // Iterando pelas empresas
     for (const item of empresas) {
       const empresaData: EmpresaVar = {
+        codigo_empresa: item.codigo_empresa,
         nome_empresa: item.nome_empresa,
         cnpj: item.cnpj,
         data_cadastro: item.data_cadastro,
@@ -187,9 +188,15 @@ export function ListaEmpresas({
 
   const result = tableValues();
 
+  //Modal para socios
   const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const openModal = () => setIsModalOpen(true);
+  const [selectedCodiEmp, setSelectedCodiEmp] = useState<
+    string | null | number
+  >(null);
+  const openModalWithCodiEmp = (codiEmp: string | number) => {
+    setSelectedCodiEmp(codiEmp);
+    setIsModalOpen(true);
+  };
   const closeModal = () => setIsModalOpen(false);
 
   return (
@@ -213,12 +220,19 @@ export function ListaEmpresas({
                 <td className="table-cell">{empresa.cnpj}</td>
                 <td className="table-cell">{empresa.data_cadastro}</td>
                 <td className="table-cell">{empresa.data_inicio_atv}</td>
-                <td className="table-cell hover:underline cursor-pointer" onClick={openModal}>
+                <td
+                  className="table-cell hover:underline cursor-pointer"
+                  onClick={() => openModalWithCodiEmp(empresa.codigo_empresa)}
+                >
                   {empresa.responsavel
                     ? empresa.responsavel
                     : "SEM RESPONSÁVEL"}
                 </td>
-                <Modal isOpen={isModalOpen} onClose={closeModal}>
+                <Modal
+                  isOpen={isModalOpen}
+                  onClose={closeModal}
+                  codiEmp={selectedCodiEmp}
+                >
                   <p>Este é um exemplo de conteúdo dentro do Modal.</p>
                 </Modal>
               </tr>

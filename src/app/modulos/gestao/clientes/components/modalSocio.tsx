@@ -5,9 +5,10 @@ interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
   children?: ReactNode;
+  codiEmp: string | null | number;
 }
 
-export default function ModalSocio({ isOpen, onClose, children }: ModalProps) {
+export default function ModalSocio({ isOpen, onClose, codiEmp, children }: ModalProps) {
   if (!isOpen) return null;
 
   const pessoa = {
@@ -41,6 +42,7 @@ export default function ModalSocio({ isOpen, onClose, children }: ModalProps) {
           </button>
         </div>
         <div className="mt-4">{children}</div>
+        {codiEmp}
         <Organograma />
       </div>
     </div>
