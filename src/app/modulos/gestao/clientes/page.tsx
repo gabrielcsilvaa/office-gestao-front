@@ -148,13 +148,25 @@ export default function Clientes() {
       </div>
 
       {/* Conteúdo da Tabela e Loading */}
-      <div className="h-[calc(95vh-85px)] w-full overflow-y-auto p-4">
-        <div className="w-max min-w-full shadow-black shadow-lg">
+      <div className="h-[calc(95vh-85px)] w-full overflow-y-auto p-4 rounded-lg">
+        <div className="w-max min-w-full shadow-gray-300 shadow-md rounded-lg">
           <div className="overflow-x-auto p-4 bg-white shadow-md rounded-lg">
             {loading ? (
-              <div>Carregando dados...</div> // Mantenha a indicação de carregamento aqui
+              <div className="flex justify-center items-center h-screen bg-gray-200">
+                <div className="loader">
+                  <div className="loader-square"></div>
+                  <div className="loader-square"></div>
+                  <div className="loader-square"></div>
+                  <div className="loader-square"></div>
+                  <div className="loader-square"></div>
+                  <div className="loader-square"></div>
+                  <div className="loader-square"></div>
+                </div>
+              </div> // Mantenha a indicação de carregamento aqui
             ) : error ? (
-              <div>Erro: {error}</div> // Exibe mensagem de erro se houver
+              <div className="flex justify-center items-center h-screen bg-gray-200">
+                <div>Erro: Dados não foram encontrados</div>
+              </div>
             ) : (
               currentItems && (
                 <ListaEmpresas
