@@ -31,17 +31,18 @@ export default function Clientes() {
   const itemsPerPage = 10;
 
   //Aguardando colocar data
-    const [awaitDateSelection, setAwaitDateSelection] = useState(true); // Tela de seleção de data
-
+  const [awaitDateSelection, setAwaitDateSelection] = useState(true); // Tela de seleção de data
 
   const handleStartDateChange = (date: string | null) => {
     setStartDate(date);
     setAwaitDateSelection(false); // Remove a tela de seleção de data
+    setCurrentPage(1);
   };
 
   const handleEndDateChange = (date: string | null) => {
     setEndDate(date);
     setAwaitDateSelection(false); // Remove a tela de seleção de data
+    setCurrentPage(1);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -162,18 +163,17 @@ export default function Clientes() {
         <div className="w-max min-w-full shadow-gray-300 shadow-md rounded-lg">
           <div className="overflow-x-auto p-4 bg-white shadow-md rounded-lg">
             {awaitDateSelection && (
-              <div className="flex justify-center items-center h-[100vh] bg-gray-200">
+              <div className="flex justify-center items-center h-[70vh] bg-gray-200">
                 <div className={`${cairo.className} text-center p-4`}>
                   <p className="text-xl mb-4">
                     Selecione uma data para carregar os dados
                   </p>
-            
                 </div>
               </div>
             )}
 
             {loading ? (
-              <div className="flex justify-center items-center h-screen bg-gray-200">
+              <div className="flex justify-center items-center h-[70vh] bg-gray-200">
                 <div className="loader">
                   {/* tela de carregamento */}
                   <div className="loader-square"></div>
@@ -186,7 +186,9 @@ export default function Clientes() {
                 </div>
               </div> // Mantenha a indicação de carregamento aqui
             ) : error ? (
-              <div className="flex justify-center items-center h-screen bg-gray-200">
+              <div
+                className={`${cairo.className} not-only-of-type:flex justify-center items-center h-[70vh] bg-gray-200`}
+              >
                 <div>Erro: Dados não foram encontrados</div>
               </div>
             ) : (
