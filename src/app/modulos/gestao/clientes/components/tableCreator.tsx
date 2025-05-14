@@ -3,6 +3,9 @@ import { EmpresaVar, ListaEmpresasProps } from "../interface/interfaces";
 import { formatadorSegParaHor } from "@/utils/formatadores";
 import { maxValueContrato } from "../services/maxValorContrato";
 
+import { useState } from "react";
+import Modal from "./modalSocio";
+
 function gerarIntervaloDeMeses(
   start: string | null,
   end: string | null
@@ -46,6 +49,7 @@ export function ListaEmpresas({
     // Iterando pelas empresas
     for (const item of empresas) {
       const empresaData: EmpresaVar = {
+        codigo_empresa: item.codigo_empresa,
         nome_empresa: item.nome_empresa,
         cnpj: item.cnpj,
         data_cadastro: item.data_cadastro,
@@ -183,6 +187,18 @@ export function ListaEmpresas({
   }
 
   const result = tableValues();
+
+  //Modal para socios
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedCodiEmp, setSelectedCodiEmp] = useState<
+    string | null | number
+  >(null);
+  const openModalWithCodiEmp = (codiEmp: string | number) => {
+    setSelectedCodiEmp(codiEmp);
+    setIsModalOpen(true);
+  };
+  const closeModal = () => setIsModalOpen(false);
+
   return (
     <div className="w-full space-y-4">
       {result.map((empresa, index) => (
@@ -204,7 +220,14 @@ export function ListaEmpresas({
                 <td className="table-cell">{empresa.cnpj}</td>
                 <td className="table-cell">{empresa.data_cadastro}</td>
                 <td className="table-cell">{empresa.data_inicio_atv}</td>
-                <td className="table-cell">{empresa.responsavel ? empresa.responsavel: "SEM RESPONSÁVEL"}</td>
+                <td
+                  className="table-cell hover:underline cursor-pointer"
+                  onClick={() => openModalWithCodiEmp(empresa.codigo_empresa)}
+                >
+                  {empresa.responsavel
+                    ? empresa.responsavel
+                    : "SEM RESPONSÁVEL"}
+                </td>
               </tr>
             </tbody>
           </table>
@@ -426,6 +449,13 @@ export function ListaEmpresas({
           </div>
         </div>
       ))}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        codiEmp={selectedCodiEmp}
+      >
+        {/* conteúdo opcional */}
+      </Modal>
     </div>
   );
 }
