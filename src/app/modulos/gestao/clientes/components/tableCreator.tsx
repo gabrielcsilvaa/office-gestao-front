@@ -3,6 +3,9 @@ import { EmpresaVar, ListaEmpresasProps } from "../interface/interfaces";
 import { formatadorSegParaHor } from "@/utils/formatadores";
 import { maxValueContrato } from "../services/maxValorContrato";
 
+import { useState } from "react";
+import Modal from "./modalSocio";
+
 function gerarIntervaloDeMeses(
   start: string | null,
   end: string | null
@@ -183,6 +186,12 @@ export function ListaEmpresas({
   }
 
   const result = tableValues();
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
+
   return (
     <div className="w-full space-y-4">
       {result.map((empresa, index) => (
@@ -204,7 +213,14 @@ export function ListaEmpresas({
                 <td className="table-cell">{empresa.cnpj}</td>
                 <td className="table-cell">{empresa.data_cadastro}</td>
                 <td className="table-cell">{empresa.data_inicio_atv}</td>
-                <td className="table-cell">{empresa.responsavel ? empresa.responsavel: "SEM RESPONSÁVEL"}</td>
+                <td className="table-cell hover:underline cursor-pointer" onClick={openModal}>
+                  {empresa.responsavel
+                    ? empresa.responsavel
+                    : "SEM RESPONSÁVEL"}
+                </td>
+                <Modal isOpen={isModalOpen} onClose={closeModal}>
+                  <p>Este é um exemplo de conteúdo dentro do Modal.</p>
+                </Modal>
               </tr>
             </tbody>
           </table>
