@@ -165,7 +165,7 @@ export default function Clientes() {
               <div className="flex justify-center items-center h-[100vh] bg-gray-200">
                 <div className={`${cairo.className} text-center p-4`}>
                   <p className="text-xl mb-4">
-                    Selecione uma data para puxarmos os dados
+                    Selecione uma data para carregar os dados
                   </p>
             
                 </div>
