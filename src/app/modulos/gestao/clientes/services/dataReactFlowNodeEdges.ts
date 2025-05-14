@@ -3,6 +3,15 @@ import type { Node, Edge } from "reactflow";
 const nodeWidth = 180;
 const nodeHeight = 80;
 
+// Paleta neutra para linhas e sócios (cinzas azulados)
+const coresNeutras = [
+  "#7895B2", // azul acinzentado
+  "#8CA6DB",
+  "#627E99",
+  "#94A3B8",
+  "#6B8CA7",
+];
+
 export interface SocioEmpresa {
   codi_emp: number;
   nome_emp: string;
@@ -30,10 +39,10 @@ export function convertDataToReactFlowNodesEdges(data: SocioEmpresaCompleta): {
   const nodes: Node[] = [];
   const edges: Edge[] = [];
 
-  // Guarda quais empresas já foram criadas e os sócios que têm
+  // Mapeia quais sócios têm cada empresa para posicionamento e cores
   const empresaToSociosMap: Record<string, string[]> = {};
 
-  // Nó raiz
+  // Nó raiz (empresa principal)
   const rootId = `empresa-${data.codi_emp}`;
   nodes.push({
     id: rootId,
@@ -48,12 +57,16 @@ export function convertDataToReactFlowNodesEdges(data: SocioEmpresaCompleta): {
       backgroundColor: "#eee",
       textAlign: "center",
       whiteSpace: "pre-wrap",
+      fontWeight: "600",
     },
   });
 
   data.dados.forEach((socio, socioIndex) => {
     const socioId = `socio-${socioIndex}-${socio.CPF}`;
+    const corIndex = socioIndex % coresNeutras.length;
+    const corDaLinha = coresNeutras[corIndex];
 
+    // Nó do sócio com fundo da cor da linha para diferenciar
     nodes.push({
       id: socioId,
       data: { label: socio.socio },
@@ -62,11 +75,13 @@ export function convertDataToReactFlowNodesEdges(data: SocioEmpresaCompleta): {
         width: nodeWidth,
         height: nodeHeight,
         borderRadius: 8,
-        border: "1px solid #555",
+        border: `1px solid ${corDaLinha}`,
         padding: 10,
-        backgroundColor: "#cce5ff",
+        backgroundColor: corDaLinha + "33", // cor com transparência para fundo
         textAlign: "center",
         whiteSpace: "pre-wrap",
+        fontWeight: "600",
+        color: "#1E293B", // texto azul escuro para contraste
       },
     });
 
@@ -75,18 +90,21 @@ export function convertDataToReactFlowNodesEdges(data: SocioEmpresaCompleta): {
       source: rootId,
       target: socioId,
       type: "smoothstep",
+      animated: true,
+      style: {
+        stroke: corDaLinha,
+        strokeWidth: 3,
+      },
     });
 
     socio.empresas.forEach((empresa) => {
       const empresaId = `empresa-${empresa.codi_emp}`;
 
-      // Inicializa array de sócios da empresa
       if (!empresaToSociosMap[empresaId]) {
         empresaToSociosMap[empresaId] = [];
       }
       empresaToSociosMap[empresaId].push(socioId);
 
-      // Só cria o node da empresa se ainda não existir
       if (!nodes.find((n) => n.id === empresaId)) {
         nodes.push({
           id: empresaId,
@@ -101,6 +119,7 @@ export function convertDataToReactFlowNodesEdges(data: SocioEmpresaCompleta): {
             backgroundColor: "#d4edda",
             textAlign: "center",
             whiteSpace: "pre-wrap",
+            fontWeight: "600",
           },
         });
       }
@@ -110,27 +129,24 @@ export function convertDataToReactFlowNodesEdges(data: SocioEmpresaCompleta): {
         source: socioId,
         target: empresaId,
         type: "smoothstep",
+        animated: true,
+        style: {
+          stroke: corDaLinha,
+          strokeWidth: 3,
+        },
       });
     });
   });
 
-  // Após criar todos nodes e edges, podemos ajustar posição horizontal das empresas que têm múltiplos pais
-  // Por exemplo, deslocar as empresas no eixo X proporcionalmente ao índice do sócio na lista de sócios daquela empresa
-
+  // Ajuste de posição horizontal para empresas com múltiplos sócios
   const adjustedNodes = nodes.map((node) => {
     if (node.id.startsWith("empresa-") && node.id !== rootId) {
       const sociosDaEmpresa = empresaToSociosMap[node.id];
       if (sociosDaEmpresa && sociosDaEmpresa.length > 1) {
-        // Para múltiplos sócios, vamos deslocar no eixo X para cada sócio diferente
-        // Mas o node só existe uma vez, então vamos posicionar entre o primeiro e último sócio (média)
-        // Como não temos a posição dos sócios ainda, só aplicamos um deslocamento fixo lateral (exemplo)
-        // Para simplificar, vamos deslocar por índice arbitrário baseado no hash do id para espalhar nodes duplicados
-
-        // Gerar offset pseudo-aleatório baseado no id para espalhar nodes:
+        // Offset lateral para evitar sobreposição das empresas com múltiplos sócios
         const hash = node.id
           .split("")
           .reduce((acc, char) => acc + char.charCodeAt(0), 0);
-
         const offsetX = ((hash % 5) - 2) * 40; // desloca entre -80 e +80 px
 
         return {
