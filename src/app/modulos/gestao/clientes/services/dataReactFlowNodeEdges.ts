@@ -4,7 +4,7 @@ const nodeWidth = 180;
 const nodeHeight = 80;
 
 // Cores fixas por nível
-const corEmpresaPrincipal = "#0f172a";
+const corEmpresaPrincipal = "#1C1C1C";
 const corSocio = "#3b82f6";
 const corEmpresaVinculada = "#10b981";
 
@@ -47,13 +47,13 @@ export function convertDataToReactFlowNodesEdges(data: SocioEmpresaCompleta): {
       width: nodeWidth,
       height: nodeHeight,
       borderRadius: 8,
-      border: "2px solid #1e293b",
+      border: `2px solid ${corEmpresaPrincipal}`,
       padding: 10,
-      backgroundColor: corEmpresaPrincipal,
+      backgroundColor: `${corEmpresaPrincipal}22`,
       textAlign: "center",
       whiteSpace: "pre-wrap",
       fontWeight: "600",
-      color: "#f1f5f9",
+      color: "#1E293B",
     },
   });
 
