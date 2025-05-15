@@ -103,7 +103,7 @@ export default function Organograma({ data }: OrganogramaProps) {
     setSelectedNodeId((prev) => (prev === node.id ? null : node.id));
   };
 
-  const styledEdges = edges.map((edge, index) => {
+  const styledEdges = edges.map((edge) => {
     const isConnected =
       edge.source === selectedNodeId || edge.target === selectedNodeId;
 
