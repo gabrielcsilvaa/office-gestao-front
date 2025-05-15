@@ -16,7 +16,6 @@ interface RamoAtividadeProps {
 }
 
 export default function RamoAtividade({ data }: RamoAtividadeProps) {
-  console.log("Dados do gráfico:", data);
   return (
     <div className="bg-white rounded-sm shadow-md p-6 w-full h-full border border-gray-200">
       <h2 className="text-lg font-semibold mb-4">
