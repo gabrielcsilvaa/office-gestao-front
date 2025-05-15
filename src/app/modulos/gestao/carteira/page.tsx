@@ -58,6 +58,20 @@ interface Socio {
   idade?: number; // Tornando idade opcional já que vamos calculá-la
 }
 
+interface EmpresaCompletaNovosCliente {
+  id: number;
+  nome_empresa: string;
+  situacao: string;
+  cnpj: string;
+  data_cadastro: string;
+  responsavel_legal: string;
+  data_inatividade: string | null;
+  motivo_inatividade: number;
+  regime_tributario: string;
+}
+
+
+
 export default function Carteira() {
   const [selectedOption, setSelectedOption] =
     useState<string>("Selecionar Todos");
@@ -66,7 +80,7 @@ export default function Carteira() {
   const [socios, setSocios] = useState<Socio[]>([]); // Corrigido a tipagem
   const [parceria, setParceria] = useState<Parceria[]>([]); // Corrigido a tipagem
   const [novosClientes, setNovosClientes] = useState<number>(0);
-  const [dadosTotaisClientesNovos, setDadosTotaisClientesNovos] = useState<Empresa[]>([]);
+  const [dadosTotaisClientesNovos, setDadosTotaisClientesNovos] = useState<EmpresaCompletaNovosCliente[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [regimesData, setRegimesData] = useState<Regime[]>([]);
@@ -154,17 +168,16 @@ useEffect(() => {
       const data = await response.json();
 
       // Garantindo que os dados estão no formato correto
-      const dadosTotaisClientesNovos = data.flatMap(
-        (item: { empresas: any[] }) =>
-          item.empresas.map((empresa) => ({
-            nome_empresa: empresa.nome_empresa,
-            cnpj: empresa.cnpj,
-            data_cadastro: empresa.data_cadastro,
-            situacao: empresa.situacao,
-            responsavel_legal: empresa.responsavel || "Sem Responsável",
-            motivo_inatividade: empresa.motivo_inatividade || 0,
-            regime_tributario: empresa.regime_tributario || "Não Especificado",
-          }))
+      const dadosTotaisClientesNovos = data.flatMap((item: { empresas: EmpresaCompletaNovosCliente[] }) =>
+        item.empresas.map((empresa) => ({
+          nome_empresa: empresa.nome_empresa,
+          cnpj: empresa.cnpj,
+          data_cadastro: empresa.data_cadastro,
+          situacao: empresa.situacao,
+          responsavel_legal: empresa.responsavel_legal || "Sem Responsável",
+          motivo_inatividade: empresa.motivo_inatividade || 0,
+          regime_tributario: empresa.regime_tributario || "Não Especificado",
+        }))
       );
 
       const totalNovosClientes = dadosTotaisClientesNovos.length;
@@ -182,9 +195,6 @@ useEffect(() => {
 
   fetchNovosClientes();
 }, [startDate, endDate]);
-
-  console.log("OIIIIIIIIIIIIIIIIIII", novosClientes);
-  console.log("DADOS TOTAIS clientes", dadosTotaisClientesNovos)
 
   useEffect(() => {
     const fetchAniversariosDeParceria = async () => {
@@ -206,10 +216,18 @@ useEffect(() => {
         }
 
         const data = await response.json();
-        setAniversariosParceria(
-          data.aniversarios.aniversariante_cadastro.total
+
+        // Filtro para considerar apenas o mês atual
+        const hoje = new Date();
+        const empresasFiltradas = data.aniversarios.aniversariante_cadastro.empresas.filter(
+          (empresa: { data_cadastro: string }) => {
+            const dataCadastro = new Date(empresa.data_cadastro);
+            return dataCadastro.getMonth() === hoje.getMonth();
+          }
         );
-        setParceria(data.aniversarios.aniversariante_cadastro.empresas);
+
+        setAniversariosParceria(empresasFiltradas.length);
+        setParceria(empresasFiltradas);
       } catch (err: unknown) {
         if (err instanceof Error) {
           setError(err.message);
