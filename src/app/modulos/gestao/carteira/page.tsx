@@ -219,10 +219,16 @@ useEffect(() => {
 
         // Filtro para considerar apenas o mês atual
         const hoje = new Date();
+        const mesAtual = hoje.getMonth();
         const empresasFiltradas = data.aniversarios.aniversariante_cadastro.empresas.filter(
-          (empresa: { data_cadastro: string }) => {
+          (empresa: { data_cadastro: string; data_inicio_atividades: string }) => {
             const dataCadastro = new Date(empresa.data_cadastro);
-            return dataCadastro.getMonth() === hoje.getMonth();
+            const dataInicio = new Date(empresa.data_inicio_atividades);
+
+            const isDataCadastroNoMesAtual = dataCadastro.getMonth() === mesAtual;
+            const isDataInicioNoMesAtual = dataInicio.getMonth() === mesAtual;
+
+            return isDataCadastroNoMesAtual || isDataInicioNoMesAtual;
           }
         );
 
