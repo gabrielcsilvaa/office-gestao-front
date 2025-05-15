@@ -196,9 +196,6 @@ useEffect(() => {
   fetchNovosClientes();
 }, [startDate, endDate]);
 
-  console.log("OIIIIIIIIIIIIIIIIIII", novosClientes);
-  console.log("DADOS TOTAIS clientes", dadosTotaisClientesNovos)
-
   useEffect(() => {
     const fetchAniversariosDeParceria = async () => {
       try {
@@ -219,10 +216,18 @@ useEffect(() => {
         }
 
         const data = await response.json();
-        setAniversariosParceria(
-          data.aniversarios.aniversariante_cadastro.total
+
+        // Filtro para considerar apenas o mês atual
+        const hoje = new Date();
+        const empresasFiltradas = data.aniversarios.aniversariante_cadastro.empresas.filter(
+          (empresa: { data_cadastro: string }) => {
+            const dataCadastro = new Date(empresa.data_cadastro);
+            return dataCadastro.getMonth() === hoje.getMonth();
+          }
         );
-        setParceria(data.aniversarios.aniversariante_cadastro.empresas);
+
+        setAniversariosParceria(empresasFiltradas.length);
+        setParceria(empresasFiltradas);
       } catch (err: unknown) {
         if (err instanceof Error) {
           setError(err.message);
