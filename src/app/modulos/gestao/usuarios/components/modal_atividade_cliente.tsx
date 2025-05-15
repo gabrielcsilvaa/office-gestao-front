@@ -1,4 +1,6 @@
-import React from "react";
+
+
+import React, { useState } from "react";
 
 const meses = [
   "jan/2025", "fev/2025", "mar/2025", "abr/2025", "mai/2025", "jun/2025",
@@ -14,6 +16,23 @@ export default function AtividadeCliente({
   mostrarMensagem,
   fecharMensagem,
 }: Props) {
+  const [empresaExpandida, setEmpresaExpandida] = useState<string | null>(null);
+
+  const toggleExpandirEmpresa = (empresa: string) => {
+    setEmpresaExpandida((prev) => (prev === empresa ? null : empresa));
+  };
+
+  const clientes = [
+    {
+      nome: "Empresa Exemplo",
+      funcionarios: ["Funcionário A", "Funcionário B"],
+    },
+    {
+      nome: "Empresa Teste",
+      funcionarios: ["Funcionário C"],
+    },
+  ];
+
   if (!mostrarMensagem) return null;
 
   return (
@@ -33,7 +52,9 @@ export default function AtividadeCliente({
           <table className="min-w-full table-auto border border-gray-300 text-sm text-left">
             <thead className="bg-gray-100 text-xs">
               <tr>
-                <th rowSpan={2} className="border px-4 py-2">Empresa / Funcionário</th>
+                <th rowSpan={2} className="border px-4 py-2">
+                  Empresa / Funcionário
+                </th>
                 {meses.map((mes) => (
                   <th key={mes} colSpan={4} className="border px-4 py-2 text-center">
                     {mes}
@@ -52,22 +73,35 @@ export default function AtividadeCliente({
               </tr>
             </thead>
             <tbody>
-              <tr className="bg-green-100 font-semibold">
-                <td className="border px-2 py-1" colSpan={1 + meses.length * 4}>
-                  ▶ Empresa Exemplo
-                </td>
-              </tr>
-              <tr className="bg-white">
-                <td className="border px-2 py-1 pl-6">Funcionário Exemplo</td>
-                {meses.map((mes) => (
-                  <React.Fragment key={mes}>
-                    <td className="border px-2 py-1 text-right">-</td>
-                    <td className="border px-2 py-1 text-right">-</td>
-                    <td className="border px-2 py-1 text-right">-</td>
-                    <td className="border px-2 py-1 text-right">-</td>
-                  </React.Fragment>
-                ))}
-              </tr>
+              {clientes.map((empresa) => (
+                <React.Fragment key={empresa.nome}>
+                  <tr
+                    className="bg-white font-semibold cursor-pointer hover:bg-gray-100"
+                    onClick={() => toggleExpandirEmpresa(empresa.nome)}
+                  >
+                    <td className="border px-2 py-1" colSpan={1 + meses.length * 4}>
+                      ▶ {empresa.nome}
+                    </td>
+                  </tr>
+
+                  {empresaExpandida === empresa.nome &&
+                    empresa.funcionarios.map((funcionario) => (
+                      <tr key={funcionario} className="bg-white">
+                        <td className="border px-2 py-1 pl-6 text-gray-700">
+                          {funcionario}
+                        </td>
+                        {meses.map((mes) => (
+                          <React.Fragment key={`${funcionario}-${mes}`}>
+                            <td className="border px-2 py-1 text-right">-</td>
+                            <td className="border px-2 py-1 text-right">-</td>
+                            <td className="border px-2 py-1 text-right">-</td>
+                            <td className="border px-2 py-1 text-right">-</td>
+                          </React.Fragment>
+                        ))}
+                      </tr>
+                    ))}
+                </React.Fragment>
+              ))}
             </tbody>
           </table>
         </div>
