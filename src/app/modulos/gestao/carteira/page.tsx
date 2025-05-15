@@ -41,7 +41,10 @@ interface regimeTributario {
   data_inatividade: string;
   motivo_inatividade: number;
   situacao: string;
-  escritorios: Escritorio[];
+  ramo_atividade: string;
+  escritorios?: Escritorio[];
+  empresas: Empresa[];
+
 }
 
 interface Empresa {
@@ -142,31 +145,29 @@ export default function Carteira() {
   );
 
   // Processar dados de evolução
-  const formatDate = (date: Date) => date.toISOString().split("T")[0];
-  const startEvolucao = startDate ? formatDate(new Date(startDate)) : "";
-  const endEvolucao = endDate ? formatDate(new Date(endDate)) : "";
+    const formatDate = (date: Date) => date.toISOString().split("T")[0];
+    const startEvolucao = startDate ? formatDate(new Date(startDate)) : "";
+    const endEvolucao = endDate ? formatDate(new Date(endDate)) : "";
 
-  const counts: { [key: string]: number } = {};
-  empresas.forEach((empresa) => {
-    if (empresa.data_cadastro) {
-      const dataCadastro = formatDate(new Date(empresa.data_cadastro));
-      if (dataCadastro >= startEvolucao && dataCadastro <= endEvolucao) {
-        const key = new Date(empresa.data_cadastro).toLocaleString("default", {
-          month: "short",
-          year: "numeric",
-        });
-        counts[key] = (counts[key] || 0) + 1;
+    const counts: { [key: string]: number } = {};
+    empresas.forEach((empresa) => {
+      if (empresa.data_cadastro) {
+        const dataCadastro = formatDate(new Date(empresa.data_cadastro));
+        if (dataCadastro >= startEvolucao && dataCadastro <= endEvolucao) {
+          const key = new Date(empresa.data_cadastro).toLocaleString("default", {
+            month: "short",
+            year: "numeric",
+          });
+          counts[key] = (counts[key] || 0) + 1;
+        }
       }
-    }
-  });
-  setEvolucaoData(
-    Object.entries(counts)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => new Date(a.name).getTime() - new Date(b.name).getTime())
-  );
-}, [empresas, startDate, endDate]);
-
-
+    });
+    setEvolucaoData(
+      Object.entries(counts)
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => new Date(a.name).getTime() - new Date(b.name).getTime())
+    );
+  }, [empresas, startDate, endDate]);
 
   const handleCardClick = (title: string) => {
     switch (title) {
@@ -222,7 +223,7 @@ export default function Carteira() {
     let filtered = allEmpresas;   // sempre parti do original
     if (selected !== "Selecionar Todos") {
       filtered = allEmpresas.filter(emp =>
-        emp.escritorios.some(s => s.nome_escritorio === selected)
+        emp.escritorios!.some(s => s.nome_escritorio === selected)
       );
     }
     console.log("✅ empresas após filtro:", filtered);
@@ -413,7 +414,7 @@ useEffect(() => {
         console.log("📦 dados brutos de Empresas:", data.Empresas);
 
         // Garante que 'escritorios' é array para evitar erros
-        const empresasWithEscritorios = data.Empresas.map((e: any) => ({
+        const empresasWithEscritorios = data.Empresas.map((e: regimeTributario) => ({
           ...e,
           escritorios: Array.isArray(e.escritorios) ? e.escritorios : [],
         }));
@@ -425,11 +426,11 @@ useEffect(() => {
         // Extrai os nomes únicos dos escritórios para filtro
         const nomesEscritorios = Array.from(
           new Set(
-            empresasWithEscritorios.flatMap((empresa) =>
-              empresa.escritorios.map((escritorio: Escritorio) => escritorio.nome_escritorio)
+            empresasWithEscritorios.flatMap((empresa: regimeTributario) =>
+              empresa.escritorios!.map((escritorio: Escritorio) => escritorio.nome_escritorio)
             )
           )
-        ).sort();
+        ).sort() as string[];;
 
         console.log("🏢 Lista de escritórios:", nomesEscritorios);
         setEscritorios(nomesEscritorios);
