@@ -19,7 +19,8 @@ import {
 const nodeWidth = 180;
 const nodeHeight = 80;
 
-const coresNeutras = ["#7895B2", "#8CA6DB", "#627E99", "#94A3B8", "#6B8CA7"];
+const corSocio = "#3b82f6"; // azul médio
+const corEmpresaVinculada = "#10b981"; // verde
 
 const getLayoutedElements = (
   nodes: Node[],
@@ -106,22 +107,23 @@ export default function Organograma({ data }: OrganogramaProps) {
     const isConnected =
       edge.source === selectedNodeId || edge.target === selectedNodeId;
 
+    let corEdge = "#bbb";
+
+    // Identifica a cor pela origem (source)
+    if (edge.source.startsWith("empresa-")) corEdge = corSocio;
+    else if (edge.source.startsWith("socio-")) corEdge = corEmpresaVinculada;
     return {
       ...edge,
       animated: isConnected,
       style: {
-        stroke: isConnected
-          ? coresNeutras[index % coresNeutras.length]
-          : "#bbb",
-        strokeWidth: isConnected ? 4 : 1.5,
+        stroke: isConnected ? corEdge : "#bbb",
+        strokeWidth: isConnected ? 2.5 : 1.5,
         opacity: isConnected ? 1 : 0.3,
-        filter: isConnected
-          ? `drop-shadow(0 0 6px ${coresNeutras[index % coresNeutras.length]})`
-          : "none",
+        filter: isConnected ? `drop-shadow(0 0 4px ${corEdge})` : "none",
       },
       markerEnd: {
         type: MarkerType.Arrow,
-        color: isConnected ? coresNeutras[index % coresNeutras.length] : "#bbb",
+        color: isConnected ? corEdge : "#bbb",
       },
       zIndex: isConnected ? 1000 : 0,
     };

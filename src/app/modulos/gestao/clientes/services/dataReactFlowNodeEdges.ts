@@ -3,14 +3,10 @@ import type { Node, Edge } from "reactflow";
 const nodeWidth = 180;
 const nodeHeight = 80;
 
-// Paleta neutra para linhas e sócios (cinzas azulados)
-const coresNeutras = [
-  "#7895B2", // azul acinzentado
-  "#8CA6DB",
-  "#627E99",
-  "#94A3B8",
-  "#6B8CA7",
-];
+// Cores fixas por nível
+const corEmpresaPrincipal = "#0f172a";
+const corSocio = "#3b82f6";
+const corEmpresaVinculada = "#10b981";
 
 export interface SocioEmpresa {
   codi_emp: number;
@@ -39,10 +35,9 @@ export function convertDataToReactFlowNodesEdges(data: SocioEmpresaCompleta): {
   const nodes: Node[] = [];
   const edges: Edge[] = [];
 
-  // Mapeia quais sócios têm cada empresa para posicionamento e cores
   const empresaToSociosMap: Record<string, string[]> = {};
 
-  // Nó raiz (empresa principal)
+  // Empresa principal
   const rootId = `empresa-${data.codi_emp}`;
   nodes.push({
     id: rootId,
@@ -52,21 +47,20 @@ export function convertDataToReactFlowNodesEdges(data: SocioEmpresaCompleta): {
       width: nodeWidth,
       height: nodeHeight,
       borderRadius: 8,
-      border: "1px solid #333",
+      border: "2px solid #1e293b",
       padding: 10,
-      backgroundColor: "#eee",
+      backgroundColor: corEmpresaPrincipal,
       textAlign: "center",
       whiteSpace: "pre-wrap",
       fontWeight: "600",
+      color: "#f1f5f9",
     },
   });
 
   data.dados.forEach((socio, socioIndex) => {
     const socioId = `socio-${socioIndex}-${socio.CPF}`;
-    const corIndex = socioIndex % coresNeutras.length;
-    const corDaLinha = coresNeutras[corIndex];
 
-    // Nó do sócio com fundo da cor da linha para diferenciar
+    // Sócio
     nodes.push({
       id: socioId,
       data: { label: socio.socio },
@@ -75,25 +69,26 @@ export function convertDataToReactFlowNodesEdges(data: SocioEmpresaCompleta): {
         width: nodeWidth,
         height: nodeHeight,
         borderRadius: 8,
-        border: `1px solid ${corDaLinha}`,
+        border: `2px solid ${corSocio}`,
         padding: 10,
-        backgroundColor: corDaLinha + "33", // cor com transparência para fundo
+        backgroundColor: `${corSocio}22`,
         textAlign: "center",
         whiteSpace: "pre-wrap",
         fontWeight: "600",
-        color: "#1E293B", // texto azul escuro para contraste
+        color: "#1E293B",
       },
     });
 
+    // Aresta empresa principal → sócio
     edges.push({
       id: `edge-${rootId}-${socioId}`,
       source: rootId,
       target: socioId,
       type: "smoothstep",
-      animated: true,
+      animated: false,
       style: {
-        stroke: corDaLinha,
-        strokeWidth: 3,
+        stroke: corSocio,
+        strokeWidth: 2.5,
       },
     });
 
@@ -105,6 +100,7 @@ export function convertDataToReactFlowNodesEdges(data: SocioEmpresaCompleta): {
       }
       empresaToSociosMap[empresaId].push(socioId);
 
+      // Empresa vinculada (se ainda não criada)
       if (!nodes.find((n) => n.id === empresaId)) {
         nodes.push({
           id: empresaId,
@@ -114,40 +110,41 @@ export function convertDataToReactFlowNodesEdges(data: SocioEmpresaCompleta): {
             width: nodeWidth,
             height: nodeHeight,
             borderRadius: 8,
-            border: "1px solid #999",
+            border: `2px solid ${corEmpresaVinculada}`,
             padding: 10,
-            backgroundColor: "#d4edda",
+            backgroundColor: `${corEmpresaVinculada}22`,
             textAlign: "center",
             whiteSpace: "pre-wrap",
             fontWeight: "600",
+            color: "#1E293B",
           },
         });
       }
 
+      // Aresta sócio → empresa vinculada
       edges.push({
         id: `edge-${socioId}-${empresaId}`,
         source: socioId,
         target: empresaId,
         type: "smoothstep",
-        animated: true,
+        animated: false,
         style: {
-          stroke: corDaLinha,
-          strokeWidth: 3,
+          stroke: corEmpresaVinculada,
+          strokeWidth: 2.5,
         },
       });
     });
   });
 
-  // Ajuste de posição horizontal para empresas com múltiplos sócios
+  // Ajuste lateral para empresas com múltiplos sócios
   const adjustedNodes = nodes.map((node) => {
     if (node.id.startsWith("empresa-") && node.id !== rootId) {
       const sociosDaEmpresa = empresaToSociosMap[node.id];
       if (sociosDaEmpresa && sociosDaEmpresa.length > 1) {
-        // Offset lateral para evitar sobreposição das empresas com múltiplos sócios
         const hash = node.id
           .split("")
           .reduce((acc, char) => acc + char.charCodeAt(0), 0);
-        const offsetX = ((hash % 5) - 2) * 40; // desloca entre -80 e +80 px
+        const offsetX = ((hash % 5) - 2) * 40;
 
         return {
           ...node,
