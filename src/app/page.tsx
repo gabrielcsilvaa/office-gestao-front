@@ -10,7 +10,6 @@ const cairo = Cairo({
   subsets: ["latin"],
 });
 
-
 export default function Login() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -65,10 +64,14 @@ export default function Login() {
       <div className="w-full max-w-[1000px] shadow-[-10px_-10px_15px_rgba(0,_0,_0,_0.35),_10px_10px_15px_rgba(0,_0,_0,_0.35)] rounded-[30px] bg-white h-auto lg:h-[625px] overflow-hidden flex flex-col lg:flex-row">
         {/* Formulário */}
         <div className="w-full lg:w-1/2 h-full flex flex-col gap-4 items-center justify-center px-6 py-10">
-          <b className={`text-3xl ${cairo.className} text-black text-center w-full`}>
+          <b
+            className={`text-3xl ${cairo.className} text-black text-center w-full`}
+          >
             Login
           </b>
-          <span className={`text-sm font-medium ${cairo.className} text-black text-center w-full`}>
+          <span
+            className={`text-sm font-medium ${cairo.className} text-black text-center w-full`}
+          >
             utilize seu email e senha para acessar a plataforma
           </span>
           {error && <div className="text-red-500">{error}</div>}{" "}
@@ -84,11 +87,18 @@ export default function Login() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                fetchLoginAuth();
+              }
+            }}
             className="w-full rounded-lg bg-[#F0F8FF] h-12 px-4 py-2 placeholder:text-[#373A4080]"
             placeholder="Senha"
           />
           <a href="" className="w-full text-center">
-            <span className={`text-sm font-medium ${cairo.className} text-black`}>
+            <span
+              className={`text-sm font-medium ${cairo.className} text-black`}
+            >
               Esqueceu a senha?
             </span>
           </a>
