@@ -1,3 +1,4 @@
+import { formatarCpfCnpj } from "@/utils/formatadores";
 import type { Node, Edge } from "reactflow";
 
 const nodeWidth = 180;
@@ -41,7 +42,7 @@ export function convertDataToReactFlowNodesEdges(data: SocioEmpresaCompleta): {
   const rootId = `empresa-${data.codi_emp}`;
   nodes.push({
     id: rootId,
-    data: { label: data.nome_emp },
+    data: { label: `${data.nome_emp}\nCNPJ: ${formatarCpfCnpj(data.cnpj)}\n` },
     position: { x: 0, y: 0 },
     style: {
       width: nodeWidth,
@@ -63,7 +64,7 @@ export function convertDataToReactFlowNodesEdges(data: SocioEmpresaCompleta): {
     // Sócio
     nodes.push({
       id: socioId,
-      data: { label: socio.socio },
+      data: { label: `${socio.socio}\nCPF: ${formatarCpfCnpj(socio.CPF)}` },
       position: { x: 0, y: 0 },
       style: {
         width: nodeWidth,
@@ -104,7 +105,9 @@ export function convertDataToReactFlowNodesEdges(data: SocioEmpresaCompleta): {
       if (!nodes.find((n) => n.id === empresaId)) {
         nodes.push({
           id: empresaId,
-          data: { label: empresa.nome_emp },
+          data: {
+            label: `${empresa.nome_emp}\nCNPJ: ${formatarCpfCnpj(empresa.cnpj)}`,
+          },
           position: { x: 0, y: 0 },
           style: {
             width: nodeWidth,
