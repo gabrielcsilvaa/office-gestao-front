@@ -1,4 +1,4 @@
-import { formatadorBRL } from "@/utils/formatadores";
+import { formatadorBRL, formatarCpfCnpj } from "@/utils/formatadores";
 import { EmpresaVar, ListaEmpresasProps } from "../interface/interfaces";
 import { formatadorSegParaHor } from "@/utils/formatadores";
 import { maxValueContrato } from "../services/maxValorContrato";
@@ -217,7 +217,7 @@ export function ListaEmpresas({
             <tbody>
               <tr>
                 <td className="table-cell">{empresa.nome_empresa}</td>
-                <td className="table-cell">{empresa.cnpj}</td>
+                <td className="table-cell">{formatarCpfCnpj(empresa.cnpj)}</td>
                 <td className="table-cell">{empresa.data_cadastro}</td>
                 <td className="table-cell">{empresa.data_inicio_atv}</td>
                 <td
