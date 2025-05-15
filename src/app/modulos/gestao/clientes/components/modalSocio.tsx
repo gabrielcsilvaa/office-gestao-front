@@ -1,5 +1,6 @@
 import React, { ReactNode, useEffect, useState } from "react";
 import Organograma from "./organogramaGen";
+import { formatarCpfCnpj } from "@/utils/formatadores";
 
 interface ModalProps {
   isOpen: boolean;
@@ -87,7 +88,7 @@ export default function ModalSocio({
     <div className="border-0 fixed inset-0 bg-white/70 backdrop-blur-sm flex items-center justify-center z-50 pointer-events-auto">
       <div className="w-full max-w-[80vw] bg-white rounded-lg shadow-lg p-6">
         <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-semibold">Modal Título</h2>
+          <h2 className="text-2xl font-semibold">Composição Societária</h2>
           <button
             onClick={onClose}
             className="text-xl font-bold text-gray-500 hover:text-gray-800"
@@ -122,7 +123,8 @@ export default function ModalSocio({
           {!loading && !error && clientData && (
             <>
               <p className="mb-4 font-semibold">
-                Empresa: {clientData.nome_emp} (CNPJ: {clientData.cnpj})
+                Empresa: {clientData.nome_emp} (CNPJ:{" "}
+                {formatarCpfCnpj(clientData.cnpj)})
               </p>
               <Organograma data={clientData} />
             </>

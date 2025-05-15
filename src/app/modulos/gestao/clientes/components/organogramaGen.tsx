@@ -16,32 +16,26 @@ import {
   convertDataToReactFlowNodesEdges,
 } from "../services/dataReactFlowNodeEdges";
 
-const dagreGraph = new dagre.graphlib.Graph();
-dagreGraph.setDefaultEdgeLabel(() => ({}));
-
 const nodeWidth = 180;
 const nodeHeight = 80;
 
-// Paleta neutra para as edges destacadas
-const coresNeutras = [
-  "#7895B2",
-  "#8CA6DB",
-  "#627E99",
-  "#94A3B8",
-  "#6B8CA7",
-];
+const corSocio = "#3b82f6"; // azul médio
+const corEmpresaVinculada = "#10b981"; // verde
 
 const getLayoutedElements = (
   nodes: Node[],
   edges: Edge[],
+  rootEmpresaId: string,
   direction = "TB"
 ) => {
+  const dagreGraph = new dagre.graphlib.Graph();
+  dagreGraph.setDefaultEdgeLabel(() => ({}));
   dagreGraph.setGraph({
     rankdir: direction,
-    nodesep: 150,
-    ranksep: 150,
-    marginx: 20,
-    marginy: 20,
+    nodesep: 50,
+    ranksep: 80,
+    marginx: 10,
+    marginy: 10,
   });
 
   nodes.forEach((node) => {
@@ -54,21 +48,22 @@ const getLayoutedElements = (
 
   dagre.layout(dagreGraph);
 
-  const layoutedNodes = nodes.map((node, i) => {
+  const layoutedNodes = nodes.map((node) => {
     const nodeWithPosition = dagreGraph.node(node.id);
-    let yPos = nodeWithPosition.y - nodeHeight / 2;
 
-    // Eleva/rebaixa alternadamente os nós das empresas para evitar cruzamento
-    if (node.id.startsWith("empresa-")) {
-      const offset = i % 2 === 0 ? -25 : 25;
-      yPos += offset;
+    let y = nodeWithPosition.y - nodeHeight / 2;
+
+    // Força a empresa principal a ficar no topo
+    if (node.id === rootEmpresaId) {
+      const menorY = Math.min(...nodes.map((n) => dagreGraph.node(n.id).y));
+      y = menorY - 100;
     }
 
     return {
       ...node,
       position: {
         x: nodeWithPosition.x - nodeWidth / 2,
-        y: yPos,
+        y,
       },
       draggable: false,
     };
@@ -82,55 +77,53 @@ interface OrganogramaProps {
 }
 
 export default function Organograma({ data }: OrganogramaProps) {
-  // Converte os dados para nodes e edges
-  const { nodes: initialNodes, edges: initialEdges } = convertDataToReactFlowNodesEdges(
-    data
-  );
-
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
   useEffect(() => {
+    // Sempre gerar novos dados do zero quando `data` mudar
+    const { nodes: rawNodes, edges: rawEdges } =
+      convertDataToReactFlowNodesEdges(data);
+
+    const rootEmpresaId = `empresa-${data.codi_emp}`;
+
     const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
-      nodes,
-      edges
+      rawNodes,
+      rawEdges,
+      rootEmpresaId
     );
+
     setNodes(layoutedNodes);
     setEdges(layoutedEdges);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [data]);
 
-  // Clique no node para alternar destaque
   const onNodeClick = (_event: React.MouseEvent, node: Node) => {
     setSelectedNodeId((prev) => (prev === node.id ? null : node.id));
   };
 
-  // Aplica estilo dinâmico nas edges baseado no node selecionado
-  const styledEdges = edges.map((edge, index) => {
+  const styledEdges = edges.map((edge) => {
     const isConnected =
       edge.source === selectedNodeId || edge.target === selectedNodeId;
 
+    let corEdge = "#bbb";
+
+    // Identifica a cor pela origem (source)
+    if (edge.source.startsWith("empresa-")) corEdge = corSocio;
+    else if (edge.source.startsWith("socio-")) corEdge = corEmpresaVinculada;
     return {
       ...edge,
       animated: isConnected,
       style: {
-        stroke: isConnected
-          ? coresNeutras[index % coresNeutras.length]
-          : "#bbb",
-        strokeWidth: isConnected ? 4 : 1.5,
+        stroke: isConnected ? corEdge : "#bbb",
+        strokeWidth: isConnected ? 2.5 : 1.5,
         opacity: isConnected ? 1 : 0.3,
-        filter: isConnected
-          ? `drop-shadow(0 0 6px ${
-              coresNeutras[index % coresNeutras.length]
-            })`
-          : "none",
+        filter: isConnected ? `drop-shadow(0 0 4px ${corEdge})` : "none",
       },
       markerEnd: {
         type: MarkerType.Arrow,
-        color: isConnected
-          ? coresNeutras[index % coresNeutras.length]
-          : "#bbb",
+        color: isConnected ? corEdge : "#bbb",
       },
       zIndex: isConnected ? 1000 : 0,
     };
