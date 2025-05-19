@@ -4,8 +4,11 @@ import React, { useState } from "react";
 
 import UserChart from "./components/chart";
 import Calendar from "@/components/calendar";
-import Link from "next/link";
-import ListaUsuario from "./lista_usuario/page";
+
+import ListaUsuario from "./components/modal_lista_usuario";
+import AtividadeUsuario from "./components/modal_atividade_usuario";
+import AtividadesModulos from "./components/modal_atividade_modulo";
+import AtividadeCliente from "./components/modal_atividade_cliente";
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
@@ -15,9 +18,26 @@ const cairo = Cairo({
 export default function Usuarios() {
   const [selectedOption, setSelectedOption] = useState("Selecionar Todos");
   const [mostrarListaUsuarios, setMostrarListaUsuarios] = useState(false);
+  const [mostrarAtividadeUsuario, setMostrarAtividadeUsuarios] = useState(false);
+  const [mostrarAtividadeModulo, setMostrarAtividadeModulo] = useState(false);
+  const [mostrarAtividadeCliente, setMostrarAtividadeCliente] =useState(false);
 
+
+    
   const abrirListaUsuarios = () => setMostrarListaUsuarios(true);
   const fecharListaUsuarios = () => setMostrarListaUsuarios(false);
+
+  const abrirAtividadeUsuarios = () => setMostrarAtividadeUsuarios(true);
+  const fecharAtividadeUsuarios = () => setMostrarAtividadeUsuarios(false);
+
+  const abrirAtividadesModulo = () => setMostrarAtividadeModulo(true);
+  const fecharAtividadeModulo = () => setMostrarAtividadeModulo(false);
+
+  const abrirAtividadeCliente = () => setMostrarAtividadeCliente(true);
+  const fecharAtividadeCliente = () => setMostrarAtividadeCliente(false);
+
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
 
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedOption(e.target.value);
@@ -43,8 +63,14 @@ export default function Usuarios() {
               <option>Opção 1</option>
               <option>Opção 2</option>
             </select>
+
             <div className="ml-5">
-              <Calendar />
+              <Calendar
+                startDate={startDate}
+                endDate={endDate}
+                setStartDate={setStartDate}
+                setEndDate={setEndDate}
+              />
             </div>
           </div>
         </div>
@@ -89,24 +115,29 @@ export default function Usuarios() {
 
           <div className="w-full flex justify-center">
             <div className="grid grid-cols-2 gap-4 p-3">
-              <Link
-                href={"/modulos/gestao/usuarios/lista_usuario/lista_usuario"}
+              <button
+                onClick={abrirListaUsuarios}
+                className="bg-white border border-gray-300 w-[500px] h-[70px]  hover:bg-gray-200 font-extrabold shadow-md"
               >
-                <button
-                  onClick={abrirListaUsuarios}
-                  className="bg-white border border-gray-300 w-[500px] h-[70px]  hover:bg-gray-100  "
-                >
-                  Lista de Usuários
-                </button>
-              </Link>
-              <button className="bg-white border border-gray-300 w-[500px] h-[70px]  hover:bg-gray-100 ">
+                Lista de Usuários
+              </button>
+
+              <button
+                onClick={abrirAtividadeUsuarios}
+                className="bg-white border border-gray-300 w-[500px] h-[70px]  hover:bg-gray-200 font-extrabold shadow-md"
+              >
                 Atividade por Usuário
               </button>
 
-              <button className="bg-white border border-gray-300 w-[500px] h-[70px] hover:bg-gray-100">
+              <button 
+              onClick={abrirAtividadesModulo}
+              className="bg-white border border-gray-300 w-[500px] h-[70px] hover:bg-gray-200 font-extrabold shadow-md">
                 Atividade Por Módulo
               </button>
-              <button className="bg-white border border-gray-300 w-[500px] h-[70px] hover:bg-gray-100">
+
+              <button
+              onClick={abrirAtividadeCliente}
+              className="bg-white border border-gray-300 w-[500px] h-[70px] hover:bg-gray-200 font-extrabold shadow-md">
                 Atividade Por Cliente
               </button>
             </div>
@@ -117,6 +148,23 @@ export default function Usuarios() {
       <ListaUsuario
         mostrarMensagem={mostrarListaUsuarios}
         fecharMensagem={fecharListaUsuarios}
+      />
+      <AtividadeUsuario
+        mostrarMensagem={mostrarAtividadeUsuario}
+        fecharMensagem={fecharAtividadeUsuarios}
+        startDate={startDate}
+        endDate={endDate}
+      />
+
+      <AtividadesModulos
+      mostrarMensagem={mostrarAtividadeModulo}
+      fecharMensagem={fecharAtividadeModulo}
+      />
+      
+
+      <AtividadeCliente
+      mostrarMensagem={mostrarAtividadeCliente}
+      fecharMensagem={fecharAtividadeCliente}
       />
     </div>
   );

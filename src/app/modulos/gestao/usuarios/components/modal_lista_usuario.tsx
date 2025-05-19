@@ -43,8 +43,6 @@ export default function ListaUsuario({
       { id: 3, NOME: "Pedro", funcao: "Gerente", status: "Ativo", SITUACAO: 1 },
     ];
 
-   
-
     if (mostrarMensagem) {
       setUsuarios(dadosSimulados);
     }
@@ -102,30 +100,30 @@ export default function ListaUsuario({
               <div className="flex gap-2 ml-4">
                 <button
                   onClick={() => setFiltroStatus("todos")}
-                  className={`w-24 px-4 py-2 rounded transition text-white ${
+                  className={` px-4 py-2 rounded transition  ${
                     filtroStatus === "todos"
-                      ? "bg-gray-700"
-                      : "bg-gray-500 hover:bg-gray-600"
+                      ? "bg-blue-500 text-white hover:bg-blue-600 hover:text-white"
+                      : "bg-gray-400 text-gray-700 opacity-70 hover:opacity-100"
                   }`}
                 >
                   Todos
                 </button>
                 <button
                   onClick={() => setFiltroStatus("ativo")}
-                  className={`w-24 px-4 py-2 rounded transition text-white ${
+                  className={`px-4 py-2 rounded-md shadow-md transition ${
                     filtroStatus === "ativo"
-                      ? "bg-green-700"
-                      : "bg-green-500 hover:bg-green-600"
+                      ? "bg-blue-500 text-white hover:bg-blue-600 hover:text-white"
+                      : "bg-gray-400 text-gray-700 opacity-70 hover:opacity-100"
                   }`}
                 >
                   Ativo
                 </button>
                 <button
                   onClick={() => setFiltroStatus("inativo")}
-                  className={`w-24 px-4 py-2 rounded transition text-white ${
+                  className={`px-4 py-2 rounded-md shadow-md transition ${
                     filtroStatus === "inativo"
-                      ? "bg-red-700"
-                      : "bg-red-500 hover:bg-red-600"
+                      ? "bg-blue-500 text-white hover:bg-blue-600 hover:text-white"
+                      : "bg-gray-400 text-gray-700 opacity-70 hover:opacity-100"
                   }`}
                 >
                   Inativo
@@ -161,7 +159,7 @@ export default function ListaUsuario({
                   fecharMensagem();
                   setFiltroStatus("todos"); // <-- resetando o filtro
                 }}
-                className="px-6 py-3 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+                className="bg-red-500 text-white px-6 py-3 rounded hover:bg-red-600 transition"
               >
                 Fechar
               </button>
