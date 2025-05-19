@@ -189,7 +189,7 @@ export default function Clientes() {
               <div
                 className={`${cairo.className} not-only-of-type:flex justify-center items-center h-[70vh] bg-gray-200`}
               >
-                <div>Erro: Dados não for    am encontrados</div>
+                <div>Erro: Dados não foram encontrados</div>
               </div>
             ) : (
               currentItems && (
