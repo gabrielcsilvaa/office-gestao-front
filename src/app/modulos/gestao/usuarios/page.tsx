@@ -59,6 +59,9 @@ export default function Usuarios() {
   useEffect(() => {
     console.log(startDate, endDate, awaitDateSelection);
 
+
+
+    
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [startDate, endDate]);
   return (
