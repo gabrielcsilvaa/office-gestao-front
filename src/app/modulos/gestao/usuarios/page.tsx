@@ -38,18 +38,19 @@ export default function Usuarios() {
   //Estados de data
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
+  const [data, setData] = useState<string | null>(null);
 
   //Aguardando colocar data
-  const [awaitDateSelection, setAwaitDateSelection] = useState(true); // Tela de seleção de data
+  // const [awaitDateSelection, setAwaitDateSelection] = useState(true); // Tela de seleção de data
 
   const handleStartDateChange = (date: string | null) => {
     setStartDate(date);
-    setAwaitDateSelection(false); // Remove a tela de seleção de data
+    // setAwaitDateSelection(false); // Remove a tela de seleção de data
   };
 
   const handleEndDateChange = (date: string | null) => {
     setEndDate(date);
-    setAwaitDateSelection(false); // Remove a tela de seleção de data
+    // setAwaitDateSelection(false); // Remove a tela de seleção de data
   };
 
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -57,13 +58,41 @@ export default function Usuarios() {
   };
 
   useEffect(() => {
-    console.log(startDate, endDate, awaitDateSelection);
+    const fetchUserlist = async () => {
+      try {
+        const response = await fetch("/api/analise-usuario/listar", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
 
+        if (!response.ok) {
+          throw new Error(`Erro na API: ${response.statusText}`);
+        }
 
+        const result = await response.json();
+        setData(result);
+        
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          console.log(err.message);
+        } else {
+          console.log("Erro desconhecido");
+        }
+      }
+    };
 
-    
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Só faz a requisição quando as datas estiverem definidas
+    if (startDate && endDate) {
+      fetchUserlist();
+      
+    }
   }, [startDate, endDate]);
+   // Executa quando startDate ou endDate mudam
+useEffect(() => {
+  console.log(data);
+}, [data]);
   return (
     <div className="bg-gray-100 max-h-screen max-w-screen">
       <div className="h-[85px] flex flex-row items-center p-4 gap-8 border-b border-black/10 bg-gray-100">
