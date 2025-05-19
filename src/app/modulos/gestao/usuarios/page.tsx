@@ -1,6 +1,6 @@
 "use client";
 import { Cairo } from "next/font/google";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import UserChart from "./components/chart";
 import Calendar from "@/components/calendar";
@@ -18,12 +18,11 @@ const cairo = Cairo({
 export default function Usuarios() {
   const [selectedOption, setSelectedOption] = useState("Selecionar Todos");
   const [mostrarListaUsuarios, setMostrarListaUsuarios] = useState(false);
-  const [mostrarAtividadeUsuario, setMostrarAtividadeUsuarios] = useState(false);
+  const [mostrarAtividadeUsuario, setMostrarAtividadeUsuarios] =
+    useState(false);
   const [mostrarAtividadeModulo, setMostrarAtividadeModulo] = useState(false);
-  const [mostrarAtividadeCliente, setMostrarAtividadeCliente] =useState(false);
+  const [mostrarAtividadeCliente, setMostrarAtividadeCliente] = useState(false);
 
-
-    
   const abrirListaUsuarios = () => setMostrarListaUsuarios(true);
   const fecharListaUsuarios = () => setMostrarListaUsuarios(false);
 
@@ -36,13 +35,64 @@ export default function Usuarios() {
   const abrirAtividadeCliente = () => setMostrarAtividadeCliente(true);
   const fecharAtividadeCliente = () => setMostrarAtividadeCliente(false);
 
-  const [startDate, setStartDate] = useState<Date | null>(null);
-  const [endDate, setEndDate] = useState<Date | null>(null);
+  //Estados de data
+  const [startDate, setStartDate] = useState<string | null>(null);
+  const [endDate, setEndDate] = useState<string | null>(null);
+  const [data, setData] = useState<string | null>(null);
+
+  //Aguardando colocar data
+  // const [awaitDateSelection, setAwaitDateSelection] = useState(true); // Tela de seleção de data
+
+  const handleStartDateChange = (date: string | null) => {
+    setStartDate(date);
+    // setAwaitDateSelection(false); // Remove a tela de seleção de data
+  };
+
+  const handleEndDateChange = (date: string | null) => {
+    setEndDate(date);
+    // setAwaitDateSelection(false); // Remove a tela de seleção de data
+  };
 
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedOption(e.target.value);
   };
 
+  useEffect(() => {
+    const fetchUserlist = async () => {
+      try {
+        const response = await fetch("/api/analise-usuario/listar", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Erro na API: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        setData(result);
+        
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          console.log(err.message);
+        } else {
+          console.log("Erro desconhecido");
+        }
+      }
+    };
+
+    // Só faz a requisição quando as datas estiverem definidas
+    if (startDate && endDate) {
+      fetchUserlist();
+      
+    }
+  }, [startDate, endDate]);
+   // Executa quando startDate ou endDate mudam
+useEffect(() => {
+  console.log(data);
+}, [data]);
   return (
     <div className="bg-gray-100 max-h-screen max-w-screen">
       <div className="h-[85px] flex flex-row items-center p-4 gap-8 border-b border-black/10 bg-gray-100">
@@ -66,10 +116,8 @@ export default function Usuarios() {
 
             <div className="ml-5">
               <Calendar
-                startDate={startDate}
-                endDate={endDate}
-                setStartDate={setStartDate}
-                setEndDate={setEndDate}
+                onStartDateChange={handleStartDateChange}
+                onEndDateChange={handleEndDateChange}
               />
             </div>
           </div>
@@ -129,15 +177,17 @@ export default function Usuarios() {
                 Atividade por Usuário
               </button>
 
-              <button 
-              onClick={abrirAtividadesModulo}
-              className="bg-white border border-gray-300 w-[500px] h-[70px] hover:bg-gray-200 font-extrabold shadow-md">
+              <button
+                onClick={abrirAtividadesModulo}
+                className="bg-white border border-gray-300 w-[500px] h-[70px] hover:bg-gray-200 font-extrabold shadow-md"
+              >
                 Atividade Por Módulo
               </button>
 
               <button
-              onClick={abrirAtividadeCliente}
-              className="bg-white border border-gray-300 w-[500px] h-[70px] hover:bg-gray-200 font-extrabold shadow-md">
+                onClick={abrirAtividadeCliente}
+                className="bg-white border border-gray-300 w-[500px] h-[70px] hover:bg-gray-200 font-extrabold shadow-md"
+              >
                 Atividade Por Cliente
               </button>
             </div>
@@ -152,19 +202,16 @@ export default function Usuarios() {
       <AtividadeUsuario
         mostrarMensagem={mostrarAtividadeUsuario}
         fecharMensagem={fecharAtividadeUsuarios}
-        startDate={startDate}
-        endDate={endDate}
       />
 
       <AtividadesModulos
-      mostrarMensagem={mostrarAtividadeModulo}
-      fecharMensagem={fecharAtividadeModulo}
+        mostrarMensagem={mostrarAtividadeModulo}
+        fecharMensagem={fecharAtividadeModulo}
       />
-      
 
       <AtividadeCliente
-      mostrarMensagem={mostrarAtividadeCliente}
-      fecharMensagem={fecharAtividadeCliente}
+        mostrarMensagem={mostrarAtividadeCliente}
+        fecharMensagem={fecharAtividadeCliente}
       />
     </div>
   );

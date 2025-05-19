@@ -1,36 +1,30 @@
-
-
 const meses = [
-  "jan", "fev", "mar", "abril", "maio", "junho",
-  "julho", "agosto", "setembro", "outubro", "novembro", "dezembro",
+  "jan",
+  "fev",
+  "mar",
+  "abril",
+  "maio",
+  "junho",
+  "julho",
+  "agosto",
+  "setembro",
+  "outubro",
+  "novembro",
+  "dezembro",
 ];
 
 const colunas = ["Horas", "Importados", "Manuais", "Módulo", "Total"];
 
-type DadosUsuario = {
-  nome: string;
-  cod_empresa?: string;
-  dados: {
-    [mes: string]: [string, string, string, string, string];
-  };
-};
-
 type Props = {
   mostrarMensagem: boolean;
   fecharMensagem: () => void;
-  startDate: Date | null;
-  endDate: Date | null;
 };
 
 export default function AtividadeUsuario({
   mostrarMensagem,
   fecharMensagem,
-  startDate,
-  endDate,
 }: Props) {
   if (!mostrarMensagem) return null;
-
-  const ano = startDate ? startDate.getFullYear() : "----";
 
   return (
     <div
@@ -49,10 +43,16 @@ export default function AtividadeUsuario({
           <table className="min-w-full table-auto border border-gray-300 text-sm text-left">
             <thead className="bg-gray-100 text-xs">
               <tr>
-                <th rowSpan={2} className="border px-4 py-2">Usuários</th>
+                <th rowSpan={2} className="border px-4 py-2">
+                  Usuários
+                </th>
                 {meses.map((mes) => (
-                  <th key={mes} colSpan={5} className="border px-4 py-2 text-center">
-                    {mes}/{ano}
+                  <th
+                    key={mes}
+                    colSpan={5}
+                    className="border px-4 py-2 text-center"
+                  >
+                    {mes}
                   </th>
                 ))}
               </tr>
@@ -69,7 +69,9 @@ export default function AtividadeUsuario({
             <tbody>
               {/* Removi a lógica de usuários aqui */}
               <tr>
-                <td className="border px-2 py-1 font-semibold">Usuário Exemplo</td>
+                <td className="border px-2 py-1 font-semibold">
+                  Usuário Exemplo
+                </td>
                 {meses.map((mes) =>
                   colunas.map((_, i) => (
                     <td key={`${mes}-${i}`} className="border px-2 py-1">

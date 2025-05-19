@@ -1,4 +1,3 @@
-"use client";
 import { useEffect, useState } from "react";
 
 interface Usuario {
@@ -172,3 +171,5 @@ export default function ListaUsuario({
     </>
   );
 }
+
+
