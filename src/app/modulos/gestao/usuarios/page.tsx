@@ -79,9 +79,9 @@ export default function Usuarios() {
   // Função auxiliar para converter segundos em um formato detalhado (ex.: 163h 31m 46s)
   const formatTimeDetailed = (seconds: number): string => {
     const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hours}h ${minutes}m ${secs}s`;
+    // const minutes = Math.floor((seconds % 3600) / 60);
+    // const secs = seconds % 60;
+    return `${hours}h`;
   };
 
   useEffect(() => {
@@ -215,7 +215,7 @@ export default function Usuarios() {
             <p className="text-xl font-semibold text-black">
               {data?.totais_gerais?.total_tempo_gasto
                 ? formatTimeDetailed(data.totais_gerais.total_tempo_gasto)
-                : "00h 00m 00s"}
+                : "00h"}
             </p>
           </div>
         </div>
