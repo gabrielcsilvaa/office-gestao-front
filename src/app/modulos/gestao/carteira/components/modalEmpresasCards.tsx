@@ -75,13 +75,23 @@ export default function ModalEmpresasCard({
       allEmpresas = allEmpresas.filter((empresa) => {
         const isAtivo = selectedFiltros.includes("A") && empresa.situacao === "A";
         const isInativo = selectedFiltros.includes("I") && empresa.situacao === "I";
-        const isBaixado = selectedFiltros.includes("baixados") && empresa.motivo_inatividade === 2;
-        const isTransferido = selectedFiltros.includes("transferidas") && empresa.motivo_inatividade === 3;
+        const isBaixado = selectedFiltros.includes("baixados") && empresa.motivo_inatividade === 2 && empresa.situacao != "A";
+        const isTransferido = selectedFiltros.includes("transferidas") && empresa.motivo_inatividade === 3 && empresa.situacao != "A";
         const isNovoCliente = selectedFiltros.includes("novos-clientes") && dadosNovos.includes(empresa);
         return isAtivo || isInativo || isBaixado || isTransferido || isNovoCliente;
       });
     }
 
+    const empresasExcluidas = [
+      "EMPRESA EXEMPLO REAL LTDA",
+      "EMPRESA EXEMPLO PRESUMIDO LTDA",
+      "EMPRESA EXEMPLO SIMPLES NACIONAL LTDA",
+    ];
+
+    allEmpresas = allEmpresas.filter(
+      (empresa) => !empresasExcluidas.includes(empresa.nome_empresa)
+    );
+      
     // Filtra pelo campo de pesquisa
     if (searchQuery) {
       const query = searchQuery.toLowerCase().trim();

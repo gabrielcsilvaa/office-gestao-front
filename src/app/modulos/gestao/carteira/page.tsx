@@ -219,19 +219,21 @@ export default function Carteira() {
     const selected = e.target.value;
     console.log("🔎 escritório selecionado:", selected);
     setSelectedOption(selected);
-
-    let filtered = allEmpresas;   // sempre parti do original
-    if (selected !== "Selecionar Todos") {
-      filtered = allEmpresas.filter(emp =>
-        emp.escritorios!.some(s => s.nome_escritorio === selected)
-      );
-    }
-    console.log("✅ empresas após filtro:", filtered);
-    setEmpresas(filtered);
-    setFiltrosSelecionados(
-      selected === "Selecionar Todos" ? [] : [selected]
-    );
   };
+
+  useEffect(() => {
+  let filtered = allEmpresas;
+
+  if (selectedOption !== "Selecionar Todos") {
+    filtered = allEmpresas.filter(emp =>
+      emp.escritorios?.some(s => s.nome_escritorio === selectedOption)
+    );
+  }
+
+  setEmpresas(filtered);
+  setFiltrosSelecionados(selectedOption === "Selecionar Todos" ? [] : [selectedOption]);
+}, [allEmpresas, selectedOption]);
+
 
 useEffect(() => {
   const fetchNovosClientes = async () => {
@@ -358,14 +360,14 @@ useEffect(() => {
 
         const data = await response.json();
 
-        // Transformar os dados para o formato correto
+        // Formata os dados recebidos
         const sociosFormatados = data.map(
           (item: { socio: string; data_nascimento: string }) => {
             const idade =
               new Date().getFullYear() -
               new Date(item.data_nascimento).getFullYear();
             return {
-              id: Math.random(), // Use um ID real se disponível
+              id: Math.random(),
               nome: item.socio,
               data_nascimento: item.data_nascimento,
               idade,
@@ -373,7 +375,19 @@ useEffect(() => {
           }
         );
 
-        setSocios(sociosFormatados);
+        // Função que filtra só os aniversariantes do mês atual
+        const filtrarAniversariantesDoMes = (socios: Socio[]) => {
+          const mesAtual = new Date().getMonth();
+          return socios.filter((socio) => {
+            const data = new Date(socio.data_nascimento);
+            return data.getMonth() === mesAtual;
+          });
+        };
+
+        const sociosAniversariantes = filtrarAniversariantesDoMes(sociosFormatados);
+
+        setSocios(sociosAniversariantes);
+
       } catch (err: unknown) {
         if (err instanceof Error) {
           setError(err.message);
@@ -392,12 +406,10 @@ useEffect(() => {
     const fetchClientData = async () => {
       try {
         setLoading(true);
-
         const body = {
           start_date: startDate,
           end_date: endDate,
         };
-
         const response = await fetch("/api/analise-carteira", {
           method: "POST",
           headers: {

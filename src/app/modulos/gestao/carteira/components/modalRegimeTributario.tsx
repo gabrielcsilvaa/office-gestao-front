@@ -51,11 +51,22 @@ export default function ListaEmpresasRegimeTributario({
     direction: "asc",
   });
 
+
   const filtrarEmpresas = () => {
     // Primeiro filtra empresas inativas
     let filteredEmpresas = dados.filter(
       (empresa) => empresa.data_inatividade === null
     );
+
+  const empresasExcluidas = [
+    "EMPRESA EXEMPLO REAL LTDA",
+    "EMPRESA EXEMPLO PRESUMIDO LTDA",
+    "EMPRESA EXEMPLO SIMPLES NACIONAL LTDA",
+  ];
+  filteredEmpresas = filteredEmpresas.filter(
+    (empresa) => !empresasExcluidas.includes(empresa.nome_empresa)
+  );
+
 
     // Depois filtra por regime tributário se houver seleção
     if (regimeSelecionado) {
@@ -84,6 +95,7 @@ export default function ListaEmpresasRegimeTributario({
 
     return filteredEmpresas;
   };
+  
 
   const sortEmpresas = (empresas: regimeTributario[]) => {
     return empresas.sort((a, b) => {
