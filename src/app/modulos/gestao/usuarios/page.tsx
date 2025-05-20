@@ -5,10 +5,18 @@ import React, { useState, useEffect } from "react";
 import UserChart from "./components/chart";
 import Calendar from "@/components/calendar";
 
+import {
+  fetchUserList,
+  fetchUserData,
+  fetchUserActivities,
+  fetchModuleActivities,
+} from "./services/api";
+
 import ListaUsuario from "./components/modal_lista_usuario";
 import AtividadeUsuario from "./components/modal_atividade_usuario";
 import AtividadesModulos from "./components/modal_atividade_modulo";
 import AtividadeCliente from "./components/modal_atividade_cliente";
+import { ActivitiesData } from "./interfaces/interface";
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
@@ -41,7 +49,7 @@ export default function Usuarios() {
 
   //Dados
   const [userList, setUserList] = useState<string | null>(null);
-  const [activites, setActivities] = useState<string | null>(null);
+  const [activites, setActivities] = useState<ActivitiesData | null>(null);
   const [data, setData] = useState<string | null>(null);
   const [dataModule, setDataModule] = useState<string | null>(null);
 
@@ -63,130 +71,30 @@ export default function Usuarios() {
   };
 
   useEffect(() => {
-    const fetchUserlist = async () => {
-      try {
-        const response = await fetch("/api/analise-usuario/listar", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+    if (!startDate || !endDate) return;
 
-        if (!response.ok) {
-          throw new Error(`Erro na API: ${response.statusText}`);
-        }
+    fetchUserList()
+      .then(setUserList)
+      .catch((e) => console.error(e));
 
-        const result = await response.json();
-        setUserList(result);
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          console.log(err.message);
-        } else {
-          console.log("Erro desconhecido");
-        }
-      }
-    };
+    const dateRange = { start_date: startDate, end_date: endDate };
 
-    const fetchUserData = async () => {
-      try {
-        const body = {
-          start_date: startDate,
-          end_date: endDate,
-        };
+    fetchUserData(dateRange)
+      .then(setData)
+      .catch((e) => console.error(e));
 
-        const response = await fetch("/api/analise-usuario", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(body),
-        });
+    fetchUserActivities(dateRange)
+      .then(setActivities)
+      .catch((e) => console.error(e));
 
-        if (!response.ok) {
-          throw new Error(`Erro na API: ${response.statusText}`);
-        }
-
-        const result = await response.json();
-        setData(result);
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          console.log(err.message);
-        } else {
-          console.log("Erro desconhecido");
-        }
-      }
-    };
-
-    const fetchUserActivities = async () => {
-      try {
-        const body = {
-          start_date: startDate,
-          end_date: endDate,
-        };
-
-        const response = await fetch("/api/analise-usuario/atividades-total", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(body),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Erro na API: ${response.statusText}`);
-        }
-
-        const result = await response.json();
-        setActivities(result);
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          console.log(err.message);
-        } else {
-          console.log("Erro desconhecido");
-        }
-      }
-    };
-
-    const fetchModuleActivities = async () => {
-      try {
-        const body = {
-          start_date: startDate,
-          end_date: endDate,
-        };
-
-        const response = await fetch("/api/analise-usuario/modulos", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(body),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Erro na API: ${response.statusText}`);
-        }
-
-        const result = await response.json();
-        setDataModule(result);
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          console.log(err.message);
-        } else {
-          console.log("Erro desconhecido");
-        }
-      }
-    };
-
-    // Só faz a requisição quando as datas estiverem definidas
-    if (startDate && endDate) {
-      fetchUserlist();
-      fetchUserData();
-      fetchUserActivities();
-      fetchModuleActivities();
-    }
+    fetchModuleActivities(dateRange)
+      .then(setDataModule)
+      .catch((e) => console.error(e));
   }, [startDate, endDate]);
 
   // Executa quando startDate ou endDate mudam
+
+
   useEffect(() => {
     console.log(data);
   }, [data]);
@@ -240,7 +148,9 @@ export default function Usuarios() {
             <p className="text-xs text-gray-500">
               Total de Atividades Realizadas
             </p>
-            <p className="text-xl font-semibold text-black">3.463.508</p>
+            <p className="text-xl font-semibold text-black">
+              {activites?.atividades_totais ?? 0}
+            </p>
           </div>
 
           <div className="usuarios-card p-3">
