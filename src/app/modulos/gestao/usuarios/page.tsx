@@ -81,7 +81,7 @@ export default function Usuarios() {
     const hours = Math.floor(seconds / 3600);
     // const minutes = Math.floor((seconds % 3600) / 60);
     // const secs = seconds % 60;
-    return `${hours}h`;
+    return `${Intl.NumberFormat("pt-BR").format(hours)}h`;
   };
 
   useEffect(() => {
@@ -183,21 +183,21 @@ export default function Usuarios() {
               Total de Atividades Realizadas
             </p>
             <p className="text-xl font-semibold text-black">
-              {activites?.atividades_totais ?? 0}
+              {Intl.NumberFormat("pt-BR").format(activites?.atividades_totais ?? 0)}
             </p>
           </div>
 
           <div className="usuarios-card p-3">
             <p className="text-xs text-gray-500">Importações totais</p>
             <p className="text-xl font-semibold text-black">
-              {data?.totais_gerais?.total_importacoes ?? 0}
+              {Intl.NumberFormat("pt-BR").format(data?.totais_gerais?.total_importacoes ?? 0)}
             </p>
           </div>
 
           <div className="usuarios-card p-3">
             <p className="text-xs text-gray-500">Total de Lançamentos</p>
             <p className="text-xl font-semibold text-black">
-              {data?.totais_gerais?.total_lancamentos ?? 0}
+              {Intl.NumberFormat("pt-BR").format(data?.totais_gerais?.total_lancamentos ?? 0)}
             </p>
           </div>
 
@@ -206,7 +206,7 @@ export default function Usuarios() {
               Total de Lançamentos Manuais
             </p>
             <p className="text-xl font-semibold text-black">
-              {data?.totais_gerais?.total_lancamentos_manuais ?? 0}
+              {Intl.NumberFormat("pt-BR").format(data?.totais_gerais?.total_lancamentos_manuais ?? 0)}
             </p>
           </div>
 
