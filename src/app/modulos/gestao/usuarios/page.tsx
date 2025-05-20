@@ -31,7 +31,6 @@ const cairo = Cairo({
 });
 
 export default function Usuarios() {
-  const [selectedOption, setSelectedOption] = useState("Selecionar Todos");
   const [mostrarListaUsuarios, setMostrarListaUsuarios] = useState(false);
   const [mostrarAtividadeUsuario, setMostrarAtividadeUsuarios] =
     useState(false);
@@ -76,9 +75,6 @@ export default function Usuarios() {
     // setAwaitDateSelection(false); // Remove a tela de seleção de data
   };
 
-  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedOption(e.target.value);
-  };
 
   // Função auxiliar para converter segundos em um formato detalhado (ex.: 163h 31m 46s)
   const formatTimeDetailed = (seconds: number): string => {
@@ -168,15 +164,7 @@ export default function Usuarios() {
           </h1>
 
           <div className="flex items-center gap-2 ml-4 relative">
-            <select
-              value={selectedOption}
-              onChange={handleSelectChange}
-              className="flex items-center justify-center p-2 shadow-md bg-white w-[334px] h-[36px] rounded-md"
-            >
-              <option>Selecionar Todos</option>
-              <option>Opção 1</option>
-              <option>Opção 2</option>
-            </select>
+            
 
             <div className="ml-5">
               <Calendar
