@@ -14,7 +14,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const response = await fetch(`${baseUrl}/main/usuario`, {
+    const response = await fetch(`${baseUrl}/main/usuario/modulo`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -37,6 +37,9 @@ export async function POST(req: Request) {
 
     return NextResponse.json(data);
   } catch (err) {
-    return NextResponse.json({ error: `Erro interno: ${err}` }, { status: 500 });
+    return NextResponse.json(
+      { error: `Erro interno: ${err}` },
+      { status: 500 }
+    );
   }
 }
