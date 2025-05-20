@@ -31,7 +31,6 @@ const cairo = Cairo({
 });
 
 export default function Usuarios() {
-  const [selectedOption, setSelectedOption] = useState("Selecionar Todos");
   const [mostrarListaUsuarios, setMostrarListaUsuarios] = useState(false);
   const [mostrarAtividadeUsuario, setMostrarAtividadeUsuarios] =
     useState(false);
@@ -76,16 +75,13 @@ export default function Usuarios() {
     // setAwaitDateSelection(false); // Remove a tela de seleção de data
   };
 
-  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedOption(e.target.value);
-  };
 
   // Função auxiliar para converter segundos em um formato detalhado (ex.: 163h 31m 46s)
   const formatTimeDetailed = (seconds: number): string => {
     const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hours}h ${minutes}m ${secs}s`;
+    // const minutes = Math.floor((seconds % 3600) / 60);
+    // const secs = seconds % 60;
+    return `${Intl.NumberFormat("pt-BR").format(hours)}h`;
   };
 
   useEffect(() => {
@@ -168,15 +164,7 @@ export default function Usuarios() {
           </h1>
 
           <div className="flex items-center gap-2 ml-4 relative">
-            <select
-              value={selectedOption}
-              onChange={handleSelectChange}
-              className="flex items-center justify-center p-2 shadow-md bg-white w-[334px] h-[36px] rounded-md"
-            >
-              <option>Selecionar Todos</option>
-              <option>Opção 1</option>
-              <option>Opção 2</option>
-            </select>
+            
 
             <div className="ml-5">
               <Calendar
@@ -195,21 +183,21 @@ export default function Usuarios() {
               Total de Atividades Realizadas
             </p>
             <p className="text-xl font-semibold text-black">
-              {activites?.atividades_totais ?? 0}
+              {Intl.NumberFormat("pt-BR").format(activites?.atividades_totais ?? 0)}
             </p>
           </div>
 
           <div className="usuarios-card p-3">
             <p className="text-xs text-gray-500">Importações totais</p>
             <p className="text-xl font-semibold text-black">
-              {data?.totais_gerais?.total_importacoes ?? 0}
+              {Intl.NumberFormat("pt-BR").format(data?.totais_gerais?.total_importacoes ?? 0)}
             </p>
           </div>
 
           <div className="usuarios-card p-3">
             <p className="text-xs text-gray-500">Total de Lançamentos</p>
             <p className="text-xl font-semibold text-black">
-              {data?.totais_gerais?.total_lancamentos ?? 0}
+              {Intl.NumberFormat("pt-BR").format(data?.totais_gerais?.total_lancamentos ?? 0)}
             </p>
           </div>
 
@@ -218,7 +206,7 @@ export default function Usuarios() {
               Total de Lançamentos Manuais
             </p>
             <p className="text-xl font-semibold text-black">
-              {data?.totais_gerais?.total_lancamentos_manuais ?? 0}
+              {Intl.NumberFormat("pt-BR").format(data?.totais_gerais?.total_lancamentos_manuais ?? 0)}
             </p>
           </div>
 
@@ -227,7 +215,7 @@ export default function Usuarios() {
             <p className="text-xl font-semibold text-black">
               {data?.totais_gerais?.total_tempo_gasto
                 ? formatTimeDetailed(data.totais_gerais.total_tempo_gasto)
-                : "00h 00m 00s"}
+                : "00h"}
             </p>
           </div>
         </div>
