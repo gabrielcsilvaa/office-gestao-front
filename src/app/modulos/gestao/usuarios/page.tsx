@@ -182,10 +182,10 @@ export default function Usuarios() {
 
           <div className="usuarios-card p-3">
             <p className="text-xs text-gray-500">
-              Total de Atividades por Módulos
+              Total de Lançamentos
             </p>
             <p className="text-xl font-semibold text-black">
-              {data?.totais_gerais?.total_servicos ?? 0}
+              {data?.totais_gerais?.total_lancamentos ?? 0}
             </p>
           </div>
 
