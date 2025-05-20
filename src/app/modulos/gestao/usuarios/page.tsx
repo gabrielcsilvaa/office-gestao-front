@@ -21,7 +21,9 @@ import {
   dadosUsuarios,
   Modulo,
   UserList,
+  AtividadesPorMes,
 } from "./interfaces/interface";
+import { gerarMesesEntreDatas } from "@/utils/formatadores";
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
@@ -57,6 +59,8 @@ export default function Usuarios() {
   const [activites, setActivities] = useState<ActivitiesData | null>(null);
   const [data, setData] = useState<dadosUsuarios | null>(null);
   const [dataModule, setDataModule] = useState<Modulo | null>(null);
+  const [calculoAtividades, setCulculoAtividades] =
+    useState<AtividadesPorMes | null>(null);
 
   //Aguardando colocar data
   // const [awaitDateSelection, setAwaitDateSelection] = useState(true); // Tela de seleção de data
@@ -95,17 +99,34 @@ export default function Usuarios() {
     fetchModuleActivities(dateRange)
       .then(setDataModule)
       .catch((e) => console.error(e));
-  }, [startDate, endDate]);
-
-  // Executa quando startDate ou endDate mudam
+  }, [startDate, endDate]); // Executa quando startDate ou endDate mudam
 
   useEffect(() => {
-    if (!data) return; // se data for null ou undefined, sai do efeito
+    if (!startDate || !endDate) return;
 
-    for (const i of data.analises) {
-      console.log(i.nome_usuario);
+    const meses = gerarMesesEntreDatas(startDate, endDate);
+
+    function somarAtividadesPorMes(data: dadosUsuarios): AtividadesPorMes {
+      const totaisPorMes: AtividadesPorMes = [];
+      for (const mes of meses) {
+        totaisPorMes[mes] = 0;
+        for (const empresa of data.analises) {
+          for (const atividade of empresa.empresas) {
+            if (atividade.atividades[mes]) {
+              totaisPorMes[mes] += atividade.atividades[mes].tempo_gasto;
+            }
+          }
+        }
+      }
+
+
+     setCulculoAtividades(totaisPorMes);
+     return totaisPorMes;
     }
-  }, [data]);
+    if (data) {
+      somarAtividadesPorMes(data);
+    }
+  }, [data, startDate, endDate]);
 
   useEffect(() => {
     console.log(data);
@@ -181,9 +202,7 @@ export default function Usuarios() {
           </div>
 
           <div className="usuarios-card p-3">
-            <p className="text-xs text-gray-500">
-              Total de Lançamentos
-            </p>
+            <p className="text-xs text-gray-500">Total de Lançamentos</p>
             <p className="text-xl font-semibold text-black">
               {data?.totais_gerais?.total_lancamentos ?? 0}
             </p>

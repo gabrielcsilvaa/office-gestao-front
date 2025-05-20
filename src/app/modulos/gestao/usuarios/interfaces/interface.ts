@@ -15,7 +15,14 @@ export interface UserList {
 
 //Atividades Modulo
 export interface UsuarioModulo {
-  atividades: object;
+  atividades: {
+    [mesAno: string]: {
+      tempo_gasto: number;
+      importacoes: number;
+      lancamentos: number;
+      lancamentos_manuais: number;
+    };
+  };
   total_usuario: number;
   usuario: string;
 }
@@ -28,7 +35,14 @@ export interface Modulo {
 //Dados Gerais das atividades
 
 export interface empresaDados {
-  atividades: object;
+  atividades: {
+    [mesAno: string]: {
+      tempo_gasto: number;
+      importacoes: number;
+      lancamentos: number;
+      lancamentos_manuais: number;
+    };
+  };
   codi_emp: number;
   total_entradas: number;
   total_geral: number;
@@ -67,3 +81,11 @@ export interface dadosUsuarios {
     total_tempo_gasto: number;
   };
 }
+
+//Atividades por mês
+
+export interface AtividadeMesItem {
+  name: string;
+  valor: number;
+}
+export type AtividadesPorMes = AtividadeMesItem[];

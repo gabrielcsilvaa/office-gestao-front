@@ -40,3 +40,23 @@ export function formatarCpfCnpj(valor?: string | null): string {
 
   return valor; // Se não for 11 nem 14 dígitos, retorna como está
 }
+
+export function gerarMesesEntreDatas(start_date: string, end_date: string): string[] {
+  const MESES_PT = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+
+  const inicio = new Date(start_date);
+  const fim = new Date(end_date);
+
+  const resultado: string[] = [];
+
+  const atual = new Date(inicio.getFullYear(), inicio.getMonth(), 1);
+
+  while (atual <= fim) {
+    const mes = atual.getMonth(); // 0-11
+    const ano = atual.getFullYear();
+    resultado.push(`${MESES_PT[mes]}/${ano}`);
+    atual.setMonth(atual.getMonth() + 1);
+  }
+
+  return resultado;
+}
