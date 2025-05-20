@@ -40,3 +40,37 @@ export function formatarCpfCnpj(valor?: string | null): string {
 
   return valor; // Se não for 11 nem 14 dígitos, retorna como está
 }
+
+export function gerarMesesEntreDatas(start_date: string, end_date: string): string[] {
+  const MESES_PT = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+
+  function parseDataLocal(dataStr: string): Date {
+    const partes = dataStr.split("-");
+    const ano = parseInt(partes[0], 10);
+    const mes = parseInt(partes[1], 10) - 1; // zero-based
+    const dia = parseInt(partes[2], 10);
+    return new Date(ano, mes, dia);
+  }
+
+  const inicio = parseDataLocal(start_date);
+  const fim = parseDataLocal(end_date);
+
+  const fimMesInicio = new Date(fim.getFullYear(), fim.getMonth(), 1);
+  const resultado: string[] = [];
+  const atual = new Date(inicio.getFullYear(), inicio.getMonth(), 1);
+
+  while (atual <= fimMesInicio) {
+    const mes = atual.getMonth();
+    const ano = atual.getFullYear();
+    resultado.push(`${MESES_PT[mes]}/${ano}`);
+    atual.setMonth(atual.getMonth() + 1);
+  }
+
+  return resultado;
+}
+
+export function arredondarMaximo(valor: number): number {
+  const digitos = valor.toString().length;
+  const fator = Math.pow(10, digitos - 1);
+  return Math.floor(valor / fator) * fator;
+}
