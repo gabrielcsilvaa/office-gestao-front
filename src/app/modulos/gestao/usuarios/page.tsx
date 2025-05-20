@@ -16,7 +16,12 @@ import ListaUsuario from "./components/modal_lista_usuario";
 import AtividadeUsuario from "./components/modal_atividade_usuario";
 import AtividadesModulos from "./components/modal_atividade_modulo";
 import AtividadeCliente from "./components/modal_atividade_cliente";
-import { ActivitiesData } from "./interfaces/interface";
+import {
+  ActivitiesData,
+  dadosUsuarios,
+  Modulo,
+  UserList,
+} from "./interfaces/interface";
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
@@ -48,10 +53,10 @@ export default function Usuarios() {
   const [endDate, setEndDate] = useState<string | null>(null);
 
   //Dados
-  const [userList, setUserList] = useState<string | null>(null);
+  const [userList, setUserList] = useState<UserList | null>(null);
   const [activites, setActivities] = useState<ActivitiesData | null>(null);
-  const [data, setData] = useState<string | null>(null);
-  const [dataModule, setDataModule] = useState<string | null>(null);
+  const [data, setData] = useState<dadosUsuarios | null>(null);
+  const [dataModule, setDataModule] = useState<Modulo | null>(null);
 
   //Aguardando colocar data
   // const [awaitDateSelection, setAwaitDateSelection] = useState(true); // Tela de seleção de data
@@ -94,6 +99,13 @@ export default function Usuarios() {
 
   // Executa quando startDate ou endDate mudam
 
+  useEffect(() => {
+    if (!data) return; // se data for null ou undefined, sai do efeito
+
+    for (const i of data.analises) {
+      console.log(i.nome_usuario);
+    }
+  }, [data]);
 
   useEffect(() => {
     console.log(data);
