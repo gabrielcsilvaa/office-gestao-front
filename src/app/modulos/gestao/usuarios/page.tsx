@@ -59,8 +59,9 @@ export default function Usuarios() {
   const [activites, setActivities] = useState<ActivitiesData | null>(null);
   const [data, setData] = useState<dadosUsuarios | null>(null);
   const [dataModule, setDataModule] = useState<Modulo | null>(null);
-  const [calculoAtividades, setCulculoAtividades] =
-    useState<AtividadesPorMes | null>(null);
+  const [calculoAtividades, setCulculoAtividades] = useState<AtividadesPorMes>(
+    []
+  );
 
   //Aguardando colocar data
   // const [awaitDateSelection, setAwaitDateSelection] = useState(true); // Tela de seleção de data
@@ -77,6 +78,14 @@ export default function Usuarios() {
 
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedOption(e.target.value);
+  };
+
+  // Função auxiliar para converter segundos em um formato detalhado (ex.: 163h 31m 46s)
+  const formatTimeDetailed = (seconds: number): string => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hours}h ${minutes}m ${secs}s`;
   };
 
   useEffect(() => {
@@ -109,19 +118,21 @@ export default function Usuarios() {
     function somarAtividadesPorMes(data: dadosUsuarios): AtividadesPorMes {
       const totaisPorMes: AtividadesPorMes = [];
       for (const mes of meses) {
-        totaisPorMes[mes] = 0;
-        for (const empresa of data.analises) {
-          for (const atividade of empresa.empresas) {
+        let cont = 0;
+        for (const usuario of data.analises) {
+          for (const atividade of usuario.empresas) {
             if (atividade.atividades[mes]) {
-              totaisPorMes[mes] += atividade.atividades[mes].tempo_gasto;
+              cont += atividade.atividades[mes].tempo_gasto;
             }
           }
         }
+        totaisPorMes.push({
+          name: mes,
+          valor: Math.round(cont / 3600),
+        });
       }
-
-
-     setCulculoAtividades(totaisPorMes);
-     return totaisPorMes;
+      setCulculoAtividades(totaisPorMes);
+      return totaisPorMes;
     }
     if (data) {
       somarAtividadesPorMes(data);
@@ -144,13 +155,7 @@ export default function Usuarios() {
     console.log(dataModule);
   }, [dataModule]);
 
-  // Função auxiliar para converter segundos em um formato detalhado (ex.: 163h 31m 46s)
-  const formatTimeDetailed = (seconds: number): string => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hours}h ${minutes}m ${secs}s`;
-  };
+
 
   return (
     <div className="bg-gray-100 max-h-screen max-w-screen">
@@ -228,7 +233,7 @@ export default function Usuarios() {
         </div>
 
         <div>
-          <UserChart />
+          <UserChart dados={calculoAtividades} />
 
           <div className="w-full flex justify-center">
             <div className="grid grid-cols-2 gap-4 p-3">
