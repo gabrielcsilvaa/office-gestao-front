@@ -123,6 +123,14 @@ export default function Usuarios() {
     console.log(dataModule);
   }, [dataModule]);
 
+  // Função auxiliar para converter segundos em um formato detalhado (ex.: 163h 31m 46s)
+  const formatTimeDetailed = (seconds: number): string => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hours}h ${minutes}m ${secs}s`;
+  };
+
   return (
     <div className="bg-gray-100 max-h-screen max-w-screen">
       <div className="h-[85px] flex flex-row items-center p-4 gap-8 border-b border-black/10 bg-gray-100">
@@ -167,26 +175,36 @@ export default function Usuarios() {
 
           <div className="usuarios-card p-3">
             <p className="text-xs text-gray-500">Importações totais</p>
-            <p className="text-xl font-semibold text-black">2.236.636</p>
+            <p className="text-xl font-semibold text-black">
+              {data?.totais_gerais?.total_importacoes ?? 0}
+            </p>
           </div>
 
           <div className="usuarios-card p-3">
             <p className="text-xs text-gray-500">
               Total de Atividades por Módulos
             </p>
-            <p className="text-xl font-semibold text-black">1.133.734</p>
+            <p className="text-xl font-semibold text-black">
+              {data?.totais_gerais?.total_servicos ?? 0}
+            </p>
           </div>
 
           <div className="usuarios-card p-3">
             <p className="text-xs text-gray-500">
               Total de Lançamentos Manuais
             </p>
-            <p className="text-xl font-semibold text-black">93.138</p>
+            <p className="text-xl font-semibold text-black">
+              {data?.totais_gerais?.total_lancamentos_manuais ?? 0}
+            </p>
           </div>
 
           <div className="usuarios-card p-3">
             <p className="text-xs text-gray-500">Total de Horas Ativas</p>
-            <p className="text-xl font-semibold text-black">34.662.66 h</p>
+            <p className="text-xl font-semibold text-black">
+              {data?.totais_gerais?.total_tempo_gasto
+                ? formatTimeDetailed(data.totais_gerais.total_tempo_gasto)
+                : "00h 00m 00s"}
+            </p>
           </div>
         </div>
 
