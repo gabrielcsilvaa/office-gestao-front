@@ -25,6 +25,12 @@ interface Parceria {
   data_inicio_atividades: string;
 }
 
+interface Escritorio {
+  codigo_escritorio: number;
+  id_cliente_contrato: number;
+  nome_escritorio: string;
+}
+
 interface regimeTributario {
   id: number;
   nome_empresa: string;
@@ -35,6 +41,10 @@ interface regimeTributario {
   data_inatividade: string;
   motivo_inatividade: number;
   situacao: string;
+  ramo_atividade: string;
+  escritorios?: Escritorio[];
+  empresas: Empresa[];
+
 }
 
 interface Empresa {
@@ -95,6 +105,69 @@ export default function Carteira() {
   const [endDate, setEndDate] = useState<string | null>("2024-12-31");
   const [isEmpresasCardModalOpen, setIsEmpresasCardModalOpen] = useState(false);
   const [filtrosSelecionados, setFiltrosSelecionados] = useState<string[]>([]);
+  const [escritorios, setEscritorios] = useState<string[]>([]);
+  const [allEmpresas, setAllEmpresas] = useState<regimeTributario[]>([]);
+  
+  useEffect(() => {
+  if (!empresas || empresas.length === 0) {
+    setRegimesData([]);
+    setRamoAtividadeData([]);
+    setEvolucaoData([]);
+    return;
+  }
+
+  // Agrupar por regime tributário
+  const groupedByRegime = empresas.reduce(
+    (acc: { [key: string]: Regime }, empresa) => {
+      const regime = empresa.regime_tributario || "Não especificado";
+      if (!acc[regime]) acc[regime] = { name: regime, value: 0, empresas: [] };
+      acc[regime].value += 1;
+      acc[regime].empresas.push(empresa);
+      return acc;
+    },
+    {}
+  );
+  setRegimesData(Object.values(groupedByRegime));
+
+  // Processar ramo de atividade
+  const ramoAtividadeCount = empresas.reduce(
+    (acc: { [key: string]: number }, empresa) => {
+      const ramo = empresa.ramo_atividade || "Não especificado";
+      acc[ramo] = (acc[ramo] || 0) + 1;
+      return acc;
+    },
+    {}
+  );
+  setRamoAtividadeData(
+    Object.entries(ramoAtividadeCount)
+      .map(([name, value]) => ({ name, value: Number(value) }))
+      .sort((a, b) => b.value - a.value)
+  );
+
+  // Processar dados de evolução
+    const formatDate = (date: Date) => date.toISOString().split("T")[0];
+    const startEvolucao = startDate ? formatDate(new Date(startDate)) : "";
+    const endEvolucao = endDate ? formatDate(new Date(endDate)) : "";
+
+    const counts: { [key: string]: number } = {};
+    empresas.forEach((empresa) => {
+      if (empresa.data_cadastro) {
+        const dataCadastro = formatDate(new Date(empresa.data_cadastro));
+        if (dataCadastro >= startEvolucao && dataCadastro <= endEvolucao) {
+          const key = new Date(empresa.data_cadastro).toLocaleString("default", {
+            month: "short",
+            year: "numeric",
+          });
+          counts[key] = (counts[key] || 0) + 1;
+        }
+      }
+    });
+    setEvolucaoData(
+      Object.entries(counts)
+        .map(([name, value]) => ({ name, value }))
+        .sort((a, b) => new Date(a.name).getTime() - new Date(b.name).getTime())
+    );
+  }, [empresas, startDate, endDate]);
 
   const handleCardClick = (title: string) => {
     switch (title) {
@@ -138,12 +211,26 @@ export default function Carteira() {
     setEndDate(date);
   };
 
-  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedOption(e.target.value);
-  };
-
   const handleOpenModal = (title: string) => {
     setIsModalOpen(title);
+  };
+
+  const handleEscritorioSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selected = e.target.value;
+    console.log("🔎 escritório selecionado:", selected);
+    setSelectedOption(selected);
+
+    let filtered = allEmpresas;   // sempre parti do original
+    if (selected !== "Selecionar Todos") {
+      filtered = allEmpresas.filter(emp =>
+        emp.escritorios!.some(s => s.nome_escritorio === selected)
+      );
+    }
+    console.log("✅ empresas após filtro:", filtered);
+    setEmpresas(filtered);
+    setFiltrosSelecionados(
+      selected === "Selecionar Todos" ? [] : [selected]
+    );
   };
 
 useEffect(() => {
@@ -301,10 +388,11 @@ useEffect(() => {
     fetchAniversariosData();
   }, [startDate, endDate]);
 
-
   useEffect(() => {
     const fetchClientData = async () => {
       try {
+        setLoading(true);
+
         const body = {
           start_date: startDate,
           end_date: endDate,
@@ -323,103 +411,36 @@ useEffect(() => {
         }
 
         const data = await response.json();
-        setEmpresas(data.Empresas);
+        console.log("📦 dados brutos de Empresas:", data.Empresas);
 
-        // Processando dados de regime tributário
-        const groupedByRegime = data.Empresas.reduce(
-          (acc: { [key: string]: Regime }, empresa: Empresa) => {
-            const regime = empresa.regime_tributario;
-            if (!acc[regime])
-              acc[regime] = { name: regime, value: 0, empresas: [] };
-            acc[regime].value += 1;
-            acc[regime].empresas.push(empresa);
-            return acc;
-          },
-          {}
-        );
+        // Garante que 'escritorios' é array para evitar erros
+        const empresasWithEscritorios = data.Empresas.map((e: regimeTributario) => ({
+          ...e,
+          escritorios: Array.isArray(e.escritorios) ? e.escritorios : [],
+        }));
 
-        const regimes: Regime[] = Object.values(groupedByRegime).map(
-          (item) => ({
-            name: (item as Regime).name,
-            value: (item as Regime).value,
-            empresas: (item as Regime).empresas,
-          })
-        );
+        // Atualiza os estados com dados completos e exibidos (todos inicialmente)
+        setAllEmpresas(empresasWithEscritorios);
+        setEmpresas(empresasWithEscritorios);
 
-        setRegimesData(regimes);
+        // Extrai os nomes únicos dos escritórios para filtro
+        const nomesEscritorios = Array.from(
+          new Set(
+            empresasWithEscritorios.flatMap((empresa: regimeTributario) =>
+              empresa.escritorios!.map((escritorio: Escritorio) => escritorio.nome_escritorio)
+            )
+          )
+        ).sort() as string[];;
 
-        // Processando dados de ramo de atividade
-        const ramoAtividadeCount = data.Empresas.reduce(
-          (acc: { [key: string]: number }, empresa: Empresa) => {
-            const ramo = empresa.ramo_atividade || "Não especificado";
-            acc[ramo] = (acc[ramo] || 0) + 1;
-            return acc;
-          },
-          {}
-        );
+        console.log("🏢 Lista de escritórios:", nomesEscritorios);
+        setEscritorios(nomesEscritorios);
 
-        const ramoAtividadeArray = Object.entries(ramoAtividadeCount)
-          .map(([name, value]) => ({ name, value: Number(value) }))
-          .sort((a, b) => b.value - a.value);
+        // Removemos os cálculos de gráficos e cards daqui,
+        // para deixar essa responsabilidade para o useEffect que depende do estado `empresas`.
 
-        setRamoAtividadeData(ramoAtividadeArray);
-
-        // Processando dados de evolução
-        const formatDate = (date: Date) => date.toISOString().split("T")[0];
-        const startEvolucao = startDate ? formatDate(new Date(startDate)) : "";
-        const endEvolucao = endDate ? formatDate(new Date(endDate)) : "";
-
-        const counts: { [key: string]: number } = {};
-        data.Empresas.forEach((empresa: Empresa) => {
-          if (empresa.data_cadastro) {
-            const dataCadastro = formatDate(new Date(empresa.data_cadastro));
-            if (dataCadastro >= startEvolucao && dataCadastro <= endEvolucao) {
-              const key = new Date(empresa.data_cadastro).toLocaleString(
-                "default",
-                { month: "short", year: "numeric" }
-              );
-              counts[key] = (counts[key] || 0) + 1;
-            }
-          }
-        });
-
-        const monthMap = {
-          jan: 0,
-          fev: 1,
-          mar: 2,
-          abr: 3,
-          mai: 4,
-          jun: 5,
-          jul: 6,
-          ago: 7,
-          set: 8,
-          out: 9,
-          nov: 10,
-          dez: 11,
-        };
-
-        const evolucaoArray = Object.entries(counts)
-          .map(([name, value]) => {
-            // name: "jan. de 2024" ou "jan de 2024"
-            const [mes, , ano] = name.replace(".", "").split(" ");
-            const date = new Date(
-              Number(ano),
-              monthMap[mes as keyof typeof monthMap],
-              1
-            );
-            return { name, value, date };
-          })
-          .sort((a, b) => a.date.getTime() - b.date.getTime());
-
-        setEvolucaoData(
-          evolucaoArray.map(({ name, value }) => ({ name, value }))
-        );
       } catch (err: unknown) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError("Erro desconhecido");
-        }
+        if (err instanceof Error) setError(err.message);
+        else setError("Erro desconhecido");
       } finally {
         setLoading(false);
       }
@@ -427,6 +448,7 @@ useEffect(() => {
 
     fetchClientData();
   }, [startDate, endDate]);
+
 
   if (loading) return <div>Carregando...</div>;
   if (error) return <div>Erro: {error}</div>;
@@ -482,18 +504,21 @@ useEffect(() => {
           >
             Carteira de Clientes
           </h1>
-
           <div className="flex items-center gap-2 ml-4">
             <select
-              value={selectedOption}
-              onChange={handleSelectChange}
-              className="flex items-center justify-center p-2 shadow-md bg-white w-[334px] h-[36px] rounded-md"
-            >
-              <option>Selecionar Todos</option>
-              <option>Opção 1</option>
-              <option>Opção 2</option>
-            </select>
-
+            value={selectedOption}
+            onChange={handleEscritorioSelectChange}
+            className="flex items-center justify-center p-2 shadow-md bg-white w-[334px] h-[36px] rounded-md"
+          >
+            <option>Selecionar Todos</option>
+            {escritorios.map((escritorio, index) => {
+              // Pegando apenas os dois primeiros nomes
+              const nomeCurto = escritorio.split(" ").slice(0, 4).join(" ");
+              return (
+                <option key={index} value={escritorio}>{nomeCurto}</option>
+              );
+            })}
+          </select>
             <Calendar
               onStartDateChange={handleStartDateChange}
               onEndDateChange={handleEndDateChange}
