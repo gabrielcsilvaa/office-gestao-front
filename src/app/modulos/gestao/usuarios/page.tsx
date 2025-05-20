@@ -38,7 +38,12 @@ export default function Usuarios() {
   //Estados de data
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
+
+  //Dados
+  const [userList, setUserList] = useState<string | null>(null);
+  const [activites, setActivities] = useState<string | null>(null);
   const [data, setData] = useState<string | null>(null);
+  const [dataModule, setDataModule] = useState<string | null>(null);
 
   //Aguardando colocar data
   // const [awaitDateSelection, setAwaitDateSelection] = useState(true); // Tela de seleção de data
@@ -72,8 +77,97 @@ export default function Usuarios() {
         }
 
         const result = await response.json();
+        setUserList(result);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          console.log(err.message);
+        } else {
+          console.log("Erro desconhecido");
+        }
+      }
+    };
+
+    const fetchUserData = async () => {
+      try {
+        const body = {
+          start_date: startDate,
+          end_date: endDate,
+        };
+
+        const response = await fetch("/api/analise-usuario", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Erro na API: ${response.statusText}`);
+        }
+
+        const result = await response.json();
         setData(result);
-        
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          console.log(err.message);
+        } else {
+          console.log("Erro desconhecido");
+        }
+      }
+    };
+
+    const fetchUserActivities = async () => {
+      try {
+        const body = {
+          start_date: startDate,
+          end_date: endDate,
+        };
+
+        const response = await fetch("/api/analise-usuario/atividades-total", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Erro na API: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        setActivities(result);
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          console.log(err.message);
+        } else {
+          console.log("Erro desconhecido");
+        }
+      }
+    };
+
+    const fetchModuleActivities = async () => {
+      try {
+        const body = {
+          start_date: startDate,
+          end_date: endDate,
+        };
+
+        const response = await fetch("/api/analise-usuario/modulos", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Erro na API: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        setDataModule(result);
       } catch (err: unknown) {
         if (err instanceof Error) {
           console.log(err.message);
@@ -86,13 +180,29 @@ export default function Usuarios() {
     // Só faz a requisição quando as datas estiverem definidas
     if (startDate && endDate) {
       fetchUserlist();
-      
+      fetchUserData();
+      fetchUserActivities();
+      fetchModuleActivities();
     }
   }, [startDate, endDate]);
-   // Executa quando startDate ou endDate mudam
-useEffect(() => {
-  console.log(data);
-}, [data]);
+
+  // Executa quando startDate ou endDate mudam
+  useEffect(() => {
+    console.log(data);
+  }, [data]);
+
+  useEffect(() => {
+    console.log(userList);
+  }, [userList]);
+
+  useEffect(() => {
+    console.log(activites);
+  }, [activites]);
+
+  useEffect(() => {
+    console.log(dataModule);
+  }, [dataModule]);
+
   return (
     <div className="bg-gray-100 max-h-screen max-w-screen">
       <div className="h-[85px] flex flex-row items-center p-4 gap-8 border-b border-black/10 bg-gray-100">
