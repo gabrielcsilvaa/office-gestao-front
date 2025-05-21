@@ -258,6 +258,7 @@ export default function Usuarios() {
       </div>
 
       <ListaUsuario
+        dados = {userList}
         mostrarMensagem={mostrarListaUsuarios}
         fecharMensagem={fecharListaUsuarios}
       />
