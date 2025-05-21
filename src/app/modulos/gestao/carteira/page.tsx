@@ -589,18 +589,18 @@ useEffect(() => {
       </Modal>
 
       <div className="flex flex-col md:flex-row gap-4 p-4">
-        <div className="bg-white shadow rounded-md w-full md:w-1/2 h-[381px] flex items-center justify-center overflow-hidden cursor-pointer">
+        <div className="bg-white shadow rounded-md w-full md:w-1/2 h-[300px] flex items-center justify-center overflow-hidden cursor-pointer">
           <PieChartComponent
             data={regimesData}
             onClick={() => handleOpenModal("Empresas por Regime Tributário")}
           />
         </div>
-        <div className="bg-white shadow rounded-md w-full md:w-1/2 h-[381px] flex items-center justify-center overflow-hidden">
+        <div className="bg-white shadow rounded-md w-full md:w-1/2 h-[300px] flex items-center justify-center overflow-hidden">
           <RamoAtividade data={ramoAtividadeData} />
         </div>
       </div>
 
-      <div className="mt-4 p-4">
+      <div className="px-4 pb-4">
         <Evolucao data={evolucaoData} />
       </div>
     </div>

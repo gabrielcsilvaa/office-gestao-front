@@ -36,57 +36,58 @@ const PieChartComponent = ({ data, onClick }: PieChartComponentProps) => {
   );
 
   return (
-    <div className="flex flex-col bg-white rounded-lg shadow-md w-full h-full">
-      <div className="flex flex-row justify-between p-0 pr-1">
-        <h2 className="text-lg font-semibold ml-4 mt-4 mb-4">
-          Empresas por Regime Tributário
-        </h2>
-        <div onClick={onClick} className="cursor-pointer ml-1.5 p-1.5">
-          <Image
-            src="/assets/icons/Vector 1275.svg"
-            width={12}
-            height={13.33}
-            alt="seta"
-          />
-        </div>
-      </div>
-
-      <div className="flex flex-row items-center justify-center">
-        <div
-          className="w-[280px] h-[280px] relative cursor-pointer"
-          onClick={onClick}
-        >
-          <PieChart width={280} height={280}>
-            <Tooltip />
-            <Pie
-              data={sortedData}
-              dataKey="value"
-              nameKey="name"
-              outerRadius={110}
-              stroke="#ffffff"
-              labelLine={false}
-            >
-              {sortedData.map((entry, i) => (
-                <Cell key={i} fill={colors[i]} />
-              ))}
-              <LabelList position="inside" style={{ fontSize: "13px" }} />
-            </Pie>
-          </PieChart>
-        </div>
-
-        <div className="flex flex-col gap-2 ml-8">
-          {sortedData.map((entry, index) => (
-            <div key={index} className="flex items-center gap-2">
-              <span
-                className="w-3 h-3 rounded-full"
-                style={{ backgroundColor: colors[index] }}
-              ></span>
-              <span className="text-sm text-gray-700">{entry.name}</span>
-            </div>
-          ))}
-        </div>
-      </div>
+<div className="flex flex-col bg-white rounded-lg shadow-md w-full h-full p-4 overflow-hidden">
+  <div className="flex justify-between items-start mb-4">
+    <h2 className="text-lg font-semibold">Empresas por Regime Tributário</h2>
+    <div onClick={onClick} className="cursor-pointer p-1.5">
+      <Image
+        src="/assets/icons/Vector 1275.svg"
+        width={12}
+        height={13.33}
+        alt="seta"
+      />
     </div>
+  </div>
+
+  <div className="flex flex-col lg:flex-row items-center justify-center gap-6">
+    {/* Gráfico */}
+    <div
+      className="w-[240px] h-[240px] cursor-pointer"
+      onClick={onClick}
+    >
+      <PieChart width={200} height={200}>
+        <Tooltip />
+        <Pie
+          data={sortedData}
+          dataKey="value"
+          nameKey="name"
+          outerRadius={100}
+          stroke="#ffffff"
+          labelLine={false}
+        >
+          {sortedData.map((entry, i) => (
+            <Cell key={i} fill={colors[i]} />
+          ))}
+          <LabelList position="inside" style={{ fontSize: "13px" }} />
+        </Pie>
+      </PieChart>
+    </div>
+
+    {/* Legenda */}
+    <div className="flex flex-col gap-2 max-w-[250px]">
+      {sortedData.map((entry, index) => (
+        <div key={index} className="flex items-center gap-2">
+          <span
+            className="w-3 h-3 rounded-full"
+            style={{ backgroundColor: colors[index] }}
+          ></span>
+          <span className="text-sm text-gray-700 break-words">{entry.name}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+</div>
+
   );
 };
 
