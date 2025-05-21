@@ -155,6 +155,22 @@ export default function ListaEmpresasRamoAtividade({
   };
 
   const ramos = [
+    "Todos",
+    "Comércio",
+    "Educação e Saúde",
+    "Administração Pública e ServiçosDiversos",
+    "Serviços Profissionais",
+    "Indústria",
+    "Desconhecido",
+    "Serviços Domésticos",
+    "Hospedagem e Alimentação",
+    "Construção",
+    "Informação e Comunicação",
+    "Transporte e Logística",
+    "Agropecuária",
+    "Cultura, Esporte e Lazer",
+    "Financeiro e Seguros",
+    "Outros"
   ];
 
   const empresasFiltradas = filtrarEmpresas();
@@ -195,23 +211,25 @@ export default function ListaEmpresasRamoAtividade({
           </button>
         </div>
       </div>
-
-      <div className="flex flex-wrap gap-2 p-4 bg-white shadow rounded-md mb-4">
-        {ramos.map((ramo) => (
-          <button
-            key={ramo}
-            className={`px-4 py-2 rounded-md shadow-md ${
-              ramoSelecionado === ramo || (ramo === "Todos" && !ramoSelecionado)
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200 text-gray-700"
-            } hover:bg-blue-500 hover:text-white transition`}
-            onClick={() => setRamoSelecionado(ramo === "Todos" ? null : ramo)}
-          >
-            {ramo}
-          </button>
-        ))}
-      </div>
-
+        <div className="p-4 bg-white shadow rounded-md mb-4">
+        <label htmlFor="selectRamo" className="mr-2 font-semibold">
+            Filtrar:
+        </label>
+        <select
+            id="selectRamo"
+            value={ramoSelecionado ?? "Todos"}
+            onChange={(e) =>
+            setRamoSelecionado(e.target.value === "Todos" ? null : e.target.value)
+            }
+            className="border border-gray-300 rounded-md p-2"
+        >
+            {ramos.map((ramo) => (
+            <option key={ramo} value={ramo}>
+                {ramo}
+            </option>
+            ))}
+        </select>
+        </div>
       <table className="w-full border border-gray-300 text-sm font-cairo">
         <thead>
           <tr className="bg-gray-200 border-b border-gray-400">

@@ -36,7 +36,7 @@ const PieChartComponent = ({ data, onClick }: PieChartComponentProps) => {
 
   return (
 <div className="flex flex-col bg-white rounded-lg shadow-md w-full h-full p-4 overflow-hidden">
-  <div className="flex justify-between items-start mb-4">
+  <div className="flex justify-between items-start mb-7">
     <h2 className="text-lg font-semibold">Empresas por Regime Tributário</h2>
     <div onClick={onClick} className="cursor-pointer p-1.5">
       <Image
