@@ -10,7 +10,6 @@ const cairo = Cairo({
   subsets: ["latin"],
 });
 
-
 export default function Login() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -65,10 +64,14 @@ export default function Login() {
       <div className="w-full max-w-[1000px] shadow-[-10px_-10px_15px_rgba(0,_0,_0,_0.35),_10px_10px_15px_rgba(0,_0,_0,_0.35)] rounded-[30px] bg-white h-auto lg:h-[625px] overflow-hidden flex flex-col lg:flex-row">
         {/* Formulário */}
         <div className="w-full lg:w-1/2 h-full flex flex-col gap-4 items-center justify-center px-6 py-10">
-          <b className={`text-3xl ${cairo.className} text-black text-center w-full`}>
+          <b
+            className={`text-3xl ${cairo.className} text-black text-center w-full`}
+          >
             Login
           </b>
-          <span className={`text-sm font-medium ${cairo.className} text-black text-center w-full`}>
+          <span
+            className={`text-sm font-medium ${cairo.className} text-black text-center w-full`}
+          >
             utilize seu email e senha para acessar a plataforma
           </span>
           {error && <div className="text-red-500">{error}</div>}{" "}
@@ -88,7 +91,9 @@ export default function Login() {
             placeholder="Senha"
           />
           <a href="" className="w-full text-center">
-            <span className={`text-sm font-medium ${cairo.className} text-black`}>
+            <span
+              className={`text-sm font-medium ${cairo.className} text-black`}
+            >
               Esqueceu a senha?
             </span>
           </a>
@@ -103,7 +108,7 @@ export default function Login() {
         {/* Lateral com logo */}
         <div className="w-full lg:w-1/2 h-72 lg:h-full bg-[#373A40] rounded-tl-[50px] lg:rounded-tl-[150px] lg:rounded-bl-[100px] flex items-center justify-center">
           <Image
-            src="/assets/logos/office.svg"
+            src={`/assets/logos/${process.env.LOGO_ESCRITORIO?.trim()}`}
             alt="Logo do sistema"
             width={300}
             height={104}
