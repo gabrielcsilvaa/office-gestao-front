@@ -75,13 +75,56 @@ export default function ModalEmpresasCard({
       allEmpresas = allEmpresas.filter((empresa) => {
         const isAtivo = selectedFiltros.includes("A") && empresa.situacao === "A";
         const isInativo = selectedFiltros.includes("I") && empresa.situacao === "I";
-        const isBaixado = selectedFiltros.includes("baixados") && empresa.motivo_inatividade === 2;
-        const isTransferido = selectedFiltros.includes("transferidas") && empresa.motivo_inatividade === 3;
+        const isBaixado = selectedFiltros.includes("baixados") && empresa.motivo_inatividade === 2 && empresa.situacao != "A";
+        const isTransferido = selectedFiltros.includes("transferidas") && empresa.motivo_inatividade === 3 && empresa.situacao != "A";
         const isNovoCliente = selectedFiltros.includes("novos-clientes") && dadosNovos.includes(empresa);
         return isAtivo || isInativo || isBaixado || isTransferido || isNovoCliente;
       });
     }
 
+    const empresasExcluidas = [
+      "EMPRESA EXEMPLO REAL LTDA",
+      "EMPRESA EXEMPLO PRESUMIDO LTDA",
+      "EMPRESA EXEMPLO SIMPLES NACIONAL LTDA",
+      "EMPRESA DESONERAÇÃO DA EMPRESA DESONERAÇÃO DA",
+      "EMPRESA DESONERAÇÃO DA FOLHA",
+      "EMPRESA DOMÉSTICO",
+      "EMPRESA MODELO - EVENTOS E-SOCIAL",
+      "EMPRESA MODELO CONTÁBIL SPED",
+      "EMPRESA MODELO PLANO DE CONTAS CONTABIL", 
+      "SILVEIRA FONTENELE - EMPRESA MODELO",
+      "EMPRESA SIMPLES - COMERCIO",
+      "EMPRESA SIMPLES - COMERCIO E SERVIÇO",
+      "EMPRESA SIMPLES - COMERCIO E IND",
+      "EMPRESA SIMPLES - COMERCIO, SERV E IND",
+      "EMPRESA SIMPLES - INDUSTRIA",
+      "EMPRESA SIMPLES - MEI",
+      "EMPRESA SIMPLES - SERVIÇO", 
+      "LUCRO PRESUMIDO - COM, SERV E IND", 
+      "LUCRO PRESUMIDO - COMERCIO",
+      "LUCRO PRESUMIDO - COMERCIO E INDUSTRIA",
+      "LUCRO PRESUMIDO - COMERCIO E SERVIÇO",
+      "LUCRO PRESUMIDO - INDUSTRIA",
+      "LUCRO PRESUMIDO - POSTO DE COMBUSTIVEL",
+      "LUCRO PRESUMIDO - SERVIÇO",
+      "LUCRO PRESUMIDO - TRANSPORTADORA",
+      "LUCRO REAL - COM, SERV E IND",
+      "LUCRO REAL - INDUSTRIA",
+      "LUCRO REAL - SERVIÇO",
+      "LUCRO REAL - TRANSPORTADORA",
+      "LUCRO REAL- COMERCIO",
+      "MODELO LUCRO PRESUMIDO - COM SERV",
+      "MODELO LUCRO PRESUMIDO - SERVIÇO",
+      "MODELO SIMPLES NACIONAL - COM SERV",
+      "MODELO SIMPLES NACIONAL - COM SERV IND",
+      "MODELO SIMPLES NACIONAL - COMERCIO",
+      "MODELO SIMPLES NACIONAL - SERVIÇO",
+    ];
+
+    allEmpresas = allEmpresas.filter(
+      (empresa) => !empresasExcluidas.includes(empresa.nome_empresa)
+    );
+      
     // Filtra pelo campo de pesquisa
     if (searchQuery) {
       const query = searchQuery.toLowerCase().trim();

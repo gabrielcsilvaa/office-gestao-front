@@ -11,6 +11,7 @@ import { Cairo } from "next/font/google";
 import ModalRegimeTributario from "./components/modalRegimeTributario"; // Modal correto para o gráfico
 import Calendar from "@/components/calendar";
 import ModalEmpresasCard from "./components/modalEmpresasCards";
+import ModalRamoAtividade from "./components/modalRamoAtividade"
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
@@ -107,6 +108,7 @@ export default function Carteira() {
   const [filtrosSelecionados, setFiltrosSelecionados] = useState<string[]>([]);
   const [escritorios, setEscritorios] = useState<string[]>([]);
   const [allEmpresas, setAllEmpresas] = useState<regimeTributario[]>([]);
+  const [isModalRamoOpen, setIsModalRamoOpen] = useState(false);
   
   useEffect(() => {
   if (!empresas || empresas.length === 0) {
@@ -219,19 +221,25 @@ export default function Carteira() {
     const selected = e.target.value;
     console.log("🔎 escritório selecionado:", selected);
     setSelectedOption(selected);
-
-    let filtered = allEmpresas;   // sempre parti do original
-    if (selected !== "Selecionar Todos") {
-      filtered = allEmpresas.filter(emp =>
-        emp.escritorios!.some(s => s.nome_escritorio === selected)
-      );
-    }
-    console.log("✅ empresas após filtro:", filtered);
-    setEmpresas(filtered);
-    setFiltrosSelecionados(
-      selected === "Selecionar Todos" ? [] : [selected]
-    );
   };
+
+  const handleOpenModalRamo = () => {
+    setIsModalRamoOpen(true);
+  };
+
+  useEffect(() => {
+  let filtered = allEmpresas;
+
+  if (selectedOption !== "Selecionar Todos") {
+    filtered = allEmpresas.filter(emp =>
+      emp.escritorios?.some(s => s.nome_escritorio === selectedOption)
+    );
+  }
+
+  setEmpresas(filtered);
+  setFiltrosSelecionados(selectedOption === "Selecionar Todos" ? [] : [selectedOption]);
+}, [allEmpresas, selectedOption]);
+
 
 useEffect(() => {
   const fetchNovosClientes = async () => {
@@ -358,14 +366,14 @@ useEffect(() => {
 
         const data = await response.json();
 
-        // Transformar os dados para o formato correto
+        // Formata os dados recebidos
         const sociosFormatados = data.map(
           (item: { socio: string; data_nascimento: string }) => {
             const idade =
               new Date().getFullYear() -
               new Date(item.data_nascimento).getFullYear();
             return {
-              id: Math.random(), // Use um ID real se disponível
+              id: Math.random(),
               nome: item.socio,
               data_nascimento: item.data_nascimento,
               idade,
@@ -373,7 +381,19 @@ useEffect(() => {
           }
         );
 
-        setSocios(sociosFormatados);
+        // Função que filtra só os aniversariantes do mês atual
+        const filtrarAniversariantesDoMes = (socios: Socio[]) => {
+          const mesAtual = new Date().getMonth();
+          return socios.filter((socio) => {
+            const data = new Date(socio.data_nascimento);
+            return data.getMonth() === mesAtual;
+          });
+        };
+
+        const sociosAniversariantes = filtrarAniversariantesDoMes(sociosFormatados);
+
+        setSocios(sociosAniversariantes);
+
       } catch (err: unknown) {
         if (err instanceof Error) {
           setError(err.message);
@@ -392,12 +412,10 @@ useEffect(() => {
     const fetchClientData = async () => {
       try {
         setLoading(true);
-
         const body = {
           start_date: startDate,
           end_date: endDate,
         };
-
         const response = await fetch("/api/analise-carteira", {
           method: "POST",
           headers: {
@@ -556,6 +574,9 @@ useEffect(() => {
           onClose={() => setIsModalOpen(null)}
         />
       </Modal>
+      <Modal isOpen={isModalRamoOpen} onClose={() => setIsModalRamoOpen(false)}>
+        <ModalRamoAtividade dados={empresas} onClose={() => setIsModalRamoOpen(false)} />
+      </Modal>
       <Modal
         isOpen={isModalOpen === "Aniversário de Parceria"}
         onClose={() => setIsModalOpen(null)}
@@ -582,13 +603,19 @@ useEffect(() => {
             data={regimesData}
             onClick={() => handleOpenModal("Empresas por Regime Tributário")}
           />
-        </div>
-        <div className="bg-white shadow rounded-md w-full md:w-1/2 h-[381px] flex items-center justify-center overflow-hidden">
-          <RamoAtividade data={ramoAtividadeData} />
+      </div>
+      <div
+          className="bg-white shadow rounded-md w-full md:w-1/2 h-[381px] flex items-center justify-center overflow-hidden cursor-pointer"
+          onClick={handleOpenModalRamo}
+           >
+          <RamoAtividade
+            data={ramoAtividadeData}
+            onClick={() => setIsModalRamoOpen(false)}
+          />
         </div>
       </div>
 
-      <div className="mt-4 p-4">
+      <div className="px-4 pb-4">
         <Evolucao data={evolucaoData} />
       </div>
     </div>
