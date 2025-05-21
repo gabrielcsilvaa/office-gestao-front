@@ -28,7 +28,6 @@ const PieChartComponent = ({ data, onClick }: PieChartComponentProps) => {
     "Imune do IRPJ": "#FFEB3B", // Amarelo claro
   };
 
-  // Ordena os dados do maior para o menor valor
   const sortedData = [...data].sort((a, b) => b.value - a.value);
 
   const colors = sortedData.map(

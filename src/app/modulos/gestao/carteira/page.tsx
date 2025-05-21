@@ -11,6 +11,7 @@ import { Cairo } from "next/font/google";
 import ModalRegimeTributario from "./components/modalRegimeTributario"; // Modal correto para o gráfico
 import Calendar from "@/components/calendar";
 import ModalEmpresasCard from "./components/modalEmpresasCards";
+import ModalRamoAtividade from "./components/modalRamoAtividade"
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
@@ -107,6 +108,7 @@ export default function Carteira() {
   const [filtrosSelecionados, setFiltrosSelecionados] = useState<string[]>([]);
   const [escritorios, setEscritorios] = useState<string[]>([]);
   const [allEmpresas, setAllEmpresas] = useState<regimeTributario[]>([]);
+  const [isModalRamoOpen, setIsModalRamoOpen] = useState(false);
   
   useEffect(() => {
   if (!empresas || empresas.length === 0) {
@@ -219,6 +221,10 @@ export default function Carteira() {
     const selected = e.target.value;
     console.log("🔎 escritório selecionado:", selected);
     setSelectedOption(selected);
+  };
+
+  const handleOpenModalRamo = () => {
+    setIsModalRamoOpen(true);
   };
 
   useEffect(() => {
@@ -568,6 +574,9 @@ useEffect(() => {
           onClose={() => setIsModalOpen(null)}
         />
       </Modal>
+      <Modal isOpen={isModalRamoOpen} onClose={() => setIsModalRamoOpen(false)}>
+        <ModalRamoAtividade dados={empresas} onClose={() => setIsModalRamoOpen(false)} />
+      </Modal>
       <Modal
         isOpen={isModalOpen === "Aniversário de Parceria"}
         onClose={() => setIsModalOpen(null)}
@@ -589,14 +598,20 @@ useEffect(() => {
       </Modal>
 
       <div className="flex flex-col md:flex-row gap-4 p-4">
-        <div className="bg-white shadow rounded-md w-full md:w-1/2 h-[300px] flex items-center justify-center overflow-hidden cursor-pointer">
+        <div className="bg-white shadow rounded-md w-full md:w-1/2 h-[381px] flex items-center justify-center overflow-hidden cursor-pointer">
           <PieChartComponent
             data={regimesData}
             onClick={() => handleOpenModal("Empresas por Regime Tributário")}
           />
-        </div>
-        <div className="bg-white shadow rounded-md w-full md:w-1/2 h-[300px] flex items-center justify-center overflow-hidden">
-          <RamoAtividade data={ramoAtividadeData} />
+      </div>
+      <div
+          className="bg-white shadow rounded-md w-full md:w-1/2 h-[381px] flex items-center justify-center overflow-hidden cursor-pointer"
+          onClick={handleOpenModalRamo}
+           >
+          <RamoAtividade
+            data={ramoAtividadeData}
+            onClick={() => setIsModalRamoOpen(false)}
+          />
         </div>
       </div>
 

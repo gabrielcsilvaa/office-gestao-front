@@ -7,20 +7,31 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
+import Image from "next/image";
 
 interface RamoAtividadeProps {
   data: Array<{
     name: string;
     value: number;
   }>;
+  onClick: () => void; // função para fechar o modal
 }
 
-export default function RamoAtividade({ data }: RamoAtividadeProps) {
+export default function RamoAtividade({ data, onClick }: RamoAtividadeProps) {
   return (
-    <div className="bg-white rounded-sm shadow-md p-5 w-full h-full border border-gray-200">
-      <h2 className="text-lg font-semibold mb-4">
-        Empresas por Ramo de Atividade
-      </h2>
+    <div className="bg-white rounded-sm shadow-md p-5 w-full h-full border border-gray-200 flex flex-col">
+      {/* Cabeçalho com título e seta */}
+      <div className="flex justify-between items-start mb-4">
+        <h2 className="text-lg font-semibold">Empresas por Ramo de Atividade</h2>
+        <div onClick={onClick} className="cursor-pointer p-1.5">
+          <Image
+            src="/assets/icons/Vector 1275.svg"
+            width={12}
+            height={13.33}
+            alt="Fechar"
+          />
+        </div>
+      </div>
 
       {/* Wrapper com scroll vertical */}
       <div className="w-full overflow-y-auto" style={{ maxHeight: 300 }}>

@@ -16,9 +16,9 @@ interface EvolucaoProps {
 
 export default function Evolucao({ data }: EvolucaoProps) {
   return (
-    <div className="text-card-foreground flex flex-col w-full h-[300px] p-2 bg-white rounded-md shadow-md">
+    <div className="text-card-foreground flex flex-col w-full h-[349px] p-2 bg-white rounded-md shadow-md">
       <h2 className="text-xl font-semibold mb-4">Evolução</h2>
-      <ResponsiveContainer width="100%" height={260}>
+      <ResponsiveContainer width="100%" height={300}>
         <LineChart
           data={data}
           margin={{ top: 20, right: 30, left: 0, bottom: 5 }}
