@@ -113,7 +113,7 @@ export default function Login() {
         {/* Lateral com logo */}
         <div className="w-full lg:w-1/2 h-72 lg:h-full bg-[#373A40] rounded-tl-[50px] lg:rounded-tl-[150px] lg:rounded-bl-[100px] flex items-center justify-center">
           <Image
-            src="/assets/logos/office.svg"
+            src={`/assets/logos/${process.env.NEXT_PUBLIC_LOGO_ESCRITORIO?.trim()}`}
             alt="Logo do sistema"
             width={300}
             height={104}

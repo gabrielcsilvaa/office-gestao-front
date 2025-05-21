@@ -64,6 +64,15 @@ export default function AniversariantesSocios({
     return idade;
   };
 
+  // funçao filtrar socios do mes atual
+  const FiltrarAnivesariantesDoMes = (socios: Socio[]) => {
+    const mesAtual = new Date().getMonth();
+    return socios.filter((socios) => {
+      const data = new Date(socios.data_nascimento);
+      return data.getMonth() === mesAtual
+    })
+  }
+
   // Função para verificar se é aniversário hoje
   const isAniversarioHoje = (dataNascimento: string): boolean => {
     if (!dataNascimento) return false;
@@ -83,7 +92,11 @@ export default function AniversariantesSocios({
   const filtrarSocios = () => {
     const query = searchQuery.toLowerCase().trim();
 
-    return dados.filter((socio) => {
+    // 1 - só os do mês atual
+    const sociosDoMes = FiltrarAnivesariantesDoMes(dados);
+
+    // 2 - filtro de busca em cima dos sócios do mês atual
+    return sociosDoMes.filter((socio) => {
       const nomeMatch = socio.nome.toLowerCase().includes(query);
       const dataNascimentoMatch = formatDateBr(socio.data_nascimento).includes(query);
 

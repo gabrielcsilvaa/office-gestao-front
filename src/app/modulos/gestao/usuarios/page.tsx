@@ -75,7 +75,6 @@ export default function Usuarios() {
     // setAwaitDateSelection(false); // Remove a tela de seleção de data
   };
 
-
   // Função auxiliar para converter segundos em um formato detalhado (ex.: 163h 31m 46s)
   const formatTimeDetailed = (seconds: number): string => {
     const hours = Math.floor(seconds / 3600);
@@ -151,8 +150,6 @@ export default function Usuarios() {
     console.log(dataModule);
   }, [dataModule]);
 
-
-
   return (
     <div className="bg-gray-100 max-h-screen max-w-screen">
       <div className="h-[85px] flex flex-row items-center p-4 gap-8 border-b border-black/10 bg-gray-100">
@@ -164,8 +161,6 @@ export default function Usuarios() {
           </h1>
 
           <div className="flex items-center gap-2 ml-4 relative">
-            
-
             <div className="ml-5">
               <Calendar
                 onStartDateChange={handleStartDateChange}
@@ -183,21 +178,27 @@ export default function Usuarios() {
               Total de Atividades Realizadas
             </p>
             <p className="text-xl font-semibold text-black">
-              {Intl.NumberFormat("pt-BR").format(activites?.atividades_totais ?? 0)}
+              {Intl.NumberFormat("pt-BR").format(
+                activites?.atividades_totais ?? 0
+              )}
             </p>
           </div>
 
           <div className="usuarios-card p-3">
             <p className="text-xs text-gray-500">Importações totais</p>
             <p className="text-xl font-semibold text-black">
-              {Intl.NumberFormat("pt-BR").format(data?.totais_gerais?.total_importacoes ?? 0)}
+              {Intl.NumberFormat("pt-BR").format(
+                data?.totais_gerais?.total_importacoes ?? 0
+              )}
             </p>
           </div>
 
           <div className="usuarios-card p-3">
             <p className="text-xs text-gray-500">Total de Lançamentos</p>
             <p className="text-xl font-semibold text-black">
-              {Intl.NumberFormat("pt-BR").format(data?.totais_gerais?.total_lancamentos ?? 0)}
+              {Intl.NumberFormat("pt-BR").format(
+                data?.totais_gerais?.total_lancamentos ?? 0
+              )}
             </p>
           </div>
 
@@ -206,7 +207,9 @@ export default function Usuarios() {
               Total de Lançamentos Manuais
             </p>
             <p className="text-xl font-semibold text-black">
-              {Intl.NumberFormat("pt-BR").format(data?.totais_gerais?.total_lancamentos_manuais ?? 0)}
+              {Intl.NumberFormat("pt-BR").format(
+                data?.totais_gerais?.total_lancamentos_manuais ?? 0
+              )}
             </p>
           </div>
 
@@ -227,28 +230,28 @@ export default function Usuarios() {
             <div className="grid grid-cols-2 gap-4 p-3">
               <button
                 onClick={abrirListaUsuarios}
-                className="bg-white border border-gray-300 w-[500px] h-[70px]  hover:bg-gray-200 font-extrabold shadow-md"
+                className={`bg-white border border-gray-300 w-[500px] h-[70px]  hover:bg-gray-200 ${cairo.className} font-[700] cursor-pointer shadow-md`}
               >
                 Lista de Usuários
               </button>
 
               <button
                 onClick={abrirAtividadeUsuarios}
-                className="bg-white border border-gray-300 w-[500px] h-[70px]  hover:bg-gray-200 font-extrabold shadow-md"
+                className={`bg-white border border-gray-300 w-[500px] h-[70px]  hover:bg-gray-200 ${cairo.className} font-[700] cursor-pointer shadow-md`}
               >
                 Atividade por Usuário
               </button>
 
               <button
                 onClick={abrirAtividadesModulo}
-                className="bg-white border border-gray-300 w-[500px] h-[70px] hover:bg-gray-200 font-extrabold shadow-md"
+                className={`bg-white border border-gray-300 w-[500px] h-[70px]  hover:bg-gray-200 ${cairo.className} font-[700] cursor-pointer shadow-md`}
               >
                 Atividade Por Módulo
               </button>
 
               <button
                 onClick={abrirAtividadeCliente}
-                className="bg-white border border-gray-300 w-[500px] h-[70px] hover:bg-gray-200 font-extrabold shadow-md"
+                className={`bg-white border border-gray-300 w-[500px] h-[70px]  hover:bg-gray-200 ${cairo.className} font-[700] cursor-pointer shadow-md`}
               >
                 Atividade Por Cliente
               </button>
@@ -258,6 +261,7 @@ export default function Usuarios() {
       </div>
 
       <ListaUsuario
+        dados={userList}
         mostrarMensagem={mostrarListaUsuarios}
         fecharMensagem={fecharListaUsuarios}
       />

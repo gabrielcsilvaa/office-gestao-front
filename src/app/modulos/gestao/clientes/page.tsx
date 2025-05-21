@@ -6,7 +6,7 @@ import { ListaEmpresas } from "./components/tableCreator";
 import Calendar from "@/components/calendar";
 import { formatDate } from "./services/formatDate";
 import Pagination from "./components/pagination";
-import Loading from "@/components/loading";
+import Reload from "@/components/reload";
 const cairo = Cairo({
   weight: ["500", "600", "700"], // Você pode especificar os pesos que deseja (normal e negrito)
   subsets: ["latin"],
@@ -174,7 +174,7 @@ export default function Clientes() {
             )}
 
             {loading ? (
-              <Loading />
+              <Reload />
             ) : error ? (
               <div
                 className={`${cairo.className} not-only-of-type:flex justify-center items-center h-[70vh] bg-gray-200`}
