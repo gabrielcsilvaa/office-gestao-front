@@ -247,10 +247,10 @@ export default function ListaUsuario({
                     ))}
                   </tr>
                 </thead>
-                <tbody>
+                <tbody >
                   {usuariosFiltrados.map((usuario) => (
                     <tr key={usuario.id}>
-                      <td className="border px-4 py-2">{usuario.NOME}</td>
+                      <td className="border px-4 py-2 font-bold text-gray-800 ">{usuario.NOME}</td>
                       {meses.map((mes) =>
                         subColunas.map(({ key }) => {
                           const atividade = usuario.atividades[mes];
@@ -264,7 +264,7 @@ export default function ListaUsuario({
                           return (
                             <td
                               key={`${usuario.id}-${mes}-${key}`}
-                              className="border px-4 py-2 whitespace-nowrap"
+                              className="text-center border px-4 py-2 whitespace-nowrap"
                             >
                               {key === "horas" && typeof valor === "number"
                                 ? formatadorSegParaHor(valor)
