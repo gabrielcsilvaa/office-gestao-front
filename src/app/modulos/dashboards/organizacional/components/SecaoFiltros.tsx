@@ -2,7 +2,7 @@
 
 import { Cairo } from "next/font/google";
 import Image from "next/image";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const cairo = Cairo({
 	weight: ["500", "600", "700"],
@@ -13,34 +13,76 @@ export default function SecaoFiltros() {
 	const [isCentroCustoOpen, setIsCentroCustoOpen] = useState(false);
 	const [selectedCentroCustoOptions, setSelectedCentroCustoOptions] = useState<string[]>([]);
 	const centroCustoOptions = ["Todos", "Administrativo", "Comercial", "Produção", "Logística"];
+	const centroCustoRef = useRef<HTMLDivElement>(null);
 
 	const [isDepartamentoOpen, setIsDepartamentoOpen] = useState(false);
 	const [selectedDepartamentoOptions, setSelectedDepartamentoOptions] = useState<string[]>([]);
 	const departamentoOptions = ["Todos", "Financeiro", "Recursos Humanos", "TI", "Marketing"];
+	const departamentoRef = useRef<HTMLDivElement>(null);
 
 	const [isColaboradorOpen, setIsColaboradorOpen] = useState(false);
 	const [selectedColaboradorOptions, setSelectedColaboradorOptions] = useState<string[]>([]);
 	const colaboradorOptions = ["Todos", "Ana Silva (Colaborador)", "Carlos Pereira (Diretor)", "Beatriz Costa (Autônomo)"];
+	const colaboradorRef = useRef<HTMLDivElement>(null);
 
 	const [isServicoOpen, setIsServicoOpen] = useState(false);
 	const [selectedServicoOptions, setSelectedServicoOptions] = useState<string[]>([]);
 	const servicoOptions = ["Todos", "Consultoria XPTO", "Desenvolvimento Y", "Manutenção Z"];
+	const servicoRef = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		const handleClickOutside = (event: MouseEvent) => {
+			if (centroCustoRef.current && !centroCustoRef.current.contains(event.target as Node)) {
+				setIsCentroCustoOpen(false);
+			}
+			if (departamentoRef.current && !departamentoRef.current.contains(event.target as Node)) {
+				setIsDepartamentoOpen(false);
+			}
+			if (colaboradorRef.current && !colaboradorRef.current.contains(event.target as Node)) {
+				setIsColaboradorOpen(false);
+			}
+			if (servicoRef.current && !servicoRef.current.contains(event.target as Node)) {
+				setIsServicoOpen(false);
+			}
+		};
+		document.addEventListener("mousedown", handleClickOutside);
+		return () => {
+			document.removeEventListener("mousedown", handleClickOutside);
+		};
+	}, []);
+
 
 	const handleMultiSelectOption = (
 		option: string,
-		currentSelectedOptions: string[],
 		setSelectedOptions: React.Dispatch<React.SetStateAction<string[]>>
 	) => {
-		setSelectedOptions(prev => {
-			if (prev.includes(option)) {
-				return prev.filter(item => item !== option);
+		setSelectedOptions(prevSelected => {
+			if (option === "Todos") {
+				// If "Todos" is clicked
+				if (prevSelected.length === 1 && prevSelected[0] === "Todos") {
+					return []; // Deselect all if "Todos" was the only one selected
+				} else {
+					return ["Todos"]; // Otherwise, select only "Todos"
+				}
 			} else {
-				return [...prev, option];
+				// If any other option is clicked
+				let newSelectedOptions = [...prevSelected];
+				if (newSelectedOptions.includes(option)) {
+					// Deselect the option
+					newSelectedOptions = newSelectedOptions.filter(item => item !== option);
+				} else {
+					// Select the option
+					newSelectedOptions.push(option);
+				}
+				// Remove "Todos" if any other option is now part of the selection
+				newSelectedOptions = newSelectedOptions.filter(item => item !== "Todos");
+				return newSelectedOptions;
 			}
 		});
 	};
 
 	const getDisplayText = (selected: string[], defaultLabel: string): string => {
+		if (selected.includes("Todos")) return "Todos";
 		if (selected.length === 0) return defaultLabel;
 		if (selected.length === 1) return selected[0];
 		return `${selected.length} selecionados`;
@@ -58,7 +100,7 @@ export default function SecaoFiltros() {
 			<div className="w-[1px] h-[30px] bg-[#373A40]" />
 			<div className="flex items-center gap-4">
 				{/* Centro de Custo Dropdown */}
-				<div className="relative">
+				<div className="relative" ref={centroCustoRef}>
 					<div
 						role="combobox"
 						aria-haspopup="listbox"
@@ -80,7 +122,7 @@ export default function SecaoFiltros() {
 							{centroCustoOptions.map((option) => (
 								<div
 									key={option}
-									onClick={() => handleMultiSelectOption(option, selectedCentroCustoOptions, setSelectedCentroCustoOptions)}
+									onClick={() => handleMultiSelectOption(option, setSelectedCentroCustoOptions)}
 									className={`px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center justify-between ${selectedCentroCustoOptions.includes(option) ? 'bg-blue-50' : ''}`}
 								>
 									{option}
@@ -96,7 +138,7 @@ export default function SecaoFiltros() {
 				</div>
 
 				{/* Departamento Dropdown */}
-				<div className="relative">
+				<div className="relative" ref={departamentoRef}>
 					<div
 						role="combobox"
 						aria-haspopup="listbox"
@@ -118,7 +160,7 @@ export default function SecaoFiltros() {
 							{departamentoOptions.map((option) => (
 								<div
 									key={option}
-									onClick={() => handleMultiSelectOption(option, selectedDepartamentoOptions, setSelectedDepartamentoOptions)}
+									onClick={() => handleMultiSelectOption(option, setSelectedDepartamentoOptions)}
 									className={`px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center justify-between ${selectedDepartamentoOptions.includes(option) ? 'bg-blue-50' : ''}`}
 								>
 									{option}
@@ -134,7 +176,7 @@ export default function SecaoFiltros() {
 				</div>
 
 				{/* Colaborador/Diretor/Autônomo Dropdown */}
-				<div className="relative">
+				<div className="relative" ref={colaboradorRef}>
 					<div
 						role="combobox"
 						aria-haspopup="listbox"
@@ -156,7 +198,7 @@ export default function SecaoFiltros() {
 							{colaboradorOptions.map((option) => (
 								<div
 									key={option}
-									onClick={() => handleMultiSelectOption(option, selectedColaboradorOptions, setSelectedColaboradorOptions)}
+									onClick={() => handleMultiSelectOption(option, setSelectedColaboradorOptions)}
 									className={`px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center justify-between ${selectedColaboradorOptions.includes(option) ? 'bg-blue-50' : ''}`}
 								>
 									{option}
@@ -172,7 +214,7 @@ export default function SecaoFiltros() {
 				</div>
 
 				{/* Serviço Dropdown */}
-				<div className="relative">
+				<div className="relative" ref={servicoRef}>
 					<div
 						role="combobox"
 						aria-haspopup="listbox"
@@ -194,7 +236,7 @@ export default function SecaoFiltros() {
 							{servicoOptions.map((option) => (
 								<div
 									key={option}
-									onClick={() => handleMultiSelectOption(option, selectedServicoOptions, setSelectedServicoOptions)}
+									onClick={() => handleMultiSelectOption(option, setSelectedServicoOptions)}
 									className={`px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center justify-between ${selectedServicoOptions.includes(option) ? 'bg-blue-50' : ''}`}
 								>
 									{option}
