@@ -7,7 +7,7 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
-import Image from "next/image";
+import { TooltipProps } from "recharts";
 
 interface RamoAtividadeProps {
   data: Array<{
@@ -17,7 +17,10 @@ interface RamoAtividadeProps {
   onClick: () => void; // função para fechar o modal
 }
 
-const CustomTooltip = ({ active, payload }: any) => {
+const CustomTooltip = ({
+  active,
+  payload,
+}: TooltipProps<number, string>) => {
   if (active && payload && payload.length) {
     const { name, value } = payload[0].payload;
     return (
@@ -39,20 +42,13 @@ const CustomTooltip = ({ active, payload }: any) => {
   return null;
 };
 
-export default function RamoAtividade({ data, onClick }: RamoAtividadeProps) {
+
+export default function RamoAtividade({ data }: RamoAtividadeProps) {
   return (
     <div className="bg-white rounded-sm shadow-md p-5 w-full h-full border border-gray-200 flex flex-col">
       {/* Cabeçalho com título e seta */}
       <div className="flex justify-between items-start mb-6">
         <h2 className="text-lg font-semibold">Empresas por Ramo de Atividade</h2>
-        <div onClick={onClick} className="cursor-pointer p-1">
-          <Image
-            src="/assets/icons/Vector 1275.svg"
-            width={13}
-            height={15}
-            alt="Fechar"
-          />
-        </div>
       </div>
       <div className="w-full overflow-y-auto" style={{ maxHeight: 300 }}>
         <ResponsiveContainer width="100%" height={data.length * 35}>

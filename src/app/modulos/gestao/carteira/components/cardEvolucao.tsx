@@ -9,6 +9,7 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
+import { TooltipProps } from "recharts";
 
 interface EvolucaoProps {
   data: Array<{ name: string; value: number }>;
@@ -18,7 +19,10 @@ interface EvolucaoProps {
   data: Array<{ name: string; value: number }>;
 }
 
-const CustomTooltip = ({ active, payload }: any) => {
+const CustomTooltip = ({
+  active,
+  payload,
+}: TooltipProps<number, string>) => {
   if (active && payload && payload.length) {
     const { name, value } = payload[0].payload;
     return (
