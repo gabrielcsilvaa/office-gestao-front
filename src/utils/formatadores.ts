@@ -5,6 +5,12 @@ export const formatadorBRL = new Intl.NumberFormat("pt-BR", {
   currency: "BRL",
 });
 
+export function formatadorNumeroComPontos(number: number): string {
+  return Math.round(number)
+    .toString()
+    .replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+}
+
 export const formatadorSegParaHor = (segundos: number): string => {
   const horas = Math.floor(segundos / 3600); // Calcula as horas
   const minutos = Math.floor((segundos % 3600) / 60); // Calcula os minutos
@@ -41,8 +47,24 @@ export function formatarCpfCnpj(valor?: string | null): string {
   return valor; // Se não for 11 nem 14 dígitos, retorna como está
 }
 
-export function gerarMesesEntreDatas(start_date: string, end_date: string): string[] {
-  const MESES_PT = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
+export function gerarMesesEntreDatas(
+  start_date: string,
+  end_date: string
+): string[] {
+  const MESES_PT = [
+    "jan",
+    "fev",
+    "mar",
+    "abr",
+    "mai",
+    "jun",
+    "jul",
+    "ago",
+    "set",
+    "out",
+    "nov",
+    "dez",
+  ];
 
   function parseDataLocal(dataStr: string): Date {
     const partes = dataStr.split("-");

@@ -19,9 +19,9 @@ import AtividadeCliente from "./components/modal_atividade_cliente";
 import {
   ActivitiesData,
   dadosUsuarios,
-  Modulo,
   UserList,
   AtividadesPorMes,
+  DadosModulo
 } from "./interfaces/interface";
 import { gerarMesesEntreDatas } from "@/utils/formatadores";
 import Reload from "@/components/reload";
@@ -65,7 +65,7 @@ export default function Usuarios() {
   const [userList, setUserList] = useState<UserList | null>(null);
   const [activites, setActivities] = useState<ActivitiesData | null>(null);
   const [data, setData] = useState<dadosUsuarios | null>(null);
-  const [dataModule, setDataModule] = useState<Modulo | null>(null);
+  const [dataModule, setDataModule] = useState<DadosModulo | null>(null);
   const [calculoAtividades, setCulculoAtividades] = useState<AtividadesPorMes>(
     []
   );
@@ -314,6 +314,8 @@ export default function Usuarios() {
       <AtividadesModulos
         mostrarMensagem={mostrarAtividadeModulo}
         fecharMensagem={fecharAtividadeModulo}
+        dados={dataModule}
+        meses={gerarMesesEntreDatas(startDate ?? "", endDate ?? "")}
       />
 
       <AtividadeCliente

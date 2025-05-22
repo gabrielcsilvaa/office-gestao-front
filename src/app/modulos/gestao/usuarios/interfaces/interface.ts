@@ -15,21 +15,18 @@ export interface UserList {
 
 //Atividades Modulo
 export interface UsuarioModulo {
-  atividades: {
-    [mesAno: string]: {
-      tempo_gasto: number;
-      importacoes: number;
-      lancamentos: number;
-      lancamentos_manuais: number;
-    };
-  };
-  total_usuario: number;
   usuario: string;
+  atividades: Record<string, number>; // ex: "jan/2024": 478556
+  total_usuario: number;
 }
 
 export interface Modulo {
-  total_sistema: number;
   usuarios: UsuarioModulo[];
+  total_sistema: number;
+}
+
+export interface DadosModulo {
+  [modulo: string]: Modulo;
 }
 
 //Dados Gerais das atividades
