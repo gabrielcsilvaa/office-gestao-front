@@ -2,7 +2,6 @@
 
 import React from "react";
 import { Pie, PieChart, Cell, Tooltip, LabelList } from "recharts";
-import Image from "next/image";
 
 interface PieChartComponentProps {
   data: Regime[];
@@ -38,14 +37,6 @@ const PieChartComponent = ({ data, onClick }: PieChartComponentProps) => {
 <div className="flex flex-col bg-white rounded-lg shadow-md w-full h-full p-4 overflow-hidden">
   <div className="flex justify-between items-start mb-7">
     <h2 className="text-lg font-semibold">Empresas por Regime Tributário</h2>
-    <div onClick={onClick} className="cursor-pointer p-1.5">
-      <Image
-        src="/assets/icons/Vector 1275.svg"
-        width={12}
-        height={13.33}
-        alt="seta"
-      />
-    </div>
   </div>
 
   <div className="flex flex-col lg:flex-row items-center justify-center gap-6">

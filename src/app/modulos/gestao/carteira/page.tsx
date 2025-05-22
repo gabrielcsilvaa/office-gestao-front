@@ -11,7 +11,9 @@ import { Cairo } from "next/font/google";
 import ModalRegimeTributario from "./components/modalRegimeTributario"; // Modal correto para o gráfico
 import Calendar from "@/components/calendar";
 import ModalEmpresasCard from "./components/modalEmpresasCards";
-import ModalRamoAtividade from "./components/modalRamoAtividade"
+import ModalRamoAtividade from "./components/modalRamoAtividade";
+import Image from "next/image";
+
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
@@ -429,7 +431,6 @@ useEffect(() => {
         }
 
         const data = await response.json();
-        console.log("📦 dados brutos de Empresas:", data.Empresas);
 
         // Garante que 'escritorios' é array para evitar erros
         const empresasWithEscritorios = data.Empresas.map((e: regimeTributario) => ({
@@ -452,9 +453,6 @@ useEffect(() => {
 
         console.log("🏢 Lista de escritórios:", nomesEscritorios);
         setEscritorios(nomesEscritorios);
-
-        // Removemos os cálculos de gráficos e cards daqui,
-        // para deixar essa responsabilidade para o useEffect que depende do estado `empresas`.
 
       } catch (err: unknown) {
         if (err instanceof Error) setError(err.message);
@@ -598,23 +596,47 @@ useEffect(() => {
       </Modal>
 
       <div className="flex flex-col md:flex-row gap-4 p-4">
-        <div className="bg-white shadow rounded-md w-full md:w-1/2 h-[381px] flex items-center justify-center overflow-hidden cursor-pointer">
+        <div className="bg-white shadow rounded-md w-full md:w-1/2 h-[381px] flex items-center justify-center overflow-hidden cursor-pointer relative">
+          <div
+            onClick={() => handleOpenModal("Empresas por Regime Tributário")}
+            className="absolute top-2 right-2 cursor-pointer"
+          >
+            <Image
+              src="/assets/icons/Vector 1275.svg"
+              width={12}
+              height={13.33}
+              alt="seta"
+            />
+          </div>
           <PieChartComponent
             data={regimesData}
             onClick={() => handleOpenModal("Empresas por Regime Tributário")}
           />
-      </div>
-      <div
-          className="bg-white shadow rounded-md w-full md:w-1/2 h-[381px] flex items-center justify-center overflow-hidden cursor-pointer"
+        </div>
+        <div
+          className="bg-white shadow rounded-md w-full md:w-1/2 h-[381px] flex items-center justify-center overflow-hidden cursor-pointer relative"
           onClick={handleOpenModalRamo}
-           >
+        >
+          <div
+            onClick={(e) => {
+              e.stopPropagation(); 
+              setIsModalRamoOpen(true);
+            }}
+            className="absolute top-2 right-2 cursor-pointer"
+          >
+            <Image
+              src="/assets/icons/Vector 1275.svg"
+              width={12}
+              height={14.33}
+              alt="seta"
+            />
+          </div>
           <RamoAtividade
             data={ramoAtividadeData}
             onClick={() => setIsModalRamoOpen(false)}
           />
-        </div>
+          </div>
       </div>
-
       <div className="px-4 pb-4">
         <Evolucao data={evolucaoData} />
       </div>
