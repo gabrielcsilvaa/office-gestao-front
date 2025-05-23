@@ -3,14 +3,44 @@ import { Cairo } from "next/font/google";
 import SelecaoIndicadores from "./components/SelecaoIndicadores";
 import SecaoFiltros from "./components/SecaoFiltros";
 import Card from "./components/card";
-import { useState } from "react"; 
-import Image from "next/image"; // Import Image component
+import { useState, useMemo } from "react"; // Import useMemo
+import Image from "next/image"; 
 import React from "react";
+import EvolucaoChart from "./components/EvolucaoChart"; // Import the new chart component
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
   subsets: ["latin"],
 });
+
+// Helper function to parse currency string to number
+const parseCurrency = (currencyString: string): number => {
+  if (!currencyString) return 0;
+  return parseFloat(
+    currencyString
+      .replace("R$", "")
+      .replace(/\./g, "") // Remove thousand separators
+      .replace(",", ".") // Replace decimal comma with dot
+      .trim()
+  );
+};
+
+// Raw data as provided
+const rawChartDataEntries = [
+  "Jan/2024: R$ 5.462.280,00",
+  "Fev/2024: R$ 5.463.540,00",
+  "Mar/2024: R$ 5.599.900,00",
+  "Abr/2024: R$ 5.600.930,00",
+  "Mai/2024: R$ 5.811.220,00",
+  "Jun/2024: R$ 6.204.950,00",
+  "Jul/2024: R$ 6.443.690,00",
+  "Ago/2024: R$ 6.564.000,00",
+  "Set/2024: R$ 6.728.160,00",
+  "Out/2024: R$ 6.551.310,00",
+  "Nov/2024: R$ 8.289.970,00",
+  "Dez/2024: R$ 33.388.510,00", // Note: This value is significantly higher
+];
+
 
 export default function DashboardOrganizacional() {
   const [kpiSelecionado, setKpiSelecionado] = useState<string>("Proventos"); 
@@ -36,6 +66,14 @@ export default function DashboardOrganizacional() {
     { src: "/assets/icons/icon-maximize.svg", alt: "Maximize" },
     { src: "/assets/icons/icon-more-options.svg", alt: "More Options" },
   ];
+
+  // Process chart data (memoized for performance)
+  const processedChartData = useMemo(() => {
+    return rawChartDataEntries.map(entry => {
+      const [month, valueString] = entry.split(": ");
+      return { month, value: parseCurrency(valueString) };
+    });
+  }, []); // Empty dependency array means this runs once
 
   return (
     <div className="bg-[#f7f7f8] min-h-screen">
@@ -98,11 +136,9 @@ export default function DashboardOrganizacional() {
             </div>
 
             {/* Chart Area Placeholder based on Figma */}
-            <div className="w-full h-[537px] px-4 pt-8 pb-4 left-0 top-[90px] absolute bg-white">
+            <div className="w-full h-[537px] px-4 pt-0 pb-4 left-0 top-[90px] absolute bg-white">
               {/* Actual chart component would go here */}
-              <div className="w-full h-full border border-dashed border-gray-300 flex items-center justify-center">
-                <span className="text-gray-400">Chart Area</span>
-              </div>
+              <EvolucaoChart data={processedChartData} kpiName={kpiSelecionado} />
             </div>
           </div>
 
@@ -147,7 +183,7 @@ export default function DashboardOrganizacional() {
             </div>
             
             {/* Content for the right square can go here, potentially in a positioned div like the chart area */}
-            <div className="w-full h-[537px] px-4 pt-8 pb-4 left-0 top-[90px] absolute bg-white">
+            <div className="w-full h-[537px] px-4 pt-0 pb-4 left-0 top-[90px] absolute bg-white">
               {/* Placeholder for content in the right section */}
               <div className="w-full h-full border border-dashed border-gray-300 flex items-center justify-center">
                 <span className="text-gray-400">Content Area for "Valor Por Grupo e Evento"</span>
