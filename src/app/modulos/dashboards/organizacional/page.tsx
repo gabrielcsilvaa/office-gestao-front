@@ -3,10 +3,11 @@ import { Cairo } from "next/font/google";
 import SelecaoIndicadores from "./components/SelecaoIndicadores";
 import SecaoFiltros from "./components/SecaoFiltros";
 import Card from "./components/card";
-import { useState, useMemo } from "react"; // Import useMemo
+import { useState, useMemo } from "react"; 
 import Image from "next/image"; 
 import React from "react";
-import EvolucaoChart from "./components/EvolucaoChart"; // Import the new chart component
+import EvolucaoChart from "./components/EvolucaoChart"; 
+import ValorPorGrupoChart from "./components/ValorPorGrupoChart"; // Import the new bar chart component
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
@@ -41,6 +42,19 @@ const rawChartDataEntries = [
   "Dez/2024: R$ 33.388.510,00", // Note: This value is significantly higher
 ];
 
+// Data for ValorPorGrupoChart
+const valorPorGrupoData = [
+  { name: "Simples Doméstico", value: 25400 },
+  { name: "Simples Doméstico 13º", value: 2000 },
+  { name: "Outros Proventos", value: 300 },
+  { name: "Fechamento", value: 300 }, // Assuming this is the second R$ 300,00 from Figma
+  { name: "IRRF", value: -900 },
+  { name: "Descontos", value: -21200 },
+  { name: "Dependente IR 13º", value: -60700 },
+  { name: "Dependente IR Férias", value: -77500 },
+  { name: "Dependente IR Mensal", value: -533900 },
+];
+
 
 export default function DashboardOrganizacional() {
   const [kpiSelecionado, setKpiSelecionado] = useState<string>("Proventos"); 
@@ -68,7 +82,7 @@ export default function DashboardOrganizacional() {
   ];
 
   // Process chart data (memoized for performance)
-  const processedChartData = useMemo(() => {
+  const processedEvolucaoChartData = useMemo(() => {
     return rawChartDataEntries.map(entry => {
       const [month, valueString] = entry.split(": ");
       return { month, value: parseCurrency(valueString) };
@@ -138,11 +152,11 @@ export default function DashboardOrganizacional() {
             {/* Chart Area Placeholder based on Figma */}
             <div className="w-full h-[537px] px-4 pt-0 pb-4 left-0 top-[90px] absolute bg-white">
               {/* Actual chart component would go here */}
-              <EvolucaoChart data={processedChartData} kpiName={kpiSelecionado} />
+              <EvolucaoChart data={processedEvolucaoChartData} kpiName={kpiSelecionado} />
             </div>
           </div>
 
-          {/* Div da Direita */}
+          {/* Div da Direita (Valor Por Grupo Chart Card) */}
           <div className="w-1/2 bg-white rounded-lg h-[627px] border border-neutral-700 relative overflow-hidden p-0">
             {/* Vertical Bar - same styling as left section */}
             <div className="w-6 h-0 left-[10px] top-[17px] absolute origin-top-left rotate-90 bg-zinc-300 outline-1 outline-offset-[-0.50px] outline-neutral-700"></div>
@@ -184,10 +198,7 @@ export default function DashboardOrganizacional() {
             
             {/* Content for the right square can go here, potentially in a positioned div like the chart area */}
             <div className="w-full h-[537px] px-4 pt-0 pb-4 left-0 top-[90px] absolute bg-white">
-              {/* Placeholder for content in the right section */}
-              <div className="w-full h-full border border-dashed border-gray-300 flex items-center justify-center">
-                <span className="text-gray-400">Content Area for "Valor Por Grupo e Evento"</span>
-              </div>
+              <ValorPorGrupoChart data={valorPorGrupoData} />
             </div>
           </div>
         </div>
