@@ -112,11 +112,11 @@ export default function DashboardOrganizacional() {
             <div className="w-6 h-0 left-[10px] top-[17px] absolute origin-top-left rotate-90 bg-zinc-300 outline-1 outline-offset-[-0.50px] outline-neutral-700"></div>
             
             <div className="flex justify-between items-center pt-[14px] px-5">
-              <div className="flex-grow overflow-hidden mr-3"> {/* Added flex-grow, overflow-hidden, mr-3 */}
+              <div className="flex-grow overflow-hidden mr-3"> 
                 <div title="Evolução" className={`text-black text-xl font-semibold leading-normal ${cairo.className} whitespace-nowrap overflow-hidden text-ellipsis`}>Evolução</div>
                 <div className={`text-black text-xs font-light leading-normal ${cairo.className}`}>{kpiSelecionado}</div>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0"> {/* Added flex-shrink-0 */}
+              <div className="flex items-center gap-2 flex-shrink-0"> 
                 {sectionIcons.map((icon, index) => {
                   let iconWidth = 16; 
                   let iconHeight = 16; 
@@ -153,8 +153,8 @@ export default function DashboardOrganizacional() {
             <div className="w-6 h-0 left-[10px] top-[17px] absolute origin-top-left rotate-90 bg-zinc-300 outline-1 outline-offset-[-0.50px] outline-neutral-700"></div>
             
             <div className="flex justify-between items-center pt-[14px] px-5">
-              <div title="Valor Por Grupo e Evento" className={`flex-grow overflow-hidden mr-3 text-black text-xl font-semibold leading-normal ${cairo.className} whitespace-nowrap text-ellipsis`}>Valor Por Grupo e Evento</div> {/* Added title, flex-grow, overflow-hidden, mr-3, text-ellipsis */}
-              <div className="flex items-center gap-2 flex-shrink-0"> {/* Added flex-shrink-0 */}
+              <div title="Valor Por Grupo e Evento" className={`flex-grow overflow-hidden mr-3 text-black text-xl font-semibold leading-normal ${cairo.className} whitespace-nowrap text-ellipsis`}>Valor Por Grupo e Evento</div>
+              <div className="flex items-center gap-2 flex-shrink-0"> 
                 {sectionIcons.map((icon, index) => {
                   let iconWidth = 16; 
                   let iconHeight = 16; 
@@ -193,8 +193,8 @@ export default function DashboardOrganizacional() {
           <div className="flex-1 bg-white rounded-lg h-[489px] border border-neutral-700 relative overflow-hidden">
             <div className="w-6 h-0 left-[10px] top-[17px] absolute origin-top-left rotate-90 bg-zinc-300 outline-1 outline-offset-[-0.50px] outline-neutral-700"></div>
             <div className="flex justify-between items-center pt-[14px] px-5">
-              <div title="Dissídio" className={`flex-grow overflow-hidden mr-3 text-black text-xl font-semibold leading-normal ${cairo.className} whitespace-nowrap text-ellipsis`}>Dissídio</div> {/* Added title, flex-grow, overflow-hidden, mr-3, text-ellipsis */}
-              <div className="flex items-center gap-2 flex-shrink-0"> {/* Added flex-shrink-0 */}
+              <div title="Dissídio" className={`flex-grow overflow-hidden mr-3 text-black text-xl font-semibold leading-normal ${cairo.className} whitespace-nowrap text-ellipsis`}>Dissídio</div>
+              <div className="flex items-center gap-2 flex-shrink-0"> 
                 {sectionIcons.map((icon, index) => {
                    let iconWidth = 16; 
                    let iconHeight = 16; 
@@ -231,8 +231,8 @@ export default function DashboardOrganizacional() {
           <div className="flex-1 bg-white rounded-lg h-[489px] border border-neutral-700 relative overflow-hidden">
             <div className="w-6 h-0 left-[10px] top-[17px] absolute origin-top-left rotate-90 bg-zinc-300 outline-1 outline-offset-[-0.50px] outline-neutral-700"></div>
             <div className="flex justify-between items-center pt-[14px] px-5">
-              <div title="Valor Por Tipo de Pessoa e Vínculo" className={`flex-grow overflow-hidden mr-3 text-black text-xl font-semibold leading-normal ${cairo.className} whitespace-nowrap text-ellipsis`}>Valor Por Tipo de Pessoa e Vínculo</div> {/* Added title, flex-grow, overflow-hidden, mr-3, text-ellipsis */}
-              <div className="flex items-center gap-2 flex-shrink-0"> {/* Added flex-shrink-0 */}
+              <div title="Valor Por Tipo de Pessoa e Vínculo" className={`flex-grow overflow-hidden mr-3 text-black text-xl font-semibold leading-normal ${cairo.className} whitespace-nowrap text-ellipsis`}>Valor Por Tipo de Pessoa e Vínculo</div>
+              <div className="flex items-center gap-2 flex-shrink-0"> 
                 {sectionIcons.map((icon, index) => {
                   let iconWidth = 16; 
                   let iconHeight = 16; 
@@ -269,8 +269,8 @@ export default function DashboardOrganizacional() {
           <div className="flex-1 bg-white rounded-lg h-[489px] border border-neutral-700 relative overflow-hidden">
             <div className="w-6 h-0 left-[10px] top-[17px] absolute origin-top-left rotate-90 bg-zinc-300 outline-1 outline-offset-[-0.50px] outline-neutral-700"></div>
             <div className="flex justify-between items-center pt-[14px] px-5">
-              <div title="Valor Por Tipo de Cálculo e Evento" className={`flex-grow overflow-hidden mr-3 text-black text-xl font-semibold leading-normal ${cairo.className} whitespace-nowrap text-ellipsis`}>Valor Por Tipo de Cálculo e Evento</div> {/* Added title, flex-grow, overflow-hidden, mr-3, text-ellipsis */}
-              <div className="flex items-center gap-2 flex-shrink-0"> {/* Added flex-shrink-0 */}
+              <div title="Valor Por Tipo de Cálculo e Evento" className={`flex-grow overflow-hidden mr-3 text-black text-xl font-semibold leading-normal ${cairo.className} whitespace-nowrap text-ellipsis`}>Valor Por Tipo de Cálculo e Evento</div>
+              <div className="flex items-center gap-2 flex-shrink-0"> 
                 {sectionIcons.map((icon, index) => {
                   let iconWidth = 16; 
                   let iconHeight = 16; 
