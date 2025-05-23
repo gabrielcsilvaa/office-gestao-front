@@ -9,11 +9,7 @@ const data = [
   { name: 'Trabalhador Autôno...', colaboradores: 33 },
 ];
 
-interface GraficoCategoriaProps {
-  // Você pode adicionar props para receber os dados dinamicamente
-}
-
-const GraficoCategoria: React.FC<GraficoCategoriaProps> = () => {
+const GraficoCategoria = () => {
   return (
     <div style={{ width: '100%', height: 250 }}>
       <h3 style={{ textAlign: 'center', marginBottom: '10px' }}>Colaboradores por Categoria</h3>

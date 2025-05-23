@@ -9,7 +9,7 @@ const data = [
   { name: 'Doutorado', colaboradores: 0.0 },
 ];
 
-export const GraficoEscolaridade: React.FC = () => { // Exportação nomeada
+export const GraficoEscolaridade = () => {
   return (
     <div style={{ width: '100%', height: 250 }}>
       <h3 style={{ textAlign: 'center', marginBottom: '10px' }}>Colaboradores por Escolaridade</h3>

@@ -9,18 +9,14 @@ const data = [
   { name: '55+', colaboradores: 387 },
 ];
 
-interface GraficoFaixaEtariaProps {
-  // Você pode adicionar props para receber os dados dinamicamente
-}
-
-const GraficoFaixaEtaria: React.FC<GraficoFaixaEtariaProps> = () => {
+const GraficoFaixaEtaria = () => {
   return (
     <div style={{ width: '100%', height: 250 }}>
       <h3 style={{ textAlign: 'center', marginBottom: '10px' }}>Colaboradores por Faixa Etária</h3>
       <ResponsiveContainer>
         <BarChart
           data={data}
-          layout="vertical" // Torna o gráfico horizontal
+          layout="vertical"
           margin={{
             top: 5,
             right: 30,
@@ -29,8 +25,8 @@ const GraficoFaixaEtaria: React.FC<GraficoFaixaEtariaProps> = () => {
           }}
         >
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis type="number" /> {/* Eixo X para valores numéricos */}
-          <YAxis type="category" dataKey="name" /> {/* Eixo Y para as categorias */}
+          <XAxis type="number" />
+          <YAxis type="category" dataKey="name" />
           <Tooltip />
           <Bar dataKey="colaboradores" fill="#8884d8" />
         </BarChart>
