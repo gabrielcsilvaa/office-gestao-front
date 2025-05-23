@@ -4,6 +4,8 @@ import SelecaoIndicadores from "./components/SelecaoIndicadores";
 import SecaoFiltros from "./components/SecaoFiltros";
 import Card from "./components/card";
 import { useState } from "react"; 
+import Image from "next/image"; // Import Image component
+import React from "react";
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
@@ -24,6 +26,15 @@ export default function DashboardOrganizacional() {
     { title: "Custo Total Estimado", value: "R$ 6.452.500,00", tooltipText: "Estimativa do custo total da folha." },
     { title: "Custo Médio Mensal", value: "R$ 2.300,00", tooltipText: "Custo médio mensal por colaborador." },
     { title: "Receita Média Mensal", value: "R$ 14.000,00", tooltipText: "Receita média mensal gerada." },
+  ];
+
+  const sectionIcons = [
+    { src: "/assets/icons/icon-lay-down.svg", alt: "Lay Down", adjustSize: true }, // Flag for adjustment
+    { src: "/assets/icons/icon-lay-up.svg", alt: "Lay Up", adjustSize: true },     // Flag for adjustment
+    { src: "/assets/icons/icon-hierarchy.svg", alt: "Hierarchy" },
+    { src: "/assets/icons/icon-filter-layers.svg", alt: "Filter Layers" },
+    { src: "/assets/icons/icon-maximize.svg", alt: "Maximize" },
+    { src: "/assets/icons/icon-more-options.svg", alt: "More Options" },
   ];
 
   return (
@@ -54,6 +65,38 @@ export default function DashboardOrganizacional() {
             {/* Subtitle (Dynamic KPI) from Figma */}
             <div className={`left-[20px] top-[41px] absolute text-black text-xs font-light leading-normal ${cairo.className}`}>{kpiSelecionado}</div>
 
+            {/* Icons in top-right corner */}
+            <div className="absolute top-[14px] right-4 flex items-center gap-4">
+              {sectionIcons.map((icon, index) => {
+                let iconWidth = 20;
+                let iconHeight = 20;
+
+                if (icon.adjustSize) {
+                  iconWidth = 18; 
+                  iconHeight = 18; 
+                }
+                if (icon.src === "/assets/icons/icon-lay-down.svg" || icon.src === "/assets/icons/icon-lay-up.svg") {
+                  iconHeight = 20;
+                }
+                
+                return (
+                  <React.Fragment key={`left-icon-fragment-${index}`}>
+                    <Image
+                      key={`left-${index}`}
+                      src={icon.src}
+                      alt={icon.alt}
+                      width={iconWidth} 
+                      height={iconHeight} 
+                      className="cursor-pointer"
+                    />
+                    {icon.src === "/assets/icons/icon-hierarchy.svg" && (
+                      <div className="w-px h-5 bg-neutral-300"></div> // Vertical separator
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </div>
+
             {/* Chart Area Placeholder based on Figma */}
             <div className="w-full h-[537px] px-4 pt-8 pb-4 left-0 top-[90px] absolute bg-white">
               {/* Actual chart component would go here */}
@@ -64,12 +107,44 @@ export default function DashboardOrganizacional() {
           </div>
 
           {/* Div da Direita */}
-          <div className="w-1/2 bg-white rounded-lg h-[627px] border border-neutral-700 relative overflow-hidden p-0"> {/* Removed p-4, added relative overflow-hidden */}
+          <div className="w-1/2 bg-white rounded-lg h-[627px] border border-neutral-700 relative overflow-hidden p-0">
             {/* Vertical Bar - same styling as left section */}
             <div className="w-6 h-0 left-[10px] top-[17px] absolute origin-top-left rotate-90 bg-zinc-300 outline-1 outline-offset-[-0.50px] outline-neutral-700"></div>
             
             {/* Title for Right Section - same styling as left section's title */}
             <div className={`left-[20px] top-[14px] absolute text-black text-xl font-semibold leading-normal ${cairo.className}`}>Valor Por Grupo e Evento</div>
+            
+            {/* Icons in top-right corner */}
+            <div className="absolute top-[14px] right-4 flex items-center gap-4">
+              {sectionIcons.map((icon, index) => {
+                let iconWidth = 20;
+                let iconHeight = 20;
+
+                if (icon.adjustSize) {
+                  iconWidth = 18; 
+                  iconHeight = 18; 
+                }
+                if (icon.src === "/assets/icons/icon-lay-down.svg" || icon.src === "/assets/icons/icon-lay-up.svg") {
+                  iconHeight = 20;
+                }
+
+                return (
+                  <React.Fragment key={`right-icon-fragment-${index}`}>
+                    <Image
+                      key={`right-${index}`}
+                      src={icon.src}
+                      alt={icon.alt}
+                      width={iconWidth}
+                      height={iconHeight}
+                      className="cursor-pointer"
+                    />
+                    {icon.src === "/assets/icons/icon-hierarchy.svg" && (
+                      <div className="w-px h-5 bg-neutral-300"></div> // Vertical separator
+                    )}
+                  </React.Fragment>
+                );
+              })}
+            </div>
             
             {/* Content for the right square can go here, potentially in a positioned div like the chart area */}
             <div className="w-full h-[537px] px-4 pt-8 pb-4 left-0 top-[90px] absolute bg-white">
