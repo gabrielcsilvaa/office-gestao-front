@@ -2,13 +2,16 @@
 import { Cairo } from "next/font/google";
 import SelecaoIndicadores from "./components/SelecaoIndicadores";
 import SecaoFiltros from "./components/SecaoFiltros";
-import Card from "./components/card";
+// import Card from "./components/Card"; // Moved to KpiCardsGrid
 import { useState, useMemo } from "react";
+// import Image from "next/image"; // No longer directly used here
+// import React from "react"; // No longer directly used here (implicitly used by JSX)
 import EvolucaoCard from "./components/EvolucaoCard";
 import ValorPorGrupoCard from "./components/ValorPorGrupoCard";
 import DissidioCard from "./components/DissidioCard";
 import ValorPorPessoaCard from "./components/ValorPorPessoaCard";
 import ValorPorCalculoCard from "./components/ValorPorCalculoCard";
+import KpiCardsGrid from "./components/KpiCardsGrid"; // Import the new component
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
@@ -100,11 +103,7 @@ export default function DashboardOrganizacional() {
         <SecaoFiltros />
       </div>
       <div className="p-4">
-        <div className="grid grid-cols-6 gap-4">
-          {cardsData.map((card, index) => (
-            <Card key={index} title={card.title} value={card.value} tooltipText={card.tooltipText} />
-          ))}
-        </div>
+        <KpiCardsGrid cardsData={cardsData} /> {/* Use the new component */}
 
         {/* Existing row with two sections */}
         <div className="mt-4 flex flex-row gap-4">

@@ -1,6 +1,7 @@
 import Image from "next/image";
 import React, { Fragment, useMemo } from "react";
 import NameList from "./NameList";
+import { processNameBarDataUtil, RawNameBarDataItem, ColorParams } from "../utils/chartUtils"; // Import the utility
 
 interface ValorPorPessoaCardProps {
   sectionIcons: Array<{ src: string; alt: string; adjustSize?: boolean }>;
@@ -8,7 +9,7 @@ interface ValorPorPessoaCardProps {
 }
 
 // Original data with string values
-const rawNameBarData = [
+const rawNameBarData: RawNameBarDataItem[] = [ // Type assertion
   { name: "RITA MARIA RODRIGUES DE OLIVEIRA", value: "R$ 1.600,00" },
   { name: "ISABEL CRISTINA BARBOSA RODRIGUES", value: "R$ 1.400,00" },
   { name: "MARIA GERLIANE DE ARAUJO MATIAS", value: "R$ 1.200,00" },
@@ -31,55 +32,20 @@ const rawNameBarData = [
   { name: "BRUNO SILVA MARTINS", value: "R$ 400,00" },
 ];
 
-// Helper to parse currency string to number
-const parseCurrencyValue = (currencyString: string): number => {
-  if (!currencyString) return 0;
-  return parseFloat(
-    currencyString
-      .replace("R$", "")
-      .replace(/\./g, "")
-      .replace(",", ".")
-      .trim()
-  );
-};
-
 const ValorPorPessoaCard: React.FC<ValorPorPessoaCardProps> = ({
   sectionIcons,
   cairoClassName,
 }) => {
   const processedNameBarData = useMemo(() => {
-    const numericValues = rawNameBarData.map((item) => parseCurrencyValue(item.value));
-    const maxValue = Math.max(...numericValues, 0); // Ensure maxValue is not -Infinity if array is empty or all values are 0
-    const minValue = Math.min(...numericValues, maxValue); // Ensure minValue is not Infinity if array is empty
-
-    const maxBarPixelWidth = 240; // Corresponds to w-60 (15rem * 16px/rem)
-
-    // HSL Color parameters
-    const hue = 145; // Green hue
-    const maxSaturation = 70; // Saturation for max value
-    const minSaturation = 30; // Saturation for min value (more desaturated)
-    const maxLightness = 45;  // Lightness for max value (vibrant)
-    const minLightness = 75;  // Lightness for min value (lighter, faded)
-
-    return rawNameBarData.map((item, index) => {
-      const numericValue = numericValues[index];
-      const ratio = maxValue > minValue ? (numericValue - minValue) / (maxValue - minValue) : 1; // Normalize between 0 and 1
-      
-      const barPixelWidth = maxValue > 0 ? (numericValue / maxValue) * maxBarPixelWidth : 0;
-
-      // Interpolate saturation and lightness
-      // If only one distinct value, use max saturation/lightness
-      const saturation = maxValue === minValue ? maxSaturation : minSaturation + ratio * (maxSaturation - minSaturation);
-      const lightness = maxValue === minValue ? maxLightness : minLightness - ratio * (minLightness - maxLightness); // Inverted: higher ratio = closer to maxLightness
-
-      const barColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
-
-      return {
-        ...item,
-        barPixelWidth: Math.max(barPixelWidth, 2), // Ensure a minimum visible width for the bar (e.g., 2px)
-        barColor,
-      };
-    });
+    const maxBarPixelWidth = 240; 
+    const colorParams: ColorParams = {
+      hue: 145, 
+      minSaturation: 30, 
+      maxSaturation: 70, 
+      minLightness: 75,  
+      maxLightness: 45,  
+    };
+    return processNameBarDataUtil(rawNameBarData, maxBarPixelWidth, colorParams);
   }, []);
 
   return (
