@@ -119,17 +119,14 @@ export default function DashboardOrganizacional() {
             <div className={`left-[20px] top-[41px] absolute text-black text-xs font-light leading-normal ${cairo.className}`}>{kpiSelecionado}</div>
 
             {/* Icons in top-right corner */}
-            <div className="absolute top-[14px] right-4 flex items-center gap-4">
+            <div className="absolute top-[14px] right-4 flex items-center gap-2"> {/* Changed gap-4 to gap-2 */}
               {sectionIcons.map((icon, index) => {
-                let iconWidth = 20;
-                let iconHeight = 20;
+                let iconWidth = 16; 
+                let iconHeight = 16; 
 
                 if (icon.adjustSize) {
-                  iconWidth = 18; 
-                  iconHeight = 18; 
-                }
-                if (icon.src === "/assets/icons/icon-lay-down.svg" || icon.src === "/assets/icons/icon-lay-up.svg") {
-                  iconHeight = 20;
+                  iconWidth = 14; 
+                  iconHeight = icon.src.includes("lay") ? 16 : 14; 
                 }
                 
                 return (
@@ -165,17 +162,14 @@ export default function DashboardOrganizacional() {
             <div className={`left-[20px] top-[14px] absolute text-black text-xl font-semibold leading-normal ${cairo.className}`}>Valor Por Grupo e Evento</div>
             
             {/* Icons in top-right corner */}
-            <div className="absolute top-[14px] right-4 flex items-center gap-4">
+            <div className="absolute top-[14px] right-4 flex items-center gap-2"> {/* Changed gap-4 to gap-2 */}
               {sectionIcons.map((icon, index) => {
-                let iconWidth = 20;
-                let iconHeight = 20;
+                let iconWidth = 16; 
+                let iconHeight = 16; 
 
                 if (icon.adjustSize) {
-                  iconWidth = 18; 
-                  iconHeight = 18; 
-                }
-                if (icon.src === "/assets/icons/icon-lay-down.svg" || icon.src === "/assets/icons/icon-lay-up.svg") {
-                  iconHeight = 20;
+                  iconWidth = 14; 
+                  iconHeight = icon.src.includes("lay") ? 16 : 14; 
                 }
 
                 return (
@@ -208,13 +202,13 @@ export default function DashboardOrganizacional() {
           <div className="flex-1 bg-white rounded-lg h-[489px] border border-neutral-700 relative overflow-hidden">
             <div className="w-6 h-0 left-[10px] top-[17px] absolute origin-top-left rotate-90 bg-zinc-300 outline-1 outline-offset-[-0.50px] outline-neutral-700"></div>
             <div className={`left-[20px] top-[14px] absolute text-black text-xl font-semibold leading-normal ${cairo.className}`}>Dissídio</div>
-            <div className="absolute top-[14px] right-4 flex items-center gap-4">
+            <div className="absolute top-[14px] right-4 flex items-center gap-2"> {/* Changed gap-4 to gap-2 */}
               {sectionIcons.map((icon, index) => {
-                 let iconWidth = 20;
-                 let iconHeight = 20;
+                 let iconWidth = 16; 
+                 let iconHeight = 16; 
                  if (icon.adjustSize) {
-                   iconWidth = 18; 
-                   iconHeight = (icon.src.includes("lay")) ? 20 : 18; 
+                   iconWidth = 14; 
+                   iconHeight = icon.src.includes("lay") ? 16 : 14; 
                  }
                  return (
                   <React.Fragment key={`s1-icon-fragment-${index}`}>
@@ -244,13 +238,13 @@ export default function DashboardOrganizacional() {
           <div className="flex-1 bg-white rounded-lg h-[489px] border border-neutral-700 relative overflow-hidden">
             <div className="w-6 h-0 left-[10px] top-[17px] absolute origin-top-left rotate-90 bg-zinc-300 outline-1 outline-offset-[-0.50px] outline-neutral-700"></div>
             <div className={`left-[20px] top-[14px] absolute text-black text-xl font-semibold leading-normal ${cairo.className}`}>Valor Por Tipo de Pessoa e Vínculo</div>
-             <div className="absolute top-[14px] right-4 flex items-center gap-4">
+             <div className="absolute top-[14px] right-4 flex items-center gap-2"> {/* Changed gap-4 to gap-2 */}
               {sectionIcons.map((icon, index) => {
-                let iconWidth = 20;
-                let iconHeight = 20;
+                let iconWidth = 16; 
+                let iconHeight = 16; 
                 if (icon.adjustSize) {
-                  iconWidth = 18; 
-                  iconHeight = (icon.src.includes("lay")) ? 20 : 18;
+                  iconWidth = 14; 
+                  iconHeight = icon.src.includes("lay") ? 16 : 14;
                 }
                 return (
                   <React.Fragment key={`s2-icon-fragment-${index}`}>
@@ -280,13 +274,13 @@ export default function DashboardOrganizacional() {
           <div className="flex-1 bg-white rounded-lg h-[489px] border border-neutral-700 relative overflow-hidden">
             <div className="w-6 h-0 left-[10px] top-[17px] absolute origin-top-left rotate-90 bg-zinc-300 outline-1 outline-offset-[-0.50px] outline-neutral-700"></div>
             <div className={`left-[20px] top-[14px] absolute text-black text-xl font-semibold leading-normal ${cairo.className}`}>Valor Por Tipo de Cálculo e Evento</div>
-            <div className="absolute top-[14px] right-4 flex items-center gap-4">
+            <div className="absolute top-[14px] right-4 flex items-center gap-2"> {/* Changed gap-4 to gap-2 */}
               {sectionIcons.map((icon, index) => {
-                let iconWidth = 20;
-                let iconHeight = 20;
+                let iconWidth = 16; 
+                let iconHeight = 16; 
                 if (icon.adjustSize) {
-                  iconWidth = 18; 
-                  iconHeight = (icon.src.includes("lay")) ? 20 : 18;
+                  iconWidth = 14; 
+                  iconHeight = icon.src.includes("lay") ? 16 : 14;
                 }
                 return (
                   <React.Fragment key={`s3-icon-fragment-${index}`}>
