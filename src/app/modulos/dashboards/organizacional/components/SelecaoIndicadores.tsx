@@ -1,7 +1,6 @@
-"use client"; // Add this directive for useState
+"use client";
 import { Cairo } from "next/font/google";
 import Image from "next/image";
-import { useState } from "react"; // Import useState
 
 const cairo = Cairo({
 	weight: ["500", "600", "700"],
@@ -17,12 +16,18 @@ const indicadores = [
 	"Custo Total",
 ];
 
-export default function SecaoFiltros() {
-	const [indicadorSelecionado, setIndicadorSelecionado] =
-		useState<string>("Proventos"); // Default to "Proventos"
+// Define props for the component
+interface SelecaoIndicadoresProps {
+	indicadorSelecionado: string;
+	onSelecaoIndicador: (indicador: string) => void;
+}
 
+export default function SelecaoIndicadores({
+	indicadorSelecionado,
+	onSelecaoIndicador,
+}: SelecaoIndicadoresProps) {
 	const handleSelecaoIndicador = (indicador: string) => {
-		setIndicadorSelecionado(indicador);
+		onSelecaoIndicador(indicador);
 	};
 
 	const baseButtonStyle =
