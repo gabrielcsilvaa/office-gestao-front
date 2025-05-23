@@ -50,15 +50,34 @@ const ValorPorPessoaCard: React.FC<ValorPorPessoaCardProps> = ({
   const processedNameBarData = useMemo(() => {
     const numericValues = rawNameBarData.map((item) => parseCurrencyValue(item.value));
     const maxValue = Math.max(...numericValues, 0); // Ensure maxValue is not -Infinity if array is empty or all values are 0
+    const minValue = Math.min(...numericValues, maxValue); // Ensure minValue is not Infinity if array is empty
 
     const maxBarPixelWidth = 240; // Corresponds to w-60 (15rem * 16px/rem)
 
+    // HSL Color parameters
+    const hue = 145; // Green hue
+    const maxSaturation = 70; // Saturation for max value
+    const minSaturation = 30; // Saturation for min value (more desaturated)
+    const maxLightness = 45;  // Lightness for max value (vibrant)
+    const minLightness = 75;  // Lightness for min value (lighter, faded)
+
     return rawNameBarData.map((item, index) => {
       const numericValue = numericValues[index];
+      const ratio = maxValue > minValue ? (numericValue - minValue) / (maxValue - minValue) : 1; // Normalize between 0 and 1
+      
       const barPixelWidth = maxValue > 0 ? (numericValue / maxValue) * maxBarPixelWidth : 0;
+
+      // Interpolate saturation and lightness
+      // If only one distinct value, use max saturation/lightness
+      const saturation = maxValue === minValue ? maxSaturation : minSaturation + ratio * (maxSaturation - minSaturation);
+      const lightness = maxValue === minValue ? maxLightness : minLightness - ratio * (minLightness - maxLightness); // Inverted: higher ratio = closer to maxLightness
+
+      const barColor = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+
       return {
         ...item,
         barPixelWidth: Math.max(barPixelWidth, 2), // Ensure a minimum visible width for the bar (e.g., 2px)
+        barColor,
       };
     });
   }, []);

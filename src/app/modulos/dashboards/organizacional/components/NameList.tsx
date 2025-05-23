@@ -2,8 +2,9 @@ import React from 'react';
 
 interface NameBarItem {
   name: string;
-  barPixelWidth: number; // Added
+  barPixelWidth: number; 
   value: string;
+  barColor: string; // Added barColor property
 }
 
 interface NameListProps {
@@ -13,20 +14,23 @@ interface NameListProps {
 
 const NameList: React.FC<NameListProps> = ({ items, cairoClassName }) => {
   return (
-    <div className="space-y-2 py-2"> {/* Increased spacing for items with bars */}
+    <div className="space-y-2 py-2"> 
       {items.map((item, index) => (
-        <div key={index} className="flex items-start gap-3"> {/* Changed to items-start */}
+        <div key={index} className="flex items-start gap-3"> 
           <div
-            title={item.name} // Tooltip for the full name
-            className={`w-24 flex-shrink-0 h-auto p-1 text-neutral-700 text-xs font-normal ${cairoClassName} whitespace-nowrap overflow-hidden text-ellipsis`} // Added flex-shrink-0 to ensure the div strictly adheres to w-24
+            title={item.name} 
+            className={`w-24 flex-shrink-0 h-auto p-1 text-neutral-700 text-xs font-normal ${cairoClassName} whitespace-nowrap overflow-hidden text-ellipsis`} 
           >
             {item.name}
           </div>
           <div 
-            className={`h-4 bg-emerald-500 rounded-sm`} 
-            style={{ width: `${item.barPixelWidth}px` }} // Applied inline style for width
-          ></div> {/* Bar element, added rounded-sm */}
-          <div className={`text-neutral-700 text-xs font-normal ${cairoClassName} whitespace-nowrap`}> {/* Value display */}
+            className={`h-4 rounded-sm`} // Removed bg-emerald-500
+            style={{ 
+              width: `${item.barPixelWidth}px`,
+              backgroundColor: item.barColor // Applied dynamic background color
+            }} 
+          ></div> 
+          <div className={`text-neutral-700 text-xs font-normal ${cairoClassName} whitespace-nowrap`}>
             {item.value}
           </div>
         </div>
