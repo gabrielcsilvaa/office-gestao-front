@@ -3,13 +3,7 @@ import { Cairo } from "next/font/google";
 import SelecaoIndicadores from "./components/SelecaoIndicadores";
 import SecaoFiltros from "./components/SecaoFiltros";
 import Card from "./components/card";
-import { useState, useMemo } from "react"; 
-// Image and React are not directly used here anymore for the cards, but might be for other parts or can be removed if not.
-// import Image from "next/image"; 
-// import React from "react"; 
-// EvolucaoChart and ValorPorGrupoChart are now imported within their respective card components
-// import EvolucaoChart from "./components/EvolucaoChart"; 
-// import ValorPorGrupoChart from "./components/ValorPorGrupoChart"; 
+import { useState, useMemo } from "react";
 import EvolucaoCard from "./components/EvolucaoCard";
 import ValorPorGrupoCard from "./components/ValorPorGrupoCard";
 import DissidioCard from "./components/DissidioCard";
