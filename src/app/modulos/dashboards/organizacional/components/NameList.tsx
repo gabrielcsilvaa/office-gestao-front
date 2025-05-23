@@ -4,7 +4,7 @@ interface NameBarItem {
   name: string;
   barPixelWidth: number; 
   value: string;
-  barColor: string; // Added barColor property
+  barColor: string; 
 }
 
 interface NameListProps {
@@ -14,7 +14,8 @@ interface NameListProps {
 
 const NameList: React.FC<NameListProps> = ({ items, cairoClassName }) => {
   return (
-    <div className="space-y-2 py-2"> 
+    // Use flexbox to distribute items evenly within the container's height
+    <div className="flex flex-col justify-evenly h-full"> 
       {items.map((item, index) => (
         <div key={index} className="flex items-start gap-3"> 
           <div
@@ -24,10 +25,10 @@ const NameList: React.FC<NameListProps> = ({ items, cairoClassName }) => {
             {item.name}
           </div>
           <div 
-            className={`h-4 rounded-sm`} // Removed bg-emerald-500
+            className={`h-4 rounded-sm`} 
             style={{ 
               width: `${item.barPixelWidth}px`,
-              backgroundColor: item.barColor // Applied dynamic background color
+              backgroundColor: item.barColor 
             }} 
           ></div> 
           <div className={`text-neutral-700 text-xs font-normal ${cairoClassName} whitespace-nowrap`}>
