@@ -12,12 +12,14 @@ const cairo = Cairo({
 export function Header() {
   return (
     <header className="text-white fixed lg:relative z-40 w-[180px] h-full flex flex-col gap-2 px-2 py-4 bg-[var(--left-menu-gray)]">
-      <Image
-        src={`/assets/logos/${process.env.NEXT_PUBLIC_LOGO_ESCRITORIO?.trim()}`}
-        alt="Ícone"
-        width={200}
-        height={100}
-      />
+      <Link href="/modulos/gestao/carteira">
+        <Image
+          src={`/assets/logos/${process.env.NEXT_PUBLIC_LOGO_ESCRITORIO?.trim()}`}
+          alt="Ícone"
+          width={200}
+          height={100}
+        />
+      </Link>
       {/* Adicione os itens de navegação ou outros componentes */}
       <nav className={`mt-6 text-[15px] ${cairo.className}`}>
         <ul>
