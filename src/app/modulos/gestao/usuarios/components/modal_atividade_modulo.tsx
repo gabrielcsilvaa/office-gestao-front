@@ -66,7 +66,7 @@ export default function AtividadeModulo({
                     key={chave}
                     className={`${cairo.className} bg-white font-semibold cursor-pointer hover:bg-gray-100`}
                   >
-                    <td className="whitespace-nowrap border px-2 py-3 font-bold text-gray-800">
+                    <td className="text-center whitespace-nowrap border px-2 py-3 font-bold text-black">
                       {chave}
                     </td>
                     {meses.map((mes) => {
