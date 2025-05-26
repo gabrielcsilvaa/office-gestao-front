@@ -218,10 +218,10 @@ export default function Usuarios() {
             <div className="w-full h-[calc(95vh-85px)] overflow-y-auto p-4 rounded-lg">
               <div className="w-full flex gap-[17px]  p-3">
                 <div className="usuarios-card  p-3">
-                  <p className="text-xs text-gray-500">
+                  <p className={`text-sm text-gray-700 ${cairo.className} font-[600]`}>
                     Total de Atividades Realizadas
                   </p>
-                  <p className="text-xl font-semibold text-black">
+                  <p className={`text-xl font-semibold text-black ${cairo.className}`}>
                     {Intl.NumberFormat("pt-BR").format(
                       activites?.atividades_totais ?? 0
                     )}
@@ -229,8 +229,8 @@ export default function Usuarios() {
                 </div>
 
                 <div className="usuarios-card p-3">
-                  <p className="text-xs text-gray-500">Importações totais</p>
-                  <p className="text-xl font-semibold text-black">
+                  <p className={`text-sm text-gray-700 ${cairo.className} font-[600]`}>Importações totais</p>
+                  <p className={`text-xl font-semibold text-black ${cairo.className}`}>
                     {Intl.NumberFormat("pt-BR").format(
                       data?.totais_gerais?.total_importacoes ?? 0
                     )}
@@ -238,8 +238,8 @@ export default function Usuarios() {
                 </div>
 
                 <div className="usuarios-card p-3">
-                  <p className="text-xs text-gray-500">Total de Lançamentos</p>
-                  <p className="text-xl font-semibold text-black">
+                  <p className={`text-sm text-gray-700 ${cairo.className} font-[600]`}>Total de Lançamentos</p>
+                  <p className={`text-xl font-semibold text-black ${cairo.className}`}>
                     {Intl.NumberFormat("pt-BR").format(
                       data?.totais_gerais?.total_lancamentos ?? 0
                     )}
@@ -247,10 +247,10 @@ export default function Usuarios() {
                 </div>
 
                 <div className="usuarios-card p-3">
-                  <p className="text-xs text-gray-500">
+                  <p className={`text-sm text-gray-700 ${cairo.className} font-[600]`}>
                     Total de Lançamentos Manuais
                   </p>
-                  <p className="text-xl font-semibold text-black">
+                  <p className={`text-xl font-semibold text-black ${cairo.className}`}>
                     {Intl.NumberFormat("pt-BR").format(
                       data?.totais_gerais?.total_lancamentos_manuais ?? 0
                     )}
@@ -258,8 +258,8 @@ export default function Usuarios() {
                 </div>
 
                 <div className="usuarios-card p-3">
-                  <p className="text-xs text-gray-500">Total de Horas Ativas</p>
-                  <p className="text-xl font-semibold text-black">
+                  <p className={`text-sm text-gray-700 ${cairo.className} font-[600]`}>Total de Horas Ativas</p>
+                  <p className={`text-xl font-semibold text-black ${cairo.className}`}>
                     {data?.totais_gerais?.total_tempo_gasto
                       ? formatTimeDetailed(data.totais_gerais.total_tempo_gasto)
                       : "00h"}
