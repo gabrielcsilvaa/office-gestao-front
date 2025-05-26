@@ -10,6 +10,7 @@ import {
   fetchUserData,
   fetchUserActivities,
   fetchModuleActivities,
+  fetchCompanyList,
 } from "./services/api";
 
 import ListaUsuario from "./components/modal_lista_usuario";
@@ -21,7 +22,8 @@ import {
   dadosUsuarios,
   UserList,
   AtividadesPorMes,
-  DadosModulo
+  DadosModulo,
+  EmpresasResponse,
 } from "./interfaces/interface";
 import { gerarMesesEntreDatas } from "@/utils/formatadores";
 import Reload from "@/components/reload";
@@ -69,6 +71,7 @@ export default function Usuarios() {
   const [calculoAtividades, setCulculoAtividades] = useState<AtividadesPorMes>(
     []
   );
+  const [empresas, setEmpresas] = useState<EmpresasResponse | null>(null);
 
   //Aguardando colocar data
   // const [awaitDateSelection, setAwaitDateSelection] = useState(true); // Tela de seleção de data
@@ -106,6 +109,11 @@ export default function Usuarios() {
     fetchUserList()
       .then(setUserList)
       .catch((e) => handleErrorStatus(e));
+
+    fetchCompanyList()
+      .then(setEmpresas)
+      .catch((e) => handleErrorStatus(e));
+
 
     const dateRange = { start_date: startDate, end_date: endDate };
 
@@ -207,13 +215,13 @@ export default function Usuarios() {
           </div>
         ) : (
           data && (
-            <>
+            <div className="w-full h-[calc(95vh-85px)] overflow-y-auto p-4 rounded-lg">
               <div className="w-full flex gap-[17px]  p-3">
                 <div className="usuarios-card  p-3">
-                  <p className="text-xs text-gray-500">
+                  <p className={`text-sm text-gray-700 ${cairo.className} font-[600]`}>
                     Total de Atividades Realizadas
                   </p>
-                  <p className="text-xl font-semibold text-black">
+                  <p className={`text-xl font-semibold text-black ${cairo.className}`}>
                     {Intl.NumberFormat("pt-BR").format(
                       activites?.atividades_totais ?? 0
                     )}
@@ -221,8 +229,8 @@ export default function Usuarios() {
                 </div>
 
                 <div className="usuarios-card p-3">
-                  <p className="text-xs text-gray-500">Importações totais</p>
-                  <p className="text-xl font-semibold text-black">
+                  <p className={`text-sm text-gray-700 ${cairo.className} font-[600]`}>Importações totais</p>
+                  <p className={`text-xl font-semibold text-black ${cairo.className}`}>
                     {Intl.NumberFormat("pt-BR").format(
                       data?.totais_gerais?.total_importacoes ?? 0
                     )}
@@ -230,8 +238,8 @@ export default function Usuarios() {
                 </div>
 
                 <div className="usuarios-card p-3">
-                  <p className="text-xs text-gray-500">Total de Lançamentos</p>
-                  <p className="text-xl font-semibold text-black">
+                  <p className={`text-sm text-gray-700 ${cairo.className} font-[600]`}>Total de Lançamentos</p>
+                  <p className={`text-xl font-semibold text-black ${cairo.className}`}>
                     {Intl.NumberFormat("pt-BR").format(
                       data?.totais_gerais?.total_lancamentos ?? 0
                     )}
@@ -239,10 +247,10 @@ export default function Usuarios() {
                 </div>
 
                 <div className="usuarios-card p-3">
-                  <p className="text-xs text-gray-500">
+                  <p className={`text-sm text-gray-700 ${cairo.className} font-[600]`}>
                     Total de Lançamentos Manuais
                   </p>
-                  <p className="text-xl font-semibold text-black">
+                  <p className={`text-xl font-semibold text-black ${cairo.className}`}>
                     {Intl.NumberFormat("pt-BR").format(
                       data?.totais_gerais?.total_lancamentos_manuais ?? 0
                     )}
@@ -250,8 +258,8 @@ export default function Usuarios() {
                 </div>
 
                 <div className="usuarios-card p-3">
-                  <p className="text-xs text-gray-500">Total de Horas Ativas</p>
-                  <p className="text-xl font-semibold text-black">
+                  <p className={`text-sm text-gray-700 ${cairo.className} font-[600]`}>Total de Horas Ativas</p>
+                  <p className={`text-xl font-semibold text-black ${cairo.className}`}>
                     {data?.totais_gerais?.total_tempo_gasto
                       ? formatTimeDetailed(data.totais_gerais.total_tempo_gasto)
                       : "00h"}
@@ -260,6 +268,11 @@ export default function Usuarios() {
               </div>
 
               <div>
+                <p
+                  className={`text-lg ${cairo.className} font-bold text-gray-800 pl-6`}
+                >
+                  Atividades por Mês
+                </p>
                 <UserChart dados={calculoAtividades} />
 
                 <div className="w-full flex justify-center">
@@ -294,7 +307,7 @@ export default function Usuarios() {
                   </div>
                 </div>
               </div>
-            </>
+            </div>
           )
         )}
       </div>
@@ -321,6 +334,9 @@ export default function Usuarios() {
       <AtividadeCliente
         mostrarMensagem={mostrarAtividadeCliente}
         fecharMensagem={fecharAtividadeCliente}
+        infoEmpresas={empresas}
+        dados={data}
+        meses={gerarMesesEntreDatas(startDate ?? "", endDate ?? "")}
       />
     </div>
   );

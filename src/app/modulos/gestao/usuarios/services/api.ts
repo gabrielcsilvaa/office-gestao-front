@@ -22,6 +22,9 @@ async function postJSON(url: string, body?: object) {
 export async function fetchUserList() {
   return postJSON("/api/analise-usuario/listar");
 }
+export async function fetchCompanyList() {
+  return postJSON("/api/analise-carteira");
+}
 
 export async function fetchUserData(dateRange: DateRange) {
   return postJSON("/api/analise-usuario", dateRange);

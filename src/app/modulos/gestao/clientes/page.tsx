@@ -133,15 +133,15 @@ export default function Clientes() {
 
   return (
     <div className="max-h-screen bg-gray-100">
-      <div className="h-[70px] flex flex-row items-end p-2 gap-8 border-b border-black/10 bg-gray-100">
-        <div className="flex items-center gap-4">
+      <div className="h-[70px] flex flex-row items-end pl-4 gap-8 border-b border-black/10 bg-gray-100">
+        <div className="flex items-center gap-4 w-full">
           <h1
-            className={`text-[32px] leading-8 ${cairo.className} font-700 text-black text-left`}
+            className={`text-[32px] whitespace-nowrap ${cairo.className} font-700 text-black text-left`}
           >
-            Análise de Clientes
+            Custo Operacional
           </h1>
 
-          <div className="flex items-center gap-2 ml-4">
+          <div className="flex items-center gap-2 ml-4 mr-8 w-full">
             {/* SELEÇÃO DE DATAS  */}
             <Calendar
               onStartDateChange={handleStartDateChange}
@@ -152,7 +152,7 @@ export default function Clientes() {
               id="inputText"
               value={value}
               onChange={handleChange}
-              className={`${cairo.className} bg-white border-2 border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400`}
+              className={`${cairo.className} bg-white border-2 border-gray-300 w-[16vw] p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400 ml-auto`}
               placeholder="Buscar Empresa"
             />
           </div>

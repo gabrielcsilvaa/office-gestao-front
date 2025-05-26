@@ -204,7 +204,7 @@ export default function ListaUsuario({
             </div>
 
             <div className="overflow-auto flex-1 w-full">
-              <table className="min-w-full table-auto border border-gray-300 text-sm text-left">
+              <table className="min-w-full table-auto border border-gray-300 text-sm text-center">
                 <thead className="bg-gray-100">
                   <tr>
                     <th className="border px-4 py-2" rowSpan={2}>
@@ -247,10 +247,12 @@ export default function ListaUsuario({
                     ))}
                   </tr>
                 </thead>
-                <tbody >
+                <tbody>
                   {usuariosFiltrados.map((usuario) => (
                     <tr key={usuario.id}>
-                      <td className="border px-4 py-2 font-bold text-gray-800 ">{usuario.NOME}</td>
+                      <td className="border px-4 py-2 font-bold text-black text-center  ">
+                        {usuario.NOME}
+                      </td>
                       {meses.map((mes) =>
                         subColunas.map(({ key }) => {
                           const atividade = usuario.atividades[mes];
