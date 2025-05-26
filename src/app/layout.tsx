@@ -1,11 +1,14 @@
-export default function RootLayout({
+import "./globals.css";
+
+
+export default function HomeLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
     <html lang="pt-br">
-      <body>{children}</body>
+      <body className={`antialiased`}>{children}</body>
     </html>
   );
 }
