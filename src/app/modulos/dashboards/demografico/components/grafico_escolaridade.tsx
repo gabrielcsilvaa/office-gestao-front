@@ -11,8 +11,8 @@ const data = [
 
 export const GraficoEscolaridade = () => {
   return (
-    <div style={{ width: '100%', height: 250 }}>
-      <h3 style={{ textAlign: 'center', marginBottom: '10px' }}>Colaboradores por Escolaridade</h3>
+    <div style={{ width: '100%', height: '250px'}}>
+      <h3 style={{ textAlign: 'center', marginBottom: '10px' , fontWeight:'bold',}}>Colaboradores por Escolaridade</h3>
       <ResponsiveContainer>
         <BarChart
           data={data}

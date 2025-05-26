@@ -5,6 +5,8 @@ import GraficosGenero from "./components/grafico_genero";
 import GraficoFaixaEtaria from "./components/grafico_faixa_etaria";
 import GraficoCategoria from "./components/grafico_categoria";
 import { GraficoEscolaridade } from "./components/grafico_escolaridade";
+import GraficoCargo from "./components/grafico_cargo";
+import TabelaColaboradores from "./components/tabela_colaboradores";
 
 export default function Demografico() {
   const [botaoSelecionado, setBotaoSelecionado] = useState("Ativos");
@@ -73,66 +75,71 @@ export default function Demografico() {
         </select>
       </div>
 
-{/* Gráfico de linha com gráficos de colaboradores agrupados à direita */}
-<div className="flex flex-col lg:flex-row gap-4 mt-6">
-  {/* Bloco com cards + gráfico de linha */}
-  <div className="w-full lg:w-2/3 flex flex-col gap-4">
-    {/* Cards de indicadores */}
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-      <div className="bg-white p-4 rounded border-l-4 border-red-500 shadow-sm">
-        <div className="text-2xl font-bold text-black">53,7%</div>
-        <div className="text-sm text-gray-500">Turnover</div>
+      {/* Gráfico de linha com gráficos de colaboradores agrupados à direita */}
+      <div className="flex flex-col lg:flex-row gap-4 mt-6">
+        {/* Bloco com cards + gráfico de linha */}
+        <div className="w-full lg:w-2/3 flex flex-col gap-4">
+          {/* Cards de indicadores */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div className="bg-white p-4 rounded border-l-4 border-red-500 shadow-sm">
+              <div className="text-2xl font-bold text-black">53,7%</div>
+              <div className="text-sm text-gray-500">Turnover</div>
+            </div>
+            <div className="bg-white p-4 rounded border-l-4 border-green-500 shadow-sm">
+              <div className="text-2xl font-bold text-black">2.919</div>
+              <div className="text-sm text-gray-500">Ativos</div>
+            </div>
+            <div className="bg-white p-4 rounded border-l-4 border-green-500 shadow-sm">
+              <div className="text-2xl font-bold text-black">1.741</div>
+              <div className="text-sm text-gray-500">Contratações</div>
+            </div>
+            <div className="bg-white p-4 rounded border-l-4 border-red-500 shadow-sm">
+              <div className="text-2xl font-bold text-black">1.456</div>
+              <div className="text-sm text-gray-500">Demissões</div>
+            </div>
+            <div className="bg-white p-4 rounded border-l-4 border-red-500 shadow-sm">
+              <div className="text-2xl font-bold text-black">1.777</div>
+              <div className="text-sm text-gray-500">
+                Períodos de Afastamento
+              </div>
+            </div>
+          </div>
+
+          {/* Gráfico de linha */}
+          <div className="bg-white p-4 rounded shadow">
+            <GraficoLinha />
+          </div>
+        </div>
+
+        {/* Gráficos de colaboradores agrupados em 2x2 no mesmo card à direita */}
+        <div className="w-full    lg:w-1/3">
+          <div className="bg-white   rounded shadow">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4  w-full h-full p-4">
+              <div className="mb-10">
+                <GraficosGenero />
+              </div>
+              <div className="mb-10">
+                <GraficoFaixaEtaria />
+              </div>
+              <div className="mb-5">
+                <GraficoCategoria />
+              </div>
+              <div className="mb-10">
+                <GraficoEscolaridade />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <div className="bg-white p-4 rounded border-l-4 border-green-500 shadow-sm">
-        <div className="text-2xl font-bold text-black">2.919</div>
-        <div className="text-sm text-gray-500">Ativos</div>
-      </div>
-      <div className="bg-white p-4 rounded border-l-4 border-green-500 shadow-sm">
-        <div className="text-2xl font-bold text-black">1.741</div>
-        <div className="text-sm text-gray-500">Contratações</div>
-      </div>
-      <div className="bg-white p-4 rounded border-l-4 border-red-500 shadow-sm">
-        <div className="text-2xl font-bold text-black">1.456</div>
-        <div className="text-sm text-gray-500">Demissões</div>
-      </div>
-      <div className="bg-white p-4 rounded border-l-4 border-red-500 shadow-sm">
-        <div className="text-2xl font-bold text-black">1.777</div>
-        <div className="text-sm text-gray-500">Períodos de Afastamento</div>
+
+      <div className="flex gap-4 mt-6">
+        <div className="w-1/2  p-4">
+          <TabelaColaboradores />
+        </div>
+        <div className="w-1/2  p-4">
+          <GraficoCargo />
+        </div>
       </div>
     </div>
-
-    {/* Gráfico de linha */}
-    <div className="bg-white p-4 rounded shadow">
-      <GraficoLinha />
-    </div>
-  </div>
-
- {/* Gráficos de colaboradores agrupados em 2x2 no mesmo card à direita */}
-<div className="w-full lg:w-1/3">
-  <div className="bg-white p-4 rounded shadow">
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      <div>
-        <GraficosGenero />
-      </div>
-      <div>
-        <GraficoFaixaEtaria />
-      </div>
-      <div>
-        <GraficoCategoria />
-      </div>
-      <div>
-        <GraficoEscolaridade />
-      </div>
-    </div>
-  </div>
-  </div>
-</div>
-</div>
-
-   );
+  );
 }
-
-
-
-    
-  

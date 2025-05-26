@@ -12,7 +12,7 @@ const data = [
 const GraficoFaixaEtaria = () => {
   return (
     <div style={{ width: '100%', height: 250 }}>
-      <h3 style={{ textAlign: 'center', marginBottom: '10px' }}>Colaboradores por Faixa Etária</h3>
+      <h3 style={{ textAlign: 'center', marginBottom: '10px' , fontWeight:'bold',}}>Colaboradores por Faixa Etária</h3>
       <ResponsiveContainer>
         <BarChart
           data={data}
