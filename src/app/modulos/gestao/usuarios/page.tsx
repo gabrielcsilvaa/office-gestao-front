@@ -21,7 +21,7 @@ import {
   dadosUsuarios,
   UserList,
   AtividadesPorMes,
-  DadosModulo
+  DadosModulo,
 } from "./interfaces/interface";
 import { gerarMesesEntreDatas } from "@/utils/formatadores";
 import Reload from "@/components/reload";
@@ -207,7 +207,7 @@ export default function Usuarios() {
           </div>
         ) : (
           data && (
-            <>
+            <div className="w-full h-[calc(95vh-85px)] overflow-y-auto p-4 rounded-lg">
               <div className="w-full flex gap-[17px]  p-3">
                 <div className="usuarios-card  p-3">
                   <p className="text-xs text-gray-500">
@@ -260,6 +260,11 @@ export default function Usuarios() {
               </div>
 
               <div>
+                <p
+                  className={`text-lg ${cairo.className} font-bold text-gray-800 pl-6`}
+                >
+                  Atividades por Mês
+                </p>
                 <UserChart dados={calculoAtividades} />
 
                 <div className="w-full flex justify-center">
@@ -294,7 +299,7 @@ export default function Usuarios() {
                   </div>
                 </div>
               </div>
-            </>
+            </div>
           )
         )}
       </div>
@@ -321,6 +326,8 @@ export default function Usuarios() {
       <AtividadeCliente
         mostrarMensagem={mostrarAtividadeCliente}
         fecharMensagem={fecharAtividadeCliente}
+        dados={data}
+        meses={gerarMesesEntreDatas(startDate ?? "", endDate ?? "")}
       />
     </div>
   );
