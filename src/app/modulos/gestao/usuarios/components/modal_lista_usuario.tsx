@@ -81,8 +81,6 @@ export default function ListaUsuario({
     if (filtroStatus === "ativo") return usuario.status === "Ativo";
     if (filtroStatus === "inativo") return usuario.status !== "Ativo";
 
-    
-
     // Se não houver filtro de status ou texto, retorna todos os usuários
     return true;
   });
@@ -149,7 +147,7 @@ export default function ListaUsuario({
                   id="inputText"
                   value={filtroTexto}
                   onChange={(e) => setFiltroTexto(e.target.value)}
-                  className={`${cairo.className} bg-white border-2 border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400`}
+                  className={`${cairo.className}  bg-white border-2 border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400`}
                   placeholder="Buscar Usuário"
                 />
               </div>
@@ -160,17 +158,27 @@ export default function ListaUsuario({
               <table className="min-w-full table-auto border border-gray-300 text-sm text-left">
                 <thead className="bg-gray-100">
                   <tr>
-                    <th className="border px-4 py-2">ID</th>
-                    <th className="border px-4 py-2">Nome</th>
-                    <th className="border px-4 py-2">Status</th>
+                    <th className="border w-[5vw] py-2 text-center">ID</th>
+                    <th className="border px-4 py-2 text-center">Nome</th>
+                    <th className="border px-4 py-2 text-center">Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {usuariosFiltrados.map((usuario) => (
                     <tr key={usuario.id}>
-                      <td className="border px-4 py-2">{usuario.id}</td>
-                      <td className="border px-4 py-2">{usuario.NOME}</td>
-                      <td className="border px-4 py-2">
+                      <td
+                        className={`border px-4 py-2 ${cairo.className} font-[700] text-center`}
+                      >
+                        {usuario.id}
+                      </td>
+                      <td
+                        className={`border px-4 py-2 ${cairo.className} font-[700] text-center`}
+                      >
+                        {usuario.NOME}
+                      </td>
+                      <td
+                        className={`border px-4 py-2 ${cairo.className} font-[500] text-center`}
+                      >
                         {usuario.status === "Ativo" ? "Ativo" : "Inativo"}
                       </td>
                     </tr>
