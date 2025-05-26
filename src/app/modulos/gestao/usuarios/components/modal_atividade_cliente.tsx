@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { dadosUsuarios } from "../interfaces/interface";
+import { dadosUsuarios, EmpresasResponse } from "../interfaces/interface";
 import { Cairo } from "next/font/google";
 import { formatadorSegParaHor } from "@/utils/formatadores";
 
@@ -22,119 +22,115 @@ interface TotalAtividades {
   total_lancamentos_manuais: number;
 }
 
-interface AtividadesUsuario
+interface AtividadesEmpresa
   extends Record<string, AtividadeMes | TotalAtividades> {
   total: TotalAtividades;
 }
 
-interface Usuario {
-  id: number | string;
-  NOME: string;
-  atividades: AtividadesUsuario;
+interface Empresa {
+  id: number | string; // Será o codi_emp
+  atividades: AtividadesEmpresa;
+  nome: string;
 }
 
-interface ListaUsuarioProps {
+interface ListaEmpresaProps {
   mostrarMensagem: boolean;
   fecharMensagem: () => void;
   dados: dadosUsuarios | null;
   meses: string[];
+  infoEmpresas: EmpresasResponse | null;
 }
 
 export default function AtividadeCliente({
   mostrarMensagem,
   fecharMensagem,
   dados,
+  infoEmpresas,
   meses,
-}: ListaUsuarioProps) {
-  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+}: ListaEmpresaProps) {
+  const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [filtroTexto, setFiltroTexto] = useState("");
 
   useEffect(() => {
-    const dadosSimulados: Usuario[] = [
+    if (!dados) {
+      if (mostrarMensagem) {
+        // Opcional: mostrar placeholder vazio ou mensagem de "sem dados"
+        setEmpresas([]);
+      }
+      return;
+    }
+
+    const empresasMap: Record<
+      number | string,
       {
-        id: 0,
-        NOME: "Sem Dados",
-        atividades: {
-          total: {
-            total_tempo_gasto: 0,
-            total_importacoes: 0,
-            total_lancamentos: 0,
-            total_lancamentos_manuais: 0,
-          },
-          ...meses.reduce(
-            (acc, mes) => {
-              acc[mes] = {
-                horas: 0,
-                importacoes: 0,
-                lancamentos: 0,
-                lancamentosManuais: 0,
+        id: number | string;
+        atividades: AtividadesEmpresa;
+        nome: string;
+      }
+    > = {};
+
+    for (const usuario of dados.analises) {
+      for (const empresa of usuario.empresas) {
+        if (!empresasMap[empresa.codi_emp]) {
+          for (const empresaInfo of infoEmpresas?.Empresas || []) {
+            if (empresaInfo.codigo_empresa === empresa.codi_emp) {
+              empresasMap[empresa.codi_emp] = {
+                id: empresa.codi_emp,
+                nome: empresaInfo.nome_empresa,
+                atividades: {
+                  total: {
+                    total_tempo_gasto: 0,
+                    total_importacoes: 0,
+                    total_lancamentos: 0,
+                    total_lancamentos_manuais: 0,
+                  },
+                  ...meses.reduce(
+                    (acc, mes) => {
+                      acc[mes] = {
+                        horas: 0,
+                        importacoes: 0,
+                        lancamentos: 0,
+                        lancamentosManuais: 0,
+                      };
+                      return acc;
+                    },
+                    {} as Record<string, AtividadeMes>
+                  ),
+                },
               };
-              return acc;
-            },
-            {} as Record<string, AtividadeMes>
-          ),
-        },
-      },
-    ];
-
-    if (dados) {
-      const usuariosMapeados: Usuario[] = [];
-
-      for (const usuario of dados.analises) {
-        const atividades: AtividadesUsuario = {
-          total: {
-            total_tempo_gasto: 0,
-            total_importacoes: 0,
-            total_lancamentos: 0,
-            total_lancamentos_manuais: 0,
-          },
-          ...meses.reduce(
-            (acc, mes) => {
-              acc[mes] = {
-                horas: 0,
-                importacoes: 0,
-                lancamentos: 0,
-                lancamentosManuais: 0,
-              };
-              return acc;
-            },
-            {} as Record<string, AtividadeMes>
-          ),
-        };
-
-        for (const empresa of usuario.empresas) {
-          for (const mesAno of meses) {
-            const dadosMes = empresa.atividades[mesAno];
-            if (dadosMes) {
-              const atividadeMes = atividades[mesAno] as AtividadeMes;
-
-              atividadeMes.horas += dadosMes.tempo_gasto || 0;
-              atividadeMes.importacoes += dadosMes.importacoes || 0;
-              atividadeMes.lancamentos += dadosMes.lancamentos || 0;
-              atividadeMes.lancamentosManuais +=
-                dadosMes.lancamentos_manuais || 0;
             }
           }
-
-          atividades.total.total_tempo_gasto += empresa.total_tempo_gasto || 0;
-          atividades.total.total_importacoes += empresa.total_importacoes || 0;
-          atividades.total.total_lancamentos += empresa.total_lancamentos || 0;
-          atividades.total.total_lancamentos_manuais +=
-            empresa.total_lancamentos_manuais || 0;
         }
 
-        usuariosMapeados.push({
-          id: usuario.usuario_id,
-          NOME: usuario.nome_usuario,
-          atividades,
-        });
-      }
+        const atividadesEmpresa = empresasMap[empresa.codi_emp].atividades;
 
-      setUsuarios(usuariosMapeados);
-    } else if (mostrarMensagem) {
-      setUsuarios(dadosSimulados);
+        for (const mesAno of meses) {
+          const dadosMes = empresa.atividades[mesAno];
+          if (dadosMes) {
+            const atividadeMes = atividadesEmpresa[mesAno] as AtividadeMes;
+
+            atividadeMes.horas += dadosMes.tempo_gasto || 0;
+            atividadeMes.importacoes += dadosMes.importacoes || 0;
+            atividadeMes.lancamentos += dadosMes.lancamentos || 0;
+            atividadeMes.lancamentosManuais +=
+              dadosMes.lancamentos_manuais || 0;
+          }
+        }
+
+        atividadesEmpresa.total.total_tempo_gasto +=
+          empresa.total_tempo_gasto || 0;
+        atividadesEmpresa.total.total_importacoes +=
+          empresa.total_importacoes || 0;
+        atividadesEmpresa.total.total_lancamentos +=
+          empresa.total_lancamentos || 0;
+        atividadesEmpresa.total.total_lancamentos_manuais +=
+          empresa.total_lancamentos_manuais || 0;
+      }
     }
-  }, [mostrarMensagem, dados, meses]);
+
+    setEmpresas(Object.values(empresasMap));
+    // eslint-disable-next-line
+  }, [dados, meses, mostrarMensagem]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -151,9 +147,14 @@ export default function AtividadeCliente({
 
   if (!mostrarMensagem) return null;
 
-  const usuariosFiltrados = usuarios.filter((usuario) =>
-    usuario.NOME.toLowerCase().includes(filtroTexto.toLowerCase())
-  );
+  // Filtra empresas pelo código convertido para string (permitindo filtro parcial)
+  const empresasFiltradas = empresas.filter((empresa) => {
+    const filtro = filtroTexto.toLowerCase();
+    const idString = empresa.id.toString().toLowerCase();
+    const nomeString = (empresa.nome ?? "").toLowerCase();
+
+    return idString.includes(filtro) || nomeString.includes(filtro);
+  });
 
   const subColunas = [
     { label: "Horas", key: "horas" },
@@ -168,6 +169,7 @@ export default function AtividadeCliente({
     { label: "Lançamentos", key: "total_lancamentos" },
     { label: "L. Manuais", key: "total_lancamentos_manuais" },
   ];
+
   return (
     <>
       {mostrarMensagem && (
@@ -189,7 +191,7 @@ export default function AtividadeCliente({
 
             <div className="w-full p-6 flex animate-fade-fast">
               <h2 className="text-3xl font-bold text-gray-800 flex-1">
-                Atividades por Usuário
+                Atividades por Cliente
               </h2>
               <div className="flex gap-2 ml-4">
                 <input
@@ -198,7 +200,7 @@ export default function AtividadeCliente({
                   value={filtroTexto}
                   onChange={(e) => setFiltroTexto(e.target.value)}
                   className={`${cairo.className} bg-white border-2 border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400`}
-                  placeholder="Buscar Usuário"
+                  placeholder="Buscar Empresa"
                 />
               </div>
             </div>
@@ -207,8 +209,17 @@ export default function AtividadeCliente({
               <table className="min-w-full table-auto border border-gray-300 text-sm text-left">
                 <thead className="bg-gray-100">
                   <tr>
-                    <th className="border px-4 py-2" rowSpan={2}>
-                      Usuários
+                    <th
+                      className="border px-4 py-2 whitespace-nowrap text-center align-middle"
+                      rowSpan={2}
+                    >
+                      ID
+                    </th>
+                    <th
+                      className="border px-4 py-2 whitespace-nowrap text-center align-middle"
+                      rowSpan={2}
+                    >
+                      Razão Social
                     </th>
                     {meses.map((mes) => (
                       <th
@@ -248,14 +259,17 @@ export default function AtividadeCliente({
                   </tr>
                 </thead>
                 <tbody>
-                  {usuariosFiltrados.map((usuario) => (
-                    <tr key={usuario.id}>
-                      <td className="border px-4 py-2 font-bold text-gray-800 ">
-                        {usuario.NOME}
+                  {empresasFiltradas.map((empresa) => (
+                    <tr key={empresa.id}>
+                      <td className="border px-4 py-2 font-bold text-blackwhitespace-nowrap text-center align-middle">
+                        {empresa.id}
+                      </td>
+                      <td className="border px-4 py-2 font-bold text-black whitespace-nowrap text-center align-middle">
+                        {empresa.nome}
                       </td>
                       {meses.map((mes) =>
                         subColunas.map(({ key }) => {
-                          const atividade = usuario.atividades[mes];
+                          const atividade = empresa.atividades[mes];
                           const valor =
                             atividade && "horas" in atividade
                               ? (atividade as AtividadeMes)[
@@ -265,7 +279,7 @@ export default function AtividadeCliente({
 
                           return (
                             <td
-                              key={`${usuario.id}-${mes}-${key}`}
+                              key={`${empresa.id}-${mes}-${key}`}
                               className="text-center border px-4 py-2 whitespace-nowrap"
                             >
                               {key === "horas" && typeof valor === "number"
@@ -277,12 +291,12 @@ export default function AtividadeCliente({
                       )}
                       {subColunasTotais.map(({ key }) => {
                         const valorTotal =
-                          usuario.atividades.total[
+                          empresa.atividades.total[
                             key as keyof TotalAtividades
                           ];
                         return (
                           <td
-                            key={`${usuario.id}-total-${key}`}
+                            key={`${empresa.id}-total-${key}`}
                             className="border px-4 py-2 whitespace-nowrap font-semibold"
                           >
                             {key === "total_tempo_gasto" &&

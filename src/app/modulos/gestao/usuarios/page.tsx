@@ -10,6 +10,7 @@ import {
   fetchUserData,
   fetchUserActivities,
   fetchModuleActivities,
+  fetchCompanyList,
 } from "./services/api";
 
 import ListaUsuario from "./components/modal_lista_usuario";
@@ -22,6 +23,7 @@ import {
   UserList,
   AtividadesPorMes,
   DadosModulo,
+  EmpresasResponse,
 } from "./interfaces/interface";
 import { gerarMesesEntreDatas } from "@/utils/formatadores";
 import Reload from "@/components/reload";
@@ -69,6 +71,7 @@ export default function Usuarios() {
   const [calculoAtividades, setCulculoAtividades] = useState<AtividadesPorMes>(
     []
   );
+  const [empresas, setEmpresas] = useState<EmpresasResponse | null>(null);
 
   //Aguardando colocar data
   // const [awaitDateSelection, setAwaitDateSelection] = useState(true); // Tela de seleção de data
@@ -106,6 +109,11 @@ export default function Usuarios() {
     fetchUserList()
       .then(setUserList)
       .catch((e) => handleErrorStatus(e));
+
+    fetchCompanyList()
+      .then(setEmpresas)
+      .catch((e) => handleErrorStatus(e));
+
 
     const dateRange = { start_date: startDate, end_date: endDate };
 
@@ -326,6 +334,7 @@ export default function Usuarios() {
       <AtividadeCliente
         mostrarMensagem={mostrarAtividadeCliente}
         fecharMensagem={fecharAtividadeCliente}
+        infoEmpresas={empresas}
         dados={data}
         meses={gerarMesesEntreDatas(startDate ?? "", endDate ?? "")}
       />
