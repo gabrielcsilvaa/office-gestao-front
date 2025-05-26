@@ -94,15 +94,15 @@ export default function DashboardOrganizacional() {
   }, []); 
 
   return (
-    <div className="bg-[#f7f7f8] min-h-screen">
-      <div className="h-auto flex flex-col items-start p-4 gap-4 border-b border-black/10 bg-gray-100">
+    <div className="bg-[#f7f7f8] h-[75vh]">
+      <div className=" flex flex-col items-start p-4 gap-4 border-b border-black/10 bg-gray-100">
         <SelecaoIndicadores 
           indicadorSelecionado={kpiSelecionado}
           onSelecaoIndicador={handleKpiChange}
         />
         <SecaoFiltros />
       </div>
-      <div className="p-4">
+      <div className="p-4 overflow-y-auto h-full">
         <KpiCardsGrid cardsData={cardsData} /> {/* Use the new component */}
 
         {/* Existing row with two sections */}
@@ -138,4 +138,4 @@ export default function DashboardOrganizacional() {
       </div>
     </div>
   );
-}
+}                 
