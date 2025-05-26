@@ -231,7 +231,7 @@ export function ListaEmpresas({
               </tr>
             </tbody>
           </table>
-          <div className="max-w-[80vw] overflow-x-auto mt-4 mb-7">
+          <div className="max-w-[90vw] overflow-x-auto mt-4 mb-7">
             <table className="table-auto min-w-[800px]">
               <thead>
                 <tr>
