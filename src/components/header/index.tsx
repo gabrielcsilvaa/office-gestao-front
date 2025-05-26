@@ -1,99 +1,143 @@
 import Link from "next/link";
+import Image from "next/image";
 import "../../app/globals.css";
 import { Cairo } from "next/font/google";
-import Image from "next/image";
 
-// Defina a fonte como uma variável
+import { useState, useEffect } from "react";
+// Fonte Cairo configurada
 const cairo = Cairo({
-  weight: ["500", "600", "700"], // Você pode especificar os pesos que deseja (normal e negrito)
+  weight: ["500", "600", "700"],
   subsets: ["latin"],
 });
 
 export function Header() {
+  const [isHovered, setIsHovered] = useState(false);
+
+  // Detecta se o mouse está na área próxima da esquerda da tela
+  useEffect(() => {
+    function handleMouseMove(e: MouseEvent) {
+      if (e.clientX <= 20) {
+        setIsHovered(true);
+      } else if (e.clientX > 180) {
+        // 180 é a largura máxima do sidebar expandido
+        setIsHovered(false);
+      }
+    }
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
+  }, []);
+
   return (
-    <header className="text-white fixed lg:relative z-40 w-[180px] h-full flex flex-col gap-2 px-2 py-4 bg-[var(--left-menu-gray)]">
-      <Link href="/modulos/gestao/carteira">
-        <Image
-          src={`/assets/logos/${process.env.NEXT_PUBLIC_LOGO_ESCRITORIO?.trim()}`}
-          alt="Ícone"
-          width={200}
-          height={100}
-        />
-      </Link>
-      {/* Adicione os itens de navegação ou outros componentes */}
-      <nav className={`mt-6 text-[15px] ${cairo.className}`}>
-        <ul>
-          <li className="mb-4">
-            <Link
-              href="/modulos/gestao/carteira"
-              className="hover:text-gray-400"
-            >
-              <span className="inline-flex items-center">
-                <Image
-                  src="/assets/icons/Frame Carteira.svg"
-                  alt="Ícone"
-                  width={22}
-                  height={22}
-                  className="mr-2" // margem à esquerda para espaçamento entre o texto e o ícone
-                />
-                Carteira Clientes
-              </span>
+    <>
+      {/* Zona invisível que detecta mouse perto da borda esquerda */}
+      {!isHovered && (
+        <div
+          className="flex flex-col justify-center fixed top-0 left-0 h-full w-6 z-50"
+          // Pode adicionar cursor para indicar que aparece o menu
+          style={{ cursor: "pointer" }}
+          onMouseEnter={() => setIsHovered(true)}
+        >
+          <div className={`bg-[var(--left-menu-gray)] rounded-r-lg p-2 text-lg  text-white`}>{`<`}</div>
+        </div>
+      )}
+
+      {/* Sidebar que aparece/oculta */}
+      <header
+        className={`${cairo.className}
+          fixed top-0 left-0 h-full z-40 bg-[var(--left-menu-gray)] 
+          flex flex-col gap-2 px-2 py-4 
+          text-white
+          transition-all duration-400 ease-in-out
+          overflow-hidden
+          ${isHovered ? "w-[180px] opacity-100 pointer-events-auto" : "w-0 opacity-0 pointer-events-none"}
+        `}
+      >
+        {isHovered && (
+          <>
+            <Link href="/modulos/gestao/carteira">
+              <Image
+                src={`/assets/logos/${process.env.NEXT_PUBLIC_LOGO_ESCRITORIO?.trim()}`}
+                alt="Ícone"
+                width={200}
+                height={100}
+              />
             </Link>
-          </li>
-          <li className="mb-4">
-            <Link
-              href="/modulos/gestao/clientes"
-              className="hover:text-gray-400"
-            >
-              <span className="inline-flex items-center">
-                <Image
-                  src="/assets/icons/Frame Clientes.svg"
-                  alt="Ícone"
-                  width={22}
-                  height={22}
-                  className="mr-2" // margem à esquerda para espaçamento entre o texto e o ícone
-                />
-                Custo Operacional
-              </span>
-            </Link>
-          </li>
-          <li className="mb-4">
-            <Link
-              href="/modulos/gestao/usuarios"
-              className="hover:text-gray-400"
-            >
-              <span className="inline-flex items-center">
-                <Image
-                  src="/assets/icons/Frame 28.svg"
-                  alt="Ícone"
-                  width={22}
-                  height={22}
-                  className="mr-2" // margem à esquerda para espaçamento entre o texto e o ícone
-                />
-                Desempenho de usuarios
-              </span>
-            </Link>
-          </li>
-          <li className="mb-4">
-            <Link
-              href="/modulos/gestao/escritorio"
-              className="hover:text-gray-400"
-            >
-              <span className="inline-flex items-center">
-                <Image
-                  src="/assets/icons/Frame Escritorio.svg"
-                  alt="Ícone"
-                  width={22}
-                  height={22}
-                  className="mr-2" // margem à esquerda para espaçamento entre o texto e o ícone
-                />
-                Perfil Escritório
-              </span>
-            </Link>
-          </li>
-        </ul>
-      </nav>
-    </header>
+            <nav className={`mt-6 text-[15px]`}>
+              <ul>
+                <li className="mb-4">
+                  <Link
+                    href="/modulos/gestao/carteira"
+                    className="hover:text-gray-400"
+                  >
+                    <span className="inline-flex items-center">
+                      <Image
+                        src="/assets/icons/Frame Carteira.svg"
+                        alt="Ícone"
+                        width={22}
+                        height={22}
+                        className="mr-2"
+                      />
+                      Carteira Clientes
+                    </span>
+                  </Link>
+                </li>
+                <li className="mb-4">
+                  <Link
+                    href="/modulos/gestao/clientes"
+                    className="hover:text-gray-400"
+                  >
+                    <span className="inline-flex items-center">
+                      <Image
+                        src="/assets/icons/Frame Clientes.svg"
+                        alt="Ícone"
+                        width={22}
+                        height={22}
+                        className="mr-2"
+                      />
+                      Custo Operacional
+                    </span>
+                  </Link>
+                </li>
+                <li className="mb-4">
+                  <Link
+                    href="/modulos/gestao/usuarios"
+                    className="hover:text-gray-400"
+                  >
+                    <span className="inline-flex items-center">
+                      <Image
+                        src="/assets/icons/Frame 28.svg"
+                        alt="Ícone"
+                        width={22}
+                        height={22}
+                        className="mr-2"
+                      />
+                      Desempenho de usuários
+                    </span>
+                  </Link>
+                </li>
+                <li className="mb-4">
+                  <Link
+                    href="/modulos/gestao/escritorio"
+                    className="hover:text-gray-400"
+                  >
+                    <span className="inline-flex items-center">
+                      <Image
+                        src="/assets/icons/Frame Escritorio.svg"
+                        alt="Ícone"
+                        width={22}
+                        height={22}
+                        className="mr-2"
+                      />
+                      Perfil Escritório
+                    </span>
+                  </Link>
+                </li>
+              </ul>
+            </nav>
+          </>
+        )}
+      </header>
+    </>
   );
 }
 

@@ -14,23 +14,29 @@ export default function ModulosLayout({
 
   useEffect(() => {
     const isLoginPage = window.location.pathname === "/";
-
     if (!isLoginPage) {
       const token = localStorage.getItem("token");
-      if (!token) {
-        router.push("/");
-      }
+      if (!token) router.push("/");
     }
   }, [router]);
 
   return (
+    // Altura da tela garantida no container raiz
     <div className="flex h-screen antialiased">
+      {/* Sidebar */}
       <div>
         <Header />
       </div>
-      <div className="w-full">
-        <Header2 />
-        {children}
+
+      {/* Conteúdo principal: full width, full height, flex column */}
+      <div className="flex flex-col w-full h-full overflow-hidden">
+        {/* Header fixo ou controlado */}
+        <div className="flex-shrink-0">
+          <Header2 />
+        </div>
+
+        {/* Conteúdo com scroll controlado */}
+        <main className="flex-grow overflow-auto">{children}</main>
       </div>
     </div>
   );
