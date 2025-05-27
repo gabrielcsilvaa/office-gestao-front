@@ -11,7 +11,7 @@ const data = [
 
 const GraficoCategoria = () => {
   return (
-    <div style={{ width: '100%', height: 250 }}>
+    <div style={{ width: '100%', height: 250}}>
       <h3 style={{ textAlign: 'center', marginBottom: '10px', fontWeight:'bold', }}>Colaboradores por Categoria</h3>
       <ResponsiveContainer>
         <BarChart

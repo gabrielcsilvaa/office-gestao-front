@@ -7,67 +7,128 @@ import GraficoCategoria from "./components/grafico_categoria";
 import { GraficoEscolaridade } from "./components/grafico_escolaridade";
 import GraficoCargo from "./components/grafico_cargo";
 import TabelaColaboradores from "./components/tabela_colaboradores";
+import { RotateCcw } from "lucide-react";
 
 export default function Demografico() {
   const [botaoSelecionado, setBotaoSelecionado] = useState("Ativos");
+  const [filtros, setFiltros] = useState({
+    centroCusto: "",
+    departamento: "",
+    tipoColaborador: "",
+    servico: "",
+  });
+
+  const resetarFiltros = () => {
+    setBotaoSelecionado("Ativos");
+    setFiltros({
+      centroCusto: "",
+      departamento: "",
+      tipoColaborador: "",
+      servico: "",
+    });
+  };
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
       {/* Título e botões */}
-      <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
         <h1 className="text-2xl font-bold">Dashboard Demográfico</h1>
-        <div className="flex gap-2 flex-wrap">
-          {[
-            "Ativos",
-            "Contratações",
-            "Demissões",
-            "Más Contratações",
-            "Afastamentos",
-            "Em Férias",
-          ].map((nome) => (
-            <button
-              key={nome}
-              onClick={() => setBotaoSelecionado(nome)}
-              className={`px-4 py-2 rounded transition-all ${
-                botaoSelecionado === nome
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-300 text-black"
-              }`}
-            >
-              {nome}
-            </button>
-          ))}
+
+        <div className="flex items-center flex-wrap gap-4">
+          {/* Botão de reset */}
+          <button
+            onClick={resetarFiltros}
+            className="flex items-center gap-2 px-3 py-2 rounded bg-gray-200 hover:bg-gray-300 transition"
+            title="Resetar filtros"
+          >
+            <RotateCcw size={18} />
+            <span className="text-sm items-left"></span>
+          </button>
+
+          {/* Linha vertical */}
+          <div className="w-px h-6 bg-gray-400" />
+
+          {/* Botões de status */}
+          <div className="flex flex-wrap gap-2">
+            {[
+              "Ativos",
+              "Contratações",
+              "Demissões",
+              "Más Contratações",
+              "Afastamentos",
+              "Em Férias",
+            ].map((nome) => (
+              <button
+                key={nome}
+                onClick={() => setBotaoSelecionado(nome)}
+                className={`px-4 py-2 rounded transition-all ${
+                  botaoSelecionado === nome
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-300 text-black"
+                }`}
+              >
+                {nome}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Filtros */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <select className="w-full p-2 border rounded text-gray-700">
-          <option disabled selected hidden>
+        <select
+          className="w-full p-2 border rounded text-gray-700"
+          value={filtros.centroCusto}
+          onChange={(e) =>
+            setFiltros((prev) => ({ ...prev, centroCusto: e.target.value }))
+          }
+        >
+          <option value="" disabled hidden>
             Centro de Custo
           </option>
           <option value="1">Opção 1</option>
           <option value="2">Opção 2</option>
         </select>
 
-        <select className="w-full p-2 border rounded text-gray-700">
-          <option disabled selected hidden>
+        <select
+          className="w-full p-2 border rounded text-gray-700"
+          value={filtros.departamento}
+          onChange={(e) =>
+            setFiltros((prev) => ({ ...prev, departamento: e.target.value }))
+          }
+        >
+          <option value="" disabled hidden>
             Departamento
           </option>
           <option value="1">Opção 1</option>
           <option value="2">Opção 2</option>
         </select>
 
-        <select className="w-full p-2 border rounded text-gray-700">
-          <option disabled selected hidden>
+        <select
+          className="w-full p-2 border rounded text-gray-700"
+          value={filtros.tipoColaborador}
+          onChange={(e) =>
+            setFiltros((prev) => ({
+              ...prev,
+              tipoColaborador: e.target.value,
+            }))
+          }
+        >
+          <option value="" disabled hidden>
             Colaborador/Diretor/Autônomo
           </option>
           <option value="1">Opção 1</option>
           <option value="2">Opção 2</option>
         </select>
 
-        <select className="w-full p-2 border rounded text-gray-700">
-          <option disabled selected hidden>
+        <select
+          className="w-full p-2 border rounded text-gray-700"
+          value={filtros.servico}
+          onChange={(e) =>
+            setFiltros((prev) => ({ ...prev, servico: e.target.value }))
+          }
+        >
+          <option value="" disabled hidden>
             Serviço
           </option>
           <option value="1">Opção 1</option>
@@ -75,56 +136,58 @@ export default function Demografico() {
         </select>
       </div>
 
-      {/* Gráfico de linha com gráficos de colaboradores agrupados à direita */}
-      <div className="flex flex-col lg:flex-row gap-4 mt-6">
-        {/* Bloco com cards + gráfico de linha */}
-        <div className="w-full lg:w-2/3 flex flex-col gap-4">
-          {/* Cards de indicadores */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            <div className="bg-white p-4 rounded border-l-4 border-red-500 shadow-sm">
-              <div className="text-2xl font-bold text-black">53,7%</div>
-              <div className="text-sm text-gray-500">Turnover</div>
-            </div>
-            <div className="bg-white p-4 rounded border-l-4 border-green-500 shadow-sm">
-              <div className="text-2xl font-bold text-black">2.919</div>
-              <div className="text-sm text-gray-500">Ativos</div>
-            </div>
-            <div className="bg-white p-4 rounded border-l-4 border-green-500 shadow-sm">
-              <div className="text-2xl font-bold text-black">1.741</div>
-              <div className="text-sm text-gray-500">Contratações</div>
-            </div>
-            <div className="bg-white p-4 rounded border-l-4 border-red-500 shadow-sm">
-              <div className="text-2xl font-bold text-black">1.456</div>
-              <div className="text-sm text-gray-500">Demissões</div>
-            </div>
-            <div className="bg-white p-4 rounded border-l-4 border-red-500 shadow-sm">
-              <div className="text-2xl font-bold text-black">1.777</div>
-              <div className="text-sm text-gray-500">
-                Períodos de Afastamento
+      {/* Linha com cards e gráficos laterais */}
+      <div className="flex flex-col lg:flex-row gap-4">
+        {/* Cards + Gráfico de Linha */}
+        <div className="w-full lg:w-1/2 flex flex-col h-full gap-4">
+          <div className="space-y-4">
+            {/* Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              <div className="bg-white p-4 rounded border-l-4 border-red-500 shadow-sm">
+                <div className="text-2xl font-bold text-black">53,7%</div>
+                <div className="text-sm text-gray-500">Turnover</div>
+              </div>
+              <div className="bg-white p-4 rounded border-l-4 border-green-500 shadow-sm">
+                <div className="text-2xl font-bold text-black">2.919</div>
+                <div className="text-sm text-gray-500">Ativos</div>
+              </div>
+              <div className="bg-white p-4 rounded border-l-4 border-green-500 shadow-sm">
+                <div className="text-2xl font-bold text-black">1.741</div>
+                <div className="text-sm text-gray-500">Contratações</div>
+              </div>
+              <div className="bg-white p-4 rounded border-l-4 border-red-500 shadow-sm">
+                <div className="text-2xl font-bold text-black">1.456</div>
+                <div className="text-sm text-gray-500">Demissões</div>
+              </div>
+              <div className="bg-white p-4 rounded border-l-4 border-red-500 shadow-sm">
+                <div className="text-2xl font-bold text-black">1.777</div>
+                <div className="text-sm text-gray-500">
+                  Períodos de Afastamento
+                </div>
               </div>
             </div>
-          </div>
 
-          {/* Gráfico de linha */}
-          <div className="bg-white p-4 rounded shadow">
-            <GraficoLinha />
+            {/* Gráfico de linha */}
+            <div className="flex-1 min-h-[400px]">
+              <GraficoLinha />
+            </div>
           </div>
         </div>
 
-        {/* Gráficos de colaboradores agrupados em 2x2 no mesmo card à direita */}
-        <div className="w-full    lg:w-1/3">
-          <div className="bg-white   rounded shadow">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4  w-full h-full p-4">
-              <div className="mb-10">
+        {/* Gráficos de colaboradores */}
+        <div className="w-full h-[655px] lg:w-1/2">
+          <div className="bg-white rounded shadow p-4 h-full">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="aspect-square w-full border border-gray-300 rounded">
                 <GraficosGenero />
               </div>
-              <div className="mb-10">
+              <div className="aspect-square w-full border border-gray-300 rounded">
                 <GraficoFaixaEtaria />
               </div>
-              <div className="mb-5">
+              <div className="aspect-square w-full border border-gray-300 rounded">
                 <GraficoCategoria />
               </div>
-              <div className="mb-10">
+              <div className="aspect-square w-full border border-gray-300 rounded">
                 <GraficoEscolaridade />
               </div>
             </div>
@@ -132,11 +195,12 @@ export default function Demografico() {
         </div>
       </div>
 
-      <div className="flex gap-4 mt-6 items-stretch">
-        <div className="w-1/2 p-4 ">
+      {/* Parte inferior: Tabela e gráfico de cargos */}
+      <div className="flex flex-col lg:flex-row gap-4 mt-6">
+        <div className="w-full lg:w-1/2 p-4 bg-white rounded shadow">
           <TabelaColaboradores />
         </div>
-        <div className="w-1/2 p-4 ">
+        <div className="w-full lg:w-1/2 p-4 bg-white rounded shadow">
           <GraficoCargo />
         </div>
       </div>
