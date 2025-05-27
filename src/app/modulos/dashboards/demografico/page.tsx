@@ -132,11 +132,11 @@ export default function Demografico() {
         </div>
       </div>
 
-      <div className="flex gap-4 mt-6">
-        <div className="w-1/2  p-4">
+      <div className="flex gap-4 mt-6 items-stretch">
+        <div className="w-1/2 p-4 ">
           <TabelaColaboradores />
         </div>
-        <div className="w-1/2  p-4">
+        <div className="w-1/2 p-4 ">
           <GraficoCargo />
         </div>
       </div>

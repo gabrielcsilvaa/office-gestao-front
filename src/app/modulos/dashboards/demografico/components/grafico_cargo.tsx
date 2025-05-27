@@ -18,20 +18,13 @@ const GraficoCargo = () => {
   const maxColaboradores = Math.max(...colaboradores.map(c => c.numeroDeColaboradores), 0);
 
   return (
-    <div style={{
-      fontFamily: 'Arial, sans-serif',
-      margin: '20px',
-      padding: '20px',
-      border: '1px solid #CBD5E0',
-      borderRadius: '8px',
-      boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
-    }}>
+    <div className='bg-white rounded-xl shadow-md h-full flex flex-col border border-gray-200 p-6'>
       <h3 style={{
         textAlign: 'center',
         marginBottom: '20px',
         fontSize: '1.1em',
         fontWeight: 'bold',
-      }}>
+      }}> 
         Colaboradores por Cargo
       </h3>
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
