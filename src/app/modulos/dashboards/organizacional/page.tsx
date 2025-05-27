@@ -103,9 +103,8 @@ export default function DashboardOrganizacional() {
         <SecaoFiltros />
       </div>
       <div className="p-4 overflow-y-auto h-full">
-        <KpiCardsGrid cardsData={cardsData} /> {/* Use the new component */}
+        <KpiCardsGrid cardsData={cardsData} />
 
-        {/* Existing row with two sections */}
         <div className="mt-4 flex flex-row gap-4">
           <EvolucaoCard
             kpiSelecionado={kpiSelecionado}
@@ -120,7 +119,6 @@ export default function DashboardOrganizacional() {
           />
         </div>
 
-        {/* New row with three sections */}
         <div className="mt-4 flex flex-row gap-4">
           <DissidioCard
             sectionIcons={sectionIcons}
