@@ -48,8 +48,8 @@ const EvolucaoChart: React.FC<EvolucaoChartProps> = ({ data, kpiName: originalKp
         margin={{
           top: 5,
           right: 20,
-          left: 0, // Adjusted left margin as Y-axis labels are hidden
-          bottom: 40, // Increased bottom margin for X-axis labels and custom text
+          left: 0,
+          bottom: 40,
         }}
       >
         <defs>
@@ -76,13 +76,6 @@ const EvolucaoChart: React.FC<EvolucaoChartProps> = ({ data, kpiName: originalKp
           tick={false} // Hide Y-axis labels (ticks)
         />
         <Tooltip content={<CustomTooltip />} />
-        <Area
-          type="monotone"
-          dataKey="value"
-          strokeWidth={0}
-          fillOpacity={1}
-          fill="url(#colorValue)"
-        />
         <Line
           type="monotone"
           dataKey="value"
