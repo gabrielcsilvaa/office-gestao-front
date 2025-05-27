@@ -2,8 +2,9 @@
 import { Cairo } from "next/font/google";
 import SecaoFiltros from "./components/SecaoFiltros";
 import KpiCardsGrid from "./components/KpiCardsGrid";
-import EvolucaoCard from "./components/EvolucaoCard"; // Import EvolucaoCard
-import { useMemo, useState } from "react"; // Import useMemo and useState
+import EvolucaoCard from "./components/EvolucaoCard";
+import ValorPorGrupoCard from "./components/ValorPorGrupoCard"; // Import ValorPorGrupoCard
+import { useMemo, useState } from "react";
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
@@ -49,6 +50,36 @@ const sectionIconsFicha = [
   { src: "/assets/icons/icon-more-options.svg", alt: "More Options" },
 ];
 
+// Data for ValorPorGrupoCard specific to Ficha Pessoal - with many items
+const valorPorGrupoDataFicha = [
+  { name: "Salário Base", value: 5000.00 },
+  { name: "Horas Extras (50%)", value: 350.75 },
+  { name: "Adicional Noturno", value: 120.20 },
+  { name: "Comissões", value: 850.00 },
+  { name: "DSR sobre Horas Extras", value: 70.15 },
+  { name: "DSR sobre Comissões", value: 170.00 },
+  { name: "Gratificação de Função", value: 600.00 },
+  { name: "Ajuda de Custo - Alimentação", value: 450.00 },
+  { name: "Ajuda de Custo - Transporte", value: 180.00 },
+  { name: "Prêmio por Desempenho", value: 1200.00 },
+  { name: "Participação nos Lucros (PLR)", value: 2500.00 },
+  { name: "Abono Pecuniário de Férias", value: 1666.67 },
+  { name: "1/3 Constitucional de Férias", value: 555.56 },
+  { name: "Salário Família", value: 90.78 },
+  { name: "Adicional de Insalubridade", value: 282.40 },
+  { name: "Adicional de Periculosidade", value: 1500.00 },
+  { name: "Quebra de Caixa", value: 150.00 },
+  { name: "INSS (Desconto)", value: -550.00 },
+  { name: "IRRF (Desconto)", value: -320.50 },
+  { name: "Contribuição Sindical (Desconto)", value: -50.00 },
+  { name: "Vale Transporte (Desconto)", value: -90.00 },
+  { name: "Vale Refeição (Desconto)", value: -70.00 },
+  { name: "Plano de Saúde (Desconto)", value: -250.00 },
+  { name: "Pensão Alimentícia (Desconto)", value: -750.00 },
+  { name: "Faltas e Atrasos (Desconto)", value: -120.00 },
+  { name: "Empréstimo Consignado (Desconto)", value: -400.00 },
+];
+
 export default function FichaPessoalPage() {
   const kpiCardData = [
     { title: "Data de Admissão", value: "01/01/2020", tooltipText: "Data de início do colaborador na empresa." },
@@ -65,36 +96,45 @@ export default function FichaPessoalPage() {
       return { month, value: parseCurrency(valueString) };
     });
   }, []);
-
-  // The EvolucaoCard title is "Evolução de Custo Total"
-  // The kpiSelecionado prop in EvolucaoCard might be used to set this title.
-  // If EvolucaoCard takes a direct title prop, that would be simpler.
-  // For now, we'll pass a value that results in the desired title.
   const evolucaoCardTitle = "Evolução de Custo Total";
 
 
   return (
-    <div className="p-4">
-      <div className="flex flex-row items-center justify-start gap-8 mb-4 border-b pb-4 border-black/10 bg-gray-100">
+    // Applying the full screen height structure for consistent layout
+    <div className="h-screen flex flex-col bg-[#f7f7f8]">
+      {/* Header Section - Fixed */}
+      <div className="flex flex-row items-center justify-start gap-8 p-4 border-b border-black/10 bg-gray-100">
         <h1 className={`text-[32px] leading-8 font-700 text-black text-left ${cairo.className}`}>
           Dashboard de Ficha Pessoal
         </h1>
         <SecaoFiltros />
       </div>
-      <KpiCardsGrid cardsData={kpiCardData} />
 
-      <div className="mt-4 flex flex-row gap-4"> {/* Wrapper for layout if needed */}
-        <EvolucaoCard
-          kpiSelecionado={evolucaoCardTitle} 
-          processedEvolucaoChartData={processedEvolucaoChartDataFicha}
-          sectionIcons={sectionIconsFicha}
-          cairoClassName={cairo.className}
-        />
-        {/* You can add other cards here in the future, side-by-side */}
+      {/* Content Section - Scrollable */}
+      <div className="flex-1 overflow-y-auto p-4">
+        <KpiCardsGrid cardsData={kpiCardData} />
+
+        <div className="mt-4 flex flex-row gap-4">
+          <div className="w-1/2"> {/* Wrapper for EvolucaoCard */}
+            <EvolucaoCard
+              kpiSelecionado={evolucaoCardTitle}
+              processedEvolucaoChartData={processedEvolucaoChartDataFicha}
+              sectionIcons={sectionIconsFicha}
+              cairoClassName={cairo.className}
+            />
+          </div>
+          <div className="w-1/2"> {/* Wrapper for ValorPorGrupoCard */}
+            <ValorPorGrupoCard
+              valorPorGrupoData={valorPorGrupoDataFicha}
+              sectionIcons={sectionIconsFicha}
+              cairoClassName={cairo.className}
+            />
+          </div>
+        </div>
+
+        {/* O restante do conteúdo do seu dashboard virá aqui */}
+        <p className="mt-4"></p>
       </div>
-
-      {/* O restante do conteúdo do seu dashboard virá aqui */}
-      <p className="mt-4"></p>
     </div>
   );
 }
