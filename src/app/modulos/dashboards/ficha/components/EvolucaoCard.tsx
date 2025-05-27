@@ -16,12 +16,13 @@ const EvolucaoCard: React.FC<EvolucaoCardProps> = ({
   cairoClassName,
 }) => {
   return (
-    <div className="w-full bg-white rounded-lg h-[627px] border border-neutral-700 relative overflow-hidden"> {/* Ensure w-full */}
-      <div className="flex justify-between items-start pt-[14px] px-5">
-        <div className="flex-grow overflow-hidden mr-3"> 
-          <div title="Evolução de Custo Total" className={`text-black text-xl font-semibold leading-normal ${cairoClassName} whitespace-nowrap overflow-hidden text-ellipsis`}>
-            Evolução de Custo Total
-          </div>
+    <div className="w-full bg-white rounded-lg h-[500px] border border-neutral-700 relative flex flex-col overflow-hidden"> {/* Changed h-[627px] to h-[500px] */}
+      <div className="flex justify-between items-center pt-[14px] px-5 pb-2 border-b border-neutral-200">
+        <div 
+          title={kpiSelecionado} 
+          className={`flex-grow overflow-hidden mr-3 text-black text-xl font-semibold leading-normal ${cairoClassName} whitespace-nowrap text-ellipsis`}
+        >
+          {kpiSelecionado}
         </div>
         <div className="flex items-center gap-2 flex-shrink-0"> 
           {sectionIcons.map((icon, index) => {
@@ -50,7 +51,7 @@ const EvolucaoCard: React.FC<EvolucaoCardProps> = ({
         </div>
       </div>
       
-      <div className="w-full h-[calc(100%-60px)] px-4 pt-0 pb-4 left-0 top-[60px] absolute bg-white"> {/* Adjusted height calc for chart area */}
+      <div className="flex-1 p-4"> {/* flex-1 to take remaining space, padding for chart */}
         <EvolucaoChart data={processedEvolucaoChartData} kpiName={kpiSelecionado} />
       </div>
     </div>

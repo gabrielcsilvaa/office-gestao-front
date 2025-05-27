@@ -14,11 +14,12 @@ const ValorPorGrupoCard: React.FC<ValorPorGrupoCardProps> = ({
   cairoClassName,
 }) => {
   return (
-    <div className="w-full bg-white rounded-lg h-[627px] border border-neutral-700 relative overflow-hidden"> 
-      <div className="w-6 h-0 left-[10px] top-[17px] absolute origin-top-left rotate-90 bg-zinc-300 outline-1 outline-offset-[-0.50px] outline-neutral-700"></div>
-      
-      <div className="flex justify-between items-center pt-[14px] px-5">
-        <div title="Valor Por Grupo e Evento" className={`flex-grow overflow-hidden mr-3 text-black text-xl font-semibold leading-normal ${cairoClassName} whitespace-nowrap text-ellipsis`}>Valor Por Grupo e Evento</div>
+    <div className="w-full bg-white rounded-lg h-[500px] border border-neutral-700 relative flex flex-col"> {/* Alterado de h-[400px] para h-[500px] */}
+      {/* Header Section */}
+      <div className="flex justify-between items-center pt-[14px] px-5 pb-2 border-b border-neutral-200 flex-shrink-0"> {/* Adicionado flex-shrink-0 */}
+        <div title="Valor Por Grupo e Evento" className={`flex-grow overflow-hidden mr-3 text-black text-xl font-semibold leading-normal ${cairoClassName} whitespace-nowrap text-ellipsis`}>
+          Valor Por Grupo e Evento
+        </div>
         <div className="flex items-center gap-2 flex-shrink-0"> 
           {sectionIcons.map((icon, index) => {
             let iconWidth = 16; 
@@ -45,8 +46,10 @@ const ValorPorGrupoCard: React.FC<ValorPorGrupoCardProps> = ({
           })}
         </div>
       </div>
-      
-      <div className="w-full h-[calc(100%-60px)] px-4 pt-0 pb-4 left-0 top-[60px] absolute bg-white"> 
+
+      {/* Chart Area - This div will scroll horizontally if the chart is wider */}
+      <div className="flex-1 overflow-x-auto overflow-y-hidden p-4 min-h-0"> {/* Adicionado min-h-0 */}
+        {/* The ValorPorGrupoChart component will be responsible for its own width */}
         <ValorPorGrupoChart data={valorPorGrupoData} />
       </div>
     </div>

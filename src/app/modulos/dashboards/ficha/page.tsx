@@ -98,9 +98,7 @@ export default function FichaPessoalPage() {
   }, []);
   const evolucaoCardTitle = "Evolução de Custo Total";
 
-
   return (
-    // Applying the full screen height structure for consistent layout
     <div className="h-screen flex flex-col bg-[#f7f7f8]">
       {/* Header Section - Fixed */}
       <div className="flex flex-row items-center justify-start gap-8 p-4 border-b border-black/10 bg-gray-100">
@@ -115,7 +113,7 @@ export default function FichaPessoalPage() {
         <KpiCardsGrid cardsData={kpiCardData} />
 
         <div className="mt-4 flex flex-row gap-4">
-          <div className="w-1/2"> {/* Wrapper for EvolucaoCard */}
+          <div className="w-1/2 max-w-[50%] min-w-0 overflow-hidden"> {/* Adicionado max-w-[50%] min-w-0 */}
             <EvolucaoCard
               kpiSelecionado={evolucaoCardTitle}
               processedEvolucaoChartData={processedEvolucaoChartDataFicha}
@@ -123,7 +121,7 @@ export default function FichaPessoalPage() {
               cairoClassName={cairo.className}
             />
           </div>
-          <div className="w-1/2"> {/* Wrapper for ValorPorGrupoCard */}
+          <div className="w-1/2 max-w-[50%] min-w-0 overflow-hidden"> {/* Adicionado max-w-[50%] min-w-0 */}
             <ValorPorGrupoCard
               valorPorGrupoData={valorPorGrupoDataFicha}
               sectionIcons={sectionIconsFicha}
