@@ -14,11 +14,16 @@ const ValorPorGrupoCard: React.FC<ValorPorGrupoCardProps> = ({
   cairoClassName,
 }) => {
   return (
-    <div className="w-full bg-white rounded-lg h-[500px] border border-neutral-700 relative flex flex-col"> {/* Alterado de h-[400px] para h-[500px] */}
+    <div className="w-full bg-white rounded-lg h-[500px] border border-neutral-700 relative overflow-hidden">
+      <div className="w-6 h-0 left-[10px] top-[17px] absolute origin-top-left rotate-90 bg-zinc-300 outline-1 outline-offset-[-0.50px] outline-neutral-700"></div>
+      
       {/* Header Section */}
-      <div className="flex justify-between items-center pt-[14px] px-5 pb-2 border-b border-neutral-200 flex-shrink-0"> {/* Adicionado flex-shrink-0 */}
-        <div title="Valor Por Grupo e Evento" className={`flex-grow overflow-hidden mr-3 text-black text-xl font-semibold leading-normal ${cairoClassName} whitespace-nowrap text-ellipsis`}>
-          Valor Por Grupo e Evento
+      <div className="flex justify-between items-start pt-[14px] px-5">
+        <div className="flex-grow overflow-hidden mr-3">
+          <div title="Valor Por Grupo e Evento" className={`text-black text-xl font-semibold leading-normal ${cairoClassName} whitespace-nowrap overflow-hidden text-ellipsis`}>
+            Valor Por Grupo e Evento
+          </div>
+          {/* Removido o subtítulo "Proventos e Descontos" */}
         </div>
         <div className="flex items-center gap-2 flex-shrink-0"> 
           {sectionIcons.map((icon, index) => {
@@ -47,8 +52,8 @@ const ValorPorGrupoCard: React.FC<ValorPorGrupoCardProps> = ({
         </div>
       </div>
 
-      {/* Chart Area - This div will scroll horizontally if the chart is wider */}
-      <div className="flex-1 overflow-x-auto overflow-y-hidden p-4 min-h-0"> {/* Adicionado min-h-0 */}
+      {/* Chart Area */}
+      <div className="w-full h-[410px] px-4 pt-0 pb-4 left-0 top-[90px] absolute bg-white">
         {/* The ValorPorGrupoChart component will be responsible for its own width */}
         <ValorPorGrupoChart data={valorPorGrupoData} />
       </div>
