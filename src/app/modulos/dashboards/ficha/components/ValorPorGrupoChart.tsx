@@ -23,7 +23,7 @@ interface ValorPorGrupoChartProps {
 }
 
 const ValorPorGrupoChart: React.FC<ValorPorGrupoChartProps> = ({ data }) => {
-  const ITEM_WIDTH = 25;
+  const ITEM_WIDTH = 28; // Reduzido de 40 para 28 para controlar largura total
   const chartWidth = Math.max(data.length * ITEM_WIDTH, 280);
 
   const formatCurrency = (value: number) => {
@@ -78,7 +78,7 @@ const ValorPorGrupoChart: React.FC<ValorPorGrupoChartProps> = ({ data }) => {
             left: 15,
             bottom: 80,
           }}
-          barCategoryGap="15%"
+          barCategoryGap="20%" // Reduzido de 30% para 20%
         >
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e0e0e0" />
           <XAxis
