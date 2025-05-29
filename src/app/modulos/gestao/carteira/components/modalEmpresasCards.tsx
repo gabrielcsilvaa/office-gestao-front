@@ -144,7 +144,7 @@ export default function ModalEmpresasCard({
     return allEmpresas;
   };
   return (
-    <div className="flex flex-col gap-4 overflow-x-auto max-h-[700px] w-full">
+    <div className=" max-h-[90vh] flex flex-col gap-4 overflow-x-auto w-full">
       <div className="flex items-center justify-between p-4 bg-white shadow rounded-md mb-4">
         <h1 className={`text-2xl font-bold ${cairo.className} text-gray-800`}>
           Empresas por Situação
