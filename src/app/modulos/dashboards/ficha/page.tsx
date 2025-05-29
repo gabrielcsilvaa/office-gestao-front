@@ -5,6 +5,7 @@ import KpiCardsGrid from "./components/KpiCardsGrid";
 import EvolucaoCard from "./components/EvolucaoCard";
 import ValorPorGrupoCard from "./components/ValorPorGrupoCard"; // Import ValorPorGrupoCard
 import AtestadosTable from "./components/AtestadosTable"; // Import AtestadosTable
+import AfastamentosTable from "./components/AfastamentosTable"; // Novo componente
 import { useMemo, useState } from "react";
 
 const cairo = Cairo({
@@ -100,6 +101,14 @@ const atestadosData = [
   { vencimento: "03/04/2020", dataExame: "03/04/2019", resultado: "Apto com restrições", tipo: "Periódico" },
 ];
 
+// Dados mock para AfastamentosTable (baseado no CSV fornecido)
+const mockAfastamentos = [
+  { inicio: "13/08/2015", termino: "10/12/2015", tipo: "Licença maternidade", diasAfastados: "120" },
+  { inicio: "01/01/2016", termino: "03/01/2016", tipo: "Doença período igual ou inferior a 15 dias", diasAfastados: "3" },
+  { inicio: "21/09/2015", termino: "18/01/2016", tipo: "Licença maternidade", diasAfastados: "120" },
+  { inicio: "04/01/2016", termino: "04/01/2016", tipo: "Doença período igual ou inferior a 15 dias", diasAfastados: "1" },
+];
+
 export default function FichaPessoalPage() {
   const kpiCardData = [
     { title: "Data de Admissão", value: "01/01/2020", tooltipText: "Data de início do colaborador na empresa." },
@@ -150,13 +159,28 @@ export default function FichaPessoalPage() {
           </div>
         </div>
 
-        {/* Tabela de Atestados - Now using the component */}
-        <div className="mt-8 flex flex-row gap-4"> {/* Added flex container for layout */}
-          <div className="w-1/3 max-w-[33.333333%] min-w-0 overflow-hidden h-[500px]"> {/* Container for AtestadosTable - Adicionado h-[500px] */}
+        {/* Seção para Afastamentos e Atestados - Now using the component */}
+        {/* The h-[350px] on this grid sets the fixed height for the row */}
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6 h-[350px]"> 
+          {/* Coluna 1: Histórico de Atestados */}
+          <div className="lg:col-span-1 h-full overflow-hidden"> {/* Added overflow-hidden */}
             <AtestadosTable 
               atestadosData={atestadosData} 
               cairoClassName={cairo.className} 
             />
+          </div>
+
+          {/* Coluna 2: Histórico de Afastamentos */}
+          <div className="lg:col-span-1 h-full overflow-hidden"> {/* Added overflow-hidden */}
+            <AfastamentosTable 
+              afastamentosData={mockAfastamentos} 
+              cairoClassName={cairo.className} 
+            />
+          </div>
+
+          {/* Coluna 3: Pode ser um placeholder ou outro card */}
+          <div className="lg:col-span-1 bg-gray-50 rounded-lg border border-neutral-700 p-4 flex items-center justify-center h-full overflow-hidden"> {/* Added overflow-hidden */}
+            <span className="text-gray-400">Coluna 3 (Placeholder)</span>
           </div>
         </div>
 
