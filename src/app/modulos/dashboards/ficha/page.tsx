@@ -7,8 +7,8 @@ import ValorPorGrupoCard from "./components/ValorPorGrupoCard"; // Import ValorP
 import AtestadosTable from "./components/AtestadosTable"; // Import AtestadosTable
 import AfastamentosTable from "./components/AfastamentosTable"; // Novo componente
 import ContratosTable from "./components/ContratosTable"; // Import ContratosTable
-import AlteracoesSalariaisDetalheCard from "./components/AlteracoesSalariaisDetalheCard"; // Import AlteracoesSalariaisDetalheCard
 import FeriasDetalheCard from "./components/FeriasDetalheCard"; // Import FeriasDetalheCard
+import AlteracoesSalariaisDetalheCard from "./components/AlteracoesSalariaisDetalheCard"; // Import AlteracoesSalariaisDetalheCard
 import { useMemo, useState } from "react";
 
 const cairo = Cairo({
@@ -143,6 +143,20 @@ const mockContratosRaw = [
   { id: "14", empresa: "Empresa Mu", colaborador: "Patrícia Ribeiro", dataAdmissao: "25/07/2022", dataRescisao: "10/10/2023", salarioBase: "R$ 3.900,00" },
 ];
 
+// Sample data for FeriasDetalheCard
+const sampleFeriasDetalheData = [
+  { inicioPeriodoAquisitivo: "2022-01-01", fimPeriodoAquisitivo: "2022-12-31", limiteParaGozo: "2023-11-30", diasDeDireito: 30, diasGozados: 15, diasDeSaldo: 15, status: "A Vencer" },
+  { inicioPeriodoAquisitivo: "2021-01-01", fimPeriodoAquisitivo: "2021-12-31", limiteParaGozo: "2022-11-30", diasDeDireito: 30, diasGozados: 30, diasDeSaldo: 0, status: "Gozado" },
+  // Add more entries if needed to fill up to a certain number or for testing scroll
+];
+
+// Sample data for AlteracoesSalariaisDetalheCard
+const sampleAlteracoesSalariaisDetalheData = [
+  { data: "2023-05-15", tipo: "Promoção", motivo: "Desempenho Excepcional", salarioAnterior: 5000, salarioNovo: 6000, percentual: "20.00%" },
+  { data: "2024-01-10", tipo: "Ajuste Anual", motivo: "Inflação e Custo de Vida", salarioAnterior: 6000, salarioNovo: 6300, percentual: "5.00%" },
+  // Add more entries
+];
+
 
 export default function FichaPessoalPage() {
   const kpiCardData = [
@@ -192,24 +206,10 @@ export default function FichaPessoalPage() {
       id: `placeholder-${index}`, empresa: "", colaborador: "", dataAdmissao: "", dataRescisao: "", salarioBase: ""
     });
 
-    // Sample data for detail cards - can be fetched or defined here if needed
-    // For now, components use their internal sample data by default
-    const sampleFeriasDetalhe = [
-      { inicioPeriodoAquisitivo: "2022-01-01", fimPeriodoAquisitivo: "2022-12-31", limiteParaGozo: "2023-11-30", diasDeDireito: 30, diasGozados: 15, diasDeSaldo: 15, status: "A Vencer" },
-      { inicioPeriodoAquisitivo: "2021-01-01", fimPeriodoAquisitivo: "2021-12-31", limiteParaGozo: "2022-11-30", diasDeDireito: 30, diasGozados: 30, diasDeSaldo: 0, status: "Gozado" },
-    ];
-    const sampleAlteracoesSalariaisDetalhe = [
-      { data: "2023-05-15", tipo: "Promoção", motivo: "Desempenho Excepcional", salarioAnterior: 5000, salarioNovo: 6000, percentual: "20.00%" },
-      { data: "2024-01-10", tipo: "Ajuste Anual", motivo: "Inflação e Custo de Vida", salarioAnterior: 6000, salarioNovo: 6300, percentual: "5.00%" },
-    ];
-
-
     return {
       atestados: padArray(atestadosDataRaw, targetLength, atestadoPlaceholder),
       afastamentos: padArray(mockAfastamentosRaw, targetLength, afastamentoPlaceholder),
       contratos: padArray(mockContratosRaw, targetLength, contratoPlaceholder),
-      feriasDetalhe: padArray(sampleFeriasDetalhe, targetLength, () => ({ inicioPeriodoAquisitivo: "", fimPeriodoAquisitivo: "", limiteParaGozo: "", diasDeDireito: 0, diasGozados: 0, diasDeSaldo: 0 })),
-      alteracoesSalariaisDetalhe: padArray(sampleAlteracoesSalariaisDetalhe, targetLength, () => ({ data: "", tipo: "", motivo: "", salarioAnterior: 0, salarioNovo: 0, percentual: "" })),
     };
   }, []);
 
@@ -227,8 +227,9 @@ export default function FichaPessoalPage() {
       <div className="flex-1 overflow-y-auto p-4">
         <KpiCardsGrid cardsData={kpiCardData} />
 
-        <div className="mt-4 flex flex-row gap-4 h-[400px]">
-          <div className="w-1/2 max-w-[50%] min-w-0 overflow-hidden h-full flex flex-col"> {/* Adicionado flex flex-col */}
+        {/* Standardized to mt-6 and gap-6. Changed from flex to grid for consistency. */}
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 h-[400px]">
+          <div className="w-full h-full flex flex-col overflow-hidden"> {/* Ensure w-full for grid child */}
             <EvolucaoCard
               kpiSelecionado={evolucaoCardTitle}
               processedEvolucaoChartData={processedEvolucaoChartDataFicha}
@@ -236,7 +237,7 @@ export default function FichaPessoalPage() {
               cairoClassName={cairo.className}
             />
           </div>
-          <div className="w-1/2 max-w-[50%] min-w-0 overflow-hidden h-full flex flex-col"> {/* Adicionado flex flex-col */}
+          <div className="w-full h-full flex flex-col overflow-hidden"> {/* Ensure w-full for grid child */}
             <ValorPorGrupoCard
               valorPorGrupoData={valorPorGrupoDataFicha}
               sectionIcons={sectionIconsFicha}
@@ -245,9 +246,9 @@ export default function FichaPessoalPage() {
           </div>
         </div>
 
-        {/* Seção para Afastamentos e Atestados - Now using the component */}
+        {/* Seção para Afastamentos e Atestados - Standardized to mt-6 (gap-6 already present) */}
         {/* The h-[350px] on this grid sets the fixed height for the row */}
-        <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6 h-[350px]"> 
+        <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6 h-[350px]"> 
           {/* Coluna 1: Histórico de Atestados */}
           <div className="lg:col-span-1 h-full overflow-hidden"> {/* Added overflow-hidden */}
             <AtestadosTable 
@@ -267,7 +268,7 @@ export default function FichaPessoalPage() {
           </div>
 
           {/* Coluna 3: Histórico de Contratos */}
-          <div className="lg:col-span-1 h-full overflow-hidden"> {/* Added overflow-hidden */}
+          <div className="lg:col-span-1 h-full overflow-hidden">
             <ContratosTable
               contratosData={processedTableData.contratos}
               cairoClassName={cairo.className}
@@ -275,30 +276,29 @@ export default function FichaPessoalPage() {
             />
           </div>
         </div>
-
-        {/* Nova seção para AlteracoesSalariaisDetalheCard e FeriasDetalheCard */}
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 h-[350px]">
-          {/* Coluna 1: Histórico de Alterações Salariais Detalhado */}
-          <div className="md:col-span-1 h-full overflow-hidden">
-            <AlteracoesSalariaisDetalheCard
-              alteracoesData={processedTableData.alteracoesSalariaisDetalhe} // Using processed data
+        
+        {/* New section for FeriasDetalheCard and AlteracoesSalariaisDetalheCard */}
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 h-[450px]"> {/* Adjust height as needed */}
+          <div className="h-full overflow-hidden">
+            <FeriasDetalheCard
+              feriasData={sampleFeriasDetalheData}
               cairoClassName={cairo.className}
-              headerIcons={tableHeaderIcons} // Reusing same icons for consistency
+              headerIcons={tableHeaderIcons}
+              title="Detalhes de Férias"
             />
           </div>
-
-          {/* Coluna 2: Histórico de Férias Detalhado */}
-          <div className="md:col-span-1 h-full overflow-hidden">
-            <FeriasDetalheCard
-              feriasData={processedTableData.feriasDetalhe} // Using processed data
+          <div className="h-full overflow-hidden">
+            <AlteracoesSalariaisDetalheCard
+              alteracoesData={sampleAlteracoesSalariaisDetalheData}
               cairoClassName={cairo.className}
-              headerIcons={tableHeaderIcons} // Reusing same icons for consistency
+              headerIcons={tableHeaderIcons}
+              title="Detalhes de Alterações Salariais"
             />
           </div>
         </div>
 
         {/* O restante do conteúdo do seu dashboard virá aqui */}
-        <p className="mt-4"></p>
+        <p className="mt-4"></p> {/* This can be removed if not needed */}
       </div>
     </div>
   );
