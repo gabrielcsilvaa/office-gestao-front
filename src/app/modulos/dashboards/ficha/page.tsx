@@ -4,6 +4,7 @@ import SecaoFiltros from "./components/SecaoFiltros";
 import KpiCardsGrid from "./components/KpiCardsGrid";
 import EvolucaoCard from "./components/EvolucaoCard";
 import ValorPorGrupoCard from "./components/ValorPorGrupoCard"; // Import ValorPorGrupoCard
+import AtestadosTable from "./components/AtestadosTable"; // Import AtestadosTable
 import { useMemo, useState } from "react";
 
 const cairo = Cairo({
@@ -80,6 +81,25 @@ const valorPorGrupoDataFicha = [
   { name: "Empréstimo Consignado (Desconto)", value: -400.00 },
 ];
 
+// Dados de amostra do CSV para representar todos os tipos de resultados e tipos de exame
+// This data will be passed to the AtestadosTable component
+const atestadosData = [
+  { vencimento: "30/10/2023", dataExame: "30/10/2021", resultado: "Apto", tipo: "Admissional" },
+  { vencimento: "06/01/2023", dataExame: "07/01/2022", resultado: "Apto", tipo: "Periódico" },
+  { vencimento: "22/12/2022", dataExame: "23/12/2021", resultado: "Apto", tipo: "Mudança de Função" },
+  { vencimento: "12/12/2022", dataExame: "13/12/2021", resultado: "Apto", tipo: "Retorno ao Trabalho" },
+  { vencimento: "07/11/2022", dataExame: "08/11/2021", resultado: "Apto", tipo: "Demissional" },
+  { vencimento: "27/02/2013", dataExame: "28/02/2012", resultado: "Apto", tipo: "Periódico" }, // Dado atualizado
+  { vencimento: "15/05/2024", dataExame: "15/05/2023", resultado: "Apto", tipo: "Periódico" },
+  { vencimento: "10/08/2023", dataExame: "10/08/2022", resultado: "Inapto", tipo: "Periódico" },
+  { vencimento: "20/03/2023", dataExame: "20/03/2022", resultado: "Apto com restrições", tipo: "Mudança de Função" },
+  { vencimento: "05/07/2022", dataExame: "05/07/2021", resultado: "Apto", tipo: "Retorno ao Trabalho" },
+  { vencimento: "14/02/2022", dataExame: "14/02/2020", resultado: "Apto", tipo: "Admissional" },
+  { vencimento: "18/09/2021", dataExame: "18/09/2020", resultado: "Apto", tipo: "Periódico" },
+  { vencimento: "25/11/2020", dataExame: "25/11/2019", resultado: "Apto", tipo: "Demissional" },
+  { vencimento: "03/04/2020", dataExame: "03/04/2019", resultado: "Apto com restrições", tipo: "Periódico" },
+];
+
 export default function FichaPessoalPage() {
   const kpiCardData = [
     { title: "Data de Admissão", value: "01/01/2020", tooltipText: "Data de início do colaborador na empresa." },
@@ -113,7 +133,7 @@ export default function FichaPessoalPage() {
         <KpiCardsGrid cardsData={kpiCardData} />
 
         <div className="mt-4 flex flex-row gap-4">
-          <div className="w-1/2 max-w-[50%] min-w-0 overflow-hidden"> {/* Adicionado max-w-[50%] min-w-0 */}
+          <div className="w-1/2 max-w-[50%] min-w-0 overflow-hidden">
             <EvolucaoCard
               kpiSelecionado={evolucaoCardTitle}
               processedEvolucaoChartData={processedEvolucaoChartDataFicha}
@@ -121,11 +141,21 @@ export default function FichaPessoalPage() {
               cairoClassName={cairo.className}
             />
           </div>
-          <div className="w-1/2 max-w-[50%] min-w-0 overflow-hidden"> {/* Adicionado max-w-[50%] min-w-0 */}
+          <div className="w-1/2 max-w-[50%] min-w-0 overflow-hidden">
             <ValorPorGrupoCard
               valorPorGrupoData={valorPorGrupoDataFicha}
               sectionIcons={sectionIconsFicha}
               cairoClassName={cairo.className}
+            />
+          </div>
+        </div>
+
+        {/* Tabela de Atestados - Now using the component */}
+        <div className="mt-8 flex flex-row gap-4"> {/* Added flex container for layout */}
+          <div className="w-1/3 max-w-[33.333333%] min-w-0 overflow-hidden h-[500px]"> {/* Container for AtestadosTable - Adicionado h-[500px] */}
+            <AtestadosTable 
+              atestadosData={atestadosData} 
+              cairoClassName={cairo.className} 
             />
           </div>
         </div>
