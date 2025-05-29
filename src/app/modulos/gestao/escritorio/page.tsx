@@ -2,14 +2,29 @@
 import { useState, useEffect } from "react";
 import Calendar from "@/components/calendar";
 import Evolucao from "./components/cardRentabilidade";
+import Reload from "@/components/reload";
+interface Escritorio {
+  codigo: number;
+  escritorio: string;
+  clientes: Record<string, number>;
+  faturamento: Record<string, [number, string?]>;
+  tempo_ativo: Record<string, number>;
+  importacoes: {
+    lancamentos: Record<string, number>;
+    porcentagem_lancamentos_manuais: Record<string, string>;
+    total_geral: number;
+  };
+  vinculos_folha_ativos: Record<string, number>;
+}
+
 
 export default function Escritorio() {
   const thStyle = "px-4 py-2 text-left text-sm font-semibold bg-gray-100 border-b border-gray-300 capitalize text-[#373A40]";
   const tdStyle = "whitespace-nowrap px-4 py-2 text-sm border-b border-gray-300 text-[#373A40]";
   const tdMetricStyle = `${tdStyle} font-semibold`;
 
-  const [escritorios, setEscritorios] = useState<any[]>([]);
-  const [escritorioSelecionado, setEscritorioSelecionado] = useState<any | null>(null);
+  const [escritorios, setEscritorios] = useState<Escritorio[]>([]);
+  const [escritorioSelecionado, setEscritorioSelecionado] = useState<Escritorio | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [startDate, setStartDate] = useState<string | null>("2024-01-01");
@@ -62,7 +77,7 @@ export default function Escritorio() {
     fetchEscritorios();
   }, [startDate, endDate]);
 
-  if (loading) return <div className="p-4">Carregando dados...</div>;
+  if (loading) return <div className="p-4"><Reload/></div>;
   if (error) return <div className="p-4 text-red-600">Erro: {error}</div>;
   if (!escritorioSelecionado) return <div className="p-4">Nenhum escritório selecionado</div>;
 
@@ -88,75 +103,181 @@ export default function Escritorio() {
   const data = [
     {
       metric: "Quantidade de Clientes",
-      values: meses.map(mes => String(escritorioSelecionado.clientes[mes] || 0)),
+      values: [
+          ...meses.map(mes => String(escritorioSelecionado.clientes[mes] || 0)),
+          // Soma total como último valor:
+          (() => {return "-"
+          })()
+        ],
     },
     {
       metric: "Faturamento do Escritório",
-      values: meses.map(mes => {
-        const val = escritorioSelecionado.faturamento[mes];
-        if (!val || !Array.isArray(val) || val.length === 0) return "R$ 0";
-        return formatCurrency(val[0]);
-      }),
+      values: [
+        ...meses.map(mes => {
+          const val = escritorioSelecionado.faturamento[mes];
+          if (!val || !Array.isArray(val) || val.length === 0) return "R$ 0";
+          return formatCurrency(val[0]);
+        }),
+        // Total final
+        (() => {
+          const soma = meses.reduce((sum, mes) => {
+            const val = escritorioSelecionado.faturamento[mes];
+            const num = (Array.isArray(val) && val[0]) ? Number(val[0]) : 0;
+            return sum + (isNaN(num) ? 0 : num);
+          }, 0);
+          return formatCurrency(soma);
+        })()
+      ],
     },
     {
       metric: "Variação de Faturamento",
-      values: meses.map(mes => {
-        const val = escritorioSelecionado.faturamento[mes];
-        if (!val || !Array.isArray(val) || val.length < 2) return "0%";
-        return val[1].replace(".", ",");
-      }),
+      values: [
+        ...meses.map(mes => {
+          const val = escritorioSelecionado.faturamento[mes];
+          if (!val || !Array.isArray(val) || val.length < 2) return "0%";
+          return val[1].replace(".", ",");
+        }),
+        (() => {
+          const soma = meses.reduce((sum, mes) => {
+            const val = escritorioSelecionado.faturamento[mes];
+            if (!val || !Array.isArray(val) || val.length < 2) return sum;
+            const num = parseFloat(val[1].replace(",", ".").replace("%", ""));
+            return isNaN(num) ? sum : sum + num;
+          }, 0);
+          return soma.toFixed(2).replace(".", ",") + "%";
+        })()
+      ],
     },
     {
       metric: "Tempo Ativo no Sistema",
-      values: meses.map(mes => {
-        const val = escritorioSelecionado.tempo_ativo[mes];
-        return val ? formatTempoAtivo(val) : "00:00:00";
-      }),
+      values: [
+        ...meses.map(mes => {
+          const val = escritorioSelecionado.tempo_ativo[mes];
+          return val ? formatTempoAtivo(val) : "00:00:00";
+        }),
+        (() => {
+          const totalSegundos = meses.reduce((sum, mes) => {
+            const val = escritorioSelecionado.tempo_ativo[mes];
+            return sum + (val && !isNaN(val) ? val : 0);
+          }, 0);
+          return formatTempoAtivo(totalSegundos);
+        })()
+      ],
     },
     {
       metric: "Lançamentos",
-      values: meses.map(mes => String(escritorioSelecionado.importacoes.lancamentos[mes] || 0)),
+      values: [
+        ...meses.map(mes => String(escritorioSelecionado.importacoes.lancamentos[mes] || 0)),
+        (() => {
+          const soma = meses.reduce((sum, mes) => {
+            const val = escritorioSelecionado.importacoes.lancamentos[mes];
+            const num = Number(val);
+            return sum + (isNaN(num) ? 0 : num);
+          }, 0);
+          return soma.toLocaleString("pt-BR");
+        })()
+      ],
     },
     {
       metric: "% de Lançamentos Manuais",
-      values: meses.map(mes => escritorioSelecionado.importacoes.porcentagem_lancamentos_manuais[mes] || "0.0%"),
+      values: [
+        ...meses.map(mes => escritorioSelecionado.importacoes.porcentagem_lancamentos_manuais[mes] || "0.0%"),
+        (() => {
+          const soma = meses.reduce((sum, mes) => {
+            const val = escritorioSelecionado.importacoes.porcentagem_lancamentos_manuais[mes];
+            if (!val) return sum;
+            const num = parseFloat(val.replace(",", ".").replace("%", ""));
+            return isNaN(num) ? sum : sum + num;
+          }, 0);
+          return soma.toFixed(2).replace(".", ",") + "%";
+        })()
+      ],
     },
     {
       metric: "Vínculos de Folhas Ativos",
-      values: meses.map(mes => String(escritorioSelecionado.vinculos_folha_ativos[mes] || 0)),
+      values: [
+        ...meses.map(mes => String(escritorioSelecionado.vinculos_folha_ativos[mes] || 0)),
+        (() => {
+          const soma = meses.reduce((sum, mes) => {
+            const val = escritorioSelecionado.vinculos_folha_ativos[mes];
+            const num = Number(val);
+            return sum + (isNaN(num) ? 0 : num);
+          }, 0);
+          return soma.toLocaleString("pt-BR");
+        })()
+      ],
     },
     {
       metric: "Notas Fiscais Emitidas",
-      values: meses.map(() => String(escritorioSelecionado.importacoes.total_geral || 0)),
+      values: [
+        ...meses.map(() => String(escritorioSelecionado.importacoes.total_geral || 0)),
+        (() => {
+          const totalGeral = Number(escritorioSelecionado.importacoes.total_geral || 0);
+          const soma = totalGeral * meses.length;
+          return soma.toLocaleString("pt-BR");
+        })()
+      ],
     },
     {
       metric: "Total de Notas Fiscais Movimentadas",
-      values: meses.map(() => String(escritorioSelecionado.importacoes.total_geral || 0)),
+      values: [
+        ...meses.map(() => String(escritorioSelecionado.importacoes.total_geral || 0)),
+        (() => {
+          const totalGeral = Number(escritorioSelecionado.importacoes.total_geral || 0);
+          const soma = totalGeral * meses.length;
+          return soma.toLocaleString("pt-BR");
+        })()
+      ],
     },
     {
       metric: "Custo Operacional",
-      values: meses.map(mes => {
-        const horas = (escritorioSelecionado?.tempo_ativo?.[mes] ?? 0) / 3600;
-        const custo = parseFloat(process.env.NEXT_PUBLIC_CUSTO_HORA || "0") * horas
-        return formatCurrency(custo)
-      })
+      values: [
+        ...meses.map(mes => {
+          const horas = (escritorioSelecionado?.tempo_ativo?.[mes] ?? 0) / 3600;
+          const custo = parseFloat(process.env.NEXT_PUBLIC_CUSTO_HORA || "0") * horas;
+          return formatCurrency(custo);
+        }),
+        (() => {
+          const totalCusto = meses.reduce((sum, mes) => {
+            const horas = (escritorioSelecionado?.tempo_ativo?.[mes] ?? 0) / 3600;
+            const custo = parseFloat(process.env.NEXT_PUBLIC_CUSTO_HORA || "0") * horas;
+            return sum + custo;
+          }, 0);
+          return formatCurrency(totalCusto);
+        })()
+      ],
     },
     {
       metric: "Rentabilidade Operacional",
-      values: meses.map(mes => {
-        const horas = (escritorioSelecionado?.tempo_ativo?.[mes] ?? 0) / 3600;
+      values: [
+        ...meses.map(mes => {
+          const horas = (escritorioSelecionado?.tempo_ativo?.[mes] ?? 0) / 3600;
+          const custoHora = parseFloat(process.env.NEXT_PUBLIC_CUSTO_HORA || "0");
+          const custo = custoHora * horas;
 
-        const custoHora = parseFloat(process.env.NEXT_PUBLIC_CUSTO_HORA || "0");
-        const custo = custoHora * horas;
+          const faturamentoMes = escritorioSelecionado?.faturamento?.[mes];
+          const valorFaturado = Array.isArray(faturamentoMes) ? parseFloat(faturamentoMes[0] || "0") : 0;
 
-        const faturamentoMes = escritorioSelecionado?.faturamento?.[mes];
-        const valorFaturado = Array.isArray(faturamentoMes) ? parseFloat(faturamentoMes[0] || "0") : 0;
+          const rentabilidade = valorFaturado - custo;
 
-        const rentabilidade = valorFaturado - custo;
+          return formatCurrency(rentabilidade);
+        }),
+        (() => {
+          const totalRentabilidade = meses.reduce((sum, mes) => {
+            const horas = (escritorioSelecionado?.tempo_ativo?.[mes] ?? 0) / 3600;
+            const custoHora = parseFloat(process.env.NEXT_PUBLIC_CUSTO_HORA || "0");
+            const custo = custoHora * horas;
 
-        return formatCurrency(rentabilidade);
-    })
-  }
+            const faturamentoMes = escritorioSelecionado?.faturamento?.[mes];
+            const valorFaturado = Array.isArray(faturamentoMes) ? parseFloat(faturamentoMes[0] || "0") : 0;
+
+            const rentabilidade = valorFaturado - custo;
+            return sum + rentabilidade;
+          }, 0);
+          return formatCurrency(totalRentabilidade);
+        })()
+      ],
+    }
   ];
 
   return (
@@ -203,6 +324,9 @@ export default function Escritorio() {
                   {mes}
                 </th>
               ))}
+              <th className={thStyle}>
+                  Total
+                </th>
             </tr>
           </thead>
           <tbody>
