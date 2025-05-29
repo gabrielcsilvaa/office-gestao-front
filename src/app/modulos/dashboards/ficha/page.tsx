@@ -108,6 +108,16 @@ const mockAfastamentosRaw = [
   { inicio: "01/01/2016", termino: "03/01/2016", tipo: "Doença período igual ou inferior a 15 dias", diasAfastados: "3" },
   { inicio: "21/09/2015", termino: "18/01/2016", tipo: "Licença maternidade", diasAfastados: "120" },
   { inicio: "04/01/2016", termino: "04/01/2016", tipo: "Doença período igual ou inferior a 15 dias", diasAfastados: "1" },
+  { inicio: "10/03/2017", termino: "25/03/2017", tipo: "Licença paternidade", diasAfastados: "15" },
+  { inicio: "05/06/2018", termino: "05/07/2018", tipo: "Férias", diasAfastados: "30" },
+  { inicio: "15/09/2019", termino: "20/09/2019", tipo: "Doença período igual ou inferior a 15 dias", diasAfastados: "5" },
+  { inicio: "01/02/2020", termino: "15/02/2020", tipo: "Acidente de trabalho", diasAfastados: "14" },
+  { inicio: "10/07/2021", termino: "10/08/2021", tipo: "Licença não remunerada", diasAfastados: "31" },
+  { inicio: "03/11/2021", termino: "03/11/2021", tipo: "Atestado médico", diasAfastados: "1" },
+  { inicio: "20/01/2022", termino: "20/04/2022", tipo: "Licença maternidade", diasAfastados: "90" }, // Exemplo de licença mais curta
+  { inicio: "05/05/2022", termino: "10/05/2022", tipo: "Doença período igual ou inferior a 15 dias", diasAfastados: "5" },
+  { inicio: "01/08/2023", termino: "15/08/2023", tipo: "Férias", diasAfastados: "15" },
+  { inicio: "10/10/2023", termino: "12/10/2023", tipo: "Atestado médico", diasAfastados: "3" },
 ];
 
 // Dados mock para ContratosTable
@@ -119,6 +129,13 @@ const mockContratosRaw = [
   { id: "5", empresa: "Empresa Delta", colaborador: "Ana Costa", dataAdmissao: "20/11/2022", salarioBase: "R$ 4.500,00" },
   { id: "6", empresa: "Empresa Epsilon", colaborador: "Lucas Martins", dataAdmissao: "01/02/2017", dataRescisao: "15/08/2019", salarioBase: "R$ 2.800,00" },
   { id: "7", empresa: "Empresa Epsilon", colaborador: "Lucas Martins", dataAdmissao: "01/09/2019", salarioBase: "R$ 3.200,00" },
+  { id: "8", empresa: "Empresa Zeta", colaborador: "Beatriz Souza", dataAdmissao: "10/05/2021", salarioBase: "R$ 4.000,00" },
+  { id: "9", empresa: "Empresa Eta", colaborador: "Rafael Lima", dataAdmissao: "22/08/2017", dataRescisao: "30/09/2020", salarioBase: "R$ 3.300,00" },
+  { id: "10", empresa: "Empresa Theta", colaborador: "Juliana Alves", dataAdmissao: "03/03/2023", salarioBase: "R$ 4.800,00" },
+  { id: "11", empresa: "Empresa Iota", colaborador: "Fernando Rocha", dataAdmissao: "19/06/2016", dataRescisao: "10/01/2019", salarioBase: "R$ 2.950,00" },
+  { id: "12", empresa: "Empresa Kappa", colaborador: "Camila Santos", dataAdmissao: "08/12/2020", salarioBase: "R$ 3.700,00" },
+  { id: "13", empresa: "Empresa Lambda", colaborador: "Gustavo Mendes", dataAdmissao: "14/04/2018", salarioBase: "R$ 4.100,00" },
+  { id: "14", empresa: "Empresa Mu", colaborador: "Patrícia Ribeiro", dataAdmissao: "25/07/2022", dataRescisao: "10/10/2023", salarioBase: "R$ 3.900,00" },
 ];
 
 
