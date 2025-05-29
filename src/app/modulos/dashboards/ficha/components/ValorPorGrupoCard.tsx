@@ -44,7 +44,7 @@ const ValorPorGrupoCard: React.FC<ValorPorGrupoCardProps> = ({
       </div>
       
       {/* Chart Area */}
-      <div className="flex-1 px-1 pb-1 min-h-0 overflow-y-auto"> {/* Added overflow-y-auto */}
+      <div className="flex-1 px-1 pb-1 min-h-0 overflow-y-auto"> {/* overflow-y-auto is correctly here */}
         <ValorPorGrupoChart
           data={valorPorGrupoData}
         />

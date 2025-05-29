@@ -46,9 +46,9 @@ const EvolucaoCard: React.FC<EvolucaoCardProps> = ({
       </div>
 
       {/* Chart Area */}
-      <div className="flex-1 px-5 pb-5 min-h-0">
+      <div className="flex-1 px-5 pb-5 min-h-0 overflow-y-auto"> {/* Add overflow-y-auto */}
         <EvolucaoChart
-          kpiName={kpiSelecionado} // Pass kpiSelecionado as kpiName
+          kpiName={kpiSelecionado} // Ensure kpiName is passed if required by EvolucaoChart
           data={processedEvolucaoChartData}
         />
       </div>

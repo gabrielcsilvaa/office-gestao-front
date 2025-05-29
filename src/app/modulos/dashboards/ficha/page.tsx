@@ -211,8 +211,8 @@ export default function FichaPessoalPage() {
       <div className="flex-1 overflow-y-auto p-4">
         <KpiCardsGrid cardsData={kpiCardData} />
 
-        <div className="mt-4 flex flex-row gap-4">
-          <div className="w-1/2 max-w-[50%] min-w-0 overflow-hidden">
+        <div className="mt-4 flex flex-row gap-4 h-[400px]">
+          <div className="w-1/2 max-w-[50%] min-w-0 overflow-hidden h-full flex flex-col"> {/* Adicionado flex flex-col */}
             <EvolucaoCard
               kpiSelecionado={evolucaoCardTitle}
               processedEvolucaoChartData={processedEvolucaoChartDataFicha}
@@ -220,7 +220,7 @@ export default function FichaPessoalPage() {
               cairoClassName={cairo.className}
             />
           </div>
-          <div className="w-1/2 max-w-[50%] min-w-0 overflow-hidden">
+          <div className="w-1/2 max-w-[50%] min-w-0 overflow-hidden h-full flex flex-col"> {/* Adicionado flex flex-col */}
             <ValorPorGrupoCard
               valorPorGrupoData={valorPorGrupoDataFicha}
               sectionIcons={sectionIconsFicha}
