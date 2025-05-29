@@ -1,9 +1,8 @@
 "use client";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
+import Calendar from "@/components/calendar";
 
 export default function Escritorio() {
-  const headers = ["Jan/2024", "Fev/2024", "Mar/2024", "Abr/2024", "Mai/2024", "Jun/2024"];
-
   const thStyle = "px-4 py-2 text-left text-sm font-semibold bg-gray-100 border-b border-gray-300 capitalize text-[#373A40]";
   const tdStyle = "px-4 py-2 text-sm border-b border-gray-300 text-[#373A40]";
   const tdMetricStyle = `${tdStyle} font-semibold`;
@@ -12,6 +11,8 @@ export default function Escritorio() {
   const [escritorioSelecionado, setEscritorioSelecionado] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [startDate, setStartDate] = useState<string | null>("2024-01-01");
+  const [endDate, setEndDate] = useState<string | null>("2024-12-31");
 
   // Formata número em moeda BRL
   function formatCurrency(value: number) {
@@ -27,6 +28,14 @@ export default function Escritorio() {
     return `${h}:${m}:${s}`;
   }
 
+  const handleStartDateChange = (date: string | null) => {
+    setStartDate(date);
+  };
+
+  const handleEndDateChange = (date: string | null) => {
+    setEndDate(date);
+  };
+
   useEffect(() => {
     async function fetchEscritorios() {
       try {
@@ -34,13 +43,13 @@ export default function Escritorio() {
         const response = await fetch("/api/analise-escritorio", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ start_date: "2024-01-01", end_date: "2024-06-30" }),
+          body: JSON.stringify({ start_date: startDate, end_date: endDate }),
         });
 
         if (!response.ok) throw new Error(`Erro na API: ${response.statusText}`);
 
         const data = await response.json();
-
+        console.log(data);
         setEscritorios(data);
         if (data.length > 0) setEscritorioSelecionado(data[0]);
       } catch (err: any) {
@@ -50,100 +59,103 @@ export default function Escritorio() {
       }
     }
     fetchEscritorios();
-  }, []);
-
-  const data = useMemo(() => {
-    if (!escritorioSelecionado) return [];
-
-    const meses = ["jan/2024", "fev/2024", "mar/2024", "abr/2024", "mai/2024", "jun/2024"];
-
-    const totalGer = escritorioSelecionado.importacoes?.total_geral;
-
-    return [
-      {
-        metric: "Quantidade de Clientes",
-        values: meses.map((mes) => String(escritorioSelecionado.clientes[mes] ?? 0)),
-      },
-      {
-        metric: "Faturamento do Escritório",
-        values: meses.map((mes) => {
-          const val = escritorioSelecionado.faturamento[mes];
-          if (!val || val.length === 0) return "R$ 0";
-          return formatCurrency(val[0]);
-        }),
-      },
-      {
-        metric: "Variação de Faturamento",
-        values: meses.map((mes) => {
-          const val = escritorioSelecionado.faturamento[mes];
-          if (!val || val.length < 2) return "0%";
-          return val[1].replace(".", ",");
-        }),
-      },
-      {
-        metric: "Tempo Ativo no Sistema",
-        values: meses.map((mes) => {
-          const val = escritorioSelecionado.tempo_ativo[mes];
-          return val ? formatTempoAtivo(val) : "00:00:00";
-        }),
-      },
-      {
-        metric: "Lançamentos",
-        values: meses.map((mes) => String(escritorioSelecionado.importacoes.lancamentos[mes] ?? 0)),
-      },
-      {
-        metric: "% de Lançamentos Manuais",
-        values: meses.map((mes) => escritorioSelecionado.importacoes.porcentagem_lancamentos_manuais[mes] ?? "0.0%"),
-      },
-      {
-        metric: "Vínculos de Folhas Ativos",
-        values: meses.map((mes) => String(escritorioSelecionado.vinculos_folha_ativos[mes] ?? 0)),
-      },
-      {
-        metric: "Notas Fiscais Emitidas",
-        values: meses.map(() => (totalGer !== undefined ? totalGer.toString() : 0)),
-      },
-      {
-        metric: "Total de Notas Fiscais Movimentadas",
-        values: meses.map(() => (totalGer !== undefined ? totalGer.toString() : 0)),
-      },
-      {
-        metric: "Rentabilidade Operacional",
-        values: meses.map((mes) => {
-          const val = escritorioSelecionado.faturamento[mes];
-          if (!val || val.length < 2) return "0%";
-          return val[1].replace(".", ",");
-        }),
-      },
-    ];
-  }, [escritorioSelecionado]);
+  }, [startDate, endDate]);
 
   if (loading) return <div className="p-4">Carregando dados...</div>;
   if (error) return <div className="p-4 text-red-600">Erro: {error}</div>;
+  if (!escritorioSelecionado) return <div className="p-4">Nenhum escritório selecionado</div>;
+
+  const meses = Object.keys(escritorioSelecionado.clientes);
+
+  const data = [
+    {
+      metric: "Quantidade de Clientes",
+      values: meses.map(mes => String(escritorioSelecionado.clientes[mes] || 0)),
+    },
+    {
+      metric: "Faturamento do Escritório",
+      values: meses.map(mes => {
+        const val = escritorioSelecionado.faturamento[mes];
+        if (!val || !Array.isArray(val) || val.length === 0) return "R$ 0";
+        return formatCurrency(val[0]);
+      }),
+    },
+    {
+      metric: "Variação de Faturamento",
+      values: meses.map(mes => {
+        const val = escritorioSelecionado.faturamento[mes];
+        if (!val || !Array.isArray(val) || val.length < 2) return "0%";
+        return val[1].replace(".", ",");
+      }),
+    },
+    {
+      metric: "Tempo Ativo no Sistema",
+      values: meses.map(mes => {
+        const val = escritorioSelecionado.tempo_ativo[mes];
+        return val ? formatTempoAtivo(val) : "00:00:00";
+      }),
+    },
+    {
+      metric: "Lançamentos",
+      values: meses.map(mes => String(escritorioSelecionado.importacoes.lancamentos[mes] || 0)),
+    },
+    {
+      metric: "% de Lançamentos Manuais",
+      values: meses.map(mes => escritorioSelecionado.importacoes.porcentagem_lancamentos_manuais[mes] || "0.0%"),
+    },
+    {
+      metric: "Vínculos de Folhas Ativos",
+      values: meses.map(mes => String(escritorioSelecionado.vinculos_folha_ativos[mes] || 0)),
+    },
+    {
+      metric: "Notas Fiscais Emitidas",
+      values: meses.map(() => String(escritorioSelecionado.importacoes.total_geral || 0)),
+    },
+    {
+      metric: "Total de Notas Fiscais Movimentadas",
+      values: meses.map(() => String(escritorioSelecionado.importacoes.total_geral || 0)),
+    },
+    {
+      metric: "Rentabilidade Operacional",
+      values: meses.map(mes => {
+        const val = escritorioSelecionado.faturamento[mes];
+        if (!val || !Array.isArray(val) || val.length < 2) return "0%";
+        return val[1].replace(".", ",");
+      }),
+    },
+  ];
 
   return (
     <div className="p-4 bg-gray-100 min-h-screen">
       {/* Select para escolher o escritório */}
-      <div className="mb-4">
-        <label htmlFor="select-escritorio" className="block mb-2 font-semibold text-gray-700">
-          Escolha o Escritório:
-        </label>
-        <select
-          id="select-escritorio"
-          value={escritorioSelecionado?.codigo ?? ""}
-          onChange={(e) => {
-            const codigo = Number(e.target.value);
-            const esc = escritorios.find((item) => item.codigo === codigo) ?? null;
-            setEscritorioSelecionado(esc);
-          }}
-          className="p-2 border border-gray-300 rounded-md"
-        >
-          {escritorios.map((esc) => (
-            <option key={esc.codigo} value={esc.codigo}>
-              {esc.escritorio}
-            </option>
-          ))}
-        </select>
+      <div className="mb-4 flex items-center gap-4">
+        <div>
+          <label htmlFor="select-escritorio" className="block mb-2 font-semibold text-gray-700">
+            Escolha o Escritório:
+          </label>
+          <select
+            id="select-escritorio"
+            value={escritorioSelecionado?.codigo ?? ""}
+            onChange={(e) => {
+              const codigo = Number(e.target.value);
+              const esc = escritorios.find((item) => item.codigo === codigo) ?? null;
+              setEscritorioSelecionado(esc);
+            }}
+            className="p-2 border border-gray-300 rounded-md"
+          >
+            {escritorios.map((esc) => (
+              <option key={esc.codigo} value={esc.codigo}>
+                {esc.escritorio}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="mt-6">
+          <Calendar
+            onStartDateChange={handleStartDateChange}
+            onEndDateChange={handleEndDateChange}
+          />
+        </div>
       </div>
 
       {/* Tabela com dados do escritório selecionado */}
@@ -152,9 +164,9 @@ export default function Escritorio() {
           <thead>
             <tr>
               <th className={`${thStyle} w-1/4`}></th>
-              {headers.map((header) => (
-                <th key={header} className={thStyle}>
-                  {header}
+              {meses.map((mes) => (
+                <th key={mes} className={thStyle}>
+                  {mes}
                 </th>
               ))}
             </tr>
@@ -163,7 +175,7 @@ export default function Escritorio() {
             {data.map((row, i) => (
               <tr key={row.metric} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                 <td className={tdMetricStyle}>{row.metric}</td>
-                {row.values.map((value, idx) => (
+                {row.values.map((value: string, idx: number) => (
                   <td key={`${row.metric}-${idx}`} className={tdStyle}>
                     {value}
                   </td>
