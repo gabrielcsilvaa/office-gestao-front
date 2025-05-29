@@ -6,6 +6,7 @@ interface Contrato {
   colaborador: string;
   dataAdmissao: string;
   dataRescisao?: string; // Optional
+  salarioBase?: string; // Added Salário Base, optional
 }
 
 interface ContratosTableProps {
@@ -36,27 +37,35 @@ const ContratosTable: React.FC<ContratosTableProps> = ({ contratosData, cairoCla
             <div key={contrato.id} className="p-3 border border-gray-200 rounded-lg shadow-md bg-white">
               <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                 
-                <div className="flex flex-col">
+                {/* Linha 1: Colaborador (full width) */}
+                <div className="flex flex-col col-span-2">
                   <span className="text-gray-800 font-medium text-sm truncate" title={contrato.colaborador}>{contrato.colaborador || "-"}</span>
                   <span className="text-gray-500 font-light text-xs">Colaborador</span>
                 </div>
                 
+                {/* Horizontal Separator Line - Moved after Colaborador */}
+                <div className="col-span-2 h-px bg-gray-200"></div>
+
+                {/* Linha 2: Empresa | Data Admissão */}
                 <div className="flex flex-col">
                   <span className="text-gray-800 font-medium text-sm truncate" title={contrato.empresa}>{contrato.empresa || "-"}</span>
                   <span className="text-gray-500 font-light text-xs">Empresa</span>
                 </div>
-
-                {/* Horizontal Separator Line (optional, can be kept for consistency or removed if not desired for this card) */}
-                <div className="col-span-2 h-px bg-gray-200"></div>
                 
                 <div className="flex flex-col">
                   <span className="text-gray-800 font-medium text-sm truncate">{contrato.dataAdmissao || "-"}</span>
                   <span className="text-gray-500 font-light text-xs">Data Admissão</span>
                 </div>
                 
+                {/* Linha 3: Data Rescisão | Salário Base */}
                 <div className="flex flex-col">
                   <span className="text-gray-800 font-medium text-sm truncate">{contrato.dataRescisao || "Vigente"}</span>
                   <span className="text-gray-500 font-light text-xs">Data Rescisão</span>
+                </div>
+
+                <div className="flex flex-col">
+                  <span className="text-gray-800 font-medium text-sm truncate">{contrato.salarioBase || "-"}</span>
+                  <span className="text-gray-500 font-light text-xs">Salário Base</span>
                 </div>
 
               </div>
