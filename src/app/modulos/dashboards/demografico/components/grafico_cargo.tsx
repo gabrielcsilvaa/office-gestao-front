@@ -11,7 +11,7 @@ const GraficoCargo = () => {
     { id: 7, cargo: 'PINTOR', numeroDeColaboradores: 57 },
     { id: 8, cargo: 'MOTORISTA', numeroDeColaboradores: 55 },
     { id: 9, cargo: 'PEDREIRO', numeroDeColaboradores: 54 },
-    { id: 10, cargo: 'COITUREIRA(O) E...', numeroDeColaboradores: 53 },
+    { id: 10, cargo: 'COSTUREIRA(O) E...', numeroDeColaboradores: 53 },
     { id: 11, cargo: 'BALCONISTA', numeroDeColaboradores: 47 },
   ];
 

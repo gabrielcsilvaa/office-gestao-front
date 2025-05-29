@@ -30,11 +30,12 @@ export default function Demografico() {
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
-      {/* Título e botões */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
-        <h1 className="text-2xl font-bold">Dashboard Demográfico</h1>
+      {/* Título e Botões agrupados à esquerda */}
+      <div className="flex flex-col md:flex-row md:items-center flex-wrap gap-4 mb-6"> {/* Removido md:justify-between, adicionado flex-wrap e gap-4 geral */}
+        <h1 className="text-2xl font-bold whitespace-nowrap">Dashboard Demográfico</h1>
 
-        <div className="flex items-center flex-wrap gap-4">
+        {/* Container para todos os botões e a linha vertical */}
+        <div className="flex items-center flex-wrap gap-x-4 gap-y-2"> {/* gap-y-2 para quando os itens quebram linha */}
           {/* Botão de reset */}
           <button
             onClick={resetarFiltros}
@@ -42,11 +43,10 @@ export default function Demografico() {
             title="Resetar filtros"
           >
             <RotateCcw size={18} />
-            <span className="text-sm items-left"></span>
           </button>
 
-          {/* Linha vertical */}
-          <div className="w-px h-6 bg-gray-400" />
+          {/* Linha vertical (visível em telas md ou maiores) */}
+          <div className="w-px h-6 bg-gray-400 hidden md:block" />
 
           {/* Botões de status */}
           <div className="flex flex-wrap gap-2">
@@ -75,9 +75,10 @@ export default function Demografico() {
       </div>
 
       {/* Filtros */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div className="m-6    ">
+        
         <select
-          className="w-full p-2 border rounded text-gray-700"
+          className="w-[232px]  p-2 border rounded text-black-700"
           value={filtros.centroCusto}
           onChange={(e) =>
             setFiltros((prev) => ({ ...prev, centroCusto: e.target.value }))
@@ -91,7 +92,7 @@ export default function Demografico() {
         </select>
 
         <select
-          className="w-full p-2 border rounded text-gray-700"
+          className="w-[232px] p-2 border rounded text-gray-700"
           value={filtros.departamento}
           onChange={(e) =>
             setFiltros((prev) => ({ ...prev, departamento: e.target.value }))
@@ -105,7 +106,7 @@ export default function Demografico() {
         </select>
 
         <select
-          className="w-full p-2 border rounded text-gray-700"
+          className="w-[232px] p-2 border rounded text-gray-700"
           value={filtros.tipoColaborador}
           onChange={(e) =>
             setFiltros((prev) => ({
@@ -122,7 +123,7 @@ export default function Demografico() {
         </select>
 
         <select
-          className="w-full p-2 border rounded text-gray-700"
+          className="w-[232px] p-2 border rounded text-gray-700"
           value={filtros.servico}
           onChange={(e) =>
             setFiltros((prev) => ({ ...prev, servico: e.target.value }))
@@ -134,6 +135,7 @@ export default function Demografico() {
           <option value="1">Opção 1</option>
           <option value="2">Opção 2</option>
         </select>
+        
       </div>
 
       {/* Linha com cards e gráficos laterais */}
