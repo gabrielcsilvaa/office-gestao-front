@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image'; // Import Image
 
 interface Contrato {
   id: string; // For React key
@@ -9,12 +10,19 @@ interface Contrato {
   salarioBase?: string; // Added Salário Base, optional
 }
 
+interface IconProps {
+  src: string;
+  alt: string;
+  adjustSize?: boolean;
+}
+
 interface ContratosTableProps {
   contratosData: Contrato[];
   cairoClassName: string;
+  headerIcons?: IconProps[]; // Add headerIcons prop
 }
 
-const ContratosTable: React.FC<ContratosTableProps> = ({ contratosData, cairoClassName }) => {
+const ContratosTable: React.FC<ContratosTableProps> = ({ contratosData, cairoClassName, headerIcons }) => {
   return (
     <div className="w-full bg-white rounded-lg border border-neutral-700 relative flex flex-col overflow-hidden h-full">
       {/* Barra vertical cinza - igual aos outros cards da página de ficha */}
@@ -27,7 +35,22 @@ const ContratosTable: React.FC<ContratosTableProps> = ({ contratosData, cairoCla
             Histórico de Contratos
           </div>
         </div>
-        {/* Placeholder para ícones, se necessário */}
+        {/* Icons Area */}
+        {headerIcons && headerIcons.length > 0 && (
+          <div className="flex items-center space-x-2 flex-shrink-0">
+            {headerIcons.map((icon, index) => (
+              <div key={index} className="cursor-pointer p-1">
+                <Image
+                  src={icon.src}
+                  alt={icon.alt}
+                  width={16}
+                  height={16}
+                  className="opacity-60 hover:opacity-100"
+                />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Content Area */}

@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image'; // Import Image
 
 interface Afastamento {
   inicio: string;
@@ -7,12 +8,19 @@ interface Afastamento {
   diasAfastados: string | number; // Dias pode ser string ou número
 }
 
+interface IconProps {
+  src: string;
+  alt: string;
+  adjustSize?: boolean;
+}
+
 interface AfastamentosTableProps {
   afastamentosData: Afastamento[];
   cairoClassName: string;
+  headerIcons?: IconProps[]; // Add headerIcons prop
 }
 
-const AfastamentosTable: React.FC<AfastamentosTableProps> = ({ afastamentosData, cairoClassName }) => {
+const AfastamentosTable: React.FC<AfastamentosTableProps> = ({ afastamentosData, cairoClassName, headerIcons }) => {
   return (
     <div className="w-full bg-white rounded-lg border border-neutral-700 relative flex flex-col overflow-hidden h-full">
       {/* Barra vertical cinza - igual aos outros cards da página de ficha */}
@@ -25,7 +33,22 @@ const AfastamentosTable: React.FC<AfastamentosTableProps> = ({ afastamentosData,
             Histórico de Afastamentos
           </div>
         </div>
-        {/* Placeholder para ícones, se necessário */}
+        {/* Icons Area */}
+        {headerIcons && headerIcons.length > 0 && (
+          <div className="flex items-center space-x-2 flex-shrink-0">
+            {headerIcons.map((icon, index) => (
+              <div key={index} className="cursor-pointer p-1">
+                <Image
+                  src={icon.src}
+                  alt={icon.alt}
+                  width={16}
+                  height={16}
+                  className="opacity-60 hover:opacity-100"
+                />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Content Area */}

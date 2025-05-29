@@ -53,6 +53,9 @@ const sectionIconsFicha = [
   { src: "/assets/icons/icon-more-options.svg", alt: "More Options" },
 ];
 
+// Icons for table headers (last 3 from sectionIconsFicha)
+const tableHeaderIcons = sectionIconsFicha.slice(-3);
+
 // Data for ValorPorGrupoCard specific to Ficha Pessoal - with many items
 const valorPorGrupoDataFicha = [
   { name: "Salário Base", value: 5000.00 },
@@ -234,6 +237,7 @@ export default function FichaPessoalPage() {
             <AtestadosTable 
               atestadosData={processedTableData.atestados} 
               cairoClassName={cairo.className} 
+              headerIcons={tableHeaderIcons} // Pass icons
             />
           </div>
 
@@ -242,6 +246,7 @@ export default function FichaPessoalPage() {
             <AfastamentosTable 
               afastamentosData={processedTableData.afastamentos} 
               cairoClassName={cairo.className} 
+              headerIcons={tableHeaderIcons} // Pass icons
             />
           </div>
 
@@ -250,6 +255,7 @@ export default function FichaPessoalPage() {
             <ContratosTable
               contratosData={processedTableData.contratos}
               cairoClassName={cairo.className}
+              headerIcons={tableHeaderIcons} // Pass icons
             />
           </div>
         </div>

@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image'; // Import Image
 
 interface Atestado {
   vencimento: string;
@@ -7,12 +8,19 @@ interface Atestado {
   tipo: string;
 }
 
-interface AtestadosTableProps {
-  atestadosData: Atestado[];
-  cairoClassName: string; // Assuming cairo font might be used for consistency
+interface IconProps {
+  src: string;
+  alt: string;
+  adjustSize?: boolean; // Kept for consistency, though might not be used here
 }
 
-const AtestadosTable: React.FC<AtestadosTableProps> = ({ atestadosData, cairoClassName }) => {
+interface AtestadosTableProps {
+  atestadosData: Atestado[];
+  cairoClassName: string;
+  headerIcons?: IconProps[]; // Add headerIcons prop
+}
+
+const AtestadosTable: React.FC<AtestadosTableProps> = ({ atestadosData, cairoClassName, headerIcons }) => {
   return (
     <div className="w-full bg-white rounded-lg border border-neutral-700 relative flex flex-col overflow-hidden h-full"> {/* Removido py-4 pr-4 pl-2 */}
       {/* Barra vertical cinza - igual aos outros cards da página de ficha */}
@@ -25,8 +33,22 @@ const AtestadosTable: React.FC<AtestadosTableProps> = ({ atestadosData, cairoCla
             Histórico de Atestados
           </div>
         </div>
-        {/* Placeholder para ícones, se necessário no futuro, para manter a consistência com outros cards */}
-        {/* <div className="flex items-center gap-2 flex-shrink-0"> ... Ícones aqui ... </div> */}
+        {/* Icons Area */}
+        {headerIcons && headerIcons.length > 0 && (
+          <div className="flex items-center space-x-2 flex-shrink-0">
+            {headerIcons.map((icon, index) => (
+              <div key={index} className="cursor-pointer p-1"> {/* Added padding for better click area */}
+                <Image
+                  src={icon.src}
+                  alt={icon.alt}
+                  width={16} // Standard size for these icons
+                  height={16}
+                  className="opacity-60 hover:opacity-100" // Added hover effect
+                />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Content Area - com padding próprio */}

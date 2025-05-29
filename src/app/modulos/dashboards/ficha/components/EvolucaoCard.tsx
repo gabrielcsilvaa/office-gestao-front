@@ -16,47 +16,41 @@ const EvolucaoCard: React.FC<EvolucaoCardProps> = ({
   cairoClassName,
 }) => {
   return (
-    <div className="w-full bg-white rounded-lg h-[500px] border border-neutral-700 relative overflow-hidden">
+    <div className="w-full bg-white rounded-lg border border-neutral-700 relative flex flex-col overflow-hidden h-full">
+      {/* Barra vertical cinza */}
       <div className="w-6 h-0 left-[10px] top-[17px] absolute origin-top-left rotate-90 bg-zinc-300 outline-1 outline-offset-[-0.50px] outline-neutral-700"></div>
       
-      {/* Header Section */}
-      <div className="flex justify-between items-start pt-[14px] px-5">
+      {/* Header Section - Standardized Padding */}
+      <div className="flex justify-between items-start pt-[14px] px-5 mb-3 flex-shrink-0">
         <div className="flex-grow overflow-hidden mr-3">
-          <div title="Evolução de Custo Total" className={`text-black text-xl font-semibold leading-normal ${cairoClassName} whitespace-nowrap overflow-hidden text-ellipsis`}>
-            Evolução de Custo Total
+          <div title={kpiSelecionado} className={`text-black text-xl font-semibold leading-normal ${cairoClassName} whitespace-nowrap overflow-hidden text-ellipsis`}>
+            {kpiSelecionado}
           </div>
-          {/* Removido o subtítulo que mostrava {kpiSelecionado} */}
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0"> 
-          {sectionIcons.map((icon, index) => {
-            let iconWidth = 16; 
-            let iconHeight = 16; 
-            if (icon.adjustSize) {
-              iconWidth = 14; 
-              iconHeight = icon.src.includes("lay") ? 16 : 14; 
-            }
-            return (
-              <Fragment key={`left-icon-fragment-${index}`}>
+        {/* Icons Area - Standardized Styling */}
+        {sectionIcons && sectionIcons.length > 0 && (
+          <div className="flex items-center space-x-2 flex-shrink-0">
+            {sectionIcons.map((icon, index) => (
+              <div key={index} className="cursor-pointer p-1">
                 <Image
-                  key={`left-${index}`}
                   src={icon.src}
                   alt={icon.alt}
-                  width={iconWidth} 
-                  height={iconHeight} 
-                  className="cursor-pointer"
+                  width={16} // Standardized size
+                  height={16} // Standardized size
+                  className="opacity-60 hover:opacity-100" // Standardized opacity
                 />
-                {icon.src === "/assets/icons/icon-hierarchy.svg" && (
-                  <div className="w-px h-5 bg-neutral-300"></div> 
-                )}
-              </Fragment>
-            );
-          })}
-        </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Chart Area */}
-      <div className="w-full h-[410px] px-4 pt-0 pb-4 left-0 top-[90px] absolute bg-white">
-        <EvolucaoChart data={processedEvolucaoChartData} kpiName={kpiSelecionado} />
+      <div className="flex-1 px-5 pb-5 min-h-0">
+        <EvolucaoChart
+          kpiName={kpiSelecionado} // Pass kpiSelecionado as kpiName
+          data={processedEvolucaoChartData}
+        />
       </div>
     </div>
   );
