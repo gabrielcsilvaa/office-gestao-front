@@ -7,6 +7,8 @@ import ValorPorGrupoCard from "./components/ValorPorGrupoCard"; // Import ValorP
 import AtestadosTable from "./components/AtestadosTable"; // Import AtestadosTable
 import AfastamentosTable from "./components/AfastamentosTable"; // Novo componente
 import ContratosTable from "./components/ContratosTable"; // Import ContratosTable
+import AlteracoesSalariaisDetalheCard from "./components/AlteracoesSalariaisDetalheCard"; // Import AlteracoesSalariaisDetalheCard
+import FeriasDetalheCard from "./components/FeriasDetalheCard"; // Import FeriasDetalheCard
 import { useMemo, useState } from "react";
 
 const cairo = Cairo({
@@ -190,10 +192,24 @@ export default function FichaPessoalPage() {
       id: `placeholder-${index}`, empresa: "", colaborador: "", dataAdmissao: "", dataRescisao: "", salarioBase: ""
     });
 
+    // Sample data for detail cards - can be fetched or defined here if needed
+    // For now, components use their internal sample data by default
+    const sampleFeriasDetalhe = [
+      { inicioPeriodoAquisitivo: "2022-01-01", fimPeriodoAquisitivo: "2022-12-31", limiteParaGozo: "2023-11-30", diasDeDireito: 30, diasGozados: 15, diasDeSaldo: 15, status: "A Vencer" },
+      { inicioPeriodoAquisitivo: "2021-01-01", fimPeriodoAquisitivo: "2021-12-31", limiteParaGozo: "2022-11-30", diasDeDireito: 30, diasGozados: 30, diasDeSaldo: 0, status: "Gozado" },
+    ];
+    const sampleAlteracoesSalariaisDetalhe = [
+      { data: "2023-05-15", tipo: "Promoção", motivo: "Desempenho Excepcional", salarioAnterior: 5000, salarioNovo: 6000, percentual: "20.00%" },
+      { data: "2024-01-10", tipo: "Ajuste Anual", motivo: "Inflação e Custo de Vida", salarioAnterior: 6000, salarioNovo: 6300, percentual: "5.00%" },
+    ];
+
+
     return {
       atestados: padArray(atestadosDataRaw, targetLength, atestadoPlaceholder),
       afastamentos: padArray(mockAfastamentosRaw, targetLength, afastamentoPlaceholder),
       contratos: padArray(mockContratosRaw, targetLength, contratoPlaceholder),
+      feriasDetalhe: padArray(sampleFeriasDetalhe, targetLength, () => ({ inicioPeriodoAquisitivo: "", fimPeriodoAquisitivo: "", limiteParaGozo: "", diasDeDireito: 0, diasGozados: 0, diasDeSaldo: 0 })),
+      alteracoesSalariaisDetalhe: padArray(sampleAlteracoesSalariaisDetalhe, targetLength, () => ({ data: "", tipo: "", motivo: "", salarioAnterior: 0, salarioNovo: 0, percentual: "" })),
     };
   }, []);
 
@@ -256,6 +272,27 @@ export default function FichaPessoalPage() {
               contratosData={processedTableData.contratos}
               cairoClassName={cairo.className}
               headerIcons={tableHeaderIcons} // Pass icons
+            />
+          </div>
+        </div>
+
+        {/* Nova seção para AlteracoesSalariaisDetalheCard e FeriasDetalheCard */}
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 h-[350px]">
+          {/* Coluna 1: Histórico de Alterações Salariais Detalhado */}
+          <div className="md:col-span-1 h-full overflow-hidden">
+            <AlteracoesSalariaisDetalheCard
+              alteracoesData={processedTableData.alteracoesSalariaisDetalhe} // Using processed data
+              cairoClassName={cairo.className}
+              headerIcons={tableHeaderIcons} // Reusing same icons for consistency
+            />
+          </div>
+
+          {/* Coluna 2: Histórico de Férias Detalhado */}
+          <div className="md:col-span-1 h-full overflow-hidden">
+            <FeriasDetalheCard
+              feriasData={processedTableData.feriasDetalhe} // Using processed data
+              cairoClassName={cairo.className}
+              headerIcons={tableHeaderIcons} // Reusing same icons for consistency
             />
           </div>
         </div>
