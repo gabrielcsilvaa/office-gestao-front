@@ -150,11 +150,22 @@ const sampleFeriasDetalheData = [
   // Add more entries if needed to fill up to a certain number or for testing scroll
 ];
 
-// Sample data for AlteracoesSalariaisDetalheCard
+// Updated data for AlteracoesSalariaisDetalheCard from CSV (first 14 records)
 const sampleAlteracoesSalariaisDetalheData = [
-  { data: "2023-05-15", tipo: "Promoção", motivo: "Desempenho Excepcional", salarioAnterior: 5000, salarioNovo: 6000, percentual: "20.00%" },
-  { data: "2024-01-10", tipo: "Ajuste Anual", motivo: "Inflação e Custo de Vida", salarioAnterior: 6000, salarioNovo: 6300, percentual: "5.00%" },
-  // Add more entries
+  { data: "2025-05-15", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1534,00"), salarioNovo: parseCurrency("R$ 1585,62"), percentual: "3,4%" },
+  { data: "2025-05-15", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1534,00"), salarioNovo: parseCurrency("R$ 1585,62"), percentual: "3,4%" },
+  { data: "2025-05-15", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1534,00"), salarioNovo: parseCurrency("R$ 1585,62"), percentual: "3,4%" },
+  { data: "2025-05-06", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 0,00"), salarioNovo: parseCurrency("R$ 1585,62"), percentual: "" }, // '%' is empty in CSV
+  { data: "2025-05-02", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1828,01"), salarioNovo: parseCurrency("R$ 1845,59"), percentual: "1,0%" },
+  { data: "2025-05-02", tipo: "ALTERAÇAO DE CARGO", motivo: "ALTERAÇAO DE CARGO", salarioAnterior: parseCurrency("R$ 1518,00"), salarioNovo: parseCurrency("R$ 1560,00"), percentual: "2,8%" },
+  { data: "2025-05-01", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1518,00"), salarioNovo: parseCurrency("R$ 1565,00"), percentual: "3,1%" },
+  { data: "2025-05-01", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1518,00"), salarioNovo: parseCurrency("R$ 1585,62"), percentual: "4,5%" },
+  { data: "2025-05-01", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1518,00"), salarioNovo: parseCurrency("R$ 1585,62"), percentual: "4,5%" },
+  { data: "2025-05-01", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1518,00"), salarioNovo: parseCurrency("R$ 1565,00"), percentual: "3,1%" },
+  { data: "2025-05-01", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1518,00"), salarioNovo: parseCurrency("R$ 1565,00"), percentual: "3,1%" },
+  { data: "2025-05-01", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1534,00"), salarioNovo: parseCurrency("R$ 1585,62"), percentual: "3,4%" },
+  { data: "2025-05-01", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1534,00"), salarioNovo: parseCurrency("R$ 1585,62"), percentual: "3,4%" },
+  { data: "2025-05-01", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1534,00"), salarioNovo: parseCurrency("R$ 1732,50"), percentual: "12,9%" },
 ];
 
 
