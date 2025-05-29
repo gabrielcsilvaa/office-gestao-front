@@ -143,11 +143,25 @@ const mockContratosRaw = [
   { id: "14", empresa: "Empresa Mu", colaborador: "Patrícia Ribeiro", dataAdmissao: "25/07/2022", dataRescisao: "10/10/2023", salarioBase: "R$ 3.900,00" },
 ];
 
-// Sample data for FeriasDetalheCard
+// Updated data for FeriasDetalheCard from Ferias.csv (first 14 records)
+// Mapping CSV: DataInicio -> inicioPeriodoAquisitivo, DataFim -> fimPeriodoAquisitivo,
+// DiasSolicitados -> diasGozados, StatusFerias -> status.
+// limiteParaGozo calculated as fimPeriodoAquisitivo + 11 months + 1 day.
 const sampleFeriasDetalheData = [
-  { inicioPeriodoAquisitivo: "2022-01-01", fimPeriodoAquisitivo: "2022-12-31", limiteParaGozo: "2023-11-30", diasDeDireito: 30, diasGozados: 15, diasDeSaldo: 15, status: "A Vencer" },
-  { inicioPeriodoAquisitivo: "2021-01-01", fimPeriodoAquisitivo: "2021-12-31", limiteParaGozo: "2022-11-30", diasDeDireito: 30, diasGozados: 30, diasDeSaldo: 0, status: "Gozado" },
-  // Add more entries if needed to fill up to a certain number or for testing scroll
+  { inicioPeriodoAquisitivo: "2024-07-01", fimPeriodoAquisitivo: "2024-07-15", limiteParaGozo: "2025-06-16", diasDeDireito: 30, diasGozados: 15, diasDeSaldo: 15, status: "Aprovada" },
+  { inicioPeriodoAquisitivo: "2024-08-05", fimPeriodoAquisitivo: "2024-08-10", limiteParaGozo: "2025-07-11", diasDeDireito: 30, diasGozados: 5, diasDeSaldo: 25, status: "Pendente" },
+  { inicioPeriodoAquisitivo: "2024-09-02", fimPeriodoAquisitivo: "2024-09-16", limiteParaGozo: "2025-08-17", diasDeDireito: 30, diasGozados: 14, diasDeSaldo: 16, status: "Aprovada" },
+  { inicioPeriodoAquisitivo: "2024-07-20", fimPeriodoAquisitivo: "2024-07-30", limiteParaGozo: "2025-07-01", diasDeDireito: 30, diasGozados: 10, diasDeSaldo: 20, status: "Rejeitada" },
+  { inicioPeriodoAquisitivo: "2024-10-01", fimPeriodoAquisitivo: "2024-10-10", limiteParaGozo: "2025-09-11", diasDeDireito: 30, diasGozados: 10, diasDeSaldo: 20, status: "Aprovada" },
+  { inicioPeriodoAquisitivo: "2024-11-04", fimPeriodoAquisitivo: "2024-11-18", limiteParaGozo: "2025-10-19", diasDeDireito: 30, diasGozados: 14, diasDeSaldo: 16, status: "Pendente" },
+  { inicioPeriodoAquisitivo: "2024-12-02", fimPeriodoAquisitivo: "2024-12-16", limiteParaGozo: "2025-11-17", diasDeDireito: 30, diasGozados: 14, diasDeSaldo: 16, status: "Aprovada" },
+  { inicioPeriodoAquisitivo: "2025-01-06", fimPeriodoAquisitivo: "2025-01-20", limiteParaGozo: "2025-12-21", diasDeDireito: 30, diasGozados: 14, diasDeSaldo: 16, status: "Pendente" },
+  { inicioPeriodoAquisitivo: "2024-07-22", fimPeriodoAquisitivo: "2024-07-26", limiteParaGozo: "2025-06-27", diasDeDireito: 30, diasGozados: 5, diasDeSaldo: 25, status: "Aprovada" },
+  { inicioPeriodoAquisitivo: "2024-08-19", fimPeriodoAquisitivo: "2024-08-23", limiteParaGozo: "2025-07-24", diasDeDireito: 30, diasGozados: 5, diasDeSaldo: 25, status: "Aprovada" },
+  { inicioPeriodoAquisitivo: "2024-09-09", fimPeriodoAquisitivo: "2024-09-13", limiteParaGozo: "2025-08-14", diasDeDireito: 30, diasGozados: 5, diasDeSaldo: 25, status: "Rejeitada" },
+  { inicioPeriodoAquisitivo: "2024-10-14", fimPeriodoAquisitivo: "2024-10-28", limiteParaGozo: "2025-09-29", diasDeDireito: 30, diasGozados: 14, diasDeSaldo: 16, status: "Pendente" },
+  { inicioPeriodoAquisitivo: "2024-11-11", fimPeriodoAquisitivo: "2024-11-25", limiteParaGozo: "2025-10-26", diasDeDireito: 30, diasGozados: 14, diasDeSaldo: 16, status: "Aprovada" },
+  { inicioPeriodoAquisitivo: "2024-12-23", fimPeriodoAquisitivo: "2025-01-03", limiteParaGozo: "2025-12-04", diasDeDireito: 30, diasGozados: 10, diasDeSaldo: 20, status: "Aprovada" },
 ];
 
 // Updated data for AlteracoesSalariaisDetalheCard from CSV (first 14 records)
