@@ -1,10 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
 import Calendar from "@/components/calendar";
+import Evolucao from "./components/cardRentabilidade";
 
 export default function Escritorio() {
   const thStyle = "px-4 py-2 text-left text-sm font-semibold bg-gray-100 border-b border-gray-300 capitalize text-[#373A40]";
-  const tdStyle = "px-4 py-2 text-sm border-b border-gray-300 text-[#373A40]";
+  const tdStyle = "whitespace-nowrap px-4 py-2 text-sm border-b border-gray-300 text-[#373A40]";
   const tdMetricStyle = `${tdStyle} font-semibold`;
 
   const [escritorios, setEscritorios] = useState<any[]>([]);
@@ -67,6 +68,23 @@ export default function Escritorio() {
 
   const meses = Object.keys(escritorioSelecionado.clientes);
 
+  // Prepara os dados para o gráfico de evolução (Rentabilidade)
+  const evolucaoData = meses.map(mes => {
+    const horas = (escritorioSelecionado?.tempo_ativo?.[mes] ?? 0) / 3600;
+    const custoHora = parseFloat(process.env.NEXT_PUBLIC_CUSTO_HORA || "0");
+    const custo = custoHora * horas;
+
+    const faturamentoMes = escritorioSelecionado?.faturamento?.[mes];
+    const valorFaturado = Array.isArray(faturamentoMes) ? parseFloat(faturamentoMes[0] || "0") : 0;
+
+    const rentabilidade = valorFaturado - custo;
+
+    return {
+      name: mes,
+      value: rentabilidade
+    };
+  });
+
   const data = [
     {
       metric: "Quantidade de Clientes",
@@ -116,13 +134,29 @@ export default function Escritorio() {
       values: meses.map(() => String(escritorioSelecionado.importacoes.total_geral || 0)),
     },
     {
+      metric: "Custo Operacional",
+      values: meses.map(mes => {
+        const horas = (escritorioSelecionado?.tempo_ativo?.[mes] ?? 0) / 3600;
+        const custo = parseFloat(process.env.NEXT_PUBLIC_CUSTO_HORA || "0") * horas
+        return formatCurrency(custo)
+      })
+    },
+    {
       metric: "Rentabilidade Operacional",
       values: meses.map(mes => {
-        const val = escritorioSelecionado.faturamento[mes];
-        if (!val || !Array.isArray(val) || val.length < 2) return "0%";
-        return val[1].replace(".", ",");
-      }),
-    },
+        const horas = (escritorioSelecionado?.tempo_ativo?.[mes] ?? 0) / 3600;
+
+        const custoHora = parseFloat(process.env.NEXT_PUBLIC_CUSTO_HORA || "0");
+        const custo = custoHora * horas;
+
+        const faturamentoMes = escritorioSelecionado?.faturamento?.[mes];
+        const valorFaturado = Array.isArray(faturamentoMes) ? parseFloat(faturamentoMes[0] || "0") : 0;
+
+        const rentabilidade = valorFaturado - custo;
+
+        return formatCurrency(rentabilidade);
+    })
+  }
   ];
 
   return (
@@ -141,7 +175,7 @@ export default function Escritorio() {
               const esc = escritorios.find((item) => item.codigo === codigo) ?? null;
               setEscritorioSelecionado(esc);
             }}
-            className="p-2 border border-gray-300 rounded-md"
+            className="bg-white p-2 border border-gray-300 rounded-md"
           >
             {escritorios.map((esc) => (
               <option key={esc.codigo} value={esc.codigo}>
@@ -159,8 +193,8 @@ export default function Escritorio() {
       </div>
 
       {/* Tabela com dados do escritório selecionado */}
-      <div className="overflow-x-auto p-4 bg-white shadow-lg rounded-lg w-max min-w-full shadow-gray-600">
-        <table className="min-w-full">
+      <div className="overflow-x-auto p-4 bg-white shadow-lg rounded-lg  w-full shadow-gray-600 mb-4">
+        <table className="w-full">
           <thead>
             <tr>
               <th className={`${thStyle} w-1/4`}></th>
@@ -184,6 +218,9 @@ export default function Escritorio() {
             ))}
           </tbody>
         </table>
+      </div>
+      <div className="mb-4">
+        <Evolucao data={evolucaoData} />
       </div>
     </div>
   );
