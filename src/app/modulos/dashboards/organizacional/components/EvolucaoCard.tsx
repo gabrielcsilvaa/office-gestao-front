@@ -1,6 +1,6 @@
 import Image from "next/image";
 import React, { Fragment } from "react";
-import EvolucaoChart from "./EvolucaoChart"; // Assuming EvolucaoChart is in the same components folder or path is adjusted
+import EvolucaoChart from "./EvolucaoChart"; 
 
 interface EvolucaoCardProps {
   kpiSelecionado: string;

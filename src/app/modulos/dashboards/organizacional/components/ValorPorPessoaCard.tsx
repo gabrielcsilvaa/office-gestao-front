@@ -1,15 +1,14 @@
 import Image from "next/image";
 import React, { Fragment, useMemo } from "react";
 import NameList from "./NameList";
-import { processNameBarDataUtil, RawNameBarDataItem, ColorParams } from "../utils/chartUtils"; // Import the utility
+import { processNameBarDataUtil, RawNameBarDataItem, ColorParams } from "../utils/chartUtils"; 
 
 interface ValorPorPessoaCardProps {
   sectionIcons: Array<{ src: string; alt: string; adjustSize?: boolean }>;
   cairoClassName: string;
 }
 
-// Original data with string values
-const rawNameBarData: RawNameBarDataItem[] = [ // Type assertion
+const rawNameBarData: RawNameBarDataItem[] = [ 
   { name: "RITA MARIA RODRIGUES DE OLIVEIRA", value: "R$ 1.600,00" },
   { name: "ISABEL CRISTINA BARBOSA RODRIGUES", value: "R$ 1.400,00" },
   { name: "MARIA GERLIANE DE ARAUJO MATIAS", value: "R$ 1.200,00" },

@@ -18,11 +18,10 @@ interface ChartDataPoint {
 
 interface EvolucaoChartProps {
   data: ChartDataPoint[];
-  kpiName: string; // To display in tooltip or legend if needed
+  kpiName: string; 
 }
 
 const EvolucaoChart: React.FC<EvolucaoChartProps> = ({ data, kpiName }) => {
-  // Custom Tooltip
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
@@ -47,8 +46,8 @@ const EvolucaoChart: React.FC<EvolucaoChartProps> = ({ data, kpiName }) => {
         margin={{
           top: 5,
           right: 20,
-          left: 35, // Changed from -20 to 0 to make the first label visible
-          bottom: 40, // Increased bottom margin for X-axis labels and custom text
+          left: 35, 
+          bottom: 40, 
         }}
       >
         <defs>
@@ -63,10 +62,10 @@ const EvolucaoChart: React.FC<EvolucaoChartProps> = ({ data, kpiName }) => {
           tickLine={false}
           axisLine={false}
           tick={{ fontSize: 10, fill: "#737373" }}
-          angle={-35} // Angle labels to prevent overlap
+          angle={-35} 
           textAnchor="end"
-          interval={0} // Show all ticks
-          dy={15} // Adjust vertical position of ticks
+          interval={0} 
+          dy={15} 
         />
         <Tooltip content={<CustomTooltip />} />
         <Area
@@ -79,17 +78,17 @@ const EvolucaoChart: React.FC<EvolucaoChartProps> = ({ data, kpiName }) => {
         <Line
           type="monotone"
           dataKey="value"
-          name={kpiName} // Used by tooltip
-          stroke="#6366f1" // Indigo color for the line
+          name={kpiName} 
+          stroke="#6366f1" 
           strokeWidth={2}
           dot={{
-            stroke: "#6366f1", // Indigo border for dots
+            stroke: "#6366f1", 
             strokeWidth: 2,
-            fill: "#fff", // White fill for dots
+            fill: "#fff", 
             r: 4,
           }}
           activeDot={{
-            stroke: "#4f46e5", // Darker indigo for active dot
+            stroke: "#4f46e5", 
             strokeWidth: 2,
             fill: "#fff",
             r: 6,

@@ -85,7 +85,7 @@ const valorPorGrupoDataFicha = [
 
 // Dados de amostra do CSV para representar todos os tipos de resultados e tipos de exame
 // This data will be passed to the AtestadosTable component
-const atestadosData = [
+const atestadosDataRaw = [
   { vencimento: "30/10/2023", dataExame: "30/10/2021", resultado: "Apto", tipo: "Admissional" },
   { vencimento: "06/01/2023", dataExame: "07/01/2022", resultado: "Apto", tipo: "Periódico" },
   { vencimento: "22/12/2022", dataExame: "23/12/2021", resultado: "Apto", tipo: "Mudança de Função" },
@@ -103,23 +103,24 @@ const atestadosData = [
 ];
 
 // Dados mock para AfastamentosTable (baseado no CSV fornecido)
-const mockAfastamentos = [
+const mockAfastamentosRaw = [
   { inicio: "13/08/2015", termino: "10/12/2015", tipo: "Licença maternidade", diasAfastados: "120" },
   { inicio: "01/01/2016", termino: "03/01/2016", tipo: "Doença período igual ou inferior a 15 dias", diasAfastados: "3" },
   { inicio: "21/09/2015", termino: "18/01/2016", tipo: "Licença maternidade", diasAfastados: "120" },
   { inicio: "04/01/2016", termino: "04/01/2016", tipo: "Doença período igual ou inferior a 15 dias", diasAfastados: "1" },
 ];
 
-// Mock data for ContratosTable (replace with actual CSV parsing logic later)
-const mockContratosData = [
-  { id: "c1", empresa: "CE CERTIFICACAO MT (193)", colaborador: "MILENA RODRIGUES DA SILVA", dataAdmissao: "28/05/2025", dataRescisao: "" },
-  { id: "c2", empresa: "CM PONTE ME (221)", colaborador: "ANA VIRGINIA FERREIRA BORGES", dataAdmissao: "27/05/2025" },
-  { id: "c3", empresa: "TDOIS CONSTRUCOES (285)", colaborador: "MARCOS PAULO DA SILVA AVELINO", dataAdmissao: "27/05/2025" },
-  { id: "c4", empresa: "DIGITAL COLLEGE (511)", colaborador: "TIERRI DA SILVA NERES", dataAdmissao: "26/05/2025" },
-  { id: "c5", empresa: "P ALBUQUERQUE (258)", colaborador: "JOSÉ EUDES COSTA DE SOUZA FILHO", dataAdmissao: "28/04/2025", dataRescisao: "29/04/2025" },
-  { id: "c6", empresa: "Empresa Zeta", colaborador: "Roberto Almeida", dataAdmissao: "10/11/2018", dataRescisao: "15/06/2021" },
-  { id: "c7", empresa: "Empresa Omega", colaborador: "Patricia Lima", dataAdmissao: "01/03/2022" },
+// Dados mock para ContratosTable
+const mockContratosRaw = [
+  { id: "1", empresa: "Empresa Alpha", colaborador: "João Silva", dataAdmissao: "01/01/2020", dataRescisao: "31/12/2021", salarioBase: "R$ 3.500,00" },
+  { id: "2", empresa: "Empresa Alpha", colaborador: "João Silva", dataAdmissao: "15/01/2022", salarioBase: "R$ 3.800,00" }, // Contrato vigente
+  { id: "3", empresa: "Empresa Beta", colaborador: "Maria Oliveira", dataAdmissao: "10/03/2019", salarioBase: "R$ 4.200,00" },
+  { id: "4", empresa: "Empresa Gamma", colaborador: "Carlos Pereira", dataAdmissao: "05/07/2018", dataRescisao: "04/07/2020", salarioBase: "R$ 3.000,00" },
+  { id: "5", empresa: "Empresa Delta", colaborador: "Ana Costa", dataAdmissao: "20/11/2022", salarioBase: "R$ 4.500,00" },
+  { id: "6", empresa: "Empresa Epsilon", colaborador: "Lucas Martins", dataAdmissao: "01/02/2017", dataRescisao: "15/08/2019", salarioBase: "R$ 2.800,00" },
+  { id: "7", empresa: "Empresa Epsilon", colaborador: "Lucas Martins", dataAdmissao: "01/09/2019", salarioBase: "R$ 3.200,00" },
 ];
+
 
 export default function FichaPessoalPage() {
   const kpiCardData = [
@@ -138,6 +139,46 @@ export default function FichaPessoalPage() {
     });
   }, []);
   const evolucaoCardTitle = "Evolução de Custo Total";
+
+  // Process data for tables to ensure consistent length
+  const processedTableData = useMemo(() => {
+    const maxLength = Math.max(
+      atestadosDataRaw.length,
+      mockAfastamentosRaw.length,
+      mockContratosRaw.length
+    );
+
+    const padArray = <T,>(
+      arr: T[],
+      targetLength: number,
+      placeholderFactory: (index: number) => T
+    ): T[] => {
+      const currentLength = arr.length;
+      if (currentLength >= targetLength) {
+        return arr.slice(0, targetLength);
+      }
+      const placeholders = Array.from({ length: targetLength - currentLength }, (_, i) =>
+        placeholderFactory(currentLength + i)
+      );
+      return [...arr, ...placeholders];
+    };
+
+    const atestadoPlaceholder = () => ({
+      vencimento: "", dataExame: "", resultado: "", tipo: ""
+    });
+    const afastamentoPlaceholder = () => ({
+      inicio: "", termino: "", tipo: "", diasAfastados: ""
+    });
+    const contratoPlaceholder = (index: number) => ({
+      id: `placeholder-${index}`, empresa: "", colaborador: "", dataAdmissao: "", dataRescisao: "", salarioBase: ""
+    });
+
+    return {
+      atestados: padArray(atestadosDataRaw, maxLength, atestadoPlaceholder),
+      afastamentos: padArray(mockAfastamentosRaw, maxLength, afastamentoPlaceholder),
+      contratos: padArray(mockContratosRaw, maxLength, contratoPlaceholder),
+    };
+  }, []);
 
   return (
     <div className="h-screen flex flex-col bg-[#f7f7f8]">
@@ -177,7 +218,7 @@ export default function FichaPessoalPage() {
           {/* Coluna 1: Histórico de Atestados */}
           <div className="lg:col-span-1 h-full overflow-hidden"> {/* Added overflow-hidden */}
             <AtestadosTable 
-              atestadosData={atestadosData} 
+              atestadosData={processedTableData.atestados} 
               cairoClassName={cairo.className} 
             />
           </div>
@@ -185,16 +226,16 @@ export default function FichaPessoalPage() {
           {/* Coluna 2: Histórico de Afastamentos */}
           <div className="lg:col-span-1 h-full overflow-hidden"> {/* Added overflow-hidden */}
             <AfastamentosTable 
-              afastamentosData={mockAfastamentos} 
+              afastamentosData={processedTableData.afastamentos} 
               cairoClassName={cairo.className} 
             />
           </div>
 
           {/* Coluna 3: Histórico de Contratos */}
           <div className="lg:col-span-1 h-full overflow-hidden"> {/* Added overflow-hidden */}
-            <ContratosTable 
-              contratosData={mockContratosData} 
-              cairoClassName={cairo.className} 
+            <ContratosTable
+              contratosData={processedTableData.contratos}
+              cairoClassName={cairo.className}
             />
           </div>
         </div>

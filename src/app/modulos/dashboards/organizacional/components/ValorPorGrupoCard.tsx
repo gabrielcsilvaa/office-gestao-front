@@ -1,6 +1,6 @@
 import Image from "next/image";
 import React, { Fragment } from "react";
-import ValorPorGrupoChart from "./ValorPorGrupoChart"; // Assuming ValorPorGrupoChart is in the same components folder or path is adjusted
+import ValorPorGrupoChart from "./ValorPorGrupoChart"; 
 
 interface ValorPorGrupoCardProps {
   valorPorGrupoData: Array<{ name: string; value: number }>;

@@ -2,35 +2,31 @@
 import { Cairo } from "next/font/google";
 import SelecaoIndicadores from "./components/SelecaoIndicadores";
 import SecaoFiltros from "./components/SecaoFiltros";
-// import Card from "./components/Card"; // Moved to KpiCardsGrid
 import { useState, useMemo } from "react";
-// import Image from "next/image"; // No longer directly used here
-// import React from "react"; // No longer directly used here (implicitly used by JSX)
 import EvolucaoCard from "./components/EvolucaoCard";
 import ValorPorGrupoCard from "./components/ValorPorGrupoCard";
 import DissidioCard from "./components/DissidioCard";
 import ValorPorPessoaCard from "./components/ValorPorPessoaCard";
 import ValorPorCalculoCard from "./components/ValorPorCalculoCard";
-import KpiCardsGrid from "./components/KpiCardsGrid"; // Import the new component
+import KpiCardsGrid from "./components/KpiCardsGrid"; 
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
   subsets: ["latin"],
 });
 
-// Helper function to parse currency string to number
 const parseCurrency = (currencyString: string): number => {
   if (!currencyString) return 0;
   return parseFloat(
     currencyString
       .replace("R$", "")
-      .replace(/\./g, "") // Remove thousand separators
-      .replace(",", ".") // Replace decimal comma with dot
+      .replace(/\./g, "") 
+      .replace(",", ".") 
       .trim()
   );
 };
 
-// Raw data as provided
+
 const rawChartDataEntries = [
   "Jan/2024: R$ 5.462.280,00",
   "Fev/2024: R$ 5.463.540,00",
@@ -43,22 +39,20 @@ const rawChartDataEntries = [
   "Set/2024: R$ 6.728.160,00",
   "Out/2024: R$ 6.551.310,00",
   "Nov/2024: R$ 8.289.970,00",
-  "Dez/2024: R$ 33.388.510,00", // Note: This value is significantly higher
+  "Dez/2024: R$ 33.388.510,00", 
 ];
 
-// Data for ValorPorGrupoChart
 const valorPorGrupoData = [
   { name: "Simples Doméstico", value: 25400 },
   { name: "Simples Doméstico 13º", value: 2000 },
   { name: "Outros Proventos", value: 300 },
-  { name: "Fechamento", value: 300 }, // Assuming this is the second R$ 300,00 from Figma
+  { name: "Fechamento", value: 300 }, 
   { name: "IRRF", value: -900 },
   { name: "Descontos", value: -21200 },
   { name: "Dependente IR 13º", value: -60700 },
   { name: "Dependente IR Férias", value: -77500 },
   { name: "Dependente IR Mensal", value: -533900 },
 ];
-
 
 export default function DashboardOrganizacional() {
   const [kpiSelecionado, setKpiSelecionado] = useState<string>("Proventos"); 
@@ -85,7 +79,6 @@ export default function DashboardOrganizacional() {
     { src: "/assets/icons/icon-more-options.svg", alt: "More Options" },
   ];
 
-  // Process chart data (memoized for performance)
   const processedEvolucaoChartData = useMemo(() => {
     return rawChartDataEntries.map(entry => {
       const [month, valueString] = entry.split(": ");

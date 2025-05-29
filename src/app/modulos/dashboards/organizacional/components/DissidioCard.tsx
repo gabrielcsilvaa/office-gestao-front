@@ -1,6 +1,6 @@
 import Image from "next/image";
 import React, { Fragment } from "react";
-import DissidioTable from "./DissidioTable"; // Import the new table component
+import DissidioTable from "./DissidioTable"; 
 
 interface Icon {
   src: string;
