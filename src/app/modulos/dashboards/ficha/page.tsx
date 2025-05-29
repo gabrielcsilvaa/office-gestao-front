@@ -142,22 +142,19 @@ export default function FichaPessoalPage() {
 
   // Process data for tables to ensure consistent length
   const processedTableData = useMemo(() => {
-    const maxLength = Math.max(
-      atestadosDataRaw.length,
-      mockAfastamentosRaw.length,
-      mockContratosRaw.length
-    );
+    const targetLength = 14; // Set target length to 14 for all tables
 
     const padArray = <T,>(
       arr: T[],
-      targetLength: number,
+      length: number, // Renamed parameter for clarity
       placeholderFactory: (index: number) => T
     ): T[] => {
       const currentLength = arr.length;
-      if (currentLength >= targetLength) {
-        return arr.slice(0, targetLength);
+      if (currentLength >= length) {
+        return arr.slice(0, length); // Slice if longer
       }
-      const placeholders = Array.from({ length: targetLength - currentLength }, (_, i) =>
+      // Pad if shorter
+      const placeholders = Array.from({ length: length - currentLength }, (_, i) =>
         placeholderFactory(currentLength + i)
       );
       return [...arr, ...placeholders];
@@ -174,9 +171,9 @@ export default function FichaPessoalPage() {
     });
 
     return {
-      atestados: padArray(atestadosDataRaw, maxLength, atestadoPlaceholder),
-      afastamentos: padArray(mockAfastamentosRaw, maxLength, afastamentoPlaceholder),
-      contratos: padArray(mockContratosRaw, maxLength, contratoPlaceholder),
+      atestados: padArray(atestadosDataRaw, targetLength, atestadoPlaceholder),
+      afastamentos: padArray(mockAfastamentosRaw, targetLength, afastamentoPlaceholder),
+      contratos: padArray(mockContratosRaw, targetLength, contratoPlaceholder),
     };
   }, []);
 
