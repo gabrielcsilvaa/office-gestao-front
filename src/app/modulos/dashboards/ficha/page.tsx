@@ -6,6 +6,7 @@ import EvolucaoCard from "./components/EvolucaoCard";
 import ValorPorGrupoCard from "./components/ValorPorGrupoCard"; // Import ValorPorGrupoCard
 import AtestadosTable from "./components/AtestadosTable"; // Import AtestadosTable
 import AfastamentosTable from "./components/AfastamentosTable"; // Novo componente
+import ContratosTable from "./components/ContratosTable"; // Import ContratosTable
 import { useMemo, useState } from "react";
 
 const cairo = Cairo({
@@ -109,6 +110,17 @@ const mockAfastamentos = [
   { inicio: "04/01/2016", termino: "04/01/2016", tipo: "Doença período igual ou inferior a 15 dias", diasAfastados: "1" },
 ];
 
+// Mock data for ContratosTable (replace with actual CSV parsing logic later)
+const mockContratosData = [
+  { id: "c1", empresa: "CE CERTIFICACAO MT (193)", colaborador: "MILENA RODRIGUES DA SILVA", dataAdmissao: "28/05/2025", dataRescisao: "" },
+  { id: "c2", empresa: "CM PONTE ME (221)", colaborador: "ANA VIRGINIA FERREIRA BORGES", dataAdmissao: "27/05/2025" },
+  { id: "c3", empresa: "TDOIS CONSTRUCOES (285)", colaborador: "MARCOS PAULO DA SILVA AVELINO", dataAdmissao: "27/05/2025" },
+  { id: "c4", empresa: "DIGITAL COLLEGE (511)", colaborador: "TIERRI DA SILVA NERES", dataAdmissao: "26/05/2025" },
+  { id: "c5", empresa: "P ALBUQUERQUE (258)", colaborador: "JOSÉ EUDES COSTA DE SOUZA FILHO", dataAdmissao: "28/04/2025", dataRescisao: "29/04/2025" },
+  { id: "c6", empresa: "Empresa Zeta", colaborador: "Roberto Almeida", dataAdmissao: "10/11/2018", dataRescisao: "15/06/2021" },
+  { id: "c7", empresa: "Empresa Omega", colaborador: "Patricia Lima", dataAdmissao: "01/03/2022" },
+];
+
 export default function FichaPessoalPage() {
   const kpiCardData = [
     { title: "Data de Admissão", value: "01/01/2020", tooltipText: "Data de início do colaborador na empresa." },
@@ -178,9 +190,12 @@ export default function FichaPessoalPage() {
             />
           </div>
 
-          {/* Coluna 3: Pode ser um placeholder ou outro card */}
-          <div className="lg:col-span-1 bg-gray-50 rounded-lg border border-neutral-700 p-4 flex items-center justify-center h-full overflow-hidden"> {/* Added overflow-hidden */}
-            <span className="text-gray-400">Coluna 3 (Placeholder)</span>
+          {/* Coluna 3: Histórico de Contratos */}
+          <div className="lg:col-span-1 h-full overflow-hidden"> {/* Added overflow-hidden */}
+            <ContratosTable 
+              contratosData={mockContratosData} 
+              cairoClassName={cairo.className} 
+            />
           </div>
         </div>
 
