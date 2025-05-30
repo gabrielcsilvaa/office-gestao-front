@@ -4,6 +4,7 @@ import React from 'react';
 import Image from 'next/image';
 
 interface FeriasDetalheEntry {
+  nomeColaborador: string; // Added field
   inicioPeriodoAquisitivo: string;
   fimPeriodoAquisitivo: string;
   limiteParaGozo: string;
@@ -29,6 +30,7 @@ interface FeriasDetalheCardProps {
 // Sample data for FeriasDetalheCard
 const sampleFeriasDetalheData: FeriasDetalheEntry[] = [
   {
+    nomeColaborador: "Ana Silva",
     inicioPeriodoAquisitivo: "2022-01-01",
     fimPeriodoAquisitivo: "2022-12-31",
     limiteParaGozo: "2023-11-30",
@@ -38,6 +40,7 @@ const sampleFeriasDetalheData: FeriasDetalheEntry[] = [
     status: "A Vencer",
   },
   {
+    nomeColaborador: "Carlos Oliveira",
     inicioPeriodoAquisitivo: "2021-01-01",
     fimPeriodoAquisitivo: "2021-12-31",
     limiteParaGozo: "2022-11-30",
@@ -45,6 +48,126 @@ const sampleFeriasDetalheData: FeriasDetalheEntry[] = [
     diasGozados: 30,
     diasDeSaldo: 0,
     status: "Gozado",
+  },
+  {
+    nomeColaborador: "Beatriz Costa",
+    inicioPeriodoAquisitivo: "2023-03-15",
+    fimPeriodoAquisitivo: "2024-03-14",
+    limiteParaGozo: "2025-02-14",
+    diasDeDireito: 30,
+    diasGozados: 0,
+    diasDeSaldo: 30,
+    status: "A Vencer",
+  },
+  {
+    nomeColaborador: "Daniel Martins",
+    inicioPeriodoAquisitivo: "2022-07-01",
+    fimPeriodoAquisitivo: "2023-06-30",
+    limiteParaGozo: "2024-05-30",
+    diasDeDireito: 30,
+    diasGozados: 30,
+    diasDeSaldo: 0,
+    status: "Gozado",
+  },
+  {
+    nomeColaborador: "Eduarda Ferreira",
+    inicioPeriodoAquisitivo: "2024-01-10",
+    fimPeriodoAquisitivo: "2025-01-09",
+    limiteParaGozo: "2025-12-09",
+    diasDeDireito: 30,
+    diasGozados: 0,
+    diasDeSaldo: 30,
+    status: "A Vencer",
+  },
+  {
+    nomeColaborador: "Felipe Almeida",
+    inicioPeriodoAquisitivo: "2020-05-20",
+    fimPeriodoAquisitivo: "2021-05-19",
+    limiteParaGozo: "2022-04-19",
+    diasDeDireito: 30,
+    diasGozados: 30,
+    diasDeSaldo: 0,
+    status: "Vencido",
+  },
+  {
+    nomeColaborador: "Gabriela Lima",
+    inicioPeriodoAquisitivo: "2023-08-01",
+    fimPeriodoAquisitivo: "2024-07-31",
+    limiteParaGozo: "2025-06-30",
+    diasDeDireito: 30,
+    diasGozados: 10,
+    diasDeSaldo: 20,
+    status: "Em Gozo",
+  },
+  {
+    nomeColaborador: "Heitor Pereira",
+    inicioPeriodoAquisitivo: "2022-11-01",
+    fimPeriodoAquisitivo: "2023-10-31",
+    limiteParaGozo: "2024-09-30",
+    diasDeDireito: 30,
+    diasGozados: 0,
+    diasDeSaldo: 30,
+    status: "A Vencer",
+  },
+  {
+    nomeColaborador: "Isabela Santos",
+    inicioPeriodoAquisitivo: "2021-06-15",
+    fimPeriodoAquisitivo: "2022-06-14",
+    limiteParaGozo: "2023-05-14",
+    diasDeDireito: 30,
+    diasGozados: 30,
+    diasDeSaldo: 0,
+    status: "Gozado",
+  },
+  {
+    nomeColaborador: "João Rodrigues",
+    inicioPeriodoAquisitivo: "2024-02-20",
+    fimPeriodoAquisitivo: "2025-02-19",
+    limiteParaGozo: "2026-01-19",
+    diasDeDireito: 30,
+    diasGozados: 0,
+    diasDeSaldo: 30,
+    status: "A Vencer",
+  },
+  {
+    nomeColaborador: "Larissa Gomes",
+    inicioPeriodoAquisitivo: "2023-05-01",
+    fimPeriodoAquisitivo: "2024-04-30",
+    limiteParaGozo: "2025-03-30",
+    diasDeDireito: 30,
+    diasGozados: 15,
+    diasDeSaldo: 15,
+    status: "Aprovada",
+  },
+  {
+    nomeColaborador: "Miguel Sousa",
+    inicioPeriodoAquisitivo: "2022-09-10",
+    fimPeriodoAquisitivo: "2023-09-09",
+    limiteParaGozo: "2024-08-09",
+    diasDeDireito: 30,
+    diasGozados: 20,
+    diasDeSaldo: 10,
+    status: "A Vencer",
+  },
+  {
+    nomeColaborador: "Natália Azevedo",
+    inicioPeriodoAquisitivo: "2021-12-01",
+    fimPeriodoAquisitivo: "2022-11-30",
+    limiteParaGozo: "2023-10-30",
+    diasDeDireito: 30,
+    diasGozados: 30,
+    diasDeSaldo: 0,
+    status: "Gozado",
+  },
+  {
+    nomeColaborador: "Otávio Barbosa",
+    inicioPeriodoAquisitivo: "2024-07-01",
+    fimPeriodoAquisitivo: "2025-06-30",
+    limiteParaGozo: "2026-05-30",
+    diasDeDireito: 30,
+    diasGozados: 0,
+    diasDeSaldo: 30,
+    status: "A Vencer",
   },
 ];
 
@@ -89,6 +212,10 @@ const FeriasDetalheCard: React.FC<FeriasDetalheCardProps> = ({
         {feriasData.length > 0 ? (
           feriasData.map((ferias, index) => (
             <div key={index} className="p-3 border border-gray-200 rounded-lg shadow-md bg-white">
+              <div className="mb-3"> {/* Container for Collaborator Name */}
+                <span className="text-blue-600 font-semibold text-md truncate block">{ferias.nomeColaborador}</span>
+                <div className="h-px bg-gray-200 mt-1"></div> {/* Separator line */}
+              </div>
               <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                 
                 <div className="flex flex-col">

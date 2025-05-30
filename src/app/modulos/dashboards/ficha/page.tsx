@@ -148,20 +148,20 @@ const mockContratosRaw = [
 // DiasSolicitados -> diasGozados, StatusFerias -> status.
 // limiteParaGozo calculated as fimPeriodoAquisitivo + 11 months + 1 day.
 const sampleFeriasDetalheData = [
-  { inicioPeriodoAquisitivo: "2024-07-01", fimPeriodoAquisitivo: "2024-07-15", limiteParaGozo: "2025-06-16", diasDeDireito: 30, diasGozados: 15, diasDeSaldo: 15, status: "Aprovada" },
-  { inicioPeriodoAquisitivo: "2024-08-05", fimPeriodoAquisitivo: "2024-08-10", limiteParaGozo: "2025-07-11", diasDeDireito: 30, diasGozados: 5, diasDeSaldo: 25, status: "Pendente" },
-  { inicioPeriodoAquisitivo: "2024-09-02", fimPeriodoAquisitivo: "2024-09-16", limiteParaGozo: "2025-08-17", diasDeDireito: 30, diasGozados: 14, diasDeSaldo: 16, status: "Aprovada" },
-  { inicioPeriodoAquisitivo: "2024-07-20", fimPeriodoAquisitivo: "2024-07-30", limiteParaGozo: "2025-07-01", diasDeDireito: 30, diasGozados: 10, diasDeSaldo: 20, status: "Rejeitada" },
-  { inicioPeriodoAquisitivo: "2024-10-01", fimPeriodoAquisitivo: "2024-10-10", limiteParaGozo: "2025-09-11", diasDeDireito: 30, diasGozados: 10, diasDeSaldo: 20, status: "Aprovada" },
-  { inicioPeriodoAquisitivo: "2024-11-04", fimPeriodoAquisitivo: "2024-11-18", limiteParaGozo: "2025-10-19", diasDeDireito: 30, diasGozados: 14, diasDeSaldo: 16, status: "Pendente" },
-  { inicioPeriodoAquisitivo: "2024-12-02", fimPeriodoAquisitivo: "2024-12-16", limiteParaGozo: "2025-11-17", diasDeDireito: 30, diasGozados: 14, diasDeSaldo: 16, status: "Aprovada" },
-  { inicioPeriodoAquisitivo: "2025-01-06", fimPeriodoAquisitivo: "2025-01-20", limiteParaGozo: "2025-12-21", diasDeDireito: 30, diasGozados: 14, diasDeSaldo: 16, status: "Pendente" },
-  { inicioPeriodoAquisitivo: "2024-07-22", fimPeriodoAquisitivo: "2024-07-26", limiteParaGozo: "2025-06-27", diasDeDireito: 30, diasGozados: 5, diasDeSaldo: 25, status: "Aprovada" },
-  { inicioPeriodoAquisitivo: "2024-08-19", fimPeriodoAquisitivo: "2024-08-23", limiteParaGozo: "2025-07-24", diasDeDireito: 30, diasGozados: 5, diasDeSaldo: 25, status: "Aprovada" },
-  { inicioPeriodoAquisitivo: "2024-09-09", fimPeriodoAquisitivo: "2024-09-13", limiteParaGozo: "2025-08-14", diasDeDireito: 30, diasGozados: 5, diasDeSaldo: 25, status: "Rejeitada" },
-  { inicioPeriodoAquisitivo: "2024-10-14", fimPeriodoAquisitivo: "2024-10-28", limiteParaGozo: "2025-09-29", diasDeDireito: 30, diasGozados: 14, diasDeSaldo: 16, status: "Pendente" },
-  { inicioPeriodoAquisitivo: "2024-11-11", fimPeriodoAquisitivo: "2024-11-25", limiteParaGozo: "2025-10-26", diasDeDireito: 30, diasGozados: 14, diasDeSaldo: 16, status: "Aprovada" },
-  { inicioPeriodoAquisitivo: "2024-12-23", fimPeriodoAquisitivo: "2025-01-03", limiteParaGozo: "2025-12-04", diasDeDireito: 30, diasGozados: 10, diasDeSaldo: 20, status: "Aprovada" },
+  { nomeColaborador: "João Silva", inicioPeriodoAquisitivo: "2024-07-01", fimPeriodoAquisitivo: "2024-07-15", limiteParaGozo: "2025-06-16", diasDeDireito: 30, diasGozados: 15, diasDeSaldo: 15, status: "Aprovada" },
+  { nomeColaborador: "Maria Oliveira", inicioPeriodoAquisitivo: "2024-08-05", fimPeriodoAquisitivo: "2024-08-10", limiteParaGozo: "2025-07-11", diasDeDireito: 30, diasGozados: 5, diasDeSaldo: 25, status: "Pendente" },
+  { nomeColaborador: "Carlos Pereira", inicioPeriodoAquisitivo: "2024-09-02", fimPeriodoAquisitivo: "2024-09-16", limiteParaGozo: "2025-08-17", diasDeDireito: 30, diasGozados: 14, diasDeSaldo: 16, status: "Aprovada" },
+  { nomeColaborador: "Ana Costa", inicioPeriodoAquisitivo: "2024-07-20", fimPeriodoAquisitivo: "2024-07-30", limiteParaGozo: "2025-07-01", diasDeDireito: 30, diasGozados: 10, diasDeSaldo: 20, status: "Rejeitada" },
+  { nomeColaborador: "Lucas Martins", inicioPeriodoAquisitivo: "2024-10-01", fimPeriodoAquisitivo: "2024-10-10", limiteParaGozo: "2025-09-11", diasDeDireito: 30, diasGozados: 10, diasDeSaldo: 20, status: "Aprovada" },
+  { nomeColaborador: "Beatriz Souza", inicioPeriodoAquisitivo: "2024-11-04", fimPeriodoAquisitivo: "2024-11-18", limiteParaGozo: "2025-10-19", diasDeDireito: 30, diasGozados: 14, diasDeSaldo: 16, status: "Pendente" },
+  { nomeColaborador: "Rafael Lima", inicioPeriodoAquisitivo: "2024-12-02", fimPeriodoAquisitivo: "2024-12-16", limiteParaGozo: "2025-11-17", diasDeDireito: 30, diasGozados: 14, diasDeSaldo: 16, status: "Aprovada" },
+  { nomeColaborador: "Juliana Alves", inicioPeriodoAquisitivo: "2025-01-06", fimPeriodoAquisitivo: "2025-01-20", limiteParaGozo: "2025-12-21", diasDeDireito: 30, diasGozados: 14, diasDeSaldo: 16, status: "Pendente" },
+  { nomeColaborador: "Fernando Rocha", inicioPeriodoAquisitivo: "2024-07-22", fimPeriodoAquisitivo: "2024-07-26", limiteParaGozo: "2025-06-27", diasDeDireito: 30, diasGozados: 5, diasDeSaldo: 25, status: "Aprovada" },
+  { nomeColaborador: "Camila Santos", inicioPeriodoAquisitivo: "2024-08-19", fimPeriodoAquisitivo: "2024-08-23", limiteParaGozo: "2025-07-24", diasDeDireito: 30, diasGozados: 5, diasDeSaldo: 25, status: "Aprovada" },
+  { nomeColaborador: "Gustavo Mendes", inicioPeriodoAquisitivo: "2024-09-09", fimPeriodoAquisitivo: "2024-09-13", limiteParaGozo: "2025-08-14", diasDeDireito: 30, diasGozados: 5, diasDeSaldo: 25, status: "Rejeitada" },
+  { nomeColaborador: "Patrícia Ribeiro", inicioPeriodoAquisitivo: "2024-10-14", fimPeriodoAquisitivo: "2024-10-28", limiteParaGozo: "2025-09-29", diasDeDireito: 30, diasGozados: 14, diasDeSaldo: 16, status: "Pendente" },
+  { nomeColaborador: "Roberto Silva", inicioPeriodoAquisitivo: "2024-11-11", fimPeriodoAquisitivo: "2024-11-25", limiteParaGozo: "2025-10-26", diasDeDireito: 30, diasGozados: 14, diasDeSaldo: 16, status: "Aprovada" },
+  { nomeColaborador: "Mariana Costa", inicioPeriodoAquisitivo: "2024-12-23", fimPeriodoAquisitivo: "2025-01-03", limiteParaGozo: "2025-12-04", diasDeDireito: 30, diasGozados: 10, diasDeSaldo: 20, status: "Aprovada" },
 ];
 
 // Updated data for AlteracoesSalariaisDetalheCard from CSV (first 14 records)
