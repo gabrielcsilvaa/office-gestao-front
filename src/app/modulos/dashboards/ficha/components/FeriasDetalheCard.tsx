@@ -4,14 +4,13 @@ import React from 'react';
 import Image from 'next/image';
 
 interface FeriasDetalheEntry {
-  nomeColaborador: string; // Added field
+  nomeColaborador: string;
   inicioPeriodoAquisitivo: string;
   fimPeriodoAquisitivo: string;
   limiteParaGozo: string;
   diasDeDireito: number;
   diasGozados: number;
   diasDeSaldo: number;
-  status?: string; // e.g., "Vencido", "A Vencer", "Em Gozo"
 }
 
 interface IconProps {
@@ -37,7 +36,6 @@ const sampleFeriasDetalheData: FeriasDetalheEntry[] = [
     diasDeDireito: 30,
     diasGozados: 15,
     diasDeSaldo: 15,
-    status: "A Vencer",
   },
   {
     nomeColaborador: "Carlos Oliveira",
@@ -47,7 +45,6 @@ const sampleFeriasDetalheData: FeriasDetalheEntry[] = [
     diasDeDireito: 30,
     diasGozados: 30,
     diasDeSaldo: 0,
-    status: "Gozado",
   },
   {
     nomeColaborador: "Beatriz Costa",
@@ -57,7 +54,6 @@ const sampleFeriasDetalheData: FeriasDetalheEntry[] = [
     diasDeDireito: 30,
     diasGozados: 0,
     diasDeSaldo: 30,
-    status: "A Vencer",
   },
   {
     nomeColaborador: "Daniel Martins",
@@ -67,7 +63,6 @@ const sampleFeriasDetalheData: FeriasDetalheEntry[] = [
     diasDeDireito: 30,
     diasGozados: 30,
     diasDeSaldo: 0,
-    status: "Gozado",
   },
   {
     nomeColaborador: "Eduarda Ferreira",
@@ -77,7 +72,6 @@ const sampleFeriasDetalheData: FeriasDetalheEntry[] = [
     diasDeDireito: 30,
     diasGozados: 0,
     diasDeSaldo: 30,
-    status: "A Vencer",
   },
   {
     nomeColaborador: "Felipe Almeida",
@@ -87,7 +81,6 @@ const sampleFeriasDetalheData: FeriasDetalheEntry[] = [
     diasDeDireito: 30,
     diasGozados: 30,
     diasDeSaldo: 0,
-    status: "Vencido",
   },
   {
     nomeColaborador: "Gabriela Lima",
@@ -97,7 +90,6 @@ const sampleFeriasDetalheData: FeriasDetalheEntry[] = [
     diasDeDireito: 30,
     diasGozados: 10,
     diasDeSaldo: 20,
-    status: "Em Gozo",
   },
   {
     nomeColaborador: "Heitor Pereira",
@@ -107,7 +99,6 @@ const sampleFeriasDetalheData: FeriasDetalheEntry[] = [
     diasDeDireito: 30,
     diasGozados: 0,
     diasDeSaldo: 30,
-    status: "A Vencer",
   },
   {
     nomeColaborador: "Isabela Santos",
@@ -117,7 +108,6 @@ const sampleFeriasDetalheData: FeriasDetalheEntry[] = [
     diasDeDireito: 30,
     diasGozados: 30,
     diasDeSaldo: 0,
-    status: "Gozado",
   },
   {
     nomeColaborador: "João Rodrigues",
@@ -127,7 +117,6 @@ const sampleFeriasDetalheData: FeriasDetalheEntry[] = [
     diasDeDireito: 30,
     diasGozados: 0,
     diasDeSaldo: 30,
-    status: "A Vencer",
   },
   {
     nomeColaborador: "Larissa Gomes",
@@ -137,7 +126,6 @@ const sampleFeriasDetalheData: FeriasDetalheEntry[] = [
     diasDeDireito: 30,
     diasGozados: 15,
     diasDeSaldo: 15,
-    status: "Aprovada",
   },
   {
     nomeColaborador: "Miguel Sousa",
@@ -147,7 +135,6 @@ const sampleFeriasDetalheData: FeriasDetalheEntry[] = [
     diasDeDireito: 30,
     diasGozados: 20,
     diasDeSaldo: 10,
-    status: "A Vencer",
   },
   {
     nomeColaborador: "Natália Azevedo",
@@ -157,7 +144,6 @@ const sampleFeriasDetalheData: FeriasDetalheEntry[] = [
     diasDeDireito: 30,
     diasGozados: 30,
     diasDeSaldo: 0,
-    status: "Gozado",
   },
   {
     nomeColaborador: "Otávio Barbosa",
@@ -167,7 +153,6 @@ const sampleFeriasDetalheData: FeriasDetalheEntry[] = [
     diasDeDireito: 30,
     diasGozados: 0,
     diasDeSaldo: 30,
-    status: "A Vencer",
   },
 ];
 
@@ -212,12 +197,21 @@ const FeriasDetalheCard: React.FC<FeriasDetalheCardProps> = ({
         {feriasData.length > 0 ? (
           feriasData.map((ferias, index) => (
             <div key={index} className="p-3 border border-gray-200 rounded-lg shadow-md bg-white">
-              <div className="mb-3"> {/* Container for Collaborator Name */}
-                <span className="text-blue-600 font-semibold text-md truncate block">{ferias.nomeColaborador}</span>
-                <div className="h-px bg-gray-200 mt-1"></div> {/* Separator line */}
-              </div>
+              {/* The existing grid now starts with the collaborator's details */}
               <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                {/* New Collaborator display */}
+                <div className="flex flex-col col-span-2">
+                  <span 
+                    className="text-gray-800 font-medium text-sm truncate" 
+                    title={ferias.nomeColaborador}
+                  >
+                    {ferias.nomeColaborador}
+                  </span>
+                  <span className="text-gray-500 font-light text-xs">Colaborador</span>
+                </div>
+                <div className="col-span-2 h-px bg-gray-200"></div> {/* Separator line after collaborator */}
                 
+                {/* Existing fields follow */}
                 <div className="flex flex-col">
                   <span className="text-gray-800 font-medium text-sm truncate">{ferias.inicioPeriodoAquisitivo || "-"}</span>
                   <span className="text-gray-500 font-light text-xs">Início Período Aquisitivo</span>
@@ -251,16 +245,6 @@ const FeriasDetalheCard: React.FC<FeriasDetalheCardProps> = ({
                   <span className="text-gray-800 font-medium text-sm truncate">{ferias.diasGozados}</span>
                   <span className="text-gray-500 font-light text-xs">Dias Gozados</span>
                 </div>
-                
-                {ferias.status && (
-                  <>
-                    <div className="col-span-2 h-px bg-gray-200"></div>
-                    <div className="flex flex-col col-span-2">
-                      <span className="text-gray-800 font-medium text-sm truncate">{ferias.status}</span>
-                      <span className="text-gray-500 font-light text-xs">Status</span>
-                    </div>
-                  </>
-                )}
               </div>
             </div>
           ))
