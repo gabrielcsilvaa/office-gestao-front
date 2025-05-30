@@ -19,7 +19,7 @@ export default function Demografico() {
   });
 
   const resetarFiltros = () => {
-    setBotaoSelecionado("Ativos");
+    setBotaoSelecionado("");
     setFiltros({
       centroCusto: "",
       departamento: "",
@@ -29,7 +29,7 @@ export default function Demografico() {
   };
 
   return (
-    <div className="p-6 bg-gray-100 min-h-screen">
+    <div className="p-6 bg-white min-h-screen">
       {/* Título e Botões agrupados à esquerda */}
       <div className="flex flex-col md:flex-row md:items-center flex-wrap gap-4 mb-6"> {/* Removido md:justify-between, adicionado flex-wrap e gap-4 geral */}
         <h1 className="text-2xl font-bold whitespace-nowrap">Dashboard Demográfico</h1>
@@ -49,7 +49,7 @@ export default function Demografico() {
           <div className="w-px h-6 bg-gray-400 hidden md:block" />
 
           {/* Botões de status */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap  gap-2">
             {[
               "Ativos",
               "Contratações",
@@ -61,10 +61,10 @@ export default function Demografico() {
               <button
                 key={nome}
                 onClick={() => setBotaoSelecionado(nome)}
-                className={`px-4 py-2 rounded transition-all ${
+                className={`px-4 py-2 rounded  border text-sm   transition-all ${
                   botaoSelecionado === nome
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-300 text-black"
+                    ? "bg-black text-white"
+                    : "bg-white text-black"
                 }`}
               >
                 {nome}
@@ -75,7 +75,7 @@ export default function Demografico() {
       </div>
 
       {/* Filtros */}
-      <div className="m-6    ">
+      <div className="flex flex-col md:flex-row md:items-center flex-wrap gap-4 mb-6">
         
         <select
           className="w-[232px]  p-2 border rounded text-black-700"
