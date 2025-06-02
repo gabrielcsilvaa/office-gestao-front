@@ -48,6 +48,8 @@ export default function Demografico() {
           {/* Linha vertical (visível em telas md ou maiores) */}
           <div className="w-px h-6 bg-gray-400 hidden md:block" />
 
+          
+
           {/* Botões de status */}
           <div className="flex flex-wrap  gap-2">
             {[
@@ -209,3 +211,8 @@ export default function Demografico() {
     </div>
   );
 }
+
+
+
+
+
