@@ -172,7 +172,7 @@ export default function Demografico() {
             </div>
 
             {/* Gráfico de linha */}
-            <div className="flex-1 min-h-[400px]">
+            <div className="flex-1 min-h-[600px]">
               <GraficoLinha />
             </div>
           </div>
@@ -182,16 +182,16 @@ export default function Demografico() {
         <div className="w-full h-[655px] lg:w-1/2">
           <div className="bg-white rounded shadow p-4 h-full">
             <div className="grid grid-cols-2 gap-4">
-              <div className="aspect-square w-full border border-gray-300 rounded">
+              <div className="aspect-square w-full h-[300px] border border-gray-300 rounded">
                 <GraficosGenero />
               </div>
-              <div className="aspect-square w-full border border-gray-300 rounded">
+              <div className="aspect-square w-full h-[300px] border border-gray-300 rounded">
                 <GraficoFaixaEtaria />
               </div>
-              <div className="aspect-square w-full border border-gray-300 rounded">
+              <div className="aspect-square w-full h-[300px] border border-gray-300 rounded">
                 <GraficoCategoria />
               </div>
-              <div className="aspect-square w-full border border-gray-300 rounded">
+              <div className="aspect-square w-full h-[300px] border border-gray-300 rounded">
                 <GraficoEscolaridade />
               </div>
             </div>
@@ -200,7 +200,7 @@ export default function Demografico() {
       </div>
 
       {/* Parte inferior: Tabela e gráfico de cargos */}
-      <div className="flex flex-col lg:flex-row gap-4 mt-6">
+      <div className="flex flex-col lg:flex-row gap-4 mt-1">
         <div className="w-full lg:w-1/2 p-4 bg-white rounded shadow">
           <TabelaColaboradores />
         </div>
