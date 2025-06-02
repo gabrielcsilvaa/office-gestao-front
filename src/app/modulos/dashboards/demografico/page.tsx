@@ -10,7 +10,7 @@ import TabelaColaboradores from "./components/tabela_colaboradores";
 import { RotateCcw } from "lucide-react";
 
 export default function Demografico() {
-  const [botaoSelecionado, setBotaoSelecionado] = useState("Ativos");
+  const [botaoSelecionado, setBotaoSelecionado] = useState("");
   const [filtros, setFiltros] = useState({
     centroCusto: "",
     departamento: "",
