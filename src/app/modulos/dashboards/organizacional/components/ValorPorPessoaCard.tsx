@@ -1,15 +1,14 @@
 import Image from "next/image";
 import React, { Fragment, useMemo } from "react";
 import NameList from "./NameList";
-import { processNameBarDataUtil, RawNameBarDataItem, ColorParams } from "../utils/chartUtils"; // Import the utility
+import { processNameBarDataUtil, RawNameBarDataItem, ColorParams } from "../utils/chartUtils"; 
 
 interface ValorPorPessoaCardProps {
   sectionIcons: Array<{ src: string; alt: string; adjustSize?: boolean }>;
   cairoClassName: string;
 }
 
-// Original data with string values
-const rawNameBarData: RawNameBarDataItem[] = [ // Type assertion
+const rawNameBarData: RawNameBarDataItem[] = [ 
   { name: "RITA MARIA RODRIGUES DE OLIVEIRA", value: "R$ 1.600,00" },
   { name: "ISABEL CRISTINA BARBOSA RODRIGUES", value: "R$ 1.400,00" },
   { name: "MARIA GERLIANE DE ARAUJO MATIAS", value: "R$ 1.200,00" },
@@ -49,7 +48,7 @@ const ValorPorPessoaCard: React.FC<ValorPorPessoaCardProps> = ({
   }, []);
 
   return (
-    <div className="flex-1 bg-white rounded-lg h-[489px] border border-neutral-700 relative overflow-hidden">
+    <div className="flex-1 bg-white rounded-lg h-[489px] relative overflow-hidden shadow-md">
       <div className="w-6 h-0 left-[10px] top-[17px] absolute origin-top-left rotate-90 bg-zinc-300 outline-1 outline-offset-[-0.50px] outline-neutral-700"></div>
       <div className="flex justify-between items-center pt-[14px] px-5">
         <div
