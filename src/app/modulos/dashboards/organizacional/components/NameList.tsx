@@ -14,7 +14,6 @@ interface NameListProps {
 
 const NameList: React.FC<NameListProps> = ({ items, cairoClassName }) => {
   return (
-    // Use flexbox to distribute items evenly within the container's height
     <div className="flex flex-col justify-evenly h-full"> 
       {items.map((item, index) => (
         <div key={index} className="flex items-start gap-3"> 

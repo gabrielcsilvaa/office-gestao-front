@@ -7,7 +7,6 @@ const cairo = Cairo({
 	subsets: ["latin"],
 });
 
-// Define button labels for easier management
 const indicadores = [
 	"Informativos",
 	"Proventos",
@@ -16,7 +15,6 @@ const indicadores = [
 	"Custo Total",
 ];
 
-// Define props for the component
 interface SelecaoIndicadoresProps {
 	indicadorSelecionado: string;
 	onSelecaoIndicador: (indicador: string) => void;
@@ -52,8 +50,8 @@ export default function SelecaoIndicadores({
 						key={indicador}
 						className={`${baseButtonStyle} ${cairo.className} ${
 							indicadorSelecionado === indicador
-								? "bg-neutral-700 text-white" // Selected style
-								: "bg-white text-gray-500" // Unselected style
+								? "bg-neutral-700 text-white" 
+								: "bg-white text-gray-500" 
 						}`}
 						onClick={() => handleSelecaoIndicador(indicador)}
 					>
