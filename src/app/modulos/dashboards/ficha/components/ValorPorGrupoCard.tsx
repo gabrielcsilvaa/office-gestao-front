@@ -1,5 +1,5 @@
 import Image from "next/image";
-import React, { Fragment } from "react";
+import React, { Fragment, useMemo } from "react";
 import ValorPorGrupoChart from "./ValorPorGrupoChart"; // Assuming ValorPorGrupoChart is in the same components folder or path is adjusted
 
 interface ValorPorGrupoCardProps {
@@ -13,6 +13,12 @@ const ValorPorGrupoCard: React.FC<ValorPorGrupoCardProps> = ({
   sectionIcons,
   cairoClassName,
 }) => {
+  // ordena de forma decrescente
+  const sortedData = useMemo(
+    () => [...valorPorGrupoData].sort((a, b) => b.value - a.value),
+    [valorPorGrupoData]
+  );
+
   return (
     <div className="w-full bg-white rounded-lg relative flex flex-col overflow-hidden h-full">
       {/* Barra vertical cinza */}
@@ -46,7 +52,7 @@ const ValorPorGrupoCard: React.FC<ValorPorGrupoCardProps> = ({
       {/* Chart Area */}
       <div className="flex-1 px-1 pb-1 min-h-0 overflow-y-auto"> {/* overflow-y-auto is correctly here */}
         <ValorPorGrupoChart
-          data={valorPorGrupoData}
+          data={sortedData}
         />
       </div>
     </div>

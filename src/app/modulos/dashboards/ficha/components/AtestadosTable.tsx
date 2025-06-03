@@ -6,6 +6,7 @@ interface Atestado {
   dataExame: string;
   resultado: string;
   tipo: string;
+  nomeColaborador?: string; // Add collaborator name
 }
 
 interface IconProps {
@@ -55,8 +56,20 @@ const AtestadosTable: React.FC<AtestadosTableProps> = ({ atestadosData, cairoCla
       <div className={`flex-1 overflow-y-auto min-h-0 space-y-4 pl-4 pr-1 pb-4 ${cairoClassName}`}> {/* Alterado space-y-3 para space-y-4 */}
         {atestadosData.length > 0 ? (
           atestadosData.map((atestado, index) => (
-            <div key={index} className="p-3 border border-gray-200 rounded-lg shadow-md bg-white"> {/* Alterado shadow-sm para shadow-md */}
+            <div key={index} className="p-3 border border-gray-200 rounded-lg shadow-md bg-white">
               <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                
+                {/* New Collaborator display */}
+                <div className="flex flex-col col-span-2">
+                  <span 
+                    className="text-gray-800 font-medium text-sm truncate" 
+                    title={atestado.nomeColaborador || "-"}
+                  >
+                    {atestado.nomeColaborador || "-"}
+                  </span>
+                  <span className="text-gray-500 font-light text-xs">Colaborador</span>
+                </div>
+                <div className="col-span-2 h-px bg-gray-200"></div> {/* Separator line after collaborator */}
                 
                 <div className="flex flex-col">
                   <span className="text-gray-800 font-medium text-sm truncate">{atestado.vencimento || "-"}</span>
