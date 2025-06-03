@@ -1,5 +1,5 @@
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis,  Tooltip, ResponsiveContainer } from 'recharts';
 
 const data = [
   { name: '00 a 25', colaboradores: 414 },
@@ -17,6 +17,7 @@ const GraficoFaixaEtaria = () => {
         <BarChart
           data={data}
           layout="vertical"
+          barSize={20}
           margin={{
             top: 5,
             right: 20,
@@ -24,9 +25,9 @@ const GraficoFaixaEtaria = () => {
             bottom: 5,
           }}
         >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis type="number" />
-          <YAxis type="category" dataKey="name" />
+       
+          <XAxis type="number" hide />
+          <YAxis type="category" dataKey="name"  tickLine={false}/>
           <Tooltip />
           <Bar dataKey="colaboradores" fill="#8884d8" />
         </BarChart>

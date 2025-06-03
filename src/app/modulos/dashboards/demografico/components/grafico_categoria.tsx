@@ -4,7 +4,6 @@ import {
   Bar,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
@@ -33,6 +32,7 @@ const GraficoCategoria = () => {
         <BarChart
           data={data}
           layout="vertical"
+          barSize={20}
           margin={{
             top: 5,
             right: 30,
@@ -40,9 +40,8 @@ const GraficoCategoria = () => {
             bottom: 5,
           }}
         >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis type="number" />
-          <YAxis type="category" dataKey="name" />
+          <XAxis type="number" hide />
+          <YAxis type="category" dataKey="name" tickLine={false}/>
           <Tooltip />
           <Bar dataKey="colaboradores" fill="#82ca9d" />
         </BarChart>
