@@ -3,6 +3,11 @@ import { useState, useEffect } from "react";
 import Calendar from "@/components/calendar";
 import Evolucao from "./components/cardRentabilidade";
 import Reload from "@/components/reload";
+import * as XLSX from "XLSX"
+import {saveAs} from "file-saver"
+import Image from "next/image";
+
+
 interface Escritorio {
   codigo: number;
   escritorio: string;
@@ -15,6 +20,11 @@ interface Escritorio {
     total_geral: number;
   };
   vinculos_folha_ativos: Record<string, number>;
+}
+
+interface ExportRow {
+  metric: string;
+  values: (string | number)[];
 }
 
 
@@ -81,6 +91,20 @@ export default function Escritorio() {
   if (loading) return <div className="p-4"><Reload/></div>;
   if (error) return <div className="p-4 text-red-600">Erro: {error}</div>;
   if (!escritorioSelecionado) return <div className="p-4">Nenhum escritório selecionado</div>;
+
+  function exportToExcel(data: ExportRow[], fileName = "Escritorio.xlsx") {
+      const header = [ ...Object.keys(escritorioSelecionado!.clientes), "Total"];
+  
+      const rows = data.map(row => [row.metric, ...row.values]);
+      const sheetData = [header, ...rows];
+
+    const worksheet = XLSX.utils.aoa_to_sheet(sheetData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Dados");
+    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    const dataBlob = new Blob([excelBuffer], { type: "application/octet-stream" });
+    saveAs(dataBlob, fileName);
+    }
 
   const meses = Object.keys(escritorioSelecionado.clientes);
 
@@ -311,9 +335,21 @@ export default function Escritorio() {
             onEndDateChange={handleEndDateChange}
           />
         </div>
+        <button
+          onClick={() => exportToExcel(data)}
+          title="Exportar para Excel"
+          className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto  justify-center ml-auto self-center"
+          style={{ width: 36, height: 36 }}
+        >
+          <Image
+            src="/assets/icons/excel.svg"
+            alt="Ícone Excel"
+            width={24}
+            height={24}
+            draggable={false}
+          />
+        </button>
       </div>
-
-      {/* Tabela com dados do escritório selecionado */}
       <div className="overflow-x-auto p-4 bg-white shadow-md rounded-lg  w-full shadow-gray-600 mb-4">
         <table className="w-full">
           <thead>
