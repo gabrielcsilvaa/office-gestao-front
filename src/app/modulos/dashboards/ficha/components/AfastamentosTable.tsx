@@ -22,7 +22,7 @@ interface AfastamentosTableProps {
 
 const AfastamentosTable: React.FC<AfastamentosTableProps> = ({ afastamentosData, cairoClassName, headerIcons }) => {
   return (
-    <div className="w-full bg-white rounded-lg border border-neutral-700 relative flex flex-col overflow-hidden h-full">
+    <div className="w-full bg-white rounded-lg relative flex flex-col overflow-hidden h-full">
       {/* Barra vertical cinza - igual aos outros cards da página de ficha */}
       <div className="w-6 h-0 left-[10px] top-[17px] absolute origin-top-left rotate-90 bg-zinc-300 outline-1 outline-offset-[-0.50px] outline-neutral-700"></div>
       
