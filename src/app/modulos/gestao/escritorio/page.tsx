@@ -7,7 +7,7 @@ interface Escritorio {
   codigo: number;
   escritorio: string;
   clientes: Record<string, number>;
-  faturamento: Record<string, [number, string?]>;
+  faturamento: Record<string, [number, string]>;
   tempo_ativo: Record<string, number>;
   importacoes: {
     lancamentos: Record<string, number>;
@@ -68,7 +68,8 @@ export default function Escritorio() {
         console.log(data);
         setEscritorios(data);
         if (data.length > 0) setEscritorioSelecionado(data[0]);
-      } catch (err: any) {
+      } catch (err: unknown) {
+        if (err instanceof Error)
         setError(err.message || "Erro desconhecido");
       } finally {
         setLoading(false);
@@ -90,7 +91,7 @@ export default function Escritorio() {
     const custo = custoHora * horas;
 
     const faturamentoMes = escritorioSelecionado?.faturamento?.[mes];
-    const valorFaturado = Array.isArray(faturamentoMes) ? parseFloat(faturamentoMes[0] || "0") : 0;
+    const valorFaturado = Array.isArray(faturamentoMes) ? faturamentoMes[0] : 0;
 
     const rentabilidade = valorFaturado - custo;
 
@@ -115,7 +116,7 @@ export default function Escritorio() {
       values: [
         ...meses.map(mes => {
           const val = escritorioSelecionado.faturamento[mes];
-          if (!val || !Array.isArray(val) || val.length === 0) return "R$ 0";
+          if (!val || !Array.isArray(val) || val.length === 0 as number) return "R$ 0";
           return formatCurrency(val[0]);
         }),
         // Total final
@@ -256,7 +257,7 @@ export default function Escritorio() {
           const custo = custoHora * horas;
 
           const faturamentoMes = escritorioSelecionado?.faturamento?.[mes];
-          const valorFaturado = Array.isArray(faturamentoMes) ? parseFloat(faturamentoMes[0] || "0") : 0;
+          const valorFaturado = Array.isArray(faturamentoMes) ? faturamentoMes[0]: 0;
 
           const rentabilidade = valorFaturado - custo;
 
@@ -269,7 +270,7 @@ export default function Escritorio() {
             const custo = custoHora * horas;
 
             const faturamentoMes = escritorioSelecionado?.faturamento?.[mes];
-            const valorFaturado = Array.isArray(faturamentoMes) ? parseFloat(faturamentoMes[0] || "0") : 0;
+            const valorFaturado = Array.isArray(faturamentoMes) ? faturamentoMes[0] : 0;
 
             const rentabilidade = valorFaturado - custo;
             return sum + rentabilidade;
