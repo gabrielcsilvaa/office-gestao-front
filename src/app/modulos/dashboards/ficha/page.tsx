@@ -1,5 +1,6 @@
 "use client";
 import { Cairo } from "next/font/google";
+import { useMemo, useState } from "react";
 import SecaoFiltros from "./components/SecaoFiltros";
 import KpiCardsGrid from "./components/KpiCardsGrid";
 import EvolucaoCard from "./components/EvolucaoCard";
@@ -9,7 +10,6 @@ import AfastamentosTable from "./components/AfastamentosTable"; // Novo componen
 import ContratosTable from "./components/ContratosTable"; // Import ContratosTable
 import FeriasDetalheCard from "./components/FeriasDetalheCard"; // Import FeriasDetalheCard
 import AlteracoesSalariaisDetalheCard from "./components/AlteracoesSalariaisDetalheCard"; // Import AlteracoesSalariaisDetalheCard
-import { useMemo, useState } from "react";
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
@@ -185,6 +185,10 @@ const sampleAlteracoesSalariaisDetalheData = [
 
 
 export default function FichaPessoalPage() {
+  // filtros controlados
+  const [selectedEmpresa, setSelectedEmpresa] = useState<string>("");
+  const [selectedColaborador, setSelectedColaborador] = useState<string>("");
+
   const kpiCardData = [
     { title: "Data de Admissão", value: "01/01/2020", tooltipText: "Data de início do colaborador na empresa." },
     { title: "Salário Base", value: "R$ 5.000,00", tooltipText: "Salário bruto mensal do colaborador." },
@@ -243,19 +247,31 @@ export default function FichaPessoalPage() {
     <div className="h-screen flex flex-col bg-[#f7f7f8]">
       {/* Header Section - Fixed */}
       <div className="flex flex-row items-center justify-start gap-8 p-4 border-b border-black/10 bg-gray-100">
-        <h1 className={`text-[32px] leading-8 font-700 text-black text-left ${cairo.className}`}>
+        <h1 className={`text-[32px] leading-8 font-700 text-black ${cairo.className}`}>
           Dashboard de Ficha Pessoal
         </h1>
-        <SecaoFiltros />
+        <SecaoFiltros
+          selectedEmpresa={selectedEmpresa}
+          onChangeEmpresa={setSelectedEmpresa}
+          selectedColaborador={selectedColaborador}
+          onChangeColaborador={setSelectedColaborador}
+        />
       </div>
 
       {/* Content Section - Scrollable */}
       <div className="flex-1 overflow-y-auto p-4">
-        <KpiCardsGrid cardsData={kpiCardData} />
 
-        {/* Standardized to mt-6 and gap-6. Changed from flex to grid for consistency. */}
+        {/* KPIs: animação de slide down/up */}
+        <div className={`transition-all duration-500 ease-in-out transform origin-top overflow-hidden
+            ${selectedColaborador
+              ? 'max-h-[800px] opacity-100 translate-y-0'
+              : 'max-h-0 opacity-0 -translate-y-4'}`}>
+          <KpiCardsGrid cardsData={kpiCardData} />
+        </div>
+
+        {/* Evolução & Valor por Grupo – sempre visível */}
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 h-[400px]">
-          <div className="w-full h-full flex flex-col overflow-hidden"> {/* Ensure w-full for grid child */}
+          <div className="w-full h-full flex flex-col overflow-hidden">
             <EvolucaoCard
               kpiSelecionado={evolucaoCardTitle}
               processedEvolucaoChartData={processedEvolucaoChartDataFicha}
@@ -263,7 +279,7 @@ export default function FichaPessoalPage() {
               cairoClassName={cairo.className}
             />
           </div>
-          <div className="w-full h-full flex flex-col overflow-hidden"> {/* Ensure w-full for grid child */}
+          <div className="w-full h-full flex flex-col overflow-hidden">
             <ValorPorGrupoCard
               valorPorGrupoData={valorPorGrupoDataFicha}
               sectionIcons={sectionIconsFicha}
