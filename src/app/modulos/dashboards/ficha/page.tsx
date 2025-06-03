@@ -91,38 +91,38 @@ const valorPorGrupoDataFicha = [
 // Dados de amostra do CSV para representar todos os tipos de resultados e tipos de exame
 // This data will be passed to the AtestadosTable component
 const atestadosDataRaw = [
-  { vencimento: "30/10/2023", dataExame: "30/10/2021", resultado: "Apto", tipo: "Admissional" },
-  { vencimento: "06/01/2023", dataExame: "07/01/2022", resultado: "Apto", tipo: "Periódico" },
-  { vencimento: "22/12/2022", dataExame: "23/12/2021", resultado: "Apto", tipo: "Mudança de Função" },
-  { vencimento: "12/12/2022", dataExame: "13/12/2021", resultado: "Apto", tipo: "Retorno ao Trabalho" },
-  { vencimento: "07/11/2022", dataExame: "08/11/2021", resultado: "Apto", tipo: "Demissional" },
-  { vencimento: "27/02/2013", dataExame: "28/02/2012", resultado: "Apto", tipo: "Periódico" }, // Dado atualizado
-  { vencimento: "15/05/2024", dataExame: "15/05/2023", resultado: "Apto", tipo: "Periódico" },
-  { vencimento: "10/08/2023", dataExame: "10/08/2022", resultado: "Inapto", tipo: "Periódico" },
-  { vencimento: "20/03/2023", dataExame: "20/03/2022", resultado: "Apto com restrições", tipo: "Mudança de Função" },
-  { vencimento: "05/07/2022", dataExame: "05/07/2021", resultado: "Apto", tipo: "Retorno ao Trabalho" },
-  { vencimento: "14/02/2022", dataExame: "14/02/2020", resultado: "Apto", tipo: "Admissional" },
-  { vencimento: "18/09/2021", dataExame: "18/09/2020", resultado: "Apto", tipo: "Periódico" },
-  { vencimento: "25/11/2020", dataExame: "25/11/2019", resultado: "Apto", tipo: "Demissional" },
-  { vencimento: "03/04/2020", dataExame: "03/04/2019", resultado: "Apto com restrições", tipo: "Periódico" },
+  { vencimento: "30/10/2023", dataExame: "30/10/2021", resultado: "Apto", tipo: "Admissional", nomeColaborador: "João Silva" },
+  { vencimento: "06/01/2023", dataExame: "07/01/2022", resultado: "Apto", tipo: "Periódico", nomeColaborador: "Maria Oliveira" },
+  { vencimento: "22/12/2022", dataExame: "23/12/2021", resultado: "Apto", tipo: "Mudança de Função", nomeColaborador: "Carlos Pereira" },
+  { vencimento: "12/12/2022", dataExame: "13/12/2021", resultado: "Apto", tipo: "Retorno ao Trabalho", nomeColaborador: "Ana Costa" },
+  { vencimento: "07/11/2022", dataExame: "08/11/2021", resultado: "Apto", tipo: "Demissional", nomeColaborador: "Lucas Martins" },
+  { vencimento: "27/02/2013", dataExame: "28/02/2012", resultado: "Apto", tipo: "Periódico", nomeColaborador: "Beatriz Souza" },
+  { vencimento: "15/05/2024", dataExame: "15/05/2023", resultado: "Apto", tipo: "Periódico", nomeColaborador: "Rafael Lima" },
+  { vencimento: "10/08/2023", dataExame: "10/08/2022", resultado: "Inapto", tipo: "Periódico", nomeColaborador: "Juliana Alves" },
+  { vencimento: "20/03/2023", dataExame: "20/03/2022", resultado: "Apto com restrições", tipo: "Mudança de Função", nomeColaborador: "Fernando Rocha" },
+  { vencimento: "05/07/2022", dataExame: "05/07/2021", resultado: "Apto", tipo: "Retorno ao Trabalho", nomeColaborador: "Camila Santos" },
+  { vencimento: "14/02/2022", dataExame: "14/02/2020", resultado: "Apto", tipo: "Admissional", nomeColaborador: "Gustavo Mendes" },
+  { vencimento: "18/09/2021", dataExame: "18/09/2020", resultado: "Apto", tipo: "Periódico", nomeColaborador: "Patrícia Ribeiro" },
+  { vencimento: "25/11/2020", dataExame: "25/11/2019", resultado: "Apto", tipo: "Demissional", nomeColaborador: "Roberto Silva" },
+  { vencimento: "03/04/2020", dataExame: "03/04/2019", resultado: "Apto com restrições", tipo: "Periódico", nomeColaborador: "Mariana Costa" },
 ];
 
 // Dados mock para AfastamentosTable (baseado no CSV fornecido)
 const mockAfastamentosRaw = [
-  { inicio: "13/08/2015", termino: "10/12/2015", tipo: "Licença maternidade", diasAfastados: "120" },
-  { inicio: "01/01/2016", termino: "03/01/2016", tipo: "Doença período igual ou inferior a 15 dias", diasAfastados: "3" },
-  { inicio: "21/09/2015", termino: "18/01/2016", tipo: "Licença maternidade", diasAfastados: "120" },
-  { inicio: "04/01/2016", termino: "04/01/2016", tipo: "Doença período igual ou inferior a 15 dias", diasAfastados: "1" },
-  { inicio: "10/03/2017", termino: "25/03/2017", tipo: "Licença paternidade", diasAfastados: "15" },
-  { inicio: "05/06/2018", termino: "05/07/2018", tipo: "Férias", diasAfastados: "30" },
-  { inicio: "15/09/2019", termino: "20/09/2019", tipo: "Doença período igual ou inferior a 15 dias", diasAfastados: "5" },
-  { inicio: "01/02/2020", termino: "15/02/2020", tipo: "Acidente de trabalho", diasAfastados: "14" },
-  { inicio: "10/07/2021", termino: "10/08/2021", tipo: "Licença não remunerada", diasAfastados: "31" },
-  { inicio: "03/11/2021", termino: "03/11/2021", tipo: "Atestado médico", diasAfastados: "1" },
-  { inicio: "20/01/2022", termino: "20/04/2022", tipo: "Licença maternidade", diasAfastados: "90" }, // Exemplo de licença mais curta
-  { inicio: "05/05/2022", termino: "10/05/2022", tipo: "Doença período igual ou inferior a 15 dias", diasAfastados: "5" },
-  { inicio: "01/08/2023", termino: "15/08/2023", tipo: "Férias", diasAfastados: "15" },
-  { inicio: "10/10/2023", termino: "12/10/2023", tipo: "Atestado médico", diasAfastados: "3" },
+  { inicio: "13/08/2015", termino: "10/12/2015", tipo: "Licença maternidade", diasAfastados: "120", nomeColaborador: "João Silva" },
+  { inicio: "01/01/2016", termino: "03/01/2016", tipo: "Doença período igual ou inferior a 15 dias", diasAfastados: "3", nomeColaborador: "Maria Oliveira" },
+  { inicio: "21/09/2015", termino: "18/01/2016", tipo: "Licença maternidade", diasAfastados: "120", nomeColaborador: "Carlos Pereira" },
+  { inicio: "04/01/2016", termino: "04/01/2016", tipo: "Doença período igual ou inferior a 15 dias", diasAfastados: "1", nomeColaborador: "Ana Costa" },
+  { inicio: "10/03/2017", termino: "25/03/2017", tipo: "Licença paternidade", diasAfastados: "15", nomeColaborador: "Lucas Martins" },
+  { inicio: "05/06/2018", termino: "05/07/2018", tipo: "Férias", diasAfastados: "30", nomeColaborador: "Beatriz Souza" },
+  { inicio: "15/09/2019", termino: "20/09/2019", tipo: "Doença período igual ou inferior a 15 dias", diasAfastados: "5", nomeColaborador: "Rafael Lima" },
+  { inicio: "01/02/2020", termino: "15/02/2020", tipo: "Acidente de trabalho", diasAfastados: "14", nomeColaborador: "Juliana Alves" },
+  { inicio: "10/07/2021", termino: "10/08/2021", tipo: "Licença não remunerada", diasAfastados: "31", nomeColaborador: "Fernando Rocha" },
+  { inicio: "03/11/2021", termino: "03/11/2021", tipo: "Atestado médico", diasAfastados: "1", nomeColaborador: "Camila Santos" },
+  { inicio: "20/01/2022", termino: "20/04/2022", tipo: "Licença maternidade", diasAfastados: "90", nomeColaborador: "Gustavo Mendes" },
+  { inicio: "05/05/2022", termino: "10/05/2022", tipo: "Doença período igual ou inferior a 15 dias", diasAfastados: "5", nomeColaborador: "Patrícia Ribeiro" },
+  { inicio: "01/08/2023", termino: "15/08/2023", tipo: "Férias", diasAfastados: "15", nomeColaborador: "Roberto Silva" },
+  { inicio: "10/10/2023", termino: "12/10/2023", tipo: "Atestado médico", diasAfastados: "3", nomeColaborador: "Mariana Costa" },
 ];
 
 // Dados mock para ContratosTable
@@ -167,20 +167,20 @@ const sampleFeriasDetalheData = [
 
 // Updated data for AlteracoesSalariaisDetalheCard from CSV (first 14 records)
 const sampleAlteracoesSalariaisDetalheData = [
-  { data: "2025-05-15", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1534,00"), salarioNovo: parseCurrency("R$ 1585,62"), percentual: "3,4%" },
-  { data: "2025-05-15", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1534,00"), salarioNovo: parseCurrency("R$ 1585,62"), percentual: "3,4%" },
-  { data: "2025-05-15", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1534,00"), salarioNovo: parseCurrency("R$ 1585,62"), percentual: "3,4%" },
-  { data: "2025-05-06", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 0,00"), salarioNovo: parseCurrency("R$ 1585,62"), percentual: "" }, // '%' is empty in CSV
-  { data: "2025-05-02", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1828,01"), salarioNovo: parseCurrency("R$ 1845,59"), percentual: "1,0%" },
-  { data: "2025-05-02", tipo: "ALTERAÇAO DE CARGO", motivo: "ALTERAÇAO DE CARGO", salarioAnterior: parseCurrency("R$ 1518,00"), salarioNovo: parseCurrency("R$ 1560,00"), percentual: "2,8%" },
-  { data: "2025-05-01", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1518,00"), salarioNovo: parseCurrency("R$ 1565,00"), percentual: "3,1%" },
-  { data: "2025-05-01", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1518,00"), salarioNovo: parseCurrency("R$ 1585,62"), percentual: "4,5%" },
-  { data: "2025-05-01", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1518,00"), salarioNovo: parseCurrency("R$ 1585,62"), percentual: "4,5%" },
-  { data: "2025-05-01", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1518,00"), salarioNovo: parseCurrency("R$ 1565,00"), percentual: "3,1%" },
-  { data: "2025-05-01", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1518,00"), salarioNovo: parseCurrency("R$ 1565,00"), percentual: "3,1%" },
-  { data: "2025-05-01", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1534,00"), salarioNovo: parseCurrency("R$ 1585,62"), percentual: "3,4%" },
-  { data: "2025-05-01", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1534,00"), salarioNovo: parseCurrency("R$ 1585,62"), percentual: "3,4%" },
-  { data: "2025-05-01", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1534,00"), salarioNovo: parseCurrency("R$ 1732,50"), percentual: "12,9%" },
+  { data: "2025-05-15", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1534,00"), salarioNovo: parseCurrency("R$ 1585,62"), percentual: "3,4%", nomeColaborador: "João Silva" },
+  { data: "2025-05-15", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1534,00"), salarioNovo: parseCurrency("R$ 1585,62"), percentual: "3,4%", nomeColaborador: "Maria Oliveira" },
+  { data: "2025-05-15", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1534,00"), salarioNovo: parseCurrency("R$ 1585,62"), percentual: "3,4%", nomeColaborador: "Carlos Pereira" },
+  { data: "2025-05-06", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 0,00"), salarioNovo: parseCurrency("R$ 1585,62"), percentual: "", nomeColaborador: "Ana Costa" },
+  { data: "2025-05-02", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1828,01"), salarioNovo: parseCurrency("R$ 1845,59"), percentual: "1,0%", nomeColaborador: "Lucas Martins" },
+  { data: "2025-05-02", tipo: "ALTERAÇAO DE CARGO", motivo: "ALTERAÇAO DE CARGO", salarioAnterior: parseCurrency("R$ 1518,00"), salarioNovo: parseCurrency("R$ 1560,00"), percentual: "2,8%", nomeColaborador: "Beatriz Souza" },
+  { data: "2025-05-01", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1518,00"), salarioNovo: parseCurrency("R$ 1565,00"), percentual: "3,1%", nomeColaborador: "Rafael Lima" },
+  { data: "2025-05-01", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1518,00"), salarioNovo: parseCurrency("R$ 1585,62"), percentual: "4,5%", nomeColaborador: "Juliana Alves" },
+  { data: "2025-05-01", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1518,00"), salarioNovo: parseCurrency("R$ 1585,62"), percentual: "4,5%", nomeColaborador: "Fernando Rocha" },
+  { data: "2025-05-01", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1518,00"), salarioNovo: parseCurrency("R$ 1565,00"), percentual: "3,1%", nomeColaborador: "Camila Santos" },
+  { data: "2025-05-01", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1518,00"), salarioNovo: parseCurrency("R$ 1565,00"), percentual: "3,1%", nomeColaborador: "Gustavo Mendes" },
+  { data: "2025-05-01", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1534,00"), salarioNovo: parseCurrency("R$ 1585,62"), percentual: "3,4%", nomeColaborador: "Patrícia Ribeiro" },
+  { data: "2025-05-01", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1534,00"), salarioNovo: parseCurrency("R$ 1585,62"), percentual: "3,4%", nomeColaborador: "Roberto Silva" },
+  { data: "2025-05-01", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1534,00"), salarioNovo: parseCurrency("R$ 1732,50"), percentual: "12,9%", nomeColaborador: "Mariana Costa" },
 ];
 
 
@@ -227,10 +227,10 @@ export default function FichaPessoalPage() {
     };
 
     const atestadoPlaceholder = () => ({
-      vencimento: "", dataExame: "", resultado: "", tipo: ""
+      vencimento: "", dataExame: "", resultado: "", tipo: "", nomeColaborador: ""
     });
     const afastamentoPlaceholder = () => ({
-      inicio: "", termino: "", tipo: "", diasAfastados: ""
+      inicio: "", termino: "", tipo: "", diasAfastados: "", nomeColaborador: ""
     });
     const contratoPlaceholder = (index: number) => ({
       id: `placeholder-${index}`, empresa: "", colaborador: "", dataAdmissao: "", dataRescisao: "", salarioBase: ""

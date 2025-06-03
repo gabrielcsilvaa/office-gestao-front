@@ -63,9 +63,9 @@ const AtestadosTable: React.FC<AtestadosTableProps> = ({ atestadosData, cairoCla
                 <div className="flex flex-col col-span-2">
                   <span 
                     className="text-gray-800 font-medium text-sm truncate" 
-                    title={atestado.nomeColaborador || "N/A"}
+                    title={atestado.nomeColaborador || "-"}
                   >
-                    {atestado.nomeColaborador || "N/A"}
+                    {atestado.nomeColaborador || "-"}
                   </span>
                   <span className="text-gray-500 font-light text-xs">Colaborador</span>
                 </div>
