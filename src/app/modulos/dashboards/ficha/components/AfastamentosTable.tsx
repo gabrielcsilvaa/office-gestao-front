@@ -6,6 +6,7 @@ interface Afastamento {
   termino: string;
   tipo: string;
   diasAfastados: string | number; // Dias pode ser string ou número
+  nomeColaborador?: string; // Add collaborator name
 }
 
 interface IconProps {
@@ -57,6 +58,18 @@ const AfastamentosTable: React.FC<AfastamentosTableProps> = ({ afastamentosData,
           afastamentosData.map((afastamento, index) => (
             <div key={index} className="p-3 border border-gray-200 rounded-lg shadow-md bg-white">
               <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                
+                {/* New Collaborator display */}
+                <div className="flex flex-col col-span-2">
+                  <span 
+                    className="text-gray-800 font-medium text-sm truncate" 
+                    title={afastamento.nomeColaborador || "N/A"}
+                  >
+                    {afastamento.nomeColaborador || "N/A"}
+                  </span>
+                  <span className="text-gray-500 font-light text-xs">Colaborador</span>
+                </div>
+                <div className="col-span-2 h-px bg-gray-200"></div> {/* Separator line after collaborator */}
                 
                 <div className="flex flex-col">
                   <span className="text-gray-800 font-medium text-sm truncate">{afastamento.inicio || "-"}</span>
