@@ -24,7 +24,7 @@ interface ValorPorGrupoChartProps {
 }
 
 const ValorPorGrupoChart: React.FC<ValorPorGrupoChartProps> = ({ data }) => {
-  const ITEM_WIDTH = 28;
+  const ITEM_WIDTH = 60; // Increased from 28 to 40 for thicker bars
   const MAX_LABEL_LENGTH = 17; // Based on "Horas Extras (50%)"
   
   // Function to truncate text
