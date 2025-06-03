@@ -283,10 +283,9 @@ export default function Escritorio() {
 
   return (
     <div className="p-4 bg-gray-100 min-h-screen">
-      {/* Select para escolher o escritório */}
       <div className="mb-4 flex items-center gap-4">
         <div>
-          <label htmlFor="select-escritorio" className="block mb-2 font-semibold text-gray-700">
+          <label htmlFor="select-escritorio" className="block mb-1 font-semibold text-gray-700">
             Escolha o Escritório:
           </label>
           <select
@@ -315,7 +314,7 @@ export default function Escritorio() {
       </div>
 
       {/* Tabela com dados do escritório selecionado */}
-      <div className="overflow-x-auto p-4 bg-white shadow-lg rounded-lg  w-full shadow-gray-600 mb-4">
+      <div className="overflow-x-auto p-4 bg-white shadow-md rounded-lg  w-full shadow-gray-600 mb-4">
         <table className="w-full">
           <thead>
             <tr>

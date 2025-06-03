@@ -61,7 +61,7 @@ export default function RentabilidadeCard({ data }: RentabilidadeProps) {
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="name" />
-          <YAxis tickFormatter={(value) => value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} width={100} />
+          <YAxis tickFormatter={(value) => value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} width={120} />
           <Tooltip content={<CustomTooltip />} />
           <Line
             type="monotone"
