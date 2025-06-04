@@ -3,6 +3,13 @@ import { useState, useEffect } from "react";
 import Calendar from "@/components/calendar";
 import Evolucao from "./components/cardRentabilidade";
 import Reload from "@/components/reload";
+import * as XLSX from "xlsx";
+import {saveAs} from "file-saver";
+import Image from "next/image";
+import { jsPDF } from "jspdf";
+import autoTable from 'jspdf-autotable';
+
+
 interface Escritorio {
   codigo: number;
   escritorio: string;
@@ -15,6 +22,11 @@ interface Escritorio {
     total_geral: number;
   };
   vinculos_folha_ativos: Record<string, number>;
+}
+
+interface ExportRow {
+  metric: string;
+  values: (string | number)[];
 }
 
 
@@ -81,6 +93,108 @@ export default function Escritorio() {
   if (loading) return <div className="p-4"><Reload/></div>;
   if (error) return <div className="p-4 text-red-600">Erro: {error}</div>;
   if (!escritorioSelecionado) return <div className="p-4">Nenhum escritório selecionado</div>;
+
+  function exportToExcel(data: ExportRow[], fileName = "Escritorio.xlsx") {
+      const header = [ ...Object.keys(escritorioSelecionado!.clientes), "Total"];
+      const rows = data.map(row => [row.metric, ...row.values]);
+      const sheetData = [header, ...rows];
+
+      const worksheet = XLSX.utils.aoa_to_sheet(sheetData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Dados");
+      const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+      const dataBlob = new Blob([excelBuffer], { type: "application/octet-stream" });
+
+      if (escritorioSelecionado?.escritorio) {
+          const escritorioName = escritorioSelecionado?.escritorio.replace(/\s+/g, '_'); // Substitui espaços por underscores
+          fileName = `${escritorioName}.xlsx`;
+      }
+
+      saveAs(dataBlob, fileName);
+  }
+
+  const exportToPDF = (data: ExportRow[], fileName: string) => {
+    const doc = new jsPDF();
+    
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+    ;
+
+    // Preparar dados da tabela
+    const tableData = data.map(row => [
+      row.metric,
+      ...row.values.map(value => {
+        if (typeof value === 'string' && value.includes('R$')) {
+          return value;
+        } else if (typeof value === 'string' && value.includes('%')) {
+          return value;
+        } else {
+          return String(value);
+        }
+      })
+    ]);
+
+    // Configurar cabeçalhos
+    const tableHeaders = [
+      ...Object.keys(escritorioSelecionado!.clientes),
+      'Total'
+    ];
+
+    // Configurar e gerar a tabela
+    autoTable(doc, {
+      startY: 50,
+      head: [tableHeaders],
+      body: tableData,
+      theme: 'grid',
+      styles: {
+        font: 'helvetica',
+        fontSize: 8,
+        cellPadding: 1,
+        lineColor: [200, 200, 200],
+        lineWidth: 0.1,
+        textColor: [50, 50, 50],
+        overflow: 'linebreak'
+      },
+      headStyles: {
+        fillColor: [41, 128, 185],
+        textColor: [255, 255, 255],
+        fontSize: 9,
+        fontStyle: 'bold',
+        halign: 'center',
+      },
+      columnStyles: {
+        0: { cellWidth: 25, fontStyle: 'bold' },
+        1: { cellWidth: 15, halign: 'right' },
+        2: { cellWidth: 15, halign: 'right' },
+        3: { cellWidth: 15, halign: 'right' },
+        4: { cellWidth: 15, halign: 'right' },
+        5: { cellWidth: 15, halign: 'right' },
+        6: { cellWidth: 15, halign: 'right' },
+        7: { cellWidth: 15, halign: 'right' },
+        8: { cellWidth: 15, halign: 'right' },
+        9: { cellWidth: 15, halign: 'right' },
+        10: { cellWidth: 15, halign: 'right' },
+        11: { cellWidth: 15, halign: 'right' },
+        12: { cellWidth: 15, fontStyle: 'bold', halign: 'right' },
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245],
+      },
+      margin: { left: 4, right: 2 },
+      didDrawPage: function(data) {
+        // Adicionar rodapé em cada página
+        doc.setFontSize(8);
+        doc.text(
+          'Página ' + data.pageNumber,
+          data.settings.margin.left,
+          doc.internal.pageSize.height - 10
+        );
+      }
+    });
+
+    // Salvar o PDF
+    doc.save(`${fileName}.pdf`);
+  };
 
   const meses = Object.keys(escritorioSelecionado.clientes);
 
@@ -311,9 +425,36 @@ export default function Escritorio() {
             onEndDateChange={handleEndDateChange}
           />
         </div>
-      </div>
+        <button
+          onClick={() => exportToExcel(data)}
+          title="Exportar para Excel"
+          className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto  justify-center ml-auto self-center"
+          style={{ width: 36, height: 36 }}
+        >
+          <Image
+            src="/assets/icons/excel.svg"
+            alt="Ícone Excel"
+            width={24}
+            height={24}
+            draggable={false}
+          />
+        </button>
 
-      {/* Tabela com dados do escritório selecionado */}
+        <button
+          onClick={() => exportToPDF(data, "Relatorio_Escritorio")}
+          title="Exportar para Excel"
+          className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto "
+          style={{ width: 36, height: 36 }}
+        >
+        <Image
+          src="/assets/icons/pdf.svg"
+          alt="Ícone pdf"
+          width={24}
+          height={24}
+          draggable={false}
+        />
+        </button>
+      </div>
       <div className="overflow-x-auto p-4 bg-white shadow-md rounded-lg  w-full shadow-gray-600 mb-4">
         <table className="w-full">
           <thead>
