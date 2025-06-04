@@ -5,11 +5,12 @@ import Image from 'next/image';
 
 interface AlteracaoSalarialDetalheEntry {
   data: string;
-  tipo: string;
+  tipo: string; // Keep in interface for data compatibility
   motivo: string;
   salarioAnterior: number;
   salarioNovo: number;
   percentual: string;
+  nomeColaborador?: string; // Add collaborator name
 }
 
 interface IconProps {
@@ -27,8 +28,8 @@ interface AlteracoesSalariaisDetalheCardProps {
 
 // Sample data for AlteracoesSalariaisDetalheCard
 const sampleAlteracoesSalariaisDetalheData: AlteracaoSalarialDetalheEntry[] = [
-  { data: "2023-05-15", tipo: "Promoção", motivo: "Desempenho Excepcional", salarioAnterior: 5000, salarioNovo: 6000, percentual: "20.00%" },
-  { data: "2024-01-10", tipo: "Ajuste Anual", motivo: "Inflação e Custo de Vida", salarioAnterior: 6000, salarioNovo: 6300, percentual: "5.00%" },
+  { data: "2023-05-15", tipo: "Promoção", motivo: "Desempenho Excepcional", salarioAnterior: 5000, salarioNovo: 6000, percentual: "20.00%", nomeColaborador: "Ana Silva" },
+  { data: "2024-01-10", tipo: "Ajuste Anual", motivo: "Inflação e Custo de Vida", salarioAnterior: 6000, salarioNovo: 6300, percentual: "5.00%", nomeColaborador: "Carlos Pereira" },
 ];
 
 const AlteracoesSalariaisDetalheCard: React.FC<AlteracoesSalariaisDetalheCardProps> = ({
@@ -78,18 +79,20 @@ const AlteracoesSalariaisDetalheCard: React.FC<AlteracoesSalariaisDetalheCardPro
             <div key={index} className="p-3 border border-gray-200 rounded-lg shadow-md bg-white">
               <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                 
-                <div className="flex flex-col">
-                  <span className="text-gray-800 font-medium text-sm truncate">{alteracao.data || "-"}</span>
-                  <span className="text-gray-500 font-light text-xs">Data</span>
+                {/* 1ª linha: Colaborador (2 colunas) */}
+                <div className="flex flex-col col-span-2">
+                  <span 
+                    className="text-gray-800 font-medium text-sm truncate" 
+                    title={alteracao.nomeColaborador || "N/A"}
+                  >
+                    {alteracao.nomeColaborador || "N/A"}
+                  </span>
+                  <span className="text-gray-500 font-light text-xs">Colaborador</span>
                 </div>
                 
-                <div className="flex flex-col">
-                  <span className="text-gray-800 font-medium text-sm truncate">{alteracao.tipo || "-"}</span>
-                  <span className="text-gray-500 font-light text-xs">Tipo</span>
-                </div>
-
                 <div className="col-span-2 h-px bg-gray-200"></div>
                 
+                {/* 2ª linha: Salário Anterior | Salário Novo */}
                 <div className="flex flex-col">
                   <span className="text-gray-800 font-medium text-sm truncate">{formatCurrency(alteracao.salarioAnterior)}</span>
                   <span className="text-gray-500 font-light text-xs">Salário Anterior</span>
@@ -102,12 +105,21 @@ const AlteracoesSalariaisDetalheCard: React.FC<AlteracoesSalariaisDetalheCardPro
 
                 <div className="col-span-2 h-px bg-gray-200"></div>
 
+                {/* 3ª linha: Percentual | Data */}
                 <div className="flex flex-col">
                   <span className="text-gray-800 font-medium text-sm truncate">{alteracao.percentual || "-"}</span>
                   <span className="text-gray-500 font-light text-xs">Percentual</span>
                 </div>
 
                 <div className="flex flex-col">
+                  <span className="text-gray-800 font-medium text-sm truncate">{alteracao.data || "-"}</span>
+                  <span className="text-gray-500 font-light text-xs">Data</span>
+                </div>
+
+                <div className="col-span-2 h-px bg-gray-200"></div>
+
+                {/* 4ª linha: Motivo (2 colunas) */}
+                <div className="flex flex-col col-span-2">
                   <span className="text-gray-800 font-medium text-sm truncate" title={alteracao.motivo}>{alteracao.motivo || "-"}</span>
                   <span className="text-gray-500 font-light text-xs">Motivo</span>
                 </div>
