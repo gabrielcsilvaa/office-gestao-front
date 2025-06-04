@@ -5,6 +5,7 @@ import {
   LineChart,
   Line,
   XAxis,
+  YAxis, // Import YAxis
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
@@ -18,17 +19,18 @@ interface ChartDataPoint {
 
 interface EvolucaoChartProps {
   data: ChartDataPoint[];
-  kpiName: string; 
+  kpiName: string; // This prop will still be accepted but not used for the Line's name
 }
 
-const EvolucaoChart: React.FC<EvolucaoChartProps> = ({ data, kpiName }) => {
+const EvolucaoChart: React.FC<EvolucaoChartProps> = ({ data, kpiName: originalKpiName }) => {
+  // Custom Tooltip
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white p-2 border border-gray-300 rounded shadow-lg">
           <p className="label text-sm text-gray-700">{`${label}`}</p>
           <p className="intro text-sm text-blue-600">{`${
-            payload[0].name
+            payload[0].name // This name comes from the <Line name={...} /> prop
           } : ${new Intl.NumberFormat("pt-BR", {
             style: "currency",
             currency: "BRL",
@@ -46,8 +48,8 @@ const EvolucaoChart: React.FC<EvolucaoChartProps> = ({ data, kpiName }) => {
         margin={{
           top: 5,
           right: 20,
-          left: 35, 
-          bottom: 40, 
+          left: 0,
+          bottom: 40,
         }}
       >
         <defs>
@@ -62,33 +64,32 @@ const EvolucaoChart: React.FC<EvolucaoChartProps> = ({ data, kpiName }) => {
           tickLine={false}
           axisLine={false}
           tick={{ fontSize: 10, fill: "#737373" }}
-          angle={-35} 
+          angle={-35} // Angle labels to prevent overlap
           textAnchor="end"
-          interval={0} 
-          dy={15} 
+          interval={0} // Show all ticks
+          dy={15} // Adjust vertical position of ticks
+        />
+        <YAxis
+          domain={['dataMin', 'dataMax']} // Dynamically set Y-axis domain
+          axisLine={false} // Hide Y-axis line
+          tickLine={false} // Hide Y-axis tick lines
+          tick={false} // Hide Y-axis labels (ticks)
         />
         <Tooltip content={<CustomTooltip />} />
-        <Area
-          type="monotone"
-          dataKey="value"
-          strokeWidth={0}
-          fillOpacity={1}
-          fill="url(#colorValue)"
-        />
         <Line
           type="monotone"
           dataKey="value"
-          name={kpiName} 
-          stroke="#6366f1" 
+          name="Evolução de Custo Total" // Set static name here
+          stroke="#6366f1" // Indigo color for the line
           strokeWidth={2}
           dot={{
-            stroke: "#6366f1", 
+            stroke: "#6366f1", // Indigo border for dots
             strokeWidth: 2,
-            fill: "#fff", 
+            fill: "#fff", // White fill for dots
             r: 4,
           }}
           activeDot={{
-            stroke: "#4f46e5", 
+            stroke: "#4f46e5", // Darker indigo for active dot
             strokeWidth: 2,
             fill: "#fff",
             r: 6,

@@ -22,16 +22,15 @@ const ValorPorCalculoCard: React.FC<ValorPorCalculoCardProps> = ({
   cairoClassName,
 }) => {
   const processedCalculoEventoData = useMemo(() => {
-    const maxBarPixelWidth = 240; // Or adjust as needed for this card
+    const maxBarPixelWidth = 240; 
     const colorParams: ColorParams = {
-      hue: 210, // Using a blue hue for differentiation, adjust as needed
+      hue: 210, 
       minSaturation: 30,
       maxSaturation: 70,
       minLightness: 75,
       maxLightness: 45,
     };
-    // Sort data by value descending to match the visual of longest bar at top if desired
-    // If original order is important, remove the .sort()
+    
     const sortedData = [...rawCalculoEventoData].sort((a, b) => {
         const valA = parseFloat(a.value.replace("R$", "").replace(/\./g, "").replace(",", "."));
         const valB = parseFloat(b.value.replace("R$", "").replace(/\./g, "").replace(",", "."));
@@ -41,7 +40,7 @@ const ValorPorCalculoCard: React.FC<ValorPorCalculoCardProps> = ({
   }, []);
 
   return (
-    <div className="flex-1 bg-white rounded-lg h-[489px] border border-neutral-700 relative overflow-hidden">
+    <div className="flex-1 bg-white rounded-lg h-[489px] relative overflow-hidden shadow-md">
       <div className="w-6 h-0 left-[10px] top-[17px] absolute origin-top-left rotate-90 bg-zinc-300 outline-1 outline-offset-[-0.50px] outline-neutral-700"></div>
       <div className="flex justify-between items-center pt-[14px] px-5">
         <div

@@ -1,4 +1,8 @@
 import { useState } from "react";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
+import Image from "next/image";
 
 interface Parceria {
   codi_emp: number;
@@ -26,6 +30,46 @@ export default function AniversariantesParceiros({
   });
 
   const [searchQuery, setSearchQuery] = useState<string>("");
+
+  // Lista de empresas a serem excluídas (mova ela para cima)
+  const empresasExcluidas = [
+    "EMPRESA EXEMPLO REAL LTDA",
+    "EMPRESA EXEMPLO PRESUMIDO LTDA",
+    "EMPRESA EXEMPLO SIMPLES NACIONAL LTDA",
+    "EMPRESA DESONERAÇÃO DA EMPRESA DESONERAÇÃO DA",
+    "EMPRESA DESONERAÇÃO DA FOLHA",
+    "EMPRESA DOMÉSTICO",
+    "EMPRESA MODELO - EVENTOS E-SOCIAL",
+    "EMPRESA MODELO CONTÁBIL SPED",
+    "EMPRESA MODELO PLANO DE CONTAS CONTABIL", 
+    "SILVEIRA FONTENELE - EMPRESA MODELO",
+    "EMPRESA SIMPLES - COMERCIO",
+    "EMPRESA SIMPLES - COMERCIO E SERVIÇO",
+    "EMPRESA SIMPLES - COMERCIO E IND",
+    "EMPRESA SIMPLES - COMERCIO, SERV E IND",
+    "EMPRESA SIMPLES - INDUSTRIA",
+    "EMPRESA SIMPLES - MEI",
+    "EMPRESA SIMPLES - SERVIÇO", 
+    "LUCRO PRESUMIDO - COM, SERV E IND", 
+    "LUCRO PRESUMIDO - COMERCIO",
+    "LUCRO PRESUMIDO - COMERCIO E INDUSTRIA",
+    "LUCRO PRESUMIDO - COMERCIO E SERVIÇO",
+    "LUCRO PRESUMIDO - INDUSTRIA",
+    "LUCRO PRESUMIDO - POSTO DE COMBUSTIVEL",
+    "LUCRO PRESUMIDO - SERVIÇO",
+    "LUCRO PRESUMIDO - TRANSPORTADORA",
+    "LUCRO REAL - COM, SERV E IND",
+    "LUCRO REAL - INDUSTRIA",
+    "LUCRO REAL - SERVIÇO",
+    "LUCRO REAL - TRANSPORTADORA",
+    "LUCRO REAL- COMERCIO",
+    "MODELO LUCRO PRESUMIDO - COM SERV",
+    "MODELO LUCRO PRESUMIDO - SERVIÇO",
+    "MODELO SIMPLES NACIONAL - COM SERV",
+    "MODELO SIMPLES NACIONAL - COM SERV IND",
+    "MODELO SIMPLES NACIONAL - COMERCIO",
+    "MODELO SIMPLES NACIONAL - SERVIÇO",
+  ];
 
   // Função para formatar a data com tratamento de segurança
   const formatDateBr = (dateString: string) => {
@@ -79,22 +123,24 @@ export default function AniversariantesParceiros({
   const searchQueryNormalized = searchQuery.toLowerCase().trim();
   const cnpjQuery = searchQuery.replace(/\D/g, "");
 
-
   const hoje = new Date();
   const mesAtual = hoje.getMonth();
 
-  const filteredClientes = dados.filter((empresa) => {
-    const nomeEmpresa = empresa.nome.toLowerCase();
-    const nomeMatch = nomeEmpresa.includes(searchQueryNormalized);
+  const filteredClientes = dados
+    .filter((empresa) => {
+      const nomeEmpresa = empresa.nome.toLowerCase();
+      const nomeMatch = nomeEmpresa.includes(searchQueryNormalized);
 
-    const cnpjEmpresa = empresa.cnpj.replace(/\D/g, "");
-    const cnpjMatch = cnpjQuery ? cnpjEmpresa.includes(cnpjQuery) : false;
+      const cnpjEmpresa = empresa.cnpj.replace(/\D/g, "");
+      const cnpjMatch = cnpjQuery ? cnpjEmpresa.includes(cnpjQuery) : false;
 
-    const dataCadastro = new Date(empresa.data_cadastro).getMonth() === mesAtual;
-    const dataInicio = new Date(empresa.data_inicio_atividades).getMonth() === mesAtual;
+      const dataCadastro = new Date(empresa.data_cadastro).getMonth() === mesAtual;
+      const dataInicio = new Date(empresa.data_inicio_atividades).getMonth() === mesAtual;
 
-    return (nomeMatch || cnpjMatch) && (dataCadastro || dataInicio);
-  });
+      return (nomeMatch || cnpjMatch) && (dataCadastro || dataInicio);
+    })
+    // Excluir empresas da lista
+    .filter((empresa) => !empresasExcluidas.includes(empresa.nome));
 
   // Ordenação dos dados com tratamento de tipos
   const sortedClientes = filteredClientes.sort((a, b) => {
@@ -117,6 +163,79 @@ export default function AniversariantesParceiros({
 
     return 0;
   });
+
+  // Função para exportar para PDF
+  const exportToPDF = (data: Parceria[], fileName: string) => {
+    const doc = new jsPDF();
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+    
+    const tableData = data.map((parceria) => [
+      parceria.nome,
+      formatDateBr(parceria.data_cadastro),
+      calculateYears(parceria.data_cadastro),
+      formatDateBr(parceria.data_inicio_atividades),
+      calculateYears(parceria.data_inicio_atividades)
+    ]);
+
+    const tableHeaders = ['Nome', 'Data Cadastro', 'Anos de Parceria', 'Data Início Atividades', 'Anos de Atividade'];
+
+    autoTable(doc, {
+      startY: 50,
+      head: [tableHeaders],
+      body: tableData,
+      theme: 'grid',
+      styles: {
+        font: 'helvetica',
+        fontSize: 8,
+        cellPadding: 1,
+        lineColor: [200, 200, 200],
+        lineWidth: 0.1,
+        textColor: [50, 50, 50],
+        overflow: 'linebreak'
+      },
+      headStyles: {
+        fillColor: [41, 128, 185],
+        textColor: [255, 255, 255],
+        fontSize: 9,
+        fontStyle: 'bold',
+        halign: 'center',
+      },
+      columnStyles: {
+        0: { cellWidth: 50, fontStyle: 'bold' },
+        1: { cellWidth: 40, halign: 'right' },
+        2: { cellWidth: 30, halign: 'right' },
+        3: { cellWidth: 40, halign: 'right' },
+        4: { cellWidth: 30, halign: 'right' },
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245],
+      },
+      margin: { left: 4, right: 2 },
+      didDrawPage: function (data) {
+        doc.setFontSize(8);
+        doc.text('Página ' + data.pageNumber, data.settings.margin.left, doc.internal.pageSize.height - 10);
+      }
+    });
+
+    doc.save(`${fileName}.pdf`);
+  };
+
+  // Função para exportar para Excel
+  const exportToExcel = (data: Parceria[], fileName: string) => {
+    const ws = XLSX.utils.json_to_sheet(data.map((parceria) => ({
+      Nome: parceria.nome,
+      "Data Cadastro": formatDateBr(parceria.data_cadastro),
+      "Anos de Parceria": calculateYears(parceria.data_cadastro),
+      "Data Início Atividades": formatDateBr(parceria.data_inicio_atividades),
+      "Anos de Atividade": calculateYears(parceria.data_inicio_atividades)
+    })));
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Aniversariantes");
+
+    XLSX.writeFile(wb, `${fileName}.xlsx`);
+  };
 
   return (
     <div className="max-h-[90vh] flex flex-col gap-4 overflow-x-auto w-full">
@@ -154,7 +273,37 @@ export default function AniversariantesParceiros({
           </button>
         </div>
       </div>
+      <div className="flex justify-end gap-4 mb-4">
+        <button
+          onClick={() => exportToPDF(sortedClientes, "Aniversariantes_Parcerias")}
+          className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
+          style={{ width: 36, height: 36 }}
+        >
+          <Image
+            src="/assets/icons/pdf.svg"
+            alt="Ícone PDF"
+            width={24}
+            height={24}
+            draggable={false}
+          />
+        </button>
 
+        <button
+          onClick={() => exportToExcel(sortedClientes, "Aniversariantes_Parcerias")}
+          className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
+          style={{ width: 36, height: 36 }}
+        >
+          <Image
+            src="/assets/icons/excel.svg"
+            alt="Ícone Excel"
+            width={24}
+            height={24}
+            draggable={false}
+          />
+        </button>
+      </div>
+
+      {/* Tabela */}
       <table className="w-full border border-gray-300 text-sm font-cairo">
         <thead>
           <tr className="bg-gray-200 border-b-[1px] border-gray-400">
@@ -168,9 +317,23 @@ export default function AniversariantesParceiros({
                 (sortConfig.direction === "asc" ? " ↑" : " ↓")}
             </th>
             <th className="px-4 py-2 border-r">CNPJ</th>
-            <th className="px-4 py-2 border-r">Data de Cadastro</th>
+            <th
+              className="px-4 py-2 cursor-pointer border-r"
+              onClick={() => sortData("data_cadastro")}
+            >
+              Data de Cadastro{" "}
+              {sortConfig.key === "data_cadastro" &&
+                (sortConfig.direction === "asc" ? " ↑" : " ↓")}
+            </th>            
             <th className="px-4 py-2 border-r">Anos de Parceria</th>
-            <th className="px-4 py-2 border-r">Data de Início de Atividades</th>
+            <th
+              className="px-4 py-2 cursor-pointer border-r"
+              onClick={() => sortData("data_inicio_atividades")}
+            >
+              Data de Início de Atividades{" "}
+              {sortConfig.key === "data_inicio_atividades" &&
+                (sortConfig.direction === "asc" ? " ↑" : " ↓")}
+            </th>            
             <th className="px-4 py-2">Anos de Atividade</th>
           </tr>
         </thead>

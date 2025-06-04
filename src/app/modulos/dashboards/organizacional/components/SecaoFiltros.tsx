@@ -1,5 +1,4 @@
 "use client";
-
 import { Cairo } from "next/font/google";
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
@@ -58,23 +57,18 @@ export default function SecaoFiltros() {
 	) => {
 		setSelectedOptions(prevSelected => {
 			if (option === "Todos") {
-				// If "Todos" is clicked
 				if (prevSelected.length === 1 && prevSelected[0] === "Todos") {
-					return []; // Deselect all if "Todos" was the only one selected
+					return [];
 				} else {
-					return ["Todos"]; // Otherwise, select only "Todos"
+					return ["Todos"];
 				}
 			} else {
-				// If any other option is clicked
 				let newSelectedOptions = [...prevSelected];
 				if (newSelectedOptions.includes(option)) {
-					// Deselect the option
 					newSelectedOptions = newSelectedOptions.filter(item => item !== option);
 				} else {
-					// Select the option
 					newSelectedOptions.push(option);
 				}
-				// Remove "Todos" if any other option is now part of the selection
 				newSelectedOptions = newSelectedOptions.filter(item => item !== "Todos");
 				return newSelectedOptions;
 			}
@@ -99,7 +93,6 @@ export default function SecaoFiltros() {
 			/>
 			<div className="w-[1px] h-[30px] bg-[#373A40]" />
 			<div className="flex items-center gap-4">
-				{/* Centro de Custo Dropdown */}
 				<div className="relative" ref={centroCustoRef}>
 					<div
 						role="combobox"
@@ -137,7 +130,6 @@ export default function SecaoFiltros() {
 					)}
 				</div>
 
-				{/* Departamento Dropdown */}
 				<div className="relative" ref={departamentoRef}>
 					<div
 						role="combobox"
@@ -175,7 +167,6 @@ export default function SecaoFiltros() {
 					)}
 				</div>
 
-				{/* Colaborador/Diretor/Autônomo Dropdown */}
 				<div className="relative" ref={colaboradorRef}>
 					<div
 						role="combobox"
@@ -213,7 +204,6 @@ export default function SecaoFiltros() {
 					)}
 				</div>
 
-				{/* Serviço Dropdown */}
 				<div className="relative" ref={servicoRef}>
 					<div
 						role="combobox"
