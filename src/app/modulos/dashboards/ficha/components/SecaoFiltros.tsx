@@ -22,7 +22,6 @@ export default function SecaoFiltros({
 	selectedColaborador,
 	onChangeColaborador
 }: SecaoFiltrosProps) {
-	// === Empresa dropdown state & refs ===
 	const [isEmpresaOpen, setIsEmpresaOpen] = useState(false);
 	const empresaOptions = ["Empresa Alpha", "Empresa Beta", "Empresa Gamma"];
 	const empresaRef = useRef<HTMLDivElement>(null);
@@ -57,7 +56,6 @@ export default function SecaoFiltros({
 			/>
 			<div className="w-[1px] h-[30px] bg-[#373A40]" />
 			<div className="flex items-center gap-4">
-				{/* Empresa Dropdown */}
 				<div className="relative" ref={empresaRef}>
 					<div
 						role="combobox"
@@ -95,7 +93,6 @@ export default function SecaoFiltros({
 					)}
 				</div>
 
-				{/* Colaborador/Diretor/Autônomo Dropdown */}
 				<div className="relative" ref={colaboradorRef}>
 					<div
 						role="combobox"
@@ -119,7 +116,6 @@ export default function SecaoFiltros({
 								<div
 									key={option}
 									onClick={() => {
-										// se clicar no selecionado, limpa; senão seleciona
 										onChangeColaborador(selectedColaborador === option ? "" : option);
 										setIsColaboradorOpen(false);
 									}}

@@ -4,12 +4,12 @@ import { useMemo, useState } from "react";
 import SecaoFiltros from "./components/SecaoFiltros";
 import KpiCardsGrid from "./components/KpiCardsGrid";
 import EvolucaoCard from "./components/EvolucaoCard";
-import ValorPorGrupoCard from "./components/ValorPorGrupoCard"; // Import ValorPorGrupoCard
-import AtestadosTable from "./components/AtestadosTable"; // Import AtestadosTable
-import AfastamentosTable from "./components/AfastamentosTable"; // Novo componente
-import ContratosTable from "./components/ContratosTable"; // Import ContratosTable
-import FeriasDetalheCard from "./components/FeriasDetalheCard"; // Import FeriasDetalheCard
-import AlteracoesSalariaisDetalheCard from "./components/AlteracoesSalariaisDetalheCard"; // Import AlteracoesSalariaisDetalheCard
+import ValorPorGrupoCard from "./components/ValorPorGrupoCard";
+import AtestadosTable from "./components/AtestadosTable";
+import AfastamentosTable from "./components/AfastamentosTable";
+import ContratosTable from "./components/ContratosTable";
+import FeriasDetalheCard from "./components/FeriasDetalheCard";
+import AlteracoesSalariaisDetalheCard from "./components/AlteracoesSalariaisDetalheCard";
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
@@ -17,35 +17,32 @@ const cairo = Cairo({
   variable: "--font-cairo",
 });
 
-// Helper function to parse currency string to number (if not already available globally)
 const parseCurrency = (currencyString: string): number => {
   if (!currencyString) return 0;
   return parseFloat(
     currencyString
       .replace("R$", "")
-      .replace(/\./g, "") // Remove thousand separators
-      .replace(",", ".") // Replace decimal comma with dot
+      .replace(/\./g, "")
+      .replace(",", ".")
       .trim()
   );
 };
 
-// Data for EvolucaoCard specific to Ficha Pessoal
 const rawChartDataEntriesFicha = [
   "Jan/2024: R$ 1.896,58",
-  "Fev/2024: R$ 2.200,00", // Varied data
-  "Mar/2024: R$ 2.050,75", // Varied data
-  "Abr/2024: R$ 2.350,00", // Varied data
-  "Mai/2024: R$ 2.100,50", // Varied data
-  "Jun/2024: R$ 2.600,00", // Varied data
-  "Jul/2024: R$ 2.450,25", // Varied data
-  "Ago/2024: R$ 2.850,00", // Varied data
-  "Set/2024: R$ 2.700,80", // Varied data
-  "Out/2024: R$ 3.000,00", // Varied data
-  "Nov/2024: R$ 2.900,90", // Varied data
+  "Fev/2024: R$ 2.200,00",
+  "Mar/2024: R$ 2.050,75",
+  "Abr/2024: R$ 2.350,00",
+  "Mai/2024: R$ 2.100,50",
+  "Jun/2024: R$ 2.600,00",
+  "Jul/2024: R$ 2.450,25",
+  "Ago/2024: R$ 2.850,00",
+  "Set/2024: R$ 2.700,80",
+  "Out/2024: R$ 3.000,00", 
+  "Nov/2024: R$ 2.900,90", 
   "Dez/2024: R$ 3.134,66",
 ];
 
-// Section icons data (can be shared or specific)
 const sectionIconsFicha = [
   { src: "/assets/icons/icon-lay-down.svg", alt: "Lay Down", adjustSize: true },
   { src: "/assets/icons/icon-lay-up.svg", alt: "Lay Up", adjustSize: true },
@@ -55,10 +52,8 @@ const sectionIconsFicha = [
   { src: "/assets/icons/icon-more-options.svg", alt: "More Options" },
 ];
 
-// Icons for table headers (last 3 from sectionIconsFicha)
 const tableHeaderIcons = sectionIconsFicha.slice(-3);
 
-// Data for ValorPorGrupoCard specific to Ficha Pessoal - with many items
 const valorPorGrupoDataFicha = [
   { name: "Salário Base", value: 5000.00 },
   { name: "Horas Extras (50%)", value: 350.75 },
@@ -88,8 +83,6 @@ const valorPorGrupoDataFicha = [
   { name: "Empréstimo Consignado (Desconto)", value: -400.00 },
 ];
 
-// Dados de amostra do CSV para representar todos os tipos de resultados e tipos de exame
-// This data will be passed to the AtestadosTable component
 const atestadosDataRaw = [
   { vencimento: "30/10/2023", dataExame: "30/10/2021", resultado: "Apto", tipo: "Admissional", nomeColaborador: "João Silva" },
   { vencimento: "06/01/2023", dataExame: "07/01/2022", resultado: "Apto", tipo: "Periódico", nomeColaborador: "Maria Oliveira" },
@@ -107,7 +100,6 @@ const atestadosDataRaw = [
   { vencimento: "03/04/2020", dataExame: "03/04/2019", resultado: "Apto com restrições", tipo: "Periódico", nomeColaborador: "Mariana Costa" },
 ];
 
-// Dados mock para AfastamentosTable (baseado no CSV fornecido)
 const mockAfastamentosRaw = [
   { inicio: "13/08/2015", termino: "10/12/2015", tipo: "Licença maternidade", diasAfastados: "120", nomeColaborador: "João Silva" },
   { inicio: "01/01/2016", termino: "03/01/2016", tipo: "Doença período igual ou inferior a 15 dias", diasAfastados: "3", nomeColaborador: "Maria Oliveira" },
@@ -125,10 +117,9 @@ const mockAfastamentosRaw = [
   { inicio: "10/10/2023", termino: "12/10/2023", tipo: "Atestado médico", diasAfastados: "3", nomeColaborador: "Mariana Costa" },
 ];
 
-// Dados mock para ContratosTable
 const mockContratosRaw = [
   { id: "1", empresa: "Empresa Alpha", colaborador: "João Silva", dataAdmissao: "01/01/2020", dataRescisao: "31/12/2021", salarioBase: "R$ 3.500,00" },
-  { id: "2", empresa: "Empresa Alpha", colaborador: "João Silva", dataAdmissao: "15/01/2022", salarioBase: "R$ 3.800,00" }, // Contrato vigente
+  { id: "2", empresa: "Empresa Alpha", colaborador: "João Silva", dataAdmissao: "15/01/2022", salarioBase: "R$ 3.800,00" },
   { id: "3", empresa: "Empresa Beta", colaborador: "Maria Oliveira", dataAdmissao: "10/03/2019", salarioBase: "R$ 4.200,00" },
   { id: "4", empresa: "Empresa Gamma", colaborador: "Carlos Pereira", dataAdmissao: "05/07/2018", dataRescisao: "04/07/2020", salarioBase: "R$ 3.000,00" },
   { id: "5", empresa: "Empresa Delta", colaborador: "Ana Costa", dataAdmissao: "20/11/2022", salarioBase: "R$ 4.500,00" },
@@ -143,11 +134,6 @@ const mockContratosRaw = [
   { id: "14", empresa: "Empresa Mu", colaborador: "Patrícia Ribeiro", dataAdmissao: "25/07/2022", dataRescisao: "10/10/2023", salarioBase: "R$ 3.900,00" },
 ];
 
-// Updated data for FeriasDetalheCard from Ferias.csv (first 14 records)
-// Mapping CSV: DataInicio -> inicioPeriodoAquisitivo, DataFim -> fimPeriodoAquisitivo,
-// DiasSolicitados -> diasGozados.
-// limiteParaGozo calculated as fimPeriodoAquisitivo + 11 months + 1 day.
-// The 'status' property has been removed from each object.
 const sampleFeriasDetalheData = [
   { nomeColaborador: "João Silva", inicioPeriodoAquisitivo: "2024-07-01", fimPeriodoAquisitivo: "2024-07-15", limiteParaGozo: "2025-06-16", diasDeDireito: 30, diasGozados: 15, diasDeSaldo: 15 },
   { nomeColaborador: "Maria Oliveira", inicioPeriodoAquisitivo: "2024-08-05", fimPeriodoAquisitivo: "2024-08-10", limiteParaGozo: "2025-07-11", diasDeDireito: 30, diasGozados: 5, diasDeSaldo: 25 },
@@ -165,7 +151,6 @@ const sampleFeriasDetalheData = [
   { nomeColaborador: "Mariana Costa", inicioPeriodoAquisitivo: "2024-12-23", fimPeriodoAquisitivo: "2025-01-03", limiteParaGozo: "2025-12-04", diasDeDireito: 30, diasGozados: 10, diasDeSaldo: 20 },
 ];
 
-// Updated data for AlteracoesSalariaisDetalheCard from CSV (first 14 records)
 const sampleAlteracoesSalariaisDetalheData = [
   { data: "2025-05-15", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1534,00"), salarioNovo: parseCurrency("R$ 1585,62"), percentual: "3,4%", nomeColaborador: "João Silva" },
   { data: "2025-05-15", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1534,00"), salarioNovo: parseCurrency("R$ 1585,62"), percentual: "3,4%", nomeColaborador: "Maria Oliveira" },
@@ -185,7 +170,6 @@ const sampleAlteracoesSalariaisDetalheData = [
 
 
 export default function FichaPessoalPage() {
-  // filtros controlados
   const [selectedEmpresa, setSelectedEmpresa] = useState<string>("");
   const [selectedColaborador, setSelectedColaborador] = useState<string>("");
 
@@ -197,7 +181,6 @@ export default function FichaPessoalPage() {
     { title: "Idade", value: "30 anos", tooltipText: "Idade atual do colaborador." },
   ];
 
-  // Process chart data for Ficha Pessoal (memoized for performance)
   const processedEvolucaoChartDataFicha = useMemo(() => {
     return rawChartDataEntriesFicha.map(entry => {
       const [month, valueString] = entry.split(": ");
@@ -206,20 +189,18 @@ export default function FichaPessoalPage() {
   }, []);
   const evolucaoCardTitle = "Evolução de Custo Total";
 
-  // Process data for tables to ensure consistent length
   const processedTableData = useMemo(() => {
-    const targetLength = 14; // Set target length to 14 for all tables
+    const targetLength = 14;
 
     const padArray = <T,>(
       arr: T[],
-      length: number, // Renamed parameter for clarity
+      length: number,
       placeholderFactory: (index: number) => T
     ): T[] => {
       const currentLength = arr.length;
       if (currentLength >= length) {
-        return arr.slice(0, length); // Slice if longer
+        return arr.slice(0, length);
       }
-      // Pad if shorter
       const placeholders = Array.from({ length: length - currentLength }, (_, i) =>
         placeholderFactory(currentLength + i)
       );
@@ -245,7 +226,6 @@ export default function FichaPessoalPage() {
 
   return (
     <div className="h-screen flex flex-col bg-[#f7f7f8]">
-      {/* Header Section - Fixed */}
       <div className="flex flex-row items-center justify-start gap-8 p-4 border-b border-black/10 bg-gray-100">
         <h1 className={`text-[32px] leading-8 font-700 text-black ${cairo.className}`}>
           Dashboard de Ficha Pessoal
@@ -258,10 +238,8 @@ export default function FichaPessoalPage() {
         />
       </div>
 
-      {/* Content Section - Scrollable */}
       <div className="flex-1 overflow-y-auto p-4">
 
-        {/* KPIs: animação de slide down/up */}
         <div className={`transition-all duration-500 ease-in-out transform origin-top overflow-hidden
             ${selectedColaborador
               ? 'max-h-[800px] opacity-100 translate-y-0'
@@ -269,7 +247,6 @@ export default function FichaPessoalPage() {
           <KpiCardsGrid cardsData={kpiCardData} />
         </div>
 
-        {/* Evolução & Valor por Grupo – sempre visível */}
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 h-[400px]">
           <div className="w-full h-full flex flex-col overflow-hidden">
             <EvolucaoCard
@@ -288,39 +265,33 @@ export default function FichaPessoalPage() {
           </div>
         </div>
 
-        {/* Seção para Afastamentos e Atestados - Standardized to mt-6 (gap-6 already present) */}
-        {/* The h-[350px] on this grid sets the fixed height for the row */}
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6 h-[350px]"> 
-          {/* Coluna 1: Histórico de Atestados */}
-          <div className="lg:col-span-1 h-full overflow-hidden"> {/* Added overflow-hidden */}
+          <div className="lg:col-span-1 h-full overflow-hidden">
             <AtestadosTable 
               atestadosData={processedTableData.atestados} 
               cairoClassName={cairo.className} 
-              headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")} // Pass icons
+              headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")}
             />
           </div>
 
-          {/* Coluna 2: Histórico de Afastamentos */}
-          <div className="lg:col-span-1 h-full overflow-hidden"> {/* Added overflow-hidden */}
+          <div className="lg:col-span-1 h-full overflow-hidden">
             <AfastamentosTable 
               afastamentosData={processedTableData.afastamentos} 
               cairoClassName={cairo.className} 
-              headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")} // Pass icons
+              headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")}
             />
           </div>
 
-          {/* Coluna 3: Histórico de Contratos */}
           <div className="lg:col-span-1 h-full overflow-hidden">
             <ContratosTable
               contratosData={processedTableData.contratos}
               cairoClassName={cairo.className}
-              headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")} // Pass icons
+              headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")}
             />
           </div>
         </div>
         
-        {/* New section for FeriasDetalheCard and AlteracoesSalariaisDetalheCard */}
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 h-[450px]"> {/* Adjust height as needed */}
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 h-[450px]">
           <div className="h-full overflow-hidden">
             <FeriasDetalheCard
               feriasData={sampleFeriasDetalheData}
@@ -338,9 +309,7 @@ export default function FichaPessoalPage() {
             />
           </div>
         </div>
-
-        {/* O restante do conteúdo do seu dashboard virá aqui */}
-        <p className="mt-4"></p> {/* This can be removed if not needed */}
+        <p className="mt-4"></p>
       </div>
     </div>
   );

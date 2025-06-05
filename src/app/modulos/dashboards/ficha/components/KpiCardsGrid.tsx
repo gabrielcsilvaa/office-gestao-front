@@ -1,12 +1,10 @@
 "use client";
-
-import Card from "./Card"; // Import the Card component
+import Card from "./Card";
 
 interface KpiCardData {
   title: string;
   value: string;
-  tooltipText?: string; // Ensure tooltipText is part of the interface
-  // Add other properties if your cards need them (e.g., icon, onClick)
+  tooltipText?: string;
 }
 
 interface KpiCardsGridProps {
@@ -26,7 +24,6 @@ export default function KpiCardsGrid({ cardsData }: KpiCardsGridProps) {
           title={card.title}
           value={card.value}
           tooltipText={card.tooltipText}
-          // Pass other props if Card component expects them, e.g., onClick
         />
       ))}
     </div>

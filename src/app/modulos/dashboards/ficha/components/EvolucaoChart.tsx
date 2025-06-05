@@ -5,7 +5,7 @@ import {
   LineChart,
   Line,
   XAxis,
-  YAxis, // Import YAxis
+  YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
@@ -19,18 +19,17 @@ interface ChartDataPoint {
 
 interface EvolucaoChartProps {
   data: ChartDataPoint[];
-  kpiName: string; // This prop will still be accepted but not used for the Line's name
+  kpiName: string;
 }
 
 const EvolucaoChart: React.FC<EvolucaoChartProps> = ({ data, kpiName: originalKpiName }) => {
-  // Custom Tooltip
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white p-2 border border-gray-300 rounded shadow-lg">
           <p className="label text-sm text-gray-700">{`${label}`}</p>
           <p className="intro text-sm text-blue-600">{`${
-            payload[0].name // This name comes from the <Line name={...} /> prop
+            payload[0].name
           } : ${new Intl.NumberFormat("pt-BR", {
             style: "currency",
             currency: "BRL",
@@ -64,32 +63,32 @@ const EvolucaoChart: React.FC<EvolucaoChartProps> = ({ data, kpiName: originalKp
           tickLine={false}
           axisLine={false}
           tick={{ fontSize: 10, fill: "#737373" }}
-          angle={-35} // Angle labels to prevent overlap
+          angle={-35}
           textAnchor="end"
-          interval={0} // Show all ticks
-          dy={15} // Adjust vertical position of ticks
+          interval={0}
+          dy={15}
         />
         <YAxis
-          domain={['dataMin', 'dataMax']} // Dynamically set Y-axis domain
-          axisLine={false} // Hide Y-axis line
-          tickLine={false} // Hide Y-axis tick lines
-          tick={false} // Hide Y-axis labels (ticks)
+          domain={['dataMin', 'dataMax']}
+          axisLine={false}
+          tickLine={false}
+          tick={false}
         />
         <Tooltip content={<CustomTooltip />} />
         <Line
           type="monotone"
           dataKey="value"
-          name="Evolução de Custo Total" // Set static name here
-          stroke="#6366f1" // Indigo color for the line
+          name="Evolução de Custo Total"
+          stroke="#6366f1"
           strokeWidth={2}
           dot={{
-            stroke: "#6366f1", // Indigo border for dots
+            stroke: "#6366f1",
             strokeWidth: 2,
-            fill: "#fff", // White fill for dots
+            fill: "#fff",
             r: 4,
           }}
           activeDot={{
-            stroke: "#4f46e5", // Darker indigo for active dot
+            stroke: "#4f46e5",
             strokeWidth: 2,
             fill: "#fff",
             r: 6,
