@@ -32,14 +32,10 @@ const formatCurrency = (value: number) => {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white p-2 border border-gray-300 rounded shadow-lg">
-        <p className="label text-sm text-gray-700">{`${label}`}</p>
-        <p
-          className={`intro text-sm ${
-            payload[0].value >= 0 ? "text-emerald-600" : "text-red-600"
-          }`}
-        >
-          {`Valor: ${formatCurrency(payload[0].value)}`}
+      <div className="bg-white p-3 border border-gray-300 rounded shadow-lg text-sm">
+        <p className="font-semibold text-gray-700">{label}</p>
+        <p className={payload[0].value >= 0 ? "text-green-600" : "text-red-600"}>
+          {formatCurrency(payload[0].value)}
         </p>
       </div>
     );
@@ -111,7 +107,7 @@ const ValorPorGrupoChart: React.FC<ValorPorGrupoChartProps> = ({ data }) => {
           ticks={yAxisTicks}
         />
         <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
-        <Bar dataKey="value">
+        <Bar dataKey="value" radius={[4, 4, 0, 0]}>
           <LabelList
             dataKey="value"
             position="top" 
