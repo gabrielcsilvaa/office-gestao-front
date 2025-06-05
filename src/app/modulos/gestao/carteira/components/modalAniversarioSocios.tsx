@@ -7,6 +7,7 @@ import Image from "next/image";
 interface Socio {
   id: number;
   nome: string;
+  cnpj: string;
   data_nascimento: string;
   idade?: number; // Tornando idade opcional já que vamos calculá-la
 }
@@ -141,59 +142,30 @@ export default function AniversariantesSocios({
     setSortConfig({ key, direction });
   };
 
-  // Lista de empresas a serem excluídas
-  const empresasExcluidas = [
-    "EMPRESA EXEMPLO REAL LTDA",
-      "EMPRESA EXEMPLO PRESUMIDO LTDA",
-      "EMPRESA EXEMPLO SIMPLES NACIONAL LTDA",
-      "EMPRESA DESONERAÇÃO DA EMPRESA DESONERAÇÃO DA",
-      "EMPRESA DESONERAÇÃO DA FOLHA",
-      "EMPRESA DOMÉSTICO",
-      "EMPRESA MODELO - EVENTOS E-SOCIAL",
-      "EMPRESA MODELO CONTÁBIL SPED",
-      "EMPRESA MODELO PLANO DE CONTAS CONTABIL", 
-      "SILVEIRA FONTENELE - EMPRESA MODELO",
-      "EMPRESA SIMPLES - COMERCIO",
-      "EMPRESA SIMPLES - COMERCIO E SERVIÇO",
-      "EMPRESA SIMPLES - COMERCIO E IND",
-      "EMPRESA SIMPLES - COMERCIO, SERV E IND",
-      "EMPRESA SIMPLES - INDUSTRIA",
-      "EMPRESA SIMPLES - MEI",
-      "EMPRESA SIMPLES - SERVIÇO", 
-      "LUCRO PRESUMIDO - COM, SERV E IND", 
-      "LUCRO PRESUMIDO - COMERCIO",
-      "LUCRO PRESUMIDO - COMERCIO E INDUSTRIA",
-      "LUCRO PRESUMIDO - COMERCIO E SERVIÇO",
-      "LUCRO PRESUMIDO - INDUSTRIA",
-      "LUCRO PRESUMIDO - POSTO DE COMBUSTIVEL",
-      "LUCRO PRESUMIDO - SERVIÇO",
-      "LUCRO PRESUMIDO - TRANSPORTADORA",
-      "LUCRO REAL - COM, SERV E IND",
-      "LUCRO REAL - INDUSTRIA",
-      "LUCRO REAL - SERVIÇO",
-      "LUCRO REAL - TRANSPORTADORA",
-      "LUCRO REAL- COMERCIO",
-      "MODELO LUCRO PRESUMIDO - COM SERV",
-      "MODELO LUCRO PRESUMIDO - SERVIÇO",
-      "MODELO SIMPLES NACIONAL - COM SERV",
-      "MODELO SIMPLES NACIONAL - COM SERV IND",
-      "MODELO SIMPLES NACIONAL - COMERCIO",
-      "MODELO SIMPLES NACIONAL - SERVIÇO",
-      "REAL - COMERCIO E INDUSTRIA",
-      "REAL - POSTO DE COMBUSTIVEL",
-      "REAL - COMERCIO E SERVIÇO",
-      "MATRIZ PRESUMIDO - COM, SERV E IND",
-      "FILIAL PRESUMIDO - COM, SERV E IND",
-      "FOLHA PROFESSOR",
-      "ATIVIDADE IMOB RET PMCMV",
-      "SIMPLES TRANSPORTADORA",
-  ];
+  // Filtrando sócios a partir da pesquisa (nome e cnpj)
+  const filteredSocios = dados.filter((socio) => {
+    const searchValue = searchQuery.toLowerCase();
+    return (
+      (socio.nome && socio.nome.toLowerCase().includes(searchValue)) ||
+      (socio.cnpj && socio.cnpj.toLowerCase().includes(searchValue))
+    );
+  });
 
-  // Filtrando empresas a partir da lista de exclusões
-  const filteredSocios = dados.filter(socio => !empresasExcluidas.includes(socio.nome));
-
-  // Ordenação dos dados com tratamento de tipos
+  // Ordenação dos dados apenas pelo dia da data de nascimento (sem mês e ano)
   const sortedSocios = filteredSocios.sort((a, b) => {
+    const aDate = new Date(a.data_nascimento);
+    const bDate = new Date(b.data_nascimento);
+
+    // Aqui compararemos apenas os dias
+    const aDay = aDate.getDate();
+    const bDay = bDate.getDate();
+
+    if (sortConfig.key === "data_nascimento") {
+      return sortConfig.direction === "asc"
+        ? aDay - bDay
+        : bDay - aDay;
+    }
+
     const aValue = a[sortConfig.key];
     const bValue = b[sortConfig.key];
 
@@ -201,14 +173,6 @@ export default function AniversariantesSocios({
       const aIdade = calcularIdade(a.data_nascimento);
       const bIdade = calcularIdade(b.data_nascimento);
       return sortConfig.direction === "asc" ? aIdade - bIdade : bIdade - aIdade;
-    }
-
-    if (sortConfig.key === "data_nascimento") {
-      const aDate = new Date(aValue as string);
-      const bDate = new Date(bValue as string);
-      return sortConfig.direction === "asc"
-        ? aDate.getTime() - bDate.getTime()
-        : bDate.getTime() - aDate.getTime();
     }
 
     if (typeof aValue === "string" && typeof bValue === "string") {
@@ -229,7 +193,7 @@ export default function AniversariantesSocios({
         <div className="flex items-center gap-4">
           <input
             type="text"
-            placeholder="Pesquisar por nome..."
+            placeholder="Pesquisar por nome ou CNPJ..."
             className="border border-gray-300 rounded-md p-2 w-96 text-sm"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}

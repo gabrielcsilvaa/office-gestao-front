@@ -31,7 +31,7 @@ export default function AniversariantesParceiros({
 
   const [searchQuery, setSearchQuery] = useState<string>("");
 
-  // Lista de empresas a serem excluídas (mova ela para cima)
+  // Lista de empresas a serem excluídas
   const empresasExcluidas = [
     "EMPRESA EXEMPLO REAL LTDA",
     "EMPRESA EXEMPLO PRESUMIDO LTDA",
@@ -101,19 +101,6 @@ export default function AniversariantesParceiros({
     return isCompleteYear ? years - 1 : years;
   };
 
-  const isAniversarioHoje = (dateString: string): boolean => {
-    if (!dateString) return false;
-
-    const hoje = new Date();
-    const data = new Date(dateString);
-
-    if (isNaN(data.getTime())) return false;
-
-    return (
-      hoje.getDate() === data.getDate() && hoje.getMonth() === data.getMonth()
-    );
-  };
-
   // Função para ordenar os dados
   const sortData = (key: keyof Parceria) => {
     const direction = sortConfig.direction === "asc" ? "desc" : "asc";
@@ -123,9 +110,13 @@ export default function AniversariantesParceiros({
   const searchQueryNormalized = searchQuery.toLowerCase().trim();
   const cnpjQuery = searchQuery.replace(/\D/g, "");
 
-  const hoje = new Date();
-  const mesAtual = hoje.getMonth();
+  // Função para filtrar as datas considerando apenas o dia (comparação por dia)
+  const filterByDay = (data: string) => {
+    const date = new Date(data);
+    return date.getDate(); // Retorna apenas o dia
+  };
 
+  // Filtrando os dados de acordo com a pesquisa e a lógica do filtro por dia
   const filteredClientes = dados
     .filter((empresa) => {
       const nomeEmpresa = empresa.nome.toLowerCase();
@@ -134,10 +125,14 @@ export default function AniversariantesParceiros({
       const cnpjEmpresa = empresa.cnpj.replace(/\D/g, "");
       const cnpjMatch = cnpjQuery ? cnpjEmpresa.includes(cnpjQuery) : false;
 
-      const dataCadastro = new Date(empresa.data_cadastro).getMonth() === mesAtual;
-      const dataInicio = new Date(empresa.data_inicio_atividades).getMonth() === mesAtual;
+      // Filtragem pelo dia de cadastro e início de atividades
+      const dataCadastroDia = filterByDay(empresa.data_cadastro);
+      const dataInicioDia = filterByDay(empresa.data_inicio_atividades);
 
-      return (nomeMatch || cnpjMatch) && (dataCadastro || dataInicio);
+      return (
+        (nomeMatch || cnpjMatch) &&
+        (dataCadastroDia || dataInicioDia)
+      );
     })
     // Excluir empresas da lista
     .filter((empresa) => !empresasExcluidas.includes(empresa.nome));
@@ -147,12 +142,17 @@ export default function AniversariantesParceiros({
     const aValue = a[sortConfig.key];
     const bValue = b[sortConfig.key];
 
+    // Ordenando pela data de cadastro ou início de atividades com base no dia
     if (sortConfig.key === "data_cadastro" || sortConfig.key === "data_inicio_atividades") {
       const aDate = new Date(aValue as string);
       const bDate = new Date(bValue as string);
+
+      // Compara apenas pelo dia (ignorando o mês e o ano)
+      const aDay = aDate.getDate();
+      const bDay = bDate.getDate();
       return sortConfig.direction === "asc"
-        ? aDate.getTime() - bDate.getTime()
-        : bDate.getTime() - aDate.getTime();
+        ? aDay - bDay
+        : bDay - aDay;
     }
 
     if (typeof aValue === "string" && typeof bValue === "string") {
@@ -246,7 +246,7 @@ export default function AniversariantesParceiros({
         <div className="flex items-center gap-4">
           <input
             type="text"
-            placeholder="Pesquisar por nome..."
+            placeholder="Pesquisar por nome ou CNPJ..."
             className="border border-gray-300 rounded-md p-2 w-96 text-sm"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -339,18 +339,11 @@ export default function AniversariantesParceiros({
         </thead>
         <tbody className="text-center">
           {sortedClientes.map((empresa, index) => {
-            const isBirthday = isAniversarioHoje(empresa.data_cadastro);
             const anosParceria = calculateYears(empresa.data_cadastro);
             const anosAtividade = calculateYears(empresa.data_inicio_atividades);
 
-            const rowClass = isBirthday
-              ? "bg-green-100 text-green-700 font-semibold"
-              : index % 2 === 0
-                ? "bg-white"
-                : "bg-gray-100";
-
             return (
-              <tr key={empresa.codi_emp} className={`${rowClass} border-b border-gray-300`}>
+              <tr key={empresa.codi_emp} className="border-b border-gray-300">
                 <td className="px-4 py-2">{index + 1}</td>
                 <td className="px-4 py-2">{empresa.nome}</td>
                 <td className="px-4 py-2">{empresa.cnpj}</td>

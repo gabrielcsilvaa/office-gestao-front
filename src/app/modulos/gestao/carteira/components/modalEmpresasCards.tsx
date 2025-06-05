@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Cairo } from "next/font/google";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -119,11 +119,6 @@ export default function ModalEmpresasCard({
   const [selectedFiltros, setSelectedFiltros] = useState<string[]>(filtrosIniciais);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
-  // Atualiza os filtros iniciais ao abrir o modal
-  useEffect(() => {
-    setSelectedFiltros(filtrosIniciais);
-  }, [filtrosIniciais]);
-
   // Função para alternar filtros múltiplos
   const toggleFiltro = (filtro: string) => {
     setSelectedFiltros((prevFiltros) =>
@@ -133,7 +128,7 @@ export default function ModalEmpresasCard({
     );
   };
 
-  // Função para filtrar empresas com base nos filtros selecionados e na barra de pesquisa
+  // Função para filtrar empresas com base nos filtros selecionados
   const filtrarEmpresas = () => {
     let allEmpresas = [...dados];
 
@@ -145,8 +140,8 @@ export default function ModalEmpresasCard({
       allEmpresas = allEmpresas.filter((empresa) => {
         const isAtivo = selectedFiltros.includes("A") && empresa.situacao === "A";
         const isInativo = selectedFiltros.includes("I") && empresa.situacao === "I";
-        const isBaixado = selectedFiltros.includes("baixados") && empresa.motivo_inatividade === 2 && empresa.situacao != "A";
-        const isTransferido = selectedFiltros.includes("transferidas") && empresa.motivo_inatividade === 3 && empresa.situacao != "A";
+        const isBaixado = selectedFiltros.includes("baixados") && empresa.motivo_inatividade === 2 && empresa.situacao !== "A";
+        const isTransferido = selectedFiltros.includes("transferidas") && empresa.motivo_inatividade === 3 && empresa.situacao !== "A";
         const isNovoCliente = selectedFiltros.includes("novos-clientes") && dadosNovos.includes(empresa);
         return isAtivo || isInativo || isBaixado || isTransferido || isNovoCliente;
       });
@@ -204,8 +199,19 @@ export default function ModalEmpresasCard({
       (empresa) => !empresasExcluidas.includes(empresa.nome_empresa)
     );
 
-    return allEmpresas;
+    // Filtrando empresas a partir da pesquisa (nome e cnpj)
+    const filteredEmpresas = allEmpresas.filter((empresa) => {
+      const searchValue = searchQuery.toLowerCase().trim(); // Trim whitespace
+      return (
+        (empresa.nome_empresa && empresa.nome_empresa.toLowerCase().includes(searchValue)) || // Check name
+        (empresa.cnpj && empresa.cnpj.toLowerCase().includes(searchValue)) // Check CNPJ
+      );
+    });
+
+    return filteredEmpresas;
   };
+
+  const filteredEmpresas = filtrarEmpresas();
 
   return (
     <div className="max-h-[90vh] flex flex-col gap-4 overflow-x-auto w-full">
@@ -270,7 +276,7 @@ export default function ModalEmpresasCard({
         {/* Botões de exportação no canto direito */}
         <div className="flex gap-4">
           <button
-            onClick={() => exportToPDF(filtrarEmpresas(), "Empresas")}
+            onClick={() => exportToPDF(filteredEmpresas, "Empresas")}
             className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
             style={{ width: 36, height: 36 }}
           >
@@ -284,7 +290,7 @@ export default function ModalEmpresasCard({
           </button>
 
           <button
-            onClick={() => exportToExcel(filtrarEmpresas(), "Empresas")}
+            onClick={() => exportToExcel(filteredEmpresas, "Empresas")}
             className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
             style={{ width: 36, height: 36 }}
           >
@@ -311,18 +317,13 @@ export default function ModalEmpresasCard({
           </tr>
         </thead>
         <tbody className="text-center">
-          {filtrarEmpresas().map((empresa, index) => (
-            <tr
-              key={empresa.id}
-              className={`${index % 2 === 0 ? "bg-white" : "bg-gray-100"} border-b border-gray-300`}
-            >
+          {filteredEmpresas.map((empresa, index) => (
+            <tr key={empresa.id} className={`${index % 2 === 0 ? "bg-white" : "bg-gray-100"} border-b border-gray-300`}>
               <td className="px-4 py-2">{index + 1}</td>
               <td className="px-4 py-2">{empresa.nome_empresa}</td>
               <td className="px-4 py-2">{empresa.situacao}</td>
               <td className="px-4 py-2">{formatCNPJ(empresa.cnpj)}</td>
-              <td className="px-4 py-2">
-                {empresa.responsavel_legal?.trim() || "Sem Responsável Legal"}
-              </td>
+              <td className="px-4 py-2">{empresa.responsavel_legal || "Sem Responsável Legal"}</td>
             </tr>
           ))}
         </tbody>
@@ -330,3 +331,4 @@ export default function ModalEmpresasCard({
     </div>
   );
 }
+
