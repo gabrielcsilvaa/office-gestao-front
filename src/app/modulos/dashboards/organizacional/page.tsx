@@ -102,12 +102,12 @@ export default function DashboardOrganizacional() {
           <EvolucaoCard
             kpiSelecionado={kpiSelecionado}
             processedEvolucaoChartData={processedEvolucaoChartData}
-            sectionIcons={sectionIcons}
+            sectionIcons={sectionIcons.filter(icon => icon.alt === "Maximize")}
             cairoClassName={cairo.className}
           />
           <ValorPorGrupoCard
             valorPorGrupoData={valorPorGrupoData}
-            sectionIcons={sectionIcons}
+            sectionIcons={sectionIcons.filter(icon => icon.alt === "Maximize")}
             cairoClassName={cairo.className}
           />
         </div>
@@ -129,4 +129,4 @@ export default function DashboardOrganizacional() {
       </div>
     </div>
   );
-}                 
+}

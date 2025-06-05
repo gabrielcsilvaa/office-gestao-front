@@ -35,7 +35,7 @@ const ValorPorGrupoCard: React.FC<ValorPorGrupoCardProps> = ({
                   alt={icon.alt}
                   width={iconWidth}
                   height={iconHeight}
-                  className="cursor-pointer"
+                  className="cursor-pointer opacity-60 hover:opacity-100"
                 />
                 {icon.src === "/assets/icons/icon-hierarchy.svg" && (
                   <div className="w-px h-5 bg-neutral-300"></div> 
