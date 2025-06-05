@@ -99,10 +99,15 @@ const ValorPorGrupoChart: React.FC<ValorPorGrupoChartProps> = ({ data }) => {
         />
         <YAxis
           tickLine={false}
-          axisLine={{ stroke: "#a3a3a3" }} 
-          tickFormatter={(tick) => tick.toLocaleString("pt-BR")}
+          axisLine={{ stroke: "#a3a3a3" }}
+          tickFormatter={(value) =>
+            new Intl.NumberFormat("pt-BR", {
+              notation: "compact",
+              compactDisplay: "short",
+            }).format(value)
+          }
           tick={{ fontSize: 10, fill: "#737373" }}
-          domain={[-600000, 100000]} 
+          domain={[-600000, 100000]}
           ticks={yAxisTicks}
         />
         <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
