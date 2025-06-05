@@ -275,14 +275,14 @@ export default function FichaPessoalPage() {
             <EvolucaoCard
               kpiSelecionado={evolucaoCardTitle}
               processedEvolucaoChartData={processedEvolucaoChartDataFicha}
-              sectionIcons={sectionIconsFicha}
+              sectionIcons={sectionIconsFicha.filter(icon => icon.alt === "Maximize")}
               cairoClassName={cairo.className}
             />
           </div>
           <div className="w-full h-full flex flex-col overflow-hidden">
             <ValorPorGrupoCard
               valorPorGrupoData={valorPorGrupoDataFicha}
-              sectionIcons={sectionIconsFicha}
+              sectionIcons={sectionIconsFicha.filter(icon => icon.alt === "Maximize")}
               cairoClassName={cairo.className}
             />
           </div>
@@ -296,7 +296,7 @@ export default function FichaPessoalPage() {
             <AtestadosTable 
               atestadosData={processedTableData.atestados} 
               cairoClassName={cairo.className} 
-              headerIcons={tableHeaderIcons} // Pass icons
+              headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")} // Pass icons
             />
           </div>
 
@@ -305,7 +305,7 @@ export default function FichaPessoalPage() {
             <AfastamentosTable 
               afastamentosData={processedTableData.afastamentos} 
               cairoClassName={cairo.className} 
-              headerIcons={tableHeaderIcons} // Pass icons
+              headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")} // Pass icons
             />
           </div>
 
@@ -314,7 +314,7 @@ export default function FichaPessoalPage() {
             <ContratosTable
               contratosData={processedTableData.contratos}
               cairoClassName={cairo.className}
-              headerIcons={tableHeaderIcons} // Pass icons
+              headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")} // Pass icons
             />
           </div>
         </div>
@@ -325,7 +325,7 @@ export default function FichaPessoalPage() {
             <FeriasDetalheCard
               feriasData={sampleFeriasDetalheData}
               cairoClassName={cairo.className}
-              headerIcons={tableHeaderIcons}
+              headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")}
               title="Detalhes de Férias"
             />
           </div>
@@ -333,7 +333,7 @@ export default function FichaPessoalPage() {
             <AlteracoesSalariaisDetalheCard
               alteracoesData={sampleAlteracoesSalariaisDetalheData}
               cairoClassName={cairo.className}
-              headerIcons={tableHeaderIcons}
+              headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")}
               title="Detalhes de Alterações Salariais"
             />
           </div>
