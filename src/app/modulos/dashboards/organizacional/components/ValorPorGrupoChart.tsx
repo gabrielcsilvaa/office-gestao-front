@@ -69,6 +69,23 @@ const CustomTick = (props: any) => {
   );
 };
 
+const CustomizedLabel: React.FC<any> = ({ x, y, width, value }) => {
+  const display = formatCurrency(value);
+  const labelY = value >= 0 ? y - 5 : y + 15;
+  return (
+    <text
+      x={x + width / 2}
+      y={labelY}
+      fill="#374151"
+      textAnchor="middle"
+      fontSize="8px"
+      fontWeight="bold"
+    >
+      {display}
+    </text>
+  );
+};
+
 const ValorPorGrupoChart: React.FC<ValorPorGrupoChartProps> = ({ data }) => {
   const yAxisTicks = [-600000, -500000, -400000, -300000, -200000, -100000, 0, 100000];
 
@@ -82,7 +99,7 @@ const ValorPorGrupoChart: React.FC<ValorPorGrupoChartProps> = ({ data }) => {
           left: 10,
           bottom: 70, 
         }}
-        barGap={5} 
+        barCategoryGap="20%"
       >
         <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" vertical={false} />
         <XAxis
@@ -108,15 +125,7 @@ const ValorPorGrupoChart: React.FC<ValorPorGrupoChartProps> = ({ data }) => {
         />
         <Tooltip content={<CustomTooltip />} cursor={{ fill: 'transparent' }} />
         <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-          <LabelList
-            dataKey="value"
-            position="top" 
-            offset={8}
-            formatter={(value: number) => formatCurrency(value)}
-            fontSize="8px" 
-            fontWeight="bold"
-            fill="#374151" 
-          />
+          <LabelList dataKey="value" content={<CustomizedLabel />} />
           {data.map((entry, index) => (
             <Cell
               key={`cell-${index}`}
