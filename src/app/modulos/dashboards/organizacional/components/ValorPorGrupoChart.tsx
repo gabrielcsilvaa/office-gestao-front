@@ -47,6 +47,32 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
+const MAX_LABEL_LENGTH = 17;
+const truncateText = (text: string): string =>
+  text.length <= MAX_LABEL_LENGTH ? text : text.substring(0, MAX_LABEL_LENGTH - 3) + '...';
+
+const CustomTick = (props: any) => {
+  const { x, y, payload } = props;
+  const original = payload.value as string;
+  const display = truncateText(original);
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text
+        x={0}
+        y={0}
+        dy={16}
+        textAnchor="end"
+        fill="#737373"
+        fontSize={10}
+        transform="rotate(-45)"
+      >
+        {original.length > MAX_LABEL_LENGTH && <title>{original}</title>}
+        {display}
+      </text>
+    </g>
+  );
+};
+
 const ValorPorGrupoChart: React.FC<ValorPorGrupoChartProps> = ({ data }) => {
   const yAxisTicks = [-600000, -500000, -400000, -300000, -200000, -100000, 0, 100000];
 
@@ -67,12 +93,9 @@ const ValorPorGrupoChart: React.FC<ValorPorGrupoChartProps> = ({ data }) => {
           dataKey="name"
           tickLine={false}
           axisLine={false}
-          tick={{ fontSize: 10, fill: "#737373" }}
-          angle={-45} 
-          textAnchor="end"
-          interval={0} 
-          dy={5} 
-          height={60} 
+          tick={<CustomTick />}
+          interval={0}
+          height={60}
         />
         <YAxis
           tickLine={false}
