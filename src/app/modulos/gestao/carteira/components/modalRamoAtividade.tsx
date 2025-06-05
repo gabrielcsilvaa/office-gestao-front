@@ -1,5 +1,9 @@
 import { useState } from "react";
 import { Cairo } from "next/font/google";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
+import Image from "next/image";
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
@@ -34,6 +38,74 @@ const formatCNPJ = (cnpj: string | null | undefined) => {
   }
   return cnpj;
 };
+
+const exportToPDF = (data: empresaRamoAtividade[], fileName: string) => {
+  const doc = new jsPDF();
+  doc.setFontSize(13);
+  doc.setFont('helvetica', 'bold');
+  
+  const tableData = data.map((empresa) => [
+    empresa.nome_empresa,
+    formatCNPJ(empresa.cnpj),
+    empresa.ramo_atividade,
+    empresa.responsavel_legal,
+  ]);
+
+    const tableHeaders = ['Nome Empresa', 'CNPJ', 'Ramo de Atividade', 'Responsável Legal'];
+
+    autoTable(doc, {
+      startY: 50,
+      head: [tableHeaders],
+      body: tableData,
+      theme: 'grid',
+      styles: {
+        font: 'helvetica',
+        fontSize: 8,
+        cellPadding: 1,
+        lineColor: [200, 200, 200],
+        lineWidth: 0.1,
+        textColor: [50, 50, 50],
+        overflow: 'linebreak'
+      },
+      headStyles: {
+        fillColor: [41, 128, 185],
+        textColor: [255, 255, 255],
+        fontSize: 9,
+        fontStyle: 'bold',
+        halign: 'center',
+      },
+      columnStyles: {
+        0: { cellWidth: 50, fontStyle: 'bold' },
+        1: { cellWidth: 40, halign: 'right' },
+        2: { cellWidth: 30, halign: 'right' },
+        3: { cellWidth: 40, halign: 'right' },
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245],
+      },
+      margin: { left: 4, right: 2 },
+      didDrawPage: function (data) {
+        doc.setFontSize(8);
+        doc.text('Página ' + data.pageNumber, data.settings.margin.left, doc.internal.pageSize.height - 10);
+      }
+    });
+
+    doc.save(`${fileName}.pdf`);
+  };
+
+  const exportToExcel = (data: empresaRamoAtividade[], fileName: string) => {
+    const ws = XLSX.utils.json_to_sheet(data.map((empresa) => ({
+      Nome: empresa.nome_empresa,
+      CNPJ: formatCNPJ(empresa.cnpj),
+      Ramo: empresa.ramo_atividade,
+      ResponsavelLegal: empresa.responsavel_legal || "Sem Responsável Legal",
+    })));
+  
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Empresas");
+  
+    XLSX.writeFile(wb, `${fileName}.xlsx`);
+  };
 
 export default function ListaEmpresasRamoAtividade({
   dados,
@@ -219,25 +291,57 @@ export default function ListaEmpresasRamoAtividade({
           </button>
         </div>
       </div>
-        <div className="p-4 bg-white shadow rounded-md mb-4">
+      <div className="p-4 bg-white shadow rounded-md mb-4">
         <label htmlFor="selectRamo" className="mr-2 font-semibold">
-            Filtrar:
+          Filtrar:
         </label>
-        <select
+        <div className="flex items-center justify-between w-full">
+          <select
             id="selectRamo"
             value={ramoSelecionado ?? "Todos"}
             onChange={(e) =>
-            setRamoSelecionado(e.target.value === "Todos" ? null : e.target.value)
+              setRamoSelecionado(e.target.value === "Todos" ? null : e.target.value)
             }
             className="border border-gray-300 rounded-md p-2"
-        >
+          >
             {ramos.map((ramo) => (
-            <option key={ramo} value={ramo}>
+              <option key={ramo} value={ramo}>
                 {ramo}
-            </option>
+              </option>
             ))}
-        </select>
+          </select>
+
+          <div className="flex gap-2 ml-auto">
+            <button
+              onClick={() => exportToPDF(empresasFiltradas, "Empresas_Ramo_Atividade")}
+              className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
+              style={{ width: 36, height: 36 }}
+            >
+              <Image
+                src="/assets/icons/pdf.svg"
+                alt="Ícone PDF"
+                width={24}
+                height={24}
+                draggable={false}
+              />
+            </button>
+
+            <button
+              onClick={() => exportToExcel(empresasFiltradas, "Empresas_Ramo_Atividade")}
+              className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
+              style={{ width: 36, height: 36 }}
+            >
+              <Image
+                src="/assets/icons/excel.svg"
+                alt="Ícone Excel"
+                width={24}
+                height={24}
+                draggable={false}
+              />
+            </button>
+          </div>
         </div>
+      </div>
       <table className="w-full border border-gray-300 text-sm font-cairo">
         <thead>
           <tr className="bg-gray-200 border-b border-gray-400">

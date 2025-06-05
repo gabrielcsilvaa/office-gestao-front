@@ -1,8 +1,12 @@
 import { useState } from "react";
 import { Cairo } from "next/font/google";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
+import Image from "next/image";
 
 const cairo = Cairo({
-  weight: ["500", "600", "700"], // Você pode especificar os pesos que deseja (normal e negrito)
+  weight: ["500", "600", "700"], 
   subsets: ["latin"],
 });
 
@@ -35,31 +39,91 @@ const formatCNPJ = (cnpj: string | null | undefined) => {
   return cnpj;
 };
 
+// Função para exportar para PDF
+const exportToPDF = (data: regimeTributario[], fileName: string) => {
+  const doc = new jsPDF();
+  doc.setFontSize(13);
+  doc.setFont('helvetica', 'bold');
+  
+  const tableData = data.map((empresa) => [
+    empresa.nome_empresa,
+    formatCNPJ(empresa.cnpj),
+    empresa.regime_tributario,
+    empresa.responsavel_legal,
+  ]);
+
+  const tableHeaders = ['Nome Empresa', 'CNPJ', 'Regime Tributário', 'Responsável Legal'];
+
+  autoTable(doc, {
+    startY: 50,
+    head: [tableHeaders],
+    body: tableData,
+    theme: 'grid',
+    styles: {
+      font: 'helvetica',
+      fontSize: 8,
+      cellPadding: 1,
+      lineColor: [200, 200, 200],
+      lineWidth: 0.1,
+      textColor: [50, 50, 50],
+      overflow: 'linebreak'
+    },
+    headStyles: {
+      fillColor: [41, 128, 185],
+      textColor: [255, 255, 255],
+      fontSize: 9,
+      fontStyle: 'bold',
+      halign: 'center',
+    },
+    columnStyles: {
+      0: { cellWidth: 50, fontStyle: 'bold' },
+      1: { cellWidth: 40, halign: 'right' },
+      2: { cellWidth: 30, halign: 'right' },
+      3: { cellWidth: 40, halign: 'right' },
+    },
+    alternateRowStyles: {
+      fillColor: [245, 245, 245],
+    },
+    margin: { left: 4, right: 2 },
+    didDrawPage: function (data) {
+      doc.setFontSize(8);
+      doc.text('Página ' + data.pageNumber, data.settings.margin.left, doc.internal.pageSize.height - 10);
+    }
+  });
+
+  doc.save(`${fileName}.pdf`);
+};
+
+const exportToExcel = (data: regimeTributario[], fileName: string) => {
+  const ws = XLSX.utils.json_to_sheet(data.map((empresa) => ({
+    Nome: empresa.nome_empresa,
+    CNPJ: formatCNPJ(empresa.cnpj),
+    Regime: empresa.regime_tributario,
+    ResponsavelLegal: empresa.responsavel_legal || "Sem Responsável Legal",
+  })));
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Empresas");
+
+  XLSX.writeFile(wb, `${fileName}.xlsx`);
+};
+
 export default function ListaEmpresasRegimeTributario({
   dados,
   onClose,
 }: ListaEmpresasRegimeTributarioProps) {
-  const [regimeSelecionado, setRegimeSelecionado] = useState<string | null>(
-    null
-  );
+  const [regimeSelecionado, setRegimeSelecionado] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [sortConfig, setSortConfig] = useState<{
-    key: string;
-    direction: "asc" | "desc";
-  }>({
-    key: "nome_empresa",
-    direction: "asc",
-  });
-
 
   const filtrarEmpresas = () => {
-    // Primeiro filtra empresas inativas
+    if (!dados) return [];
+
     let filteredEmpresas = dados.filter(
       (empresa) => empresa.data_inatividade === null
     );
 
-  const empresasExcluidas = [
-    "EMPRESA EXEMPLO REAL LTDA",
+    const empresasExcluidas = [
+      "EMPRESA EXEMPLO REAL LTDA",
       "EMPRESA EXEMPLO PRESUMIDO LTDA",
       "EMPRESA EXEMPLO SIMPLES NACIONAL LTDA",
       "EMPRESA DESONERAÇÃO DA EMPRESA DESONERAÇÃO DA",
@@ -103,31 +167,25 @@ export default function ListaEmpresasRegimeTributario({
       "FOLHA PROFESSOR",
       "ATIVIDADE IMOB RET PMCMV",
       "SIMPLES TRANSPORTADORA",
+    ];
+    filteredEmpresas = filteredEmpresas.filter(
+      (empresa) => !empresasExcluidas.includes(empresa.nome_empresa)
+    );
 
-  ];
-  filteredEmpresas = filteredEmpresas.filter(
-    (empresa) => !empresasExcluidas.includes(empresa.nome_empresa)
-  );
-
-
-    // Depois filtra por regime tributário se houver seleção
     if (regimeSelecionado) {
       filteredEmpresas = filteredEmpresas.filter(
         (empresa) => empresa.regime_tributario === regimeSelecionado
       );
     }
 
-    // Por fim, aplica a pesquisa unificada
     if (searchQuery) {
       const query = searchQuery.toLowerCase().trim();
       const cnpjQuery = searchQuery.replace(/\D/g, "");
 
       filteredEmpresas = filteredEmpresas.filter((empresa) => {
-        // Tratamento seguro para nome da empresa
         const nomeEmpresa = empresa.nome_empresa?.toLowerCase() || "";
         const nomeMatch = nomeEmpresa.includes(query);
 
-        // Tratamento seguro para CNPJ
         const cnpjEmpresa = empresa.cnpj?.replace(/\D/g, "") || "";
         const cnpjMatch = cnpjQuery ? cnpjEmpresa.includes(cnpjQuery) : false;
 
@@ -136,37 +194,6 @@ export default function ListaEmpresasRegimeTributario({
     }
 
     return filteredEmpresas;
-  };
-  
-
-  const sortEmpresas = (empresas: regimeTributario[]) => {
-    return empresas.sort((a, b) => {
-      const aValue = a[sortConfig.key as keyof regimeTributario];
-      const bValue = b[sortConfig.key as keyof regimeTributario];
-
-      if (aValue < bValue) {
-        return sortConfig.direction === "asc" ? -1 : 1;
-      }
-      if (aValue > bValue) {
-        return sortConfig.direction === "asc" ? 1 : -1;
-      }
-      return 0;
-    });
-  };
-
-  const requestSort = (key: string) => {
-    let direction: "asc" | "desc" = "asc";
-    if (sortConfig.key === key && sortConfig.direction === "asc") {
-      direction = "desc";
-    }
-    setSortConfig({ key, direction });
-  };
-
-  const renderSortArrow = (key: string) => {
-    if (sortConfig.key === key) {
-      return sortConfig.direction === "asc" ? "↑" : "↓";
-    }
-    return "";
   };
 
   const empresasFiltradas = filtrarEmpresas();
@@ -207,78 +234,88 @@ export default function ListaEmpresasRegimeTributario({
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2 p-4 bg-white shadow rounded-md mb-4">
-        {[
-          "Todos",
-          "Simples Nacional",
-          "Lucro Presumido",
-          "Lucro Real",
-          "Doméstica",
-          "Isenta de IRPJ",
-          "Regime Especial de Tributação",
-          "Imune do IRPJ",
-          "MEI",
-          "N/D",
-        ].map((regime) => (
+      <div className="flex justify-between items-center gap-4 p-4 bg-white shadow rounded-md mb-4">
+        {/* Filtros de Regime Tributário */}
+        <div className="flex flex-wrap gap-2">
+          {[
+            "Todos",
+            "Simples Nacional",
+            "Lucro Presumido",
+            "Lucro Real",
+            "Doméstica",
+            "Isenta de IRPJ",
+            "Regime Especial de Tributação",
+            "Imune do IRPJ",
+            "MEI",
+            "N/D",
+          ].map((regime) => (
+            <button
+              key={regime}
+              className={`px-4 py-2 rounded-md shadow-md ${
+                regimeSelecionado === regime || (regime === "Todos" && !regimeSelecionado)
+                  ? "bg-blue-500 text-white"
+                  : "bg-gray-200 text-gray-700"
+              } hover:bg-blue-500 hover:text-white transition`}
+              onClick={() =>
+                setRegimeSelecionado(regime === "Todos" ? null : regime)
+              }
+            >
+              {regime}
+            </button>
+          ))}
+        </div>
+
+        {/* Botões de exportação */}
+        <div className="flex gap-4">
           <button
-            key={regime}
-            className={`px-4 py-2 rounded-md shadow-md ${
-              regimeSelecionado === regime ||
-              (regime === "Todos" && !regimeSelecionado)
-                ? "bg-blue-500 text-white"
-                : "bg-gray-200 text-gray-700"
-            } hover:bg-blue-500 hover:text-white transition`}
-            onClick={() =>
-              setRegimeSelecionado(regime === "Todos" ? null : regime)
-            }
+            onClick={() => exportToPDF(empresasFiltradas, "Empresas_Regime_Tributario")}
+            className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
+            style={{ width: 36, height: 36 }}
           >
-            {regime}
+            <Image
+              src="/assets/icons/pdf.svg"
+              alt="Ícone PDF"
+              width={24}
+              height={24}
+              draggable={false}
+            />
           </button>
-        ))}
+
+          <button
+            onClick={() => exportToExcel(empresasFiltradas, "Empresas_Regime_Tributario")}
+            className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
+            style={{ width: 36, height: 36 }}
+          >
+            <Image
+              src="/assets/icons/excel.svg"
+              alt="Ícone Excel"
+              width={24}
+              height={24}
+              draggable={false}
+            />
+          </button>
+        </div>
       </div>
 
+      {/* Tabela de empresas */}
       <table className="w-full border border-gray-300 text-sm font-cairo">
         <thead>
           <tr className="bg-gray-200 border-b border-gray-400">
             <th className="px-4 py-2 border-r">#</th>
-            <th
-              className="px-4 py-2 border-r cursor-pointer"
-              onClick={() => requestSort("nome_empresa")}
-            >
-              Nome Empresa {renderSortArrow("nome_empresa")}
-            </th>
-            <th
-              className="px-4 py-2 border-r cursor-pointer"
-            >
-              Regime
-            </th>
-            <th
-              className="px-4 py-2 border-r cursor-pointer"
-            >
-              CNPJ
-            </th>
-            <th
-              className="px-4 py-2 cursor-pointer"
-            >
-              Responsável Legal
-            </th>
+            <th className="px-4 py-2 border-r">Nome Empresa</th>
+            <th className="px-4 py-2 border-r">Regime</th>
+            <th className="px-4 py-2 border-r">CNPJ</th>
+            <th className="px-4 py-2">Responsável Legal</th>
           </tr>
         </thead>
         <tbody className="text-center">
-          {sortEmpresas(empresasFiltradas).map((empresa, index) => (
-            <tr
-              key={empresa.id}
-              className={`${index % 2 === 0 ? "bg-white" : "bg-gray-100"} border-b border-gray-300`}
-            >
+          {empresasFiltradas?.map((empresa, index) => (
+            <tr key={empresa.id} className={`${index % 2 === 0 ? "bg-white" : "bg-gray-100"} border-b border-gray-300`}>
               <td className="px-4 py-2">{index + 1}</td>
               <td className="px-4 py-2">{empresa.nome_empresa}</td>
               <td className="px-4 py-2">{empresa.regime_tributario}</td>
               <td className="px-4 py-2">{formatCNPJ(empresa.cnpj)}</td>
-              <td className="px-4 py-2">
-                {empresa.responsavel_legal && empresa.responsavel_legal.trim() !== "" 
-                  ? empresa.responsavel_legal 
-                  : "Sem Responsável Legal"}
-              </td>
+              <td className="px-4 py-2">{empresa.responsavel_legal || "Sem Responsável Legal"}</td>
             </tr>
           ))}
         </tbody>
