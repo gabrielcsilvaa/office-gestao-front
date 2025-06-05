@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
@@ -9,7 +9,7 @@ interface Socio {
   nome: string;
   cnpj: string;
   data_nascimento: string;
-  idade?: number; // Tornando idade opcional já que vamos calculá-la
+  idade?: number;
 }
 
 interface AniversariantesSociosProps {
@@ -25,13 +25,13 @@ export default function AniversariantesSocios({
     key: keyof Socio;
     direction: "asc" | "desc";
   }>({
-    key: "nome",
-    direction: "asc",
+    key: "data_nascimento",  // Alterado para 'data_nascimento'
+    direction: "asc",  // Inicializa ordenando de forma ascendente
   });
 
   const [searchQuery, setSearchQuery] = useState<string>("");
 
-  // Função para formatar a data com tratamento de segurança
+  // Função para formatar a data
   const formatDateBr = (dateString: string) => {
     if (!dateString) return "";
 
@@ -45,7 +45,7 @@ export default function AniversariantesSocios({
     return `${dia}/${mes}/${ano}`;
   };
 
-  // Função para calcular a idade com tratamento de segurança
+  // Função para calcular a idade
   const calcularIdade = (dataNascimento: string): number => {
     if (!dataNascimento) return 0;
 
@@ -71,10 +71,9 @@ export default function AniversariantesSocios({
   // Função para exportar para PDF
   const exportToPDF = (data: Socio[], fileName: string) => {
     const doc = new jsPDF();
-    
     doc.setFontSize(13);
     doc.setFont('helvetica', 'bold');
-    
+
     const tableData = data.map((socio) => [
       socio.nome.toUpperCase(),
       formatDateBr(socio.data_nascimento),
@@ -132,7 +131,7 @@ export default function AniversariantesSocios({
 
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Aniversariantes");
-    
+
     XLSX.writeFile(wb, `${fileName}.xlsx`);
   };
 
@@ -142,7 +141,7 @@ export default function AniversariantesSocios({
     setSortConfig({ key, direction });
   };
 
-  // Filtrando sócios a partir da pesquisa (nome e cnpj)
+  // Filtrando sócios a partir da pesquisa
   const filteredSocios = dados.filter((socio) => {
     const searchValue = searchQuery.toLowerCase();
     return (
@@ -151,12 +150,11 @@ export default function AniversariantesSocios({
     );
   });
 
-  // Ordenação dos dados apenas pelo dia da data de nascimento (sem mês e ano)
+  // Ordenação dos dados pelo dia da data de nascimento
   const sortedSocios = filteredSocios.sort((a, b) => {
     const aDate = new Date(a.data_nascimento);
     const bDate = new Date(b.data_nascimento);
 
-    // Aqui compararemos apenas os dias
     const aDay = aDate.getDate();
     const bDay = bDate.getDate();
 
@@ -187,9 +185,7 @@ export default function AniversariantesSocios({
   return (
     <div className="max-h-[90vh] flex flex-col gap-4 overflow-x-auto w-full">
       <div className="flex items-center justify-between p-4 bg-white shadow rounded-md mb-4">
-        <h1 className="text-2xl font-bold font-cairo text-gray-800">
-          Sócios Aniversariantes
-        </h1>
+        <h1 className="text-2xl font-bold font-cairo text-gray-800">Sócios Aniversariantes</h1>
         <div className="flex items-center gap-4">
           <input
             type="text"
@@ -228,13 +224,13 @@ export default function AniversariantesSocios({
           className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto "
           style={{ width: 36, height: 36 }}
         >
-        <Image
-          src="/assets/icons/pdf.svg"
-          alt="Ícone pdf"
-          width={24}
-          height={24}
-          draggable={false}
-        />
+          <Image
+            src="/assets/icons/pdf.svg"
+            alt="Ícone pdf"
+            width={24}
+            height={24}
+            draggable={false}
+          />
         </button>
 
         <button
@@ -242,13 +238,13 @@ export default function AniversariantesSocios({
           className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto "
           style={{ width: 36, height: 36 }}
         >
-        <Image
-          src="/assets/icons/excel.svg"
-          alt="Ícone Excel"
-          width={24}
-          height={24}
-          draggable={false}
-        />
+          <Image
+            src="/assets/icons/excel.svg"
+            alt="Ícone Excel"
+            width={24}
+            height={24}
+            draggable={false}
+          />
         </button>
       </div>
 
