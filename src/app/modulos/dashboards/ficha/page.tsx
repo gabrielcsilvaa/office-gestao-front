@@ -225,7 +225,8 @@ export default function FichaPessoalPage() {
   }, []);
 
   return (
-    <div className="h-screen flex flex-col bg-[#f7f7f8]">
+    <div className="bg-[#f7f7f8] flex flex-col flex-1 h-full min-h-0">
+      {/* Header */}
       <div className="flex flex-row items-center justify-start gap-8 p-4 border-b border-black/10 bg-gray-100">
         <h1 className={`text-[32px] leading-8 font-700 text-black ${cairo.className}`}>
           Dashboard de Ficha Pessoal
@@ -238,13 +239,13 @@ export default function FichaPessoalPage() {
         />
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4">
-
-        {/* KPIs: animação de slide down/up */}
-        <div className={`transition-all duration-500 ease-in-out transform origin-top
-            ${selectedColaborador
-              ? 'max-h-[800px] opacity-100 translate-y-0'
-              : 'max-h-0 opacity-0 -translate-y-4'}`}>
+      {/* Contéudo rolável */}
+      <div className="flex-1 p-4 overflow-y-auto min-h-0">
+         {/* KPIs: animação de slide down/up */}
+         <div className={`transition-all duration-500 ease-in-out transform origin-top
+             ${selectedColaborador
+               ? 'max-h-[800px] opacity-100 translate-y-0'
+               : 'max-h-0 opacity-0 -translate-y-4'}`}>
           <KpiCardsGrid cardsData={kpiCardData} />
         </div>
 

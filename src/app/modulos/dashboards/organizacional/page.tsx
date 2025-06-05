@@ -87,7 +87,7 @@ export default function DashboardOrganizacional() {
   }, []); 
 
   return (
-    <div className="bg-[#f7f7f8] h-[75vh]">
+    <div className="bg-[#f7f7f8] h-[73vh]">
       <div className=" flex flex-col items-start p-4 gap-4 border-b border-black/10 bg-gray-100">
         <SelecaoIndicadores 
           indicadorSelecionado={kpiSelecionado}
