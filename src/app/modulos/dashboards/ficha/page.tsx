@@ -240,15 +240,17 @@ export default function FichaPessoalPage() {
 
       <div className="flex-1 overflow-y-auto p-4">
 
-        <div className={`transition-all duration-500 ease-in-out transform origin-top overflow-hidden
+        {/* KPIs: animação de slide down/up */}
+        <div className={`transition-all duration-500 ease-in-out transform origin-top
             ${selectedColaborador
               ? 'max-h-[800px] opacity-100 translate-y-0'
               : 'max-h-0 opacity-0 -translate-y-4'}`}>
           <KpiCardsGrid cardsData={kpiCardData} />
         </div>
 
+        {/* Evolução & Valor por Grupo */}
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 h-[400px]">
-          <div className="w-full h-full flex flex-col overflow-hidden">
+          <div className="w-full h-full flex flex-col shadow-md overflow-auto min-h-0 rounded-lg">
             <EvolucaoCard
               kpiSelecionado={evolucaoCardTitle}
               processedEvolucaoChartData={processedEvolucaoChartDataFicha}
@@ -256,7 +258,7 @@ export default function FichaPessoalPage() {
               cairoClassName={cairo.className}
             />
           </div>
-          <div className="w-full h-full flex flex-col overflow-hidden">
+          <div className="w-full h-full flex flex-col shadow-md overflow-auto min-h-0 rounded-lg">
             <ValorPorGrupoCard
               valorPorGrupoData={valorPorGrupoDataFicha}
               sectionIcons={sectionIconsFicha.filter(icon => icon.alt === "Maximize")}
@@ -265,8 +267,9 @@ export default function FichaPessoalPage() {
           </div>
         </div>
 
+        {/* Tabelas */}
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6 h-[350px]"> 
-          <div className="lg:col-span-1 h-full overflow-hidden">
+          <div className="lg:col-span-1 h-full shadow-md overflow-auto min-h-0 rounded-lg">
             <AtestadosTable 
               atestadosData={processedTableData.atestados} 
               cairoClassName={cairo.className} 
@@ -274,7 +277,7 @@ export default function FichaPessoalPage() {
             />
           </div>
 
-          <div className="lg:col-span-1 h-full overflow-hidden">
+          <div className="lg:col-span-1 h-full shadow-md overflow-auto min-h-0 rounded-lg">
             <AfastamentosTable 
               afastamentosData={processedTableData.afastamentos} 
               cairoClassName={cairo.className} 
@@ -282,7 +285,7 @@ export default function FichaPessoalPage() {
             />
           </div>
 
-          <div className="lg:col-span-1 h-full overflow-hidden">
+          <div className="lg:col-span-1 h-full shadow-md overflow-auto min-h-0 rounded-lg">
             <ContratosTable
               contratosData={processedTableData.contratos}
               cairoClassName={cairo.className}
@@ -291,8 +294,9 @@ export default function FichaPessoalPage() {
           </div>
         </div>
         
+        {/* Férias & Alterações */}
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 h-[450px]">
-          <div className="h-full overflow-hidden">
+          <div className="h-full shadow-md overflow-auto min-h-0 rounded-lg">
             <FeriasDetalheCard
               feriasData={sampleFeriasDetalheData}
               cairoClassName={cairo.className}
@@ -300,7 +304,7 @@ export default function FichaPessoalPage() {
               title="Detalhes de Férias"
             />
           </div>
-          <div className="h-full overflow-hidden">
+          <div className="h-full shadow-md overflow-auto min-h-0 rounded-lg">
             <AlteracoesSalariaisDetalheCard
               alteracoesData={sampleAlteracoesSalariaisDetalheData}
               cairoClassName={cairo.className}
