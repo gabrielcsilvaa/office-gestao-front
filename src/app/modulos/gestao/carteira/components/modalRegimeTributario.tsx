@@ -94,7 +94,6 @@ const exportToPDF = (data: regimeTributario[], fileName: string) => {
   doc.save(`${fileName}.pdf`);
 };
 
-// Função para exportar para Excel
 const exportToExcel = (data: regimeTributario[], fileName: string) => {
   const ws = XLSX.utils.json_to_sheet(data.map((empresa) => ({
     Nome: empresa.nome_empresa,
