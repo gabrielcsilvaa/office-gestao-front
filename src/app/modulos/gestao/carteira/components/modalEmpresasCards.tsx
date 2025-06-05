@@ -40,7 +40,6 @@ const formatCNPJ = (cnpj: string | null | undefined) => {
   return cnpj;
 };
 
-// Função para exportar para PDF
 const exportToPDF = (data: Empresa[], fileName: string) => {
   const doc = new jsPDF();
   doc.setFontSize(13);
@@ -56,7 +55,7 @@ const exportToPDF = (data: Empresa[], fileName: string) => {
   const tableHeaders = ['Nome Empresa', 'CNPJ', 'Situação', 'Responsável Legal'];
 
   autoTable(doc, {
-    startY: 50,
+    startY: 1,
     head: [tableHeaders],
     body: tableData,
     theme: 'grid',
@@ -85,7 +84,7 @@ const exportToPDF = (data: Empresa[], fileName: string) => {
     alternateRowStyles: {
       fillColor: [245, 245, 245],
     },
-    margin: { left: 4, right: 2 },
+    margin: { left: 2, right: 2 },
     didDrawPage: function (data) {
       doc.setFontSize(8);
       doc.text('Página ' + data.pageNumber, data.settings.margin.left, doc.internal.pageSize.height - 10);
