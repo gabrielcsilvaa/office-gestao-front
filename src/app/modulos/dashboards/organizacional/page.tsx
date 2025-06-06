@@ -138,10 +138,10 @@ export default function DashboardOrganizacional() {
             onMaximize={() =>
               setModalContent(
                 <div className="flex flex-col w-[90vw] h-[80vh]">
-                  <h2 className={`text-2xl font-semibold mb-4 ${cairo.className}`}>
+                  <h2 className={`text-2xl font-bold mb-2 ${cairo.className}`}>
                     Valor Por Grupo e Evento
                   </h2>
-                  <p className={`text-sm text-gray-600 mb-6 ${cairo.className}`}>
+                  <p className={`text-base text-gray-500 mb-4 ${cairo.className}`}>
                     Mostra a distribuição de valores por grupo e evento.
                   </p>
                   <div className="flex-1">
