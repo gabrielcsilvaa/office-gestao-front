@@ -12,6 +12,7 @@ import DissidioCard from "./components/DissidioCard";
 import ValorPorPessoaCard from "./components/ValorPorPessoaCard";
 import ValorPorCalculoCard from "./components/ValorPorCalculoCard";
 import KpiCardsGrid from "./components/KpiCardsGrid"; 
+import { Header2 } from "../../../../components/header";
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
@@ -94,6 +95,7 @@ export default function DashboardOrganizacional() {
 
   return (
     <div className="bg-[#f7f7f8] fixed inset-0 flex flex-col overflow-hidden">
+      <Header2 />
       <div className="flex flex-col items-start p-4 gap-4 border-b border-black/10 bg-gray-100">
         <SelecaoIndicadores 
           indicadorSelecionado={kpiSelecionado}
@@ -168,7 +170,7 @@ export default function DashboardOrganizacional() {
       </div>
 
       {modalContent && (
-        <Modal isOpen={true} onClose={handleCloseModal}>
+        <Modal isOpen onClose={handleCloseModal}>
           {modalContent}
         </Modal>
       )}
