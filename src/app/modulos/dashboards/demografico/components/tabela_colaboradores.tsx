@@ -102,15 +102,11 @@ export default function TabelaColaboradores() {
             <th className="py-3 px-4 text-left">DEPARTAMENTO</th>
             <th className="py-3 px-4 text-left">CENTRO DE CUSTO</th>
             <th className="py-3 px-4 text-left"></th>{" "}
-            {/* Consider giving this header a title if 'number' is a meaningful column */}
           </tr>
         </thead>
         <tbody>
           {colaboradores.map((colab, index) => (
-            <tr
-              key={index}
-              className="bg-white border-b" // Changed this line
-            >
+            <tr key={index} className="bg-white border-b">
               <td className="py-2 px-4">{colab.nome}</td>
               <td className="py-2 px-4">{colab.departamento}</td>
               <td className="py-2 px-4">{colab.centroCusto}</td>

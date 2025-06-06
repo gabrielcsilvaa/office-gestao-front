@@ -22,7 +22,7 @@ const GraficoGenero = ({
           display: "flex",
           justifyContent: "space-around",
           alignItems: "center",
-          height: "calc(100% - 40px)", // ocupa o restante do espaço
+          height: "calc(100% - 40px)", 
         }}
       >
         {/* Masculino */}
@@ -50,8 +50,7 @@ const GraficoGenero = ({
             height={60}
           />
         </div>
-
-        {/* Divisória */}
+        
         <div
           style={{
             width: "1px",

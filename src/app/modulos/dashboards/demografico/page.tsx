@@ -36,7 +36,7 @@ export default function Demografico() {
       <div className="bg-gray-100 py-2 mb-6">
         <div className="px-6"> {/* Wrapper interno para o conteúdo do cabeçalho */}
           {/* Título e Botões agrupados à esquerda */}
-          <div className="flex flex-col md:flex-row md:items-center flex-wrap gap-4 mb-6 ">
+          <div className="flex flex-col md:flex-row md:items-center flex-wrap gap-4 mb-6 ">            
             <h1 className="text-2xl font-bold whitespace-nowrap ">Dashboard Demográfico</h1>
             <div className="flex items-center flex-wrap gap-x-4 gap-y-2">
               <button
@@ -86,7 +86,7 @@ export default function Demografico() {
               <option value="2">Opção 2</option>
             </select>
             <select
-              className="w-full md:w-[232px] p-2 border rounded text-gray-700 bg-white"
+              className="w-full md:w-[232px] p-2 border rounded text-black-700 bg-white"
               value={filtros.departamento}
               onChange={(e) =>
                 setFiltros((prev) => ({ ...prev, departamento: e.target.value }))
@@ -97,7 +97,7 @@ export default function Demografico() {
               <option value="2">Opção 2</option>
             </select>
             <select
-              className="w-full md:w-[232px] p-2 border rounded text-gray-700 bg-white"
+              className="w-full md:w-[232px] p-2 border rounded text-black-700 bg-white"
               value={filtros.tipoColaborador}
               onChange={(e) =>
                 setFiltros((prev) => ({ ...prev, tipoColaborador: e.target.value }))
@@ -108,7 +108,7 @@ export default function Demografico() {
               <option value="2">Opção 2</option>
             </select>
             <select
-              className="w-full md:w-[232px] p-2 border rounded text-gray-700 bg-white"
+              className="w-full md:w-[232px] p-2 border rounded text-black-700 bg-white"
               value={filtros.servico}
               onChange={(e) =>
                 setFiltros((prev) => ({ ...prev, servico: e.target.value }))
@@ -155,26 +155,26 @@ export default function Demografico() {
             </div>
 
             {/* Gráfico de linha */}
-            <div className="flex-1 min-h-[300px] md:min-h-[600px] bg-white p-4 rounded shadow">
+            <div className="flex-1 min-h-[300px] md:min-h-[300px]  bg-white rounded shadow">
               <GraficoLinha />
             </div>
           </div>
         </div>
 
         {/* Gráficos de colaboradores */}
-        <div className="w-full lg:w-1/2">
-          <div className="bg-white rounded shadow p-4 h-full">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="aspect-square w-full border border-gray-300 rounded p-2">
+        <div className="w-full  lg:w-1/2">
+          <div className="bg-gray-100    h-full  ">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 ">
+              <div className="aspect-square w-full h-[300px] border bg-white  border-gray-300 rounded p-2">
                 <GraficosGenero />
               </div>
-              <div className="aspect-square w-full border border-gray-300 rounded p-2">
+              <div className="aspect-square w-full border h-[300px] bg-white  border-gray-300 rounded p-2">
                 <GraficoFaixaEtaria />
               </div>
-              <div className="aspect-square w-full border border-gray-300 rounded p-2">
+              <div className="aspect-square w-full  border h-[300px] bg-white border-gray-300 rounded  p-2">
                 <GraficoCategoria />
               </div>
-              <div className="aspect-square w-full border border-gray-300 rounded p-2">
+              <div className="aspect-square w-full  border h-[300px] bg-white border-gray-300 rounded p-2">
                 <GraficoEscolaridade />
               </div>
             </div>
@@ -184,10 +184,10 @@ export default function Demografico() {
 
       {/* Parte inferior: Tabela e gráfico de cargos */}
       <div className="flex flex-col lg:flex-row gap-4 mt-4">
-        <div className="w-full lg:w-1/2 p-4 bg-white rounded shadow">
+        <div className="w-full lg:w-1/2  bg-white rounded shadow">
           <TabelaColaboradores />
         </div>
-        <div className="w-full lg:w-1/2 p-4 bg-white rounded shadow">
+        <div className="w-full lg:w-1/2  bg-white rounded shadow">
           <GraficoCargo />
         </div>
       </div>

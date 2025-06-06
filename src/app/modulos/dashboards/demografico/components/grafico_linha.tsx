@@ -4,7 +4,7 @@ import {
   Line,
   XAxis,
   YAxis,
-  CartesianGrid,
+  // CartesianGrid,
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
@@ -26,10 +26,10 @@ const dadosMock = [
 
 export default function GraficoLinha() {
   return (
-    <div className="bg-white p-1 rounded shadow h-[525px]  flex flex-col">
+    <div className="bg-white p-1 rounded shadow h-[500px] w-[700px]   flex flex-col">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={dadosMock}>
-          <CartesianGrid strokeDasharray="3 3" />
+          {/* <CartesianGrid strokeDasharray="3 3" /> */}
           <XAxis dataKey="mes" />
           <YAxis />
           <Tooltip />
