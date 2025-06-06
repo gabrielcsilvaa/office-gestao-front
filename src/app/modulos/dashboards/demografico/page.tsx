@@ -97,7 +97,7 @@ export default function Demografico() {
               <option value="2">Opção 2</option>
             </select>
             <select
-              className="w-full md:w-[232px] p-2 border rounded text-black-700 bg-white"
+              className="w-full md:w-[232px] p-2 border rounded text-black-700 bg-white" 
               value={filtros.tipoColaborador}
               onChange={(e) =>
                 setFiltros((prev) => ({ ...prev, tipoColaborador: e.target.value }))

@@ -96,12 +96,12 @@ export default function TabelaColaboradores() {
   return (
     <div className="bg-white rounded-xl shadow-md h-full overflow-auto border border-gray-200">
       <table className="min-w-full text-sm font-medium text-gray-800">
-        <thead className="sticky top-0 z-10 bg-black text-white">
+        <thead className="sticky top-0 z-10 bg-black text-white h-12 ">
           <tr>
             <th className="py-3 px-4 text-left">NOME</th>
             <th className="py-3 px-4 text-left">DEPARTAMENTO</th>
             <th className="py-3 px-4 text-left">CENTRO DE CUSTO</th>
-            <th className="py-3 px-4 text-left"></th>{" "}
+            <th className="py-3 px-4 text-left"></th>
           </tr>
         </thead>
         <tbody>
