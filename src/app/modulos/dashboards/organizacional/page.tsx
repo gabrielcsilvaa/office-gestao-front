@@ -3,6 +3,9 @@ import { Cairo } from "next/font/google";
 import SelecaoIndicadores from "./components/SelecaoIndicadores";
 import SecaoFiltros from "./components/SecaoFiltros";
 import { useState, useMemo } from "react";
+import Modal from "./components/Modal";
+import EvolucaoChart from "./components/EvolucaoChart";
+import ValorPorGrupoChart from "./components/ValorPorGrupoChart";
 import EvolucaoCard from "./components/EvolucaoCard";
 import ValorPorGrupoCard from "./components/ValorPorGrupoCard";
 import DissidioCard from "./components/DissidioCard";
@@ -56,10 +59,13 @@ const valorPorGrupoData = [
 
 export default function DashboardOrganizacional() {
   const [kpiSelecionado, setKpiSelecionado] = useState<string>("Proventos"); 
+  const [modalContent, setModalContent] = useState<React.ReactNode | null>(null);
 
   const handleKpiChange = (kpi: string) => {
     setKpiSelecionado(kpi);
   };
+
+  const handleCloseModal = () => setModalContent(null);
 
   const cardsData = [
     { title: "Proventos", value: "R$ 5.811.200,00", tooltipText: "Total de proventos recebidos no período." },
@@ -104,11 +110,28 @@ export default function DashboardOrganizacional() {
             processedEvolucaoChartData={processedEvolucaoChartData}
             sectionIcons={sectionIcons.filter(icon => icon.alt === "Maximize")}
             cairoClassName={cairo.className}
+            onMaximize={() =>
+              setModalContent(
+                <div className="w-[90vw] h-[80vh]">
+                  <EvolucaoChart
+                    data={processedEvolucaoChartData}
+                    kpiName={kpiSelecionado}
+                  />
+                </div>
+              )
+            }
           />
           <ValorPorGrupoCard
             valorPorGrupoData={valorPorGrupoData}
             sectionIcons={sectionIcons.filter(icon => icon.alt === "Maximize")}
             cairoClassName={cairo.className}
+            onMaximize={() =>
+              setModalContent(
+                <div className="w-[90vw] h-[80vh]">
+                  <ValorPorGrupoChart data={valorPorGrupoData} />
+                </div>
+              )
+            }
           />
         </div>
 
@@ -127,6 +150,12 @@ export default function DashboardOrganizacional() {
           />
         </div>
       </div>
+
+      {modalContent && (
+        <Modal isOpen={true} onClose={handleCloseModal}>
+          {modalContent}
+        </Modal>
+      )}
     </div>
   );
 }

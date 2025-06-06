@@ -7,6 +7,7 @@ interface EvolucaoCardProps {
   processedEvolucaoChartData: Array<{ month: string; value: number }>;
   sectionIcons: Array<{ src: string; alt: string; adjustSize?: boolean }>;
   cairoClassName: string;
+  onMaximize: () => void;
 }
 
 const EvolucaoCard: React.FC<EvolucaoCardProps> = ({
@@ -14,6 +15,7 @@ const EvolucaoCard: React.FC<EvolucaoCardProps> = ({
   processedEvolucaoChartData,
   sectionIcons,
   cairoClassName,
+  onMaximize,
 }) => {
   return (
     <div className="w-1/2 bg-white rounded-lg h-[427px] relative overflow-hidden shadow-md">
@@ -41,6 +43,7 @@ const EvolucaoCard: React.FC<EvolucaoCardProps> = ({
                   width={iconWidth} 
                   height={iconHeight} 
                   className="cursor-pointer opacity-60 hover:opacity-100"
+                  onClick={onMaximize}
                 />
                 {icon.src === "/assets/icons/icon-hierarchy.svg" && (
                   <div className="w-px h-5 bg-neutral-300"></div> 
