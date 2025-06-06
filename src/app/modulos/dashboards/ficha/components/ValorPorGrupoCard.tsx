@@ -6,12 +6,14 @@ interface ValorPorGrupoCardProps {
   valorPorGrupoData: Array<{ name: string; value: number }>;
   sectionIcons: Array<{ src: string; alt: string; adjustSize?: boolean }>;
   cairoClassName: string;
+  onMaximize: () => void;
 }
 
 const ValorPorGrupoCard: React.FC<ValorPorGrupoCardProps> = ({
   valorPorGrupoData,
   sectionIcons,
   cairoClassName,
+  onMaximize,
 }) => {
   const sortedData = useMemo(
     () => [...valorPorGrupoData].sort((a, b) => b.value - a.value),
@@ -30,15 +32,17 @@ const ValorPorGrupoCard: React.FC<ValorPorGrupoCardProps> = ({
         {sectionIcons && sectionIcons.length > 0 && (
           <div className="flex items-center space-x-2 flex-shrink-0">
             {sectionIcons.map((icon, index) => (
-              <div key={index} className="cursor-pointer p-1">
+              <Fragment key={index}>
                 <Image
                   src={icon.src}
                   alt={icon.alt}
-                  width={16}
-                  height={16}
-                  className="opacity-60 hover:opacity-100"
+                  width={icon.adjustSize ? 14 : 16}
+                  height={icon.adjustSize ? (icon.src.includes("lay") ? 16 : 14) : 16}
+                  className="cursor-pointer opacity-60 hover:opacity-100"
+                  onClick={icon.alt === "Maximize" ? onMaximize : undefined}
                 />
-              </div>
+                {/* ...separator if needed... */}
+              </Fragment>
             ))}
           </div>
         )}

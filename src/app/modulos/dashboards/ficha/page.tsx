@@ -10,6 +10,9 @@ import AfastamentosTable from "./components/AfastamentosTable";
 import ContratosTable from "./components/ContratosTable";
 import FeriasDetalheCard from "./components/FeriasDetalheCard";
 import AlteracoesSalariaisDetalheCard from "./components/AlteracoesSalariaisDetalheCard";
+import Modal from "../organizacional/components/Modal";
+import EvolucaoChart from "./components/EvolucaoChart";
+import ValorPorGrupoChart from "./components/ValorPorGrupoChart";
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
@@ -172,6 +175,8 @@ const sampleAlteracoesSalariaisDetalheData = [
 export default function FichaPessoalPage() {
   const [selectedEmpresa, setSelectedEmpresa] = useState<string>("");
   const [selectedColaborador, setSelectedColaborador] = useState<string>("");
+  const [modalContent, setModalContent] = useState<React.ReactNode | null>(null);
+  const handleCloseModal = () => setModalContent(null);
 
   const kpiCardData = [
     { title: "Data de Admissão", value: "01/01/2020", tooltipText: "Data de início do colaborador na empresa." },
@@ -257,6 +262,24 @@ export default function FichaPessoalPage() {
               processedEvolucaoChartData={processedEvolucaoChartDataFicha}
               sectionIcons={sectionIconsFicha.filter(icon => icon.alt === "Maximize")}
               cairoClassName={cairo.className}
+              onMaximize={() =>
+                setModalContent(
+                  <div className="flex flex-col w-[90vw] h-[80vh]">
+                    <h2 className={`text-2xl font-bold mb-2 ${cairo.className}`}>
+                      Evolução de Custo Total
+                    </h2>
+                    <p className={`text-base text-gray-500 mb-4 ${cairo.className}`}>
+                      Variação mensal de custo total no período selecionado.
+                    </p>
+                    <div className="flex-1">
+                      <EvolucaoChart
+                        data={processedEvolucaoChartDataFicha}
+                        kpiName={evolucaoCardTitle}
+                      />
+                    </div>
+                  </div>
+                )
+              }
             />
           </div>
           <div className="w-full h-full flex flex-col shadow-md overflow-auto min-h-0 rounded-lg">
@@ -264,6 +287,21 @@ export default function FichaPessoalPage() {
               valorPorGrupoData={valorPorGrupoDataFicha}
               sectionIcons={sectionIconsFicha.filter(icon => icon.alt === "Maximize")}
               cairoClassName={cairo.className}
+              onMaximize={() =>
+                setModalContent(
+                  <div className="flex flex-col w-[90vw] h-[80vh]">
+                    <h2 className={`text-2xl font-bold mb-2 ${cairo.className}`}>
+                      Valor Por Grupo
+                    </h2>
+                    <p className={`text-base text-gray-500 mb-4 ${cairo.className}`}>
+                      Distribuição de valores por grupo no período.
+                    </p>
+                    <div className="flex-1">
+                      <ValorPorGrupoChart data={valorPorGrupoDataFicha} />
+                    </div>
+                  </div>
+                )
+              }
             />
           </div>
         </div>
@@ -316,6 +354,12 @@ export default function FichaPessoalPage() {
         </div>
         <p className="mt-4"></p>
       </div>
+
+      {modalContent && (
+        <Modal isOpen={true} onClose={handleCloseModal}>
+          {modalContent}
+        </Modal>
+      )}
     </div>
   );
 }
