@@ -87,18 +87,18 @@ export default function DashboardOrganizacional() {
   }, []); 
 
   return (
-    <div className="bg-[#f7f7f8] h-[73vh]">
-      <div className=" flex flex-col items-start p-4 gap-4 border-b border-black/10 bg-gray-100">
+    <div className="bg-[#f7f7f8] fixed inset-0 flex flex-col overflow-hidden">
+      <div className="flex flex-col items-start p-4 gap-4 border-b border-black/10 bg-gray-100">
         <SelecaoIndicadores 
           indicadorSelecionado={kpiSelecionado}
           onSelecaoIndicador={handleKpiChange}
         />
         <SecaoFiltros />
       </div>
-      <div className="p-4 overflow-y-auto h-full">
+      <div className="flex-1 p-4 overflow-y-auto">
         <KpiCardsGrid cardsData={cardsData} />
 
-        <div className="mt-4 flex flex-row gap-4">
+        <div className="mt-6 flex flex-row gap-6">
           <EvolucaoCard
             kpiSelecionado={kpiSelecionado}
             processedEvolucaoChartData={processedEvolucaoChartData}
@@ -112,17 +112,17 @@ export default function DashboardOrganizacional() {
           />
         </div>
 
-        <div className="mt-4 flex flex-row gap-4">
+        <div className="mt-6 flex flex-row gap-6">
           <DissidioCard
-            sectionIcons={sectionIcons}
+            sectionIcons={sectionIcons.filter(icon => icon.alt === "Maximize")}
             cairoClassName={cairo.className}
           />
           <ValorPorPessoaCard
-            sectionIcons={sectionIcons}
+            sectionIcons={sectionIcons.filter(icon => icon.alt === "Maximize")}
             cairoClassName={cairo.className}
           />
           <ValorPorCalculoCard
-            sectionIcons={sectionIcons}
+            sectionIcons={sectionIcons.filter(icon => icon.alt === "Maximize")}
             cairoClassName={cairo.className}
           />
         </div>
