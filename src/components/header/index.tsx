@@ -159,7 +159,7 @@ export function Header2() {
           Módulo Gestão
         </span>
 
-        <div className="flex gap-2 ml-auto">
+        <div className="flex gap-2 ml-auto cursor-pointer">
           <Image
             src="/assets/icons/exit.svg"
             alt="Ícone de logout"
