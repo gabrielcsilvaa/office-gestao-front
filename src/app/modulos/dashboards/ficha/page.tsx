@@ -296,8 +296,10 @@ export default function FichaPessoalPage() {
                     <p className={`text-base text-gray-500 mb-4 ${cairo.className}`}>
                       Distribuição de valores por grupo no período.
                     </p>
-                    <div className="flex-1">
-                      <ValorPorGrupoChart data={valorPorGrupoDataFicha} />
+                    <div className="flex-1 overflow-x-auto">
+                      <div className="min-w-[1560px] h-full">
+                        <ValorPorGrupoChart data={valorPorGrupoDataFicha} />
+                      </div>
                     </div>
                   </div>
                 )
