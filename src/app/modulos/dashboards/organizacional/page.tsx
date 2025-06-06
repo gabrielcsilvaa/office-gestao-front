@@ -112,11 +112,19 @@ export default function DashboardOrganizacional() {
             cairoClassName={cairo.className}
             onMaximize={() =>
               setModalContent(
-                <div className="w-[90vw] h-[80vh]">
-                  <EvolucaoChart
-                    data={processedEvolucaoChartData}
-                    kpiName={kpiSelecionado}
-                  />
+                <div className="flex flex-col w-[90vw] h-[80vh]">
+                  <h2 className={`text-2xl font-bold mb-2 ${cairo.className}`}>
+                    Evolução: {kpiSelecionado}
+                  </h2>
+                  <p className={`text-base text-gray-500 mb-4 ${cairo.className}`}>
+                    Variação mensal de {kpiSelecionado} no período selecionado.
+                  </p>
+                  <div className="flex-1">
+                    <EvolucaoChart
+                      data={processedEvolucaoChartData}
+                      kpiName={kpiSelecionado}
+                    />
+                  </div>
                 </div>
               )
             }
@@ -127,8 +135,16 @@ export default function DashboardOrganizacional() {
             cairoClassName={cairo.className}
             onMaximize={() =>
               setModalContent(
-                <div className="w-[90vw] h-[80vh]">
-                  <ValorPorGrupoChart data={valorPorGrupoData} />
+                <div className="flex flex-col w-[90vw] h-[80vh]">
+                  <h2 className={`text-2xl font-semibold mb-4 ${cairo.className}`}>
+                    Valor Por Grupo e Evento
+                  </h2>
+                  <p className={`text-sm text-gray-600 mb-6 ${cairo.className}`}>
+                    Mostra a distribuição de valores por grupo e evento.
+                  </p>
+                  <div className="flex-1">
+                    <ValorPorGrupoChart data={valorPorGrupoData} />
+                  </div>
                 </div>
               )
             }
