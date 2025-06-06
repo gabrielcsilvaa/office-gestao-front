@@ -105,7 +105,7 @@ const ValorPorGrupoChart: React.FC<ValorPorGrupoChartProps> = ({ data }) => {
         <XAxis
           dataKey="name"
           tickLine={false}
-          axisLine={false}
+          axisLine={{ stroke: "#a3a3a3" }}
           tick={<CustomTick />}
           interval={0}
           height={60}
