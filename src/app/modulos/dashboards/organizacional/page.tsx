@@ -116,10 +116,10 @@ export default function DashboardOrganizacional() {
               setModalContent(
                 <div className="flex flex-col w-[90vw] h-[80vh]">
                   <h2 className={`text-2xl font-bold mb-2 ${cairo.className}`}>
-                    Evolução: {kpiSelecionado}
+                    Evolução de {kpiSelecionado}
                   </h2>
                   <p className={`text-base text-gray-500 mb-4 ${cairo.className}`}>
-                    Variação mensal de {kpiSelecionado} no período selecionado.
+                    Variação mensal de {kpiSelecionado.toLowerCase()} no período selecionado.
                   </p>
                   <div className="flex-1">
                     <EvolucaoChart
