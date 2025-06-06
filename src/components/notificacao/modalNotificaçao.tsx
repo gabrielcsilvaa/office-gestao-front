@@ -53,15 +53,17 @@ const NotificationModal: React.FC<NotificationModalProps> = ({
       className="fixed top-[60px] right-4 bg-white p-4 rounded-lg shadow-lg w-72 z-50 transition-all duration-300 ease-in-out border border-gray-300"
       ref={modalRef} // Referência para o modal
     >
-      <h2 className="text-lg font-semibold text-black">Aniversariantes do Dia</h2>
+      <h2 className="text-lg font-semibold text-black mb-2">Aniversariantes do Dia</h2>
       {aniversariantesDoDia.length > 0 ? (
-        <ul className="list-disc pl-5">
+        <div className="flex flex-col">
           {aniversariantesDoDia.map(socio => (
-            <li key={socio.id} className="text-gray-700">
-              {socio.socio} - {new Date(socio.data_nascimento).toLocaleDateString('pt-BR')}
-            </li>
+            <div key={socio.id} className="flex items-center justify-between p-2 border-b border-gray-200">
+              <div className="flex items-center">
+                <span className="text-gray-800">{socio.socio}</span>
+              </div>
+            </div>
           ))}
-        </ul>
+        </div>
       ) : (
         <p className="text-gray-700">Nenhum aniversariante hoje.</p>
       )}

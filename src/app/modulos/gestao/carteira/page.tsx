@@ -63,13 +63,6 @@ interface Regime {
   empresas: Empresa[];
 }
 
-interface Socio {
-  id: number;
-  nome: string;
-  data_nascimento: string;
-  idade?: number; // Tornando idade opcional já que vamos calculá-la
-}
-
 interface EmpresaCompletaNovosCliente {
   id: number;
   nome_empresa: string;
@@ -80,6 +73,13 @@ interface EmpresaCompletaNovosCliente {
   data_inatividade: string | null;
   motivo_inatividade: number;
   regime_tributario: string;
+}
+
+interface Socio {
+  id: number;
+  nome: string;
+  data_nascimento: string;
+  idade?: number; // Tornando idade opcional já que vamos calculá-la
 }
 
 export default function Carteira() {
