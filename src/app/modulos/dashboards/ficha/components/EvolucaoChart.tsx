@@ -40,6 +40,13 @@ const EvolucaoChart: React.FC<EvolucaoChartProps> = ({ data, kpiName: originalKp
     return null;
   };
 
+  // gera 6 ticks uniformemente distribuídos entre valor mínimo e máximo
+  const values = data.map((d) => d.value);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const TICK_COUNT = 5;
+  const ticks = Array.from({ length: TICK_COUNT }, (_, i) => min + ((max - min) * i) / (TICK_COUNT - 1));
+
   return (
     <ResponsiveContainer width="100%" height="100%">
       <LineChart
@@ -57,22 +64,28 @@ const EvolucaoChart: React.FC<EvolucaoChartProps> = ({ data, kpiName: originalKp
             <stop offset="95%" stopColor="#818cf8" stopOpacity={0.05} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" vertical={false} />
+        <CartesianGrid
+          strokeDasharray="3 3"
+          stroke="#e0e0e0"
+          vertical={false}
+          horizontal={true}
+        />
         <XAxis
           dataKey="month"
           tickLine={false}
           axisLine={false}
-          tick={{ fontSize: 10, fill: "#737373" }}
+          tick={{ fontSize: 10, fill: "transparent" }}
           angle={-35}
           textAnchor="end"
           interval={0}
           dy={15}
         />
         <YAxis
-          domain={['dataMin', 'dataMax']}
+          domain={[min, max]}
           axisLine={false}
           tickLine={false}
-          tick={false}
+          ticks={ticks} // usa ticks uniformes
+          tick={{ fontSize: 10, fill: "transparent" }} // oculta valor
         />
         <Tooltip content={<CustomTooltip />} />
         <Line
