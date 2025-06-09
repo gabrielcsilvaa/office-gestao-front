@@ -1,5 +1,13 @@
-// components/TabelaColaboradores.tsx
+// Adicione esta linha no topo se ainda não estiver lá
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import Image from "next/image"; // Supondo que você use Next.js para imagens
+
 export default function TabelaColaboradores() {
+  // Estado para controlar a visibilidade do modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   const colaboradores = [
     {
       nome: "JOSE ORLANDO QUEIROZ",
@@ -43,60 +51,71 @@ export default function TabelaColaboradores() {
       centroCusto: "PARC",
       number: "1",
     },
+
     {
-      nome: "JONES NOGUEIRA DE ANDRADE SILVA",
-      departamento: "DEPARTAMENTO GERAL",
-      centroCusto: "GERAL",
-      number: "1",
-    },
-    {
-      nome: "FRANCISCO ANTONIO VIANA",
-      departamento: "DEPARTAMENTO GERAL",
-      centroCusto: "GERAL",
-      number: "1",
-    },
-    {
-      nome: "JOSE CARLOS BARBOSA DA SILVA",
-      departamento: "GERAL",
-      centroCusto: "GERAL",
-      number: "1",
-    },
-    {
-      nome: "FRANCISCO EVANDRO FRANCELINO DE NEGREIROS",
-      departamento: "ADMINISTRATIVO",
-      centroCusto: "GERAL",
-      number: "1",
-    },
-    {
-      nome: "ANTONIO CARLOS BEZERRA DA SILVA",
-      departamento: "OFFICE BING.LABS",
-      centroCusto: "DIRETORIA",
-      number: "1",
-    },
-    {
-      nome: "MARIA ZULEIDE EUFRÁSIO BRAGA",
-      departamento: "FILIAL 2 - DEL PASCO",
-      centroCusto: "GERAL",
-      number: "1",
-    },
-    {
-      nome: "FRANCISCO ORLANDO SILVEIRA PEREIRA",
+      nome: "MARIA DE FATIMA HOLANDA DOS SANTOS SILVA",
       departamento: "PARC",
       centroCusto: "PARC",
       number: "1",
     },
     {
-      nome: "MARIA APARECIDA DA SILVA ALMEIDA",
+      nome: "MARIA DE FATIMA HOLANDA DOS SANTOS SILVA",
       departamento: "PARC",
-      centroCusto: "GERAL",
+      centroCusto: "PARC",
       number: "1",
     },
+    {
+      nome: "MARIA DE FATIMA HOLANDA DOS SANTOS SILVA",
+      departamento: "PARC",
+      centroCusto: "PARC",
+      number: "1",
+    },
+    {
+      nome: "MARIA DE FATIMA HOLANDA DOS SANTOS SILVA",
+      departamento: "PARC",
+      centroCusto: "PARC",
+      number: "1",
+    },
+    {
+      nome: "MARIA DE FATIMA HOLANDA DOS SANTOS SILVA",
+      departamento: "PARC",
+      centroCusto: "PARC",
+      number: "1",
+    },
+    {
+      nome: "MARIA DE FATIMA HOLANDA DOS SANTOS SILVA",
+      departamento: "PARC",
+      centroCusto: "PARC",
+      number: "1",
+    },
+
+    
   ];
 
-  return (
-    <div className="bg-white rounded-xl shadow-md h-full overflow-auto border border-gray-200">
+  // Hook para fechar o modal com a tecla 'Escape'
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === "Escape") {
+      setIsModalOpen(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isModalOpen) {
+      document.addEventListener("keydown", handleKeyDown);
+    } else {
+      document.removeEventListener("keydown", handleKeyDown);
+    }
+    // Cleanup para remover o listener quando o componente for desmontado
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isModalOpen, handleKeyDown]);
+
+  // Componente da Tabela para evitar repetição de código
+  const TabelaComponent = () => (
+    <div className="h-full w-full overflow-auto">
       <table className="min-w-full text-sm font-medium text-gray-800">
-        <thead className="sticky top-0 z-10 bg-black text-white h-12 ">
+        <thead className="sticky top-0 z-10 bg-black text-white h-12">
           <tr>
             <th className="py-3 px-4 text-left">NOME</th>
             <th className="py-3 px-4 text-left">DEPARTAMENTO</th>
@@ -104,9 +123,9 @@ export default function TabelaColaboradores() {
             <th className="py-3 px-4 text-left"></th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="bg-white">
           {colaboradores.map((colab, index) => (
-            <tr key={index} className="bg-white border-b">
+            <tr key={index} className="border-b">
               <td className="py-2 px-4">{colab.nome}</td>
               <td className="py-2 px-4">{colab.departamento}</td>
               <td className="py-2 px-4">{colab.centroCusto}</td>
@@ -116,5 +135,65 @@ export default function TabelaColaboradores() {
         </tbody>
       </table>
     </div>
+  );
+
+  return (
+    <>
+      {/* Container Principal */}
+      <div className="relative bg-white rounded-xl shadow-md h-full overflow-hidden border border-gray-200">
+        {/* Botão para abrir o modal */}
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="absolute top-2 right-2 z-20 p-1 rounded-full hover:bg-gray-200"
+          aria-label="Maximizar Tabela"
+          title="Maximizar Tabela"
+        >
+          {/* Use um ícone SVG ou um componente de Imagem */}
+          <Image
+            src="/assets/icons/icon-maximize.svg"
+            alt="Maximizar"
+            width={24}
+            height={24}
+            className="w-6 h-6"
+          />
+          
+        </button>
+
+        <TabelaComponent />
+      </div>
+
+      {/* Modal */}
+      {isModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          onClick={() => setIsModalOpen(false)} // Fecha ao clicar fora
+        >
+          <div
+            className="bg-white rounded-lg shadow-2xl w-[90vw] h-[85vh] p-4 flex flex-col relative"
+            onClick={(e) => e.stopPropagation()} // Impede de fechar ao clicar dentro
+          >
+            <div className="relative flex justify-center items-center mb-4 flex-shrink-0">
+              <h2 className="text-xl font-bold text-center  text-gray-800">
+                Lista de Colaboradores
+              </h2>
+            
+            {/* Botão de fechar o modal */}
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="absolute  right-1 text-3xl text-gray-500 hover:text-gray-900 z-10"
+              aria-label="Fechar modal"
+            >
+              &times;
+            </button>
+            </div>
+
+            {/* Conteúdo do Modal (a mesma tabela) */}
+            <div className=" h-[450px]">
+              <TabelaComponent />
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

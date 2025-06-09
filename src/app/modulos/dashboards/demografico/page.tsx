@@ -4,7 +4,7 @@ import GraficoLinha from "./components/grafico_linha";
 import GraficosGenero from "./components/grafico_genero";
 import GraficoFaixaEtaria from "./components/grafico_faixa_etaria";
 import GraficoCategoria from "./components/grafico_categoria";
-import { GraficoEscolaridade } from "./components/grafico_escolaridade";
+import  GraficoEscolaridade  from "./components/grafico_escolaridade";
 import GraficoCargo from "./components/grafico_cargo";
 import TabelaColaboradores from "./components/tabela_colaboradores";
 import { RotateCcw } from "lucide-react";
@@ -97,7 +97,7 @@ export default function Demografico() {
               <option value="2">Opção 2</option>
             </select>
             <select
-              className="w-full md:w-[232px] p-2 border rounded text-black-700 bg-white" 
+              className="w-full md:w-[232px] p-2 border rounded text-black-700 bg-white"
               value={filtros.tipoColaborador}
               onChange={(e) =>
                 setFiltros((prev) => ({ ...prev, tipoColaborador: e.target.value }))
@@ -165,16 +165,16 @@ export default function Demografico() {
         <div className="w-full  lg:w-1/2">
           <div className="bg-gray-100    h-full  ">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 ">
-              <div className="aspect-square w-full h-[300px] border bg-white  border-gray-300 rounded p-2">
+              <div className="aspect-square w-full h-[300px]">
                 <GraficosGenero />
               </div>
-              <div className="aspect-square w-full border h-[300px] bg-white  border-gray-300 rounded p-2">
+              <div className="aspect-square w-full h-[300px]">
                 <GraficoFaixaEtaria />
               </div>
-              <div className="aspect-square w-full  border h-[300px] bg-white border-gray-300 rounded  p-2">
+              <div className="aspect-square w-full h-[300px]">
                 <GraficoCategoria />
               </div>
-              <div className="aspect-square w-full  border h-[300px] bg-white border-gray-300 rounded p-2">
+              <div className="aspect-square w-full h-[300px]">
                 <GraficoEscolaridade />
               </div>
             </div>
