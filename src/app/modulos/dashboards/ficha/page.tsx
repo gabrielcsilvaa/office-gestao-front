@@ -23,7 +23,11 @@ const cairo = Cairo({
 interface Funcionario {
   id_empregado: number;
   nome: string;
-  // Add other employee properties if needed
+  data_nascimento?: string;
+  cargo?: string;
+  escolaridade?: string;
+  admissao?: string;
+  salario?: string;
 }
 
 interface EmpresaFicha {
@@ -40,6 +44,88 @@ interface EmpresaFicha {
     }
     return null;
   };
+
+// Helper function to format date from YYYY-MM-DD to DD/MM/YYYY
+const formatDateToBR = (dateString: string | null | undefined): string => {
+  if (!dateString) return "N/A";
+  try {
+    const [year, month, day] = dateString.split("-");
+    if (year && month && day) {
+      return `${day}/${month}/${year}`;
+    }
+    return "N/A";
+  } catch (e) {
+    return "N/A";
+  }
+};
+
+// Helper function to format currency
+const formatCurrencyValue = (value: string | number | null | undefined): string => {
+  if (value === null || value === undefined || value === "") return "N/A";
+  const num = parseFloat(String(value));
+  if (isNaN(num)) return "N/A";
+  return `R$ ${num.toLocaleString("pt-BR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+};
+
+// Helper function to capitalize words
+const capitalizeWords = (text: string | null | undefined): string => {
+  if (!text) return "N/A";
+  
+  const romanNumeralPattern = /^(M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3}))$/i;
+
+  return text
+    .toLowerCase()
+    .split(" ")
+    .map((word) => {
+      if (word.toLowerCase().startsWith("(o)") || word.toLowerCase().startsWith("(a)")) {
+        // Specific handling for (o) or (a) if needed, e.g. Costureira(o)
+        // This part can be tricky if the (o) or (a) is part of a larger word.
+        // For "COSTUREIRA(O)", the current logic might produce "Costureira(o)"
+        // If you want "Costureira(O)", more specific logic is needed.
+        // The provided example "Costureira(o) Em Geral" seems to be the target.
+        // Let's refine the (o)/(a) handling slightly for common cases.
+        if (word.match(/\([oa]\)/i)) {
+            const parts = word.split(/(\([oa]\))/i); // Split by (o) or (a)
+            return parts.map((part, index) => {
+                if (index === 0 && part.length > 0) { // Part before (o)/(a)
+                    return part.charAt(0).toUpperCase() + part.slice(1);
+                }
+                return part; // (o)/(a) or part after
+            }).join('');
+        }
+      }
+      // Check if the word is a Roman numeral
+      if (romanNumeralPattern.test(word)) {
+        return word.toUpperCase();
+      }
+      if (word.length > 0) {
+        return word.charAt(0).toUpperCase() + word.slice(1);
+      }
+      return "";
+    })
+    .join(" ");
+};
+
+// Helper function to calculate age
+const calculateAge = (birthDateString: string | null | undefined): string => {
+  if (!birthDateString) return "N/A";
+  try {
+    const birthDate = new Date(birthDateString);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age >= 0 ? `${age} anos` : "N/A";
+  } catch (e) {
+    return "N/A";
+  }
+};
+
 
 const parseCurrency = (currencyString: string): number => {
   if (!currencyString) return 0;
@@ -206,7 +292,17 @@ export default function FichaPessoalPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [empresaOptions, setEmpresaOptions] = useState<string[]>([]);
-  const [colaboradorOptions, setColaboradorOptions] = useState<Funcionario[]>([]); // Changed to Funcionario[]
+  const [colaboradorOptions, setColaboradorOptions] = useState<Funcionario[]>([]); 
+
+  const initialKpiCardData = [
+    { title: "Data de Admissão", value: "N/A", tooltipText: "Data de início do colaborador na empresa." },
+    { title: "Salário Base", value: "N/A", tooltipText: "Salário bruto mensal do colaborador." },
+    { title: "Cargo", value: "N/A", tooltipText: "Cargo atual do colaborador." },
+    { title: "Escolaridade", value: "N/A", tooltipText: "Nível de escolaridade do colaborador." },
+    { title: "Idade", value: "N/A", tooltipText: "Idade atual do colaborador." },
+  ];
+  const [currentKpiCardData, setCurrentKpiCardData] = useState(initialKpiCardData);
+
 
   const handleStartDateChange = (date: string | null) => {
     setStartDate(date);
@@ -277,14 +373,12 @@ export default function FichaPessoalPage() {
     fetchClientData();
   }, [startDate, endDate]); 
 
-  // Effect to update colaboradorOptions when selectedEmpresa or dados change
   useEffect(() => {
     if (selectedEmpresa && dados) {
       const empresaSelecionada = dados.find(
         (emp) => emp.nome_empresa.trim() === selectedEmpresa // Trim emp.nome_empresa here
       );
       if (empresaSelecionada && empresaSelecionada.funcionarios) {
-        // Store the full Funcionario objects, sorted by name
         const sortedFuncionarios = [...empresaSelecionada.funcionarios].sort((a, b) =>
           a.nome.localeCompare(b.nome)
         );
@@ -295,8 +389,30 @@ export default function FichaPessoalPage() {
     } else {
       setColaboradorOptions([]);
     }
-    setSelectedColaborador(""); // Reset selected colaborador when empresa changes
+    setSelectedColaborador("");
   }, [selectedEmpresa, dados]);
+  
+  useEffect(() => {
+    if (selectedColaborador && colaboradorOptions.length > 0) {
+      const funcionarioSelecionado = colaboradorOptions.find(
+        (func) => func.nome === selectedColaborador
+      );
+
+      if (funcionarioSelecionado) {
+        setCurrentKpiCardData([
+          { title: "Data de Admissão", value: formatDateToBR(funcionarioSelecionado.admissao), tooltipText: "Data de início do colaborador na empresa." },
+          { title: "Salário Base", value: formatCurrencyValue(funcionarioSelecionado.salario), tooltipText: "Salário bruto mensal do colaborador." },
+          { title: "Cargo", value: capitalizeWords(funcionarioSelecionado.cargo), tooltipText: "Cargo atual do colaborador." },
+          { title: "Escolaridade", value: capitalizeWords(funcionarioSelecionado.escolaridade), tooltipText: "Nível de escolaridade do colaborador." },
+          { title: "Idade", value: calculateAge(funcionarioSelecionado.data_nascimento), tooltipText: "Idade atual do colaborador." },
+        ]);
+      } else {
+        setCurrentKpiCardData(initialKpiCardData);
+      }
+    } else {
+      setCurrentKpiCardData(initialKpiCardData);
+    }
+  }, [selectedColaborador, colaboradorOptions]);
         
   const kpiCardData = [
     { title: "Data de Admissão", value: "01/01/2020", tooltipText: "Data de início do colaborador na empresa." },
@@ -379,7 +495,7 @@ export default function FichaPessoalPage() {
              ${selectedColaborador
                ? 'max-h-[800px] opacity-100 translate-y-0'
                : 'max-h-0 opacity-0 -translate-y-4'}`}>
-          <KpiCardsGrid cardsData={kpiCardData} />
+          <KpiCardsGrid cardsData={currentKpiCardData} />
         </div>
 
         {/* Evolução & Valor por Grupo */}

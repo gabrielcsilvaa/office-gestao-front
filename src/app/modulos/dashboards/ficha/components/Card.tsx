@@ -18,7 +18,7 @@ interface CardProps {
 export default function Card({ title, value, tooltipText, onClick }: CardProps) {
   return (
     <div
-      className="cursor-pointer py-2 px-4 flex flex-col w-full h-20 bg-white rounded-md shadow-md relative"
+      className="cursor-pointer py-2 px-4 flex flex-col w-full min-h-20 bg-white rounded-md shadow-md relative"
       onClick={onClick}
     >
       {tooltipText && (
