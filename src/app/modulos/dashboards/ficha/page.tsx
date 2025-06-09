@@ -1,6 +1,6 @@
 "use client";
 import { Cairo } from "next/font/google";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import SecaoFiltros from "./components/SecaoFiltros";
 import KpiCardsGrid from "./components/KpiCardsGrid";
 import EvolucaoCard from "./components/EvolucaoCard";
@@ -13,12 +13,78 @@ import AlteracoesSalariaisDetalheCard from "./components/AlteracoesSalariaisDeta
 import Modal from "../organizacional/components/Modal";
 import EvolucaoChart from "./components/EvolucaoChart";
 import ValorPorGrupoChart from "./components/ValorPorGrupoChart";
-
+import Calendar from "@/components/calendar";
 const cairo = Cairo({
   weight: ["500", "600", "700"],
   subsets: ["latin"],
   variable: "--font-cairo",
 });
+
+
+
+
+  // Função para formatar as datas
+  export const formatDate = (date: Date | null) => {
+    if (date) {
+      return date.toISOString().split("T")[0]; // Formata para 'yyyy-mm-dd'
+    }
+    return null;
+  };
+
+
+
+  // useEffect(() => {
+//       try {
+//         setLoading(true);
+
+//         // Formata as datas antes de enviar
+//         const formattedStartDate = formatDate(
+//           startDate ? new Date(startDate) : null
+//         );
+//         const formattedEndDate = formatDate(endDate ? new Date(endDate) : null);
+
+//         const body = {
+//           start_date: formattedStartDate,
+//           end_date: formattedEndDate,
+//         };
+
+//         const response = await fetch("/api/analise-clientes", {
+//           method: "POST",
+//           headers: {
+//             "Content-Type": "application/json",
+//           },
+//           body: JSON.stringify(body),
+//         });
+
+//         if (!response.ok) {
+//           throw new Error(`Erro na API: ${response.statusText}`);
+//         }
+
+//         const data = await response.json();
+//         // Ordenar as empresas por nome alfabético e remover espaços à esquerda
+//         const sortedData = data.sort(
+//           (a: EmpresaAnalise, b: EmpresaAnalise) =>
+//             a.nome_empresa.trimStart().localeCompare(b.nome_empresa.trimStart()) // Aplicar trimStart() para remover espaços à esquerda antes da comparação
+//         );
+
+//         setClientData(sortedData); // Armazena os dados ordenados
+//         setFilteredData(sortedData); // Inicialmente, os dados filtrados são os mesmos que os dados completos
+//       } catch (err: unknown) {
+//         if (err instanceof Error) {
+//           setError(err.message);
+//         } else {
+//           setError("Erro desconhecido");
+//         }
+//       } finally {
+//         setLoading(false);
+//       }
+//     };
+
+//     // Só faz a requisição quando as datas estiverem definidas
+//     if (startDate && endDate) {
+//       fetchClientData();
+//     }
+//   }, [startDate, endDate]); // Executa quando startDate ou endDate mudam
 
 const parseCurrency = (currencyString: string): number => {
   if (!currencyString) return 0;
@@ -178,6 +244,69 @@ export default function FichaPessoalPage() {
   const [modalContent, setModalContent] = useState<React.ReactNode | null>(null);
   const handleCloseModal = () => setModalContent(null);
 
+    //Estados de data
+  const [startDate, setStartDate] = useState<string | null>(null);
+  const [endDate, setEndDate] = useState<string | null>(null);
+  const [dados, setDados] = useState<[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleStartDateChange = (date: string | null) => {
+    setStartDate(date);
+  };
+
+  const handleEndDateChange = (date: string | null) => {
+    setEndDate(date);
+  };
+
+  
+
+  
+ // Data fetching effect
+  useEffect(() => {
+    const fetchClientData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Only fetch if both dates are set
+        if (!startDate || !endDate) return;
+
+        const formattedStartDate = formatDate(new Date(startDate));
+        const formattedEndDate = formatDate(new Date(endDate));
+
+        const body = {
+          start_date: formattedStartDate,
+          end_date: formattedEndDate,
+        };
+
+        const response = await fetch("/api/dashboard-ficha", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Erro na API: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log("Dados recebidos:", data);
+        
+      setDados(data); // Armazena os dados recebidos
+      } catch (err) {
+        console.error("Erro ao buscar dados:", err);
+        setError(err instanceof Error ? err.message : "Erro desconhecido");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchClientData();
+  }, [startDate, endDate]); // Executa quando startDate ou endDate mudam
+        
   const kpiCardData = [
     { title: "Data de Admissão", value: "01/01/2020", tooltipText: "Data de início do colaborador na empresa." },
     { title: "Salário Base", value: "R$ 5.000,00", tooltipText: "Salário bruto mensal do colaborador." },
@@ -241,6 +370,10 @@ export default function FichaPessoalPage() {
           onChangeEmpresa={setSelectedEmpresa}
           selectedColaborador={selectedColaborador}
           onChangeColaborador={setSelectedColaborador}
+        />
+        <Calendar
+          onStartDateChange={handleStartDateChange}
+          onEndDateChange={handleEndDateChange}
         />
       </div>
 
