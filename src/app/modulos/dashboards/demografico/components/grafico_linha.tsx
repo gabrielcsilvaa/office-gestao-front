@@ -49,7 +49,7 @@ export default function GraficoLinha() {
 
   return (
     <>
-      <div className="relative bg-white p-1 rounded shadow h-[500px] w-[650px] flex flex-col">
+      <div className="relative bg-white p-1 rounded shadow h-[500px] w-[657px] flex flex-col ">
         {/* Botão de maximizar */}
         <button
           onClick={() => setIsModalOpen(true)}
@@ -64,7 +64,7 @@ export default function GraficoLinha() {
           />
         </button>
 
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="250%">
           <LineChart data={dadosMock}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="mes" />
