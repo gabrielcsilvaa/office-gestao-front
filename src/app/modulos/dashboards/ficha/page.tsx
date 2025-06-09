@@ -20,9 +20,16 @@ const cairo = Cairo({
   variable: "--font-cairo",
 });
 
+interface Funcionario {
+  id_empregado: number;
+  nome: string;
+  // Add other employee properties if needed
+}
+
 interface EmpresaFicha {
   id_empresa: number;
   nome_empresa: string;
+  funcionarios?: Funcionario[]; // Make funcionarios optional or ensure it's always present
 }
 
 
@@ -195,10 +202,11 @@ export default function FichaPessoalPage() {
     //Estados de data
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
-  const [dados, setDados] = useState<EmpresaFicha[] | null>(null); // Updated type for dados
+  const [dados, setDados] = useState<EmpresaFicha[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [empresaOptions, setEmpresaOptions] = useState<string[]>([]); // State for dynamic empresa options
+  const [empresaOptions, setEmpresaOptions] = useState<string[]>([]);
+  const [colaboradorOptions, setColaboradorOptions] = useState<Funcionario[]>([]); // Changed to Funcionario[]
 
   const handleStartDateChange = (date: string | null) => {
     setStartDate(date);
@@ -213,11 +221,12 @@ export default function FichaPessoalPage() {
       try {
         setLoading(true);
         setError(null);
-        setEmpresaOptions([]); // Reset options on new fetch
+        setEmpresaOptions([]); 
+        setColaboradorOptions([]); 
+        setSelectedColaborador(""); 
 
-        // Only fetch if both dates are set
         if (!startDate || !endDate) {
-          setDados(null); // Clear data if dates are not set
+          setDados(null); 
           return;
         }
 
@@ -266,7 +275,28 @@ export default function FichaPessoalPage() {
     };
 
     fetchClientData();
-  }, [startDate, endDate]); // Executa quando startDate ou endDate mudam
+  }, [startDate, endDate]); 
+
+  // Effect to update colaboradorOptions when selectedEmpresa or dados change
+  useEffect(() => {
+    if (selectedEmpresa && dados) {
+      const empresaSelecionada = dados.find(
+        (emp) => emp.nome_empresa.trim() === selectedEmpresa // Trim emp.nome_empresa here
+      );
+      if (empresaSelecionada && empresaSelecionada.funcionarios) {
+        // Store the full Funcionario objects, sorted by name
+        const sortedFuncionarios = [...empresaSelecionada.funcionarios].sort((a, b) =>
+          a.nome.localeCompare(b.nome)
+        );
+        setColaboradorOptions(sortedFuncionarios);
+      } else {
+        setColaboradorOptions([]);
+      }
+    } else {
+      setColaboradorOptions([]);
+    }
+    setSelectedColaborador(""); // Reset selected colaborador when empresa changes
+  }, [selectedEmpresa, dados]);
         
   const kpiCardData = [
     { title: "Data de Admissão", value: "01/01/2020", tooltipText: "Data de início do colaborador na empresa." },
@@ -333,6 +363,8 @@ export default function FichaPessoalPage() {
           onChangeColaborador={setSelectedColaborador}
           empresaOptionsList={empresaOptions}
           areDatesSelected={!!(startDate && endDate)}
+          colaboradorOptionsList={colaboradorOptions}
+          isEmpresaSelected={!!selectedEmpresa}
         />
         <Calendar
           onStartDateChange={handleStartDateChange}

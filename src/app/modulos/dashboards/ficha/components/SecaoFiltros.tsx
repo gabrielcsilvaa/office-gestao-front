@@ -9,6 +9,11 @@ const cairo = Cairo({
 	subsets: ["latin"],
 });
 
+interface FuncionarioOpcao {
+	id_empregado: number;
+	nome: string;
+}
+
 interface SecaoFiltrosProps {
 	selectedEmpresa: string;
 	onChangeEmpresa: (empresa: string) => void;
@@ -16,6 +21,8 @@ interface SecaoFiltrosProps {
 	onChangeColaborador: (colaborador: string) => void;
 	empresaOptionsList?: string[];
 	areDatesSelected?: boolean;
+	colaboradorOptionsList?: FuncionarioOpcao[];
+	isEmpresaSelected?: boolean;
 }
 
 export default function SecaoFiltros({
@@ -25,12 +32,13 @@ export default function SecaoFiltros({
 	onChangeColaborador,
 	empresaOptionsList = [],
 	areDatesSelected = false,
+	colaboradorOptionsList = [], 
+	isEmpresaSelected = false,   
 }: SecaoFiltrosProps) {
 	const [isEmpresaOpen, setIsEmpresaOpen] = useState(false);
 	const empresaRef = useRef<HTMLDivElement>(null);
 
 	const [isColaboradorOpen, setIsColaboradorOpen] = useState(false);
-	const colaboradorOptions = ["Ana Silva (Colaborador)", "Carlos Pereira (Diretor)", "Beatriz Costa (Autônomo)"];
 	const colaboradorRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
@@ -125,23 +133,34 @@ export default function SecaoFiltros({
 					</div>
 					{isColaboradorOpen && (
 						<div className="absolute mt-1 w-80 bg-white border border-neutral-300 rounded-md shadow-lg z-10 max-h-60 overflow-y-auto">
-							{colaboradorOptions.map(option => (
-								<div
-									key={option}
-									onClick={() => {
-										onChangeColaborador(selectedColaborador === option ? "" : option);
-										setIsColaboradorOpen(false);
-									}}
-									className={`px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center justify-between ${selectedColaborador===option?'bg-blue-50':''}`}
-								>
-									{option}
-									{selectedColaborador === option && (
-										<svg className="w-4 h-4 fill-current text-blue-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-											<path fillRule="evenodd" clipRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" />
-										</svg>
-									)}
+							{!isEmpresaSelected ? (
+								<div className="px-4 py-2 text-sm text-gray-500">
+									Selecione uma empresa para carregar os colaboradores.
 								</div>
-							))}
+							) : colaboradorOptionsList.length === 0 ? (
+								<div className="px-4 py-2 text-sm text-gray-500">
+									Nenhum colaborador encontrado para esta empresa.
+								</div>
+							) : (
+								colaboradorOptionsList.map(option => (
+									<div
+										key={option.id_empregado} // Use unique id_empregado for key
+										onClick={() => {
+											// Pass employee name to handler, assuming selectedColaborador stores the name
+											onChangeColaborador(selectedColaborador === option.nome ? "" : option.nome);
+											setIsColaboradorOpen(false);
+										}}
+										className={`px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center justify-between ${selectedColaborador === option.nome ? 'bg-blue-50' : ''}`}
+									>
+										{option.nome} {/* Display employee name */}
+										{selectedColaborador === option.nome && (
+											<svg className="w-4 h-4 fill-current text-blue-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+												<path fillRule="evenodd" clipRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" />
+											</svg>
+										)}
+									</div>
+								))
+							)}
 						</div>
 					)}
 				</div>
