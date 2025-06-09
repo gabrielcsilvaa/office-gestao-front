@@ -47,23 +47,13 @@ const GraficoCargo = () => {
     );
     return (
       <div className="h-full w-full overflow-y-auto">
-        <h3
-          style={{
-            textAlign: "center",
-            marginBottom: "20px",
-            paddingTop: "4px",
-            fontSize: "1.1em",
-            fontWeight: "bold",
-          }}
-        >
-          Colaboradores por Cargo
-        </h3>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <tbody>
             {colaboradores.map((colaborador) => (
               <tr
                 key={colaborador.id}
                 style={{ borderBottom: "1px solid #E2E8F0" }}
+                className="hover:bg-gray-50"
               >
                 <td
                   style={{
@@ -84,7 +74,10 @@ const GraficoCargo = () => {
                 >
                   <div
                     style={{
-                      width: `${(colaborador.numeroDeColaboradores / maxColaboradores) * 100}%`,
+                      width: `${
+                        (colaborador.numeroDeColaboradores / maxColaboradores) *
+                        100
+                      }%`,
                       backgroundColor: "#68D391",
                       height: "20px",
                       borderRadius: "4px",
@@ -113,8 +106,7 @@ const GraficoCargo = () => {
   return (
     <>
       {/* Container Principal */}
-      <div className="relative bg-white rounded-xl shadow-md h-full flex flex-col border border-gray-200 p-6">
-        {/* Botão de maximizar para abrir o modal */}
+      <div className="relative bg-white rounded-xl shadow-md h-full flex flex-col border border-gray-200">
         <button
           onClick={() => setIsModalOpen(true)}
           className="absolute top-2 right-2 z-20 p-1 rounded-full hover:bg-gray-200"
@@ -129,31 +121,41 @@ const GraficoCargo = () => {
             className="w-6 h-6"
           />
         </button>
-
-        <ChartContent />
+        <div className="p-4 flex-grow overflow-hidden">
+            <h3 className="text-center font-bold text-lg mb-4">
+                Colaboradores por Cargo
+            </h3>
+            <ChartContent />
+        </div>
       </div>
 
       {/* Modal */}
       {isModalOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-          onClick={() => setIsModalOpen(false)} // Fecha ao clicar fora
+          onClick={() => setIsModalOpen(false)}
         >
+          {/* A classe bg-gray-100 foi trocada por bg-white aqui */}
           <div
-            className="bg-white rounded-lg shadow-2xl w-[90vw] h-[85vh] p-4 pt-0 flex flex-col relative"
-            onClick={(e) => e.stopPropagation()} // Impede de fechar ao clicar dentro
+            className="bg-white rounded-lg shadow-2xl w-[90vw] h-[90vh] p-6 flex flex-col"
+            onClick={(e) => e.stopPropagation()}
           >
-            {/* Botão de fechar o modal */}
-            <button
-              onClick={() => setIsModalOpen(false)}
-              className="absolute top-2 right-2 text-3xl text-gray-500 hover:text-gray-900 z-30"
-              aria-label="Fechar modal"
-            >
-              &times;
-            </button>
+            {/* Cabeçalho do Modal */}
+            <div className="relative flex justify-center items-center mb-4 flex-shrink-0">
+              <h2 className="w-full text-xl font-bold text-gray-800 text-center">
+                Colaboradores por Cargo
+              </h2>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="absolute right-0 top-1/2 -translate-y-1/2 text-3xl text-gray-500 hover:text-gray-900"
+                aria-label="Fechar modal"
+              >
+                &times;
+              </button>
+            </div>
 
-            {/* Conteúdo do Modal (o mesmo gráfico) */}
-            <div className="h-full pt-2">
+            {/* Área de Conteúdo com Rolagem */}
+            <div className="flex-grow overflow-auto border rounded-lg bg-white">
               <ChartContent />
             </div>
           </div>
