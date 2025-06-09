@@ -52,8 +52,8 @@ const EvolucaoChart: React.FC<EvolucaoChartProps> = ({ data, kpiName: originalKp
       <LineChart
         data={data}
         margin={{
-          top: 5,
-          right: 20,
+          top: 10,
+          right: 40, // Increased from 20 to 30
           left: 0,
           bottom: 40,
         }}
