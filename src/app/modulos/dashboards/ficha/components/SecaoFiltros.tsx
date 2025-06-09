@@ -14,16 +14,19 @@ interface SecaoFiltrosProps {
 	onChangeEmpresa: (empresa: string) => void;
 	selectedColaborador: string;
 	onChangeColaborador: (colaborador: string) => void;
+	empresaOptionsList?: string[];
+	areDatesSelected?: boolean;
 }
 
 export default function SecaoFiltros({
 	selectedEmpresa,
 	onChangeEmpresa,
 	selectedColaborador,
-	onChangeColaborador
+	onChangeColaborador,
+	empresaOptionsList = [],
+	areDatesSelected = false,
 }: SecaoFiltrosProps) {
 	const [isEmpresaOpen, setIsEmpresaOpen] = useState(false);
-	const empresaOptions = ["Empresa Alpha", "Empresa Beta", "Empresa Gamma"];
 	const empresaRef = useRef<HTMLDivElement>(null);
 
 	const [isColaboradorOpen, setIsColaboradorOpen] = useState(false);
@@ -75,20 +78,30 @@ export default function SecaoFiltros({
 					</div>
 					{isEmpresaOpen && (
 						<div className="absolute mt-1 w-60 bg-white border border-neutral-300 rounded-md shadow-lg z-10 max-h-60 overflow-y-auto">
-							{empresaOptions.map(option => (
-								<div
-									key={option}
-									onClick={() => { onChangeEmpresa(option); setIsEmpresaOpen(false); }}
-									className={`px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center justify-between ${selectedEmpresa === option ? 'bg-blue-50' : ''}`}
-								>
-									{option}
-									{selectedEmpresa === option && (
-										<svg className="w-4 h-4 fill-current text-blue-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-											<path fillRule="evenodd" clipRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" />
-										</svg>
-									)}
+							{!areDatesSelected ? (
+								<div className="px-4 py-2 text-sm text-gray-500">
+									Selecione as datas para carregar as empresas.
 								</div>
-							))}
+							) : empresaOptionsList.length === 0 ? (
+								<div className="px-4 py-2 text-sm text-gray-500">
+									Nenhuma empresa encontrada.
+								</div>
+							) : (
+								empresaOptionsList.map(option => (
+									<div
+										key={option}
+										onClick={() => { onChangeEmpresa(option); setIsEmpresaOpen(false); }}
+										className={`px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center justify-between ${selectedEmpresa === option ? 'bg-blue-50' : ''}`}
+									>
+										{option}
+										{selectedEmpresa === option && (
+											<svg className="w-4 h-4 fill-current text-blue-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+												<path fillRule="evenodd" clipRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" />
+											</svg>
+										)}
+									</div>
+								))
+							)}
 						</div>
 					)}
 				</div>

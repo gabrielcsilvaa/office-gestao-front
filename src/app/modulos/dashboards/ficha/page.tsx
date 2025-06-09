@@ -20,7 +20,10 @@ const cairo = Cairo({
   variable: "--font-cairo",
 });
 
-
+interface EmpresaFicha {
+  id_empresa: number;
+  nome_empresa: string;
+}
 
 
   // Função para formatar as datas
@@ -30,61 +33,6 @@ const cairo = Cairo({
     }
     return null;
   };
-
-
-
-  // useEffect(() => {
-//       try {
-//         setLoading(true);
-
-//         // Formata as datas antes de enviar
-//         const formattedStartDate = formatDate(
-//           startDate ? new Date(startDate) : null
-//         );
-//         const formattedEndDate = formatDate(endDate ? new Date(endDate) : null);
-
-//         const body = {
-//           start_date: formattedStartDate,
-//           end_date: formattedEndDate,
-//         };
-
-//         const response = await fetch("/api/analise-clientes", {
-//           method: "POST",
-//           headers: {
-//             "Content-Type": "application/json",
-//           },
-//           body: JSON.stringify(body),
-//         });
-
-//         if (!response.ok) {
-//           throw new Error(`Erro na API: ${response.statusText}`);
-//         }
-
-//         const data = await response.json();
-//         // Ordenar as empresas por nome alfabético e remover espaços à esquerda
-//         const sortedData = data.sort(
-//           (a: EmpresaAnalise, b: EmpresaAnalise) =>
-//             a.nome_empresa.trimStart().localeCompare(b.nome_empresa.trimStart()) // Aplicar trimStart() para remover espaços à esquerda antes da comparação
-//         );
-
-//         setClientData(sortedData); // Armazena os dados ordenados
-//         setFilteredData(sortedData); // Inicialmente, os dados filtrados são os mesmos que os dados completos
-//       } catch (err: unknown) {
-//         if (err instanceof Error) {
-//           setError(err.message);
-//         } else {
-//           setError("Erro desconhecido");
-//         }
-//       } finally {
-//         setLoading(false);
-//       }
-//     };
-
-//     // Só faz a requisição quando as datas estiverem definidas
-//     if (startDate && endDate) {
-//       fetchClientData();
-//     }
-//   }, [startDate, endDate]); // Executa quando startDate ou endDate mudam
 
 const parseCurrency = (currencyString: string): number => {
   if (!currencyString) return 0;
@@ -247,9 +195,10 @@ export default function FichaPessoalPage() {
     //Estados de data
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
-  const [dados, setDados] = useState<[] | null>(null);
+  const [dados, setDados] = useState<EmpresaFicha[] | null>(null); // Updated type for dados
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [empresaOptions, setEmpresaOptions] = useState<string[]>([]); // State for dynamic empresa options
 
   const handleStartDateChange = (date: string | null) => {
     setStartDate(date);
@@ -259,18 +208,18 @@ export default function FichaPessoalPage() {
     setEndDate(date);
   };
 
-  
-
-  
- // Data fetching effect
   useEffect(() => {
     const fetchClientData = async () => {
       try {
         setLoading(true);
         setError(null);
+        setEmpresaOptions([]); // Reset options on new fetch
 
         // Only fetch if both dates are set
-        if (!startDate || !endDate) return;
+        if (!startDate || !endDate) {
+          setDados(null); // Clear data if dates are not set
+          return;
+        }
 
         const formattedStartDate = formatDate(new Date(startDate));
         const formattedEndDate = formatDate(new Date(endDate));
@@ -296,9 +245,21 @@ export default function FichaPessoalPage() {
         console.log("Dados recebidos:", data);
         
       setDados(data); // Armazena os dados recebidos
+
+      if (Array.isArray(data) && data.length > 0) {
+        const uniqueEmpresas = Array.from(
+          new Set(data.map((item: EmpresaFicha) => item.nome_empresa.trim()))
+        ).sort();
+        setEmpresaOptions(uniqueEmpresas);
+      } else {
+        setEmpresaOptions([]);
+      }
+
       } catch (err) {
         console.error("Erro ao buscar dados:", err);
         setError(err instanceof Error ? err.message : "Erro desconhecido");
+        setDados(null); // Clear data on error
+        setEmpresaOptions([]);
       } finally {
         setLoading(false);
       }
@@ -370,6 +331,8 @@ export default function FichaPessoalPage() {
           onChangeEmpresa={setSelectedEmpresa}
           selectedColaborador={selectedColaborador}
           onChangeColaborador={setSelectedColaborador}
+          empresaOptionsList={empresaOptions}
+          areDatesSelected={!!(startDate && endDate)}
         />
         <Calendar
           onStartDateChange={handleStartDateChange}
