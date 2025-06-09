@@ -30,7 +30,7 @@ const GraficoGenero = ({
       <h3
         style={{
           textAlign: "center",
-          marginBottom: "10px", 
+          marginBottom: "10px",
           fontWeight: "bold",
         }}
       >
@@ -54,7 +54,9 @@ const GraficoGenero = ({
             gap: 8,
           }}
         >
-          <span style={{ fontSize: "1.1em", fontWeight: "bold", color: "#007bff" }}>
+          <span
+            style={{ fontSize: "1.1em", fontWeight: "bold", color: "#007bff" }}
+          >
             {masculinoPercentual.toFixed(2)}%
           </span>
           <Image
@@ -76,7 +78,9 @@ const GraficoGenero = ({
             gap: 8,
           }}
         >
-          <span style={{ fontSize: "1.1em", fontWeight: "bold", color: "#ff69b4" }}>
+          <span
+            style={{ fontSize: "1.1em", fontWeight: "bold", color: "#ff69b4" }}
+          >
             {femininoPercentual.toFixed(2)}%
           </span>
           <Image
@@ -121,12 +125,12 @@ const GraficoGenero = ({
             onClick={(e) => e.stopPropagation()}
           >
             {/* Botão de fechar */}
-           <button
+            <button
               onClick={() => setIsModalOpen(false)}
-              className="absolute top-1  border-gray-200 right-1 text-3xl text-gray-500 hover:text-gray-900 z-10"
+              className="absolute top-2 right-2 text-black hover:text-white-700 text-sm rounded"
               aria-label="Fechar modal"
             >
-              x
+              ✕
             </button>
 
             {/* Gráfico no modal */}
