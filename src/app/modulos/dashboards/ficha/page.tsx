@@ -33,19 +33,17 @@ interface Funcionario {
 interface EmpresaFicha {
   id_empresa: number;
   nome_empresa: string;
-  funcionarios?: Funcionario[]; // Make funcionarios optional or ensure it's always present
+  funcionarios?: Funcionario[];
 }
 
 
-  // Função para formatar as datas
   export const formatDate = (date: Date | null) => {
     if (date) {
-      return date.toISOString().split("T")[0]; // Formata para 'yyyy-mm-dd'
+      return date.toISOString().split("T")[0];
     }
     return null;
   };
 
-// Helper function to format date from YYYY-MM-DD to DD/MM/YYYY
 const formatDateToBR = (dateString: string | null | undefined): string => {
   if (!dateString) return "N/A";
   try {
@@ -59,7 +57,6 @@ const formatDateToBR = (dateString: string | null | undefined): string => {
   }
 };
 
-// Helper function to format currency
 const formatCurrencyValue = (value: string | number | null | undefined): string => {
   if (value === null || value === undefined || value === "") return "N/A";
   const num = parseFloat(String(value));
@@ -467,8 +464,8 @@ export default function FichaPessoalPage() {
 
   return (
     <div className="bg-[#f7f7f8] flex flex-col flex-1 h-full min-h-0">
-      {/* Header */}
-      <div className="flex flex-row items-center justify-start gap-8 p-4 border-b border-black/10 bg-gray-100">
+      {/* Header - Changed z-[40] to z-10 */}
+      <div className="relative z-10 flex flex-row items-center justify-start gap-8 p-4 border-b border-black/10 bg-gray-100">
         <h1 className={`text-[32px] leading-8 font-700 text-black ${cairo.className}`}>
           Dashboard de Ficha Pessoal
         </h1>
@@ -491,6 +488,8 @@ export default function FichaPessoalPage() {
       {/* Contéudo rolável */}
       <div className="flex-1 p-4 overflow-y-auto min-h-0">
          {/* KPIs: animação de slide down/up */}
+         {/* This div with `transform` creates a stacking context. Its children (tooltips z-50) will be stacked relative to it. */}
+         {/* This container itself needs to be effectively above the header's z-[40]. */}
          <div className={`transition-all duration-500 ease-in-out transform origin-top
              ${selectedColaborador
                ? 'max-h-[800px] opacity-100 translate-y-0'
