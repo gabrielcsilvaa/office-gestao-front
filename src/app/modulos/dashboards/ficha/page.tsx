@@ -502,7 +502,13 @@ export default function FichaPessoalPage() {
 
       if (empresaSelecionada && empresaSelecionada.funcionarios) {
         const todosExamesDaEmpresa: Exame[] = [];
-        empresaSelecionada.funcionarios.forEach((funcionario) => {
+        
+        // Filtrar funcionários se um colaborador específico estiver selecionado
+        const funcionariosFiltrados = selectedColaborador 
+          ? empresaSelecionada.funcionarios.filter(func => func.nome === selectedColaborador)
+          : empresaSelecionada.funcionarios;
+
+        funcionariosFiltrados.forEach((funcionario) => {
           if (funcionario.exames && funcionario.exames.length > 0) {
             const examesDoFuncionario = funcionario.exames.map(
               (e) => ({
@@ -538,14 +544,19 @@ export default function FichaPessoalPage() {
     } else {
       setExamesData([]);
     }
-  }, [selectedEmpresa, dados]);
+  }, [selectedEmpresa, dados, selectedColaborador]); // Adicionar selectedColaborador na dependência
 
   useEffect(() => {
     if (selectedEmpresa && dados) {
       const emp = dados.find(e => e.nome_empresa.trim() === selectedEmpresa);
       const rec = emp && feriasRaw.find(f => f.id_empresa === emp.id_empresa);
       if (rec) {
-        const feriasFormatadas = rec.ferias.map(f => ({
+        // Filtrar férias por funcionário selecionado se houver
+        const feriasFiltradas = selectedColaborador 
+          ? rec.ferias.filter(f => f.nome === selectedColaborador)
+          : rec.ferias;
+
+        const feriasFormatadas = feriasFiltradas.map(f => ({
           nomeColaborador: f.nome,
           inicioPeriodoAquisitivo: formatDateToBR(f.inicio_aquisitivo),
           fimPeriodoAquisitivo: formatDateToBR(f.fim_aquisitivo),
@@ -596,14 +607,19 @@ export default function FichaPessoalPage() {
     } else {
       setFeriasData([]);
     }
-  }, [selectedEmpresa, dados, feriasRaw]);
+  }, [selectedEmpresa, dados, feriasRaw, selectedColaborador]); // Adicionar selectedColaborador na dependência
 
   useEffect(() => {
     if (selectedEmpresa && dados) {
       const emp = dados.find(e => e.nome_empresa.trim() === selectedEmpresa);
       const rec = emp && alteracoesRaw.find(a => a.id_empresa === emp.id_empresa);
       if (rec) {
-        const alteracoesFormatadas = rec.alteracoes.map(a => {
+        // Filtrar alterações por funcionário selecionado se houver
+        const alteracoesFiltradas = selectedColaborador 
+          ? rec.alteracoes.filter(a => a.nome === selectedColaborador)
+          : rec.alteracoes;
+
+        const alteracoesFormatadas = alteracoesFiltradas.map(a => {
           const anterior = a.salario_anterior ? parseFloat(a.salario_anterior) : null;
           const novo = parseFloat(a.novo_salario);
           const perc = anterior
@@ -650,7 +666,7 @@ export default function FichaPessoalPage() {
     } else {
       setAlteracoesData([]);
     }
-  }, [selectedEmpresa, dados, alteracoesRaw]);
+  }, [selectedEmpresa, dados, alteracoesRaw, selectedColaborador]); // Adicionar selectedColaborador na dependência
 
   useEffect(() => {
     if (selectedEmpresa && dados) {
@@ -660,7 +676,13 @@ export default function FichaPessoalPage() {
 
       if (empresaSelecionada && empresaSelecionada.funcionarios) {
         const todosAfastamentosDaEmpresa: Afastamento[] = [];
-        empresaSelecionada.funcionarios.forEach((funcionario) => {
+        
+        // Filtrar funcionários se um colaborador específico estiver selecionado
+        const funcionariosFiltrados = selectedColaborador 
+          ? empresaSelecionada.funcionarios.filter(func => func.nome === selectedColaborador)
+          : empresaSelecionada.funcionarios;
+
+        funcionariosFiltrados.forEach((funcionario) => {
           if (funcionario.afastamentos && funcionario.afastamentos.length > 0) {
             const afastamentosDoFuncionario = funcionario.afastamentos.map(
               (a) => ({
@@ -668,23 +690,21 @@ export default function FichaPessoalPage() {
                 termino: a.data_final ? formatDateToBR(a.data_final) : "N/A",
                 diasAfastados: parseFloat(a.num_dias).toString(),
                 tipo: a.tipo,
-                nomeColaborador: funcionario.nome, // Use o nome do funcionário do loop
+                nomeColaborador: funcionario.nome,
               })
             );
             todosAfastamentosDaEmpresa.push(...afastamentosDoFuncionario);
           }
         });
-        // Opcional: Ordenar os afastamentos por data de início, se desejado
-        // todosAfastamentosDaEmpresa.sort((a, b) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime());
+        
         setAfastamentosData(todosAfastamentosDaEmpresa);
       } else {
         setAfastamentosData([]);
       }
     } else {
-      // Se nenhuma empresa estiver selecionada, limpa os dados de afastamento
       setAfastamentosData([]);
     }
-  }, [selectedEmpresa, dados]); // Depende apenas de selectedEmpresa e dados
+  }, [selectedEmpresa, dados, selectedColaborador]); // Adicionar selectedColaborador na dependência
 
   return (
     <div className="bg-[#f7f7f8] flex flex-col flex-1 h-full min-h-0">
