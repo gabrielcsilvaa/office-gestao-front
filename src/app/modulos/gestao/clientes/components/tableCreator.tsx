@@ -40,6 +40,8 @@ export function ListaEmpresas({
   start_date,
   end_date,
   empresas,
+  custoPorHora,
+
 }: ListaEmpresasProps) {
   const meses = gerarIntervaloDeMeses(start_date, end_date);
 
@@ -160,7 +162,7 @@ export function ListaEmpresas({
       empresaData.faturamento_escritorio = item.escritorios ?? [];
 
       // Custo operacional e rentabilidade
-      const custoHora = parseFloat(process.env.NEXT_PUBLIC_CUSTO_HORA || "0");
+      const custoHora = parseFloat(custoPorHora ||process.env.NEXT_PUBLIC_CUSTO_HORA || "0");
       const valorContrato = maxValueContrato(item.escritorios);
       let rentabilidadeFinal = 0;
       let custoFinal = 0;

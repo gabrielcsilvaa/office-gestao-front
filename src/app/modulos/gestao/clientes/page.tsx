@@ -23,11 +23,12 @@ const cairo = Cairo({
 
 export default function Clientes() {
   //Dados
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState<string>("");
   const [clientData, setClientData] = useState<EmpresaAnalise[] | null>(null);
   const [filteredData, setFilteredData] = useState<EmpresaAnalise[] | null>(
     null
   );
+  const [custoPorHora, setCustoPorHora] = useState("");
   //Loading e Erro
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,6 +59,14 @@ export default function Clientes() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setValue(e.target.value);
     setCurrentPage(1);
+  };
+
+  const handleCustoHora = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let valor = e.target.value;
+    // Substitui vírgula por ponto e converte para número
+    valor = valor.replace(",", ".");
+    // Atualiza o estado (se for NaN, define como 0)
+    setCustoPorHora(valor);
   };
 
   useEffect(() => {
@@ -225,7 +234,9 @@ export default function Clientes() {
       }, 0);
 
       // Cálculo de custo e rentabilidade
-      const custoHora = parseFloat(process.env.NEXT_PUBLIC_CUSTO_HORA || "0");
+      const custoHora = parseFloat(
+        custoPorHora || process.env.NEXT_PUBLIC_CUSTO_HORA || "0"
+      );
       const valorContrato = maxValueContrato(empresa.escritorios || []);
       let custoTotal = 0;
       let rentabilidadeTotal = 0;
@@ -462,7 +473,9 @@ export default function Clientes() {
       }, 0);
 
       // Cálculo de custo e rentabilidade
-      const custoHora = parseFloat(process.env.NEXT_PUBLIC_CUSTO_HORA || "0");
+      const custoHora = parseFloat(
+        custoPorHora || process.env.NEXT_PUBLIC_CUSTO_HORA || "0"
+      );
       const valorContrato = maxValueContrato(empresa.escritorios || []);
       let custoTotal = 0;
       let rentabilidadeTotal = 0;
@@ -641,6 +654,21 @@ export default function Clientes() {
               onStartDateChange={handleStartDateChange}
               onEndDateChange={handleEndDateChange}
             />
+            <div className="flex ml-5 gap-2 items-center">
+              <p
+                className={`text-[22px] whitespace-nowrap ${cairo.className} font-500 text-black text-left`}
+              >
+                Valor Hora
+              </p>
+              <input
+                type="text"
+                id="inputText"
+                value={custoPorHora}
+                onChange={handleCustoHora}
+                className={`${cairo.className} bg-white border shadow-lg border-gray-400 w-[6vw] h-[38px] p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400`}
+                placeholder="R$ 20,50"
+              />
+            </div>
             <div className="flex gap-4 ml-auto">
               <button
                 onClick={() =>
@@ -710,6 +738,7 @@ export default function Clientes() {
                   empresas={currentItems}
                   start_date={startDate}
                   end_date={endDate}
+                  custoPorHora={custoPorHora}
                 />
               )
             )}
