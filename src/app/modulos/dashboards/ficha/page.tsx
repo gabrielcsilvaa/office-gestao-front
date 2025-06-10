@@ -27,6 +27,7 @@ interface Funcionario {
   cargo?: string;
   escolaridade?: string;
   admissao?: string;
+  demissao?: string; // Adicionar propriedade demissao
   salario?: string;
   afastamentos?: AfastamentoEntryRaw[];
   exames?: ExameEntryRaw[];
@@ -113,6 +114,15 @@ interface Exame {
   resultado: string;
   tipo: string;
   nomeColaborador: string;
+}
+
+interface Contrato {
+  id: string;
+  empresa: string;
+  colaborador: string;
+  dataAdmissao: string;
+  dataRescisao: string;
+  salarioBase: string;
 }
 
 export const formatDate = (date: Date | null) => {
@@ -268,23 +278,6 @@ const valorPorGrupoDataFicha = [
   { name: "Empréstimo Consignado (Desconto)", value: -400.00 },
 ];
 
-const mockContratosRaw = [
-  { id: "1", empresa: "Empresa Alpha", colaborador: "João Silva", dataAdmissao: "01/01/2020", dataRescisao: "31/12/2021", salarioBase: "R$ 3.500,00" },
-  { id: "2", empresa: "Empresa Alpha", colaborador: "João Silva", dataAdmissao: "15/01/2022", salarioBase: "R$ 3.800,00" },
-  { id: "3", empresa: "Empresa Beta", colaborador: "Maria Oliveira", dataAdmissao: "10/03/2019", salarioBase: "R$ 4.200,00" },
-  { id: "4", empresa: "Empresa Gamma", colaborador: "Carlos Pereira", dataAdmissao: "05/07/2018", dataRescisao: "04/07/2020", salarioBase: "R$ 3.000,00" },
-  { id: "5", empresa: "Empresa Delta", colaborador: "Ana Costa", dataAdmissao: "20/11/2022", salarioBase: "R$ 4.500,00" },
-  { id: "6", empresa: "Empresa Epsilon", colaborador: "Lucas Martins", dataAdmissao: "01/02/2017", dataRescisao: "15/08/2019", salarioBase: "R$ 2.800,00" },
-  { id: "7", empresa: "Empresa Epsilon", colaborador: "Lucas Martins", dataAdmissao: "01/09/2019", salarioBase: "R$ 3.200,00" },
-  { id: "8", empresa: "Empresa Zeta", colaborador: "Beatriz Souza", dataAdmissao: "10/05/2021", salarioBase: "R$ 4.000,00" },
-  { id: "9", empresa: "Empresa Eta", colaborador: "Rafael Lima", dataAdmissao: "22/08/2017", dataRescisao: "30/09/2020", salarioBase: "R$ 3.300,00" },
-  { id: "10", empresa: "Empresa Theta", colaborador: "Juliana Alves", dataAdmissao: "03/03/2023", salarioBase: "R$ 4.800,00" },
-  { id: "11", empresa: "Empresa Iota", colaborador: "Fernando Rocha", dataAdmissao: "19/06/2016", dataRescisao: "10/01/2019", salarioBase: "R$ 2.950,00" },
-  { id: "12", empresa: "Empresa Kappa", colaborador: "Camila Santos", dataAdmissao: "08/12/2020", salarioBase: "R$ 3.700,00" },
-  { id: "13", empresa: "Empresa Lambda", colaborador: "Gustavo Mendes", dataAdmissao: "14/04/2018", salarioBase: "R$ 4.100,00" },
-  { id: "14", empresa: "Empresa Mu", colaborador: "Patrícia Ribeiro", dataAdmissao: "25/07/2022", dataRescisao: "10/10/2023", salarioBase: "R$ 3.900,00" },
-];
-
 const diffDays = (start: string, end: string): number =>
   Math.ceil((new Date(end).getTime() - new Date(start).getTime()) / (1000*60*60*24));
 
@@ -308,6 +301,7 @@ export default function FichaPessoalPage() {
   const [alteracoesData, setAlteracoesData] = useState<FormattedAlteracao[]>([]);
   const [afastamentosData, setAfastamentosData] = useState<Afastamento[]>([]);
   const [examesData, setExamesData] = useState<Exame[]>([]);
+  const [contratosData, setContratosData] = useState<Contrato[]>([]);
 
   const initialKpiCardData = [
     { title: "Data de Admissão", value: "N/A", tooltipText: "Data de início do colaborador na empresa." },
@@ -468,31 +462,60 @@ export default function FichaPessoalPage() {
   const evolucaoCardTitle = "Evolução de Custo Total";
 
   const processedTableData = useMemo(() => {
-    const targetLength = 14;
-
-    const padArray = <T,>(
-      arr: T[],
-      length: number,
-      placeholderFactory: (index: number) => T
-    ): T[] => {
-      const currentLength = arr.length;
-      if (currentLength >= length) {
-        return arr.slice(0, length);
-      }
-      const placeholders = Array.from({ length: length - currentLength }, (_, i) =>
-        placeholderFactory(currentLength + i)
-      );
-      return [...arr, ...placeholders];
-    };
-
-    const contratoPlaceholder = (index: number) => ({
-      id: `placeholder-${index}`, empresa: "", colaborador: "", dataAdmissao: "", dataRescisao: "", salarioBase: ""
-    });
-
+    // Remover toda a lógica de padding - usar apenas dados reais da API
     return {
-      contratos: padArray(mockContratosRaw, targetLength, contratoPlaceholder),
+      contratos: contratosData,
     };
-  }, []);
+  }, [contratosData]);
+
+  useEffect(() => {
+    if (selectedEmpresa && dados) {
+      const empresaSelecionada = dados.find(
+        (emp) => emp.nome_empresa.trim() === selectedEmpresa
+      );
+
+      if (empresaSelecionada && empresaSelecionada.funcionarios) {
+        const todosContratosDaEmpresa: Contrato[] = [];
+        
+        // Filtrar funcionários se um colaborador específico estiver selecionado
+        const funcionariosFiltrados = selectedColaborador 
+          ? empresaSelecionada.funcionarios.filter(func => func.nome === selectedColaborador)
+          : empresaSelecionada.funcionarios;
+
+        funcionariosFiltrados.forEach((funcionario, index) => {
+          const contrato: Contrato = {
+            id: `${funcionario.id_empregado}`,
+            empresa: empresaSelecionada.nome_empresa,
+            colaborador: funcionario.nome,
+            dataAdmissao: formatDateToBR(funcionario.admissao),
+            dataRescisao: funcionario.demissao ? formatDateToBR(funcionario.demissao) : "",
+            salarioBase: formatCurrencyValue(funcionario.salario),
+          };
+          todosContratosDaEmpresa.push(contrato);
+        });
+        
+        // Ordenar contratos: 1º por nome, 2º por data de admissão (mais recente primeiro)
+        todosContratosDaEmpresa.sort((a, b) => {
+          const nomeComparison = a.colaborador.localeCompare(b.colaborador);
+          if (nomeComparison !== 0) return nomeComparison;
+          
+          try {
+            const dataA = new Date(a.dataAdmissao.split('/').reverse().join('-'));
+            const dataB = new Date(b.dataAdmissao.split('/').reverse().join('-'));
+            return dataB.getTime() - dataA.getTime();
+          } catch (e) {
+            return 0;
+          }
+        });
+        
+        setContratosData(todosContratosDaEmpresa);
+      } else {
+        setContratosData([]);
+      }
+    } else {
+      setContratosData([]);
+    }
+  }, [selectedEmpresa, dados, selectedColaborador]);
 
   useEffect(() => {
     if (selectedEmpresa && dados) {
@@ -820,7 +843,7 @@ export default function FichaPessoalPage() {
 
           <div className="lg:col-span-1 h-full shadow-md overflow-auto min-h-0 rounded-lg">
             <ContratosTable
-              contratosData={processedTableData.contratos}
+              contratosData={contratosData}
               cairoClassName={cairo.className}
               headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")}
             />

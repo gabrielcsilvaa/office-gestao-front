@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useRef } from 'react';
 import Image from 'next/image';
 
@@ -29,11 +31,9 @@ const ContratosTable: React.FC<ContratosTableProps> = ({ contratosData, cairoCla
 
   const handleScroll = () => {
     const el = containerRef.current;
-    if (el) {
-      const { scrollTop, scrollHeight, clientHeight } = el;
-      if (scrollHeight - scrollTop <= clientHeight + 5) {
-        setVisibleCount((prev) => Math.min(prev + 10, contratosData.length));
-      }
+    if (!el) return;
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 1) {
+      setVisibleCount(prev => Math.min(prev + 10, contratosData.length));
     }
   };
 
@@ -87,21 +87,20 @@ const ContratosTable: React.FC<ContratosTableProps> = ({ contratosData, cairoCla
         style={{ paddingRight: hasScrollbar ? '4px' : '16px' }}
       >
         {contratosData.length > 0 ? (
-          contratosData.map((contrato) => (
-            <div key={contrato.id} className="p-3 border border-gray-200 rounded-lg shadow-md bg-white">
+          contratosData.slice(0, visibleCount).map((contrato, index) => (
+            <div key={index} className="p-3 border border-gray-200 rounded-lg shadow-md bg-white">
               <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                 
                 <div className="flex flex-col col-span-2">
-                  <span className="text-gray-800 font-medium text-sm truncate" title={contrato.colaborador}>{contrato.colaborador || "-"}</span>
-                  <span className="text-gray-500 font-light text-xs">Colaborador</span>
+                  <span 
+                    className="text-gray-800 font-medium text-sm truncate" 
+                    title={contrato.colaborador || "-"}
+                  >
+                    {contrato.colaborador || "-"}
+                  </span>
+                  <span className="text-gray-500 font-light text-xs">Funcionário</span>
                 </div>
-                
                 <div className="col-span-2 h-px bg-gray-200"></div>
-
-                <div className="flex flex-col">
-                  <span className="text-gray-800 font-medium text-sm truncate" title={contrato.empresa}>{contrato.empresa || "-"}</span>
-                  <span className="text-gray-500 font-light text-xs">Empresa</span>
-                </div>
                 
                 <div className="flex flex-col">
                   <span className="text-gray-800 font-medium text-sm truncate">{contrato.dataAdmissao || "-"}</span>
@@ -109,11 +108,13 @@ const ContratosTable: React.FC<ContratosTableProps> = ({ contratosData, cairoCla
                 </div>
                 
                 <div className="flex flex-col">
-                  <span className="text-gray-800 font-medium text-sm truncate">{contrato.dataRescisao || "Vigente"}</span>
+                  <span className="text-gray-800 font-medium text-sm truncate">{contrato.dataRescisao || "Ativo"}</span>
                   <span className="text-gray-500 font-light text-xs">Data Rescisão</span>
                 </div>
 
-                <div className="flex flex-col">
+                <div className="col-span-2 h-px bg-gray-200"></div>
+                
+                <div className="flex flex-col col-span-2">
                   <span className="text-gray-800 font-medium text-sm truncate">{contrato.salarioBase || "-"}</span>
                   <span className="text-gray-500 font-light text-xs">Salário Base</span>
                 </div>
