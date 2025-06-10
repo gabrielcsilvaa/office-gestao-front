@@ -138,7 +138,7 @@ export default function Calendar({
   };
 
   return (
-    <div className="flex gap-4">
+    <div className="flex gap-2">
       {/* Campo Data Inicial */}
       <div className="relative">
         <DatePicker

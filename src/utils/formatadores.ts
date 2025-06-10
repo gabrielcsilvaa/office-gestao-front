@@ -48,9 +48,11 @@ export function formatarCpfCnpj(valor?: string | null): string {
 }
 
 export function gerarMesesEntreDatas(
-  start_date: string,
-  end_date: string
+  start_date: string | null,
+  end_date: string | null
 ): string[] {
+
+  if (!start_date || !end_date) return [];
   const MESES_PT = [
     "jan",
     "fev",
