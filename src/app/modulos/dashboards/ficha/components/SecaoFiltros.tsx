@@ -120,12 +120,12 @@ export default function SecaoFiltros({
 						aria-haspopup="listbox"
 						tabIndex={0}
 						aria-expanded={isColaboradorOpen}
-						aria-label="Colaborador/Diretor/Autônomo"
+						aria-label="Funcionário"
 						onClick={() => setIsColaboradorOpen(!isColaboradorOpen)}
 						className={`w-80 px-4 h-[36px] flex items-center justify-between bg-white rounded-md border border-neutral-700 text-gray-500 text-sm font-semibold leading-tight ${cairo.className} hover:bg-[var(--color-neutral-700)] hover:text-white cursor-pointer`}
 					>
 						<span className="flex-grow whitespace-nowrap overflow-hidden text-ellipsis">
-							{selectedColaborador || "Colaborador/Diretor/Autônomo"}
+							{selectedColaborador || "Funcionário"}
 						</span>
 						<svg className="w-5 h-5 ml-2 flex-shrink-0 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
 							<path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
@@ -135,7 +135,7 @@ export default function SecaoFiltros({
 						<div className="absolute mt-1 w-80 bg-white border border-neutral-300 rounded-md shadow-lg z-10 max-h-60 overflow-y-auto">
 							{!isEmpresaSelected ? (
 								<div className="px-4 py-2 text-sm text-gray-500">
-									Selecione uma empresa para carregar os colaboradores.
+									Selecione uma empresa para carregar os funcionários.
 								</div>
 							) : colaboradorOptionsList.length === 0 ? (
 								<div className="px-4 py-2 text-sm text-gray-500">

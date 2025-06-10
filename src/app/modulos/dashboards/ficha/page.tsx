@@ -36,13 +36,36 @@ interface EmpresaFicha {
   funcionarios?: Funcionario[];
 }
 
+interface FeriasEntry {
+  id_empregado: number;
+  nome: string;
+  inicio_aquisitivo: string;
+  fim_aquisitivo: string;
+  inicio_gozo: string;
+  fim_gozo: string;
+}
 
-  export const formatDate = (date: Date | null) => {
-    if (date) {
-      return date.toISOString().split("T")[0];
-    }
-    return null;
-  };
+interface FeriasPorEmpresa {
+  id_empresa: number;
+  ferias: FeriasEntry[];
+}
+
+interface FormattedFerias {
+  nomeColaborador: string;
+  inicioPeriodoAquisitivo: string;
+  fimPeriodoAquisitivo: string;
+  limiteParaGozo: string;
+  diasDeDireito: number;
+  diasGozados: number;
+  diasDeSaldo: number;
+}
+
+export const formatDate = (date: Date | null) => {
+  if (date) {
+    return date.toISOString().split("T")[0];
+  }
+  return null;
+};
 
 const formatDateToBR = (dateString: string | null | undefined): string => {
   if (!dateString) return "N/A";
@@ -241,23 +264,6 @@ const mockContratosRaw = [
   { id: "14", empresa: "Empresa Mu", colaborador: "Patrícia Ribeiro", dataAdmissao: "25/07/2022", dataRescisao: "10/10/2023", salarioBase: "R$ 3.900,00" },
 ];
 
-const sampleFeriasDetalheData = [
-  { nomeColaborador: "João Silva", inicioPeriodoAquisitivo: "2024-07-01", fimPeriodoAquisitivo: "2024-07-15", limiteParaGozo: "2025-06-16", diasDeDireito: 30, diasGozados: 15, diasDeSaldo: 15 },
-  { nomeColaborador: "Maria Oliveira", inicioPeriodoAquisitivo: "2024-08-05", fimPeriodoAquisitivo: "2024-08-10", limiteParaGozo: "2025-07-11", diasDeDireito: 30, diasGozados: 5, diasDeSaldo: 25 },
-  { nomeColaborador: "Carlos Pereira", inicioPeriodoAquisitivo: "2024-09-02", fimPeriodoAquisitivo: "2024-09-16", limiteParaGozo: "2025-08-17", diasDeDireito: 30, diasGozados: 14, diasDeSaldo: 16 },
-  { nomeColaborador: "Ana Costa", inicioPeriodoAquisitivo: "2024-07-20", fimPeriodoAquisitivo: "2024-07-30", limiteParaGozo: "2025-07-01", diasDeDireito: 30, diasGozados: 10, diasDeSaldo: 20 },
-  { nomeColaborador: "Lucas Martins", inicioPeriodoAquisitivo: "2024-10-01", fimPeriodoAquisitivo: "2024-10-10", limiteParaGozo: "2025-09-11", diasDeDireito: 30, diasGozados: 10, diasDeSaldo: 20 },
-  { nomeColaborador: "Beatriz Souza", inicioPeriodoAquisitivo: "2024-11-04", fimPeriodoAquisitivo: "2024-11-18", limiteParaGozo: "2025-10-19", diasDeDireito: 30, diasGozados: 14, diasDeSaldo: 16 },
-  { nomeColaborador: "Rafael Lima", inicioPeriodoAquisitivo: "2024-12-02", fimPeriodoAquisitivo: "2024-12-16", limiteParaGozo: "2025-11-17", diasDeDireito: 30, diasGozados: 14, diasDeSaldo: 16 },
-  { nomeColaborador: "Juliana Alves", inicioPeriodoAquisitivo: "2025-01-06", fimPeriodoAquisitivo: "2025-01-20", limiteParaGozo: "2025-12-21", diasDeDireito: 30, diasGozados: 14, diasDeSaldo: 16 },
-  { nomeColaborador: "Fernando Rocha", inicioPeriodoAquisitivo: "2024-07-22", fimPeriodoAquisitivo: "2024-07-26", limiteParaGozo: "2025-06-27", diasDeDireito: 30, diasGozados: 5, diasDeSaldo: 25 },
-  { nomeColaborador: "Camila Santos", inicioPeriodoAquisitivo: "2024-08-19", fimPeriodoAquisitivo: "2024-08-23", limiteParaGozo: "2025-07-24", diasDeDireito: 30, diasGozados: 5, diasDeSaldo: 25 },
-  { nomeColaborador: "Gustavo Mendes", inicioPeriodoAquisitivo: "2024-09-09", fimPeriodoAquisitivo: "2024-09-13", limiteParaGozo: "2025-08-14", diasDeDireito: 30, diasGozados: 5, diasDeSaldo: 25 },
-  { nomeColaborador: "Patrícia Ribeiro", inicioPeriodoAquisitivo: "2024-10-14", fimPeriodoAquisitivo: "2024-10-28", limiteParaGozo: "2025-09-29", diasDeDireito: 30, diasGozados: 14, diasDeSaldo: 16 },
-  { nomeColaborador: "Roberto Silva", inicioPeriodoAquisitivo: "2024-11-11", fimPeriodoAquisitivo: "2024-11-25", limiteParaGozo: "2025-10-26", diasDeDireito: 30, diasGozados: 14, diasDeSaldo: 16 },
-  { nomeColaborador: "Mariana Costa", inicioPeriodoAquisitivo: "2024-12-23", fimPeriodoAquisitivo: "2025-01-03", limiteParaGozo: "2025-12-04", diasDeDireito: 30, diasGozados: 10, diasDeSaldo: 20 },
-];
-
 const sampleAlteracoesSalariaisDetalheData = [
   { data: "2025-05-15", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1534,00"), salarioNovo: parseCurrency("R$ 1585,62"), percentual: "3,4%", nomeColaborador: "João Silva" },
   { data: "2025-05-15", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1534,00"), salarioNovo: parseCurrency("R$ 1585,62"), percentual: "3,4%", nomeColaborador: "Maria Oliveira" },
@@ -275,6 +281,8 @@ const sampleAlteracoesSalariaisDetalheData = [
   { data: "2025-05-01", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1534,00"), salarioNovo: parseCurrency("R$ 1732,50"), percentual: "12,9%", nomeColaborador: "Mariana Costa" },
 ];
 
+const diffDays = (start: string, end: string): number =>
+  Math.ceil((new Date(end).getTime() - new Date(start).getTime()) / (1000*60*60*24));
 
 export default function FichaPessoalPage() {
   const [selectedEmpresa, setSelectedEmpresa] = useState<string>("");
@@ -290,6 +298,8 @@ export default function FichaPessoalPage() {
   const [error, setError] = useState<string | null>(null);
   const [empresaOptions, setEmpresaOptions] = useState<string[]>([]);
   const [colaboradorOptions, setColaboradorOptions] = useState<Funcionario[]>([]); 
+  const [feriasRaw, setFeriasRaw] = useState<FeriasPorEmpresa[]>([]);
+  const [feriasData, setFeriasData] = useState<FormattedFerias[]>([]);
 
   const initialKpiCardData = [
     { title: "Data de Admissão", value: "N/A", tooltipText: "Data de início do colaborador na empresa." },
@@ -340,7 +350,13 @@ export default function FichaPessoalPage() {
         });
         if (!response.ok) throw new Error(`Erro na API: ${response.statusText}`);
 
-        const result = (await response.json()) as { dados?: EmpresaFicha[] };  // tipagem esperada
+        const result = (await response.json()) as {
+          dados?: EmpresaFicha[];
+          alteracao_salario?: any[];
+          ferias?: FeriasPorEmpresa[];
+        };
+
+        console.log("Dados recebidos:", result);  // exibe { dados, alteracao_salario, ferias }
 
         // rawDados tipado como EmpresaFicha[]
         const rawDados: EmpresaFicha[] = Array.isArray(result.dados) ? result.dados : [];
@@ -355,6 +371,8 @@ export default function FichaPessoalPage() {
         } else {
           setEmpresaOptions([]);
         }
+
+        setFeriasRaw(Array.isArray(result.ferias) ? result.ferias : []);
       } catch (err) {
         console.error("Erro ao buscar dados:", err);
         setError(err instanceof Error ? err.message : "Erro desconhecido");
@@ -459,6 +477,29 @@ export default function FichaPessoalPage() {
       contratos: padArray(mockContratosRaw, targetLength, contratoPlaceholder),
     };
   }, []);
+
+  useEffect(() => {
+    if (selectedEmpresa && dados) {
+      const emp = dados.find(e => e.nome_empresa.trim() === selectedEmpresa);
+      const rec = emp && feriasRaw.find(f => f.id_empresa === emp.id_empresa);
+      if (rec) {
+        setFeriasData(rec.ferias.map(f => ({
+          nomeColaborador: f.nome,
+          inicioPeriodoAquisitivo: formatDateToBR(f.inicio_aquisitivo),
+          fimPeriodoAquisitivo: formatDateToBR(f.fim_aquisitivo),
+          limiteParaGozo: formatDateToBR(f.fim_aquisitivo),
+          diasDeDireito: diffDays(f.inicio_aquisitivo, f.fim_aquisitivo),
+          diasGozados: diffDays(f.inicio_gozo, f.fim_gozo),
+          diasDeSaldo: diffDays(f.inicio_aquisitivo, f.fim_aquisitivo)
+            - diffDays(f.inicio_gozo, f.fim_gozo),
+        })));
+      } else {
+        setFeriasData([]);
+      }
+    } else {
+      setFeriasData([]);
+    }
+  }, [selectedEmpresa, dados, feriasRaw]);
 
   return (
     <div className="bg-[#f7f7f8] flex flex-col flex-1 h-full min-h-0">
@@ -584,7 +625,7 @@ export default function FichaPessoalPage() {
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 h-[450px]">
           <div className="h-full shadow-md overflow-auto min-h-0 rounded-lg">
             <FeriasDetalheCard
-              feriasData={sampleFeriasDetalheData}
+              feriasData={feriasData}
               cairoClassName={cairo.className}
               headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")}
               title="Detalhes de Férias"
