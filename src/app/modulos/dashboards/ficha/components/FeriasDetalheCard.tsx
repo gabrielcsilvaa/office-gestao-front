@@ -1,5 +1,5 @@
 "use client";
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 
 interface FeriasDetalheEntry {
@@ -31,6 +31,17 @@ const FeriasDetalheCard: React.FC<FeriasDetalheCardProps> = ({
   headerIcons,
   title = "Histórico de Férias"
 }) => {
+  const [visibleCount, setVisibleCount] = useState(10);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleScroll = () => {
+    const el = containerRef.current;
+    if (!el) return;
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 1) {
+      setVisibleCount(prev => Math.min(prev + 10, feriasData.length));
+    }
+  };
+
   return (
     <div className="w-full bg-white rounded-lg relative flex flex-col overflow-hidden h-full shadow-md">
       <div className="w-6 h-0 left-[10px] top-[17px] absolute origin-top-left rotate-90 bg-zinc-300 outline-1 outline-offset-[-0.50px] outline-neutral-700"></div>
@@ -57,9 +68,13 @@ const FeriasDetalheCard: React.FC<FeriasDetalheCardProps> = ({
         )}
       </div>
 
-      <div className={`flex-1 overflow-y-auto min-h-0 space-y-4 pl-4 pr-1 pb-4 ${cairoClassName}`}>
+      <div
+        ref={containerRef}
+        onScroll={handleScroll}
+        className={`flex-1 overflow-y-auto min-h-0 space-y-4 pl-4 pr-1 pb-4 ${cairoClassName}`}
+      >
         {feriasData.length > 0 ? (
-          feriasData.map((ferias, index) => (
+          feriasData.slice(0, visibleCount).map((ferias, index) => (
             <div key={index} className="p-3 border border-gray-200 rounded-lg shadow-md bg-white">
               <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                 <div className="flex flex-col col-span-2">
