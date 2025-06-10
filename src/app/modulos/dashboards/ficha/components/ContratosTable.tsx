@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import Image from 'next/image';
 
 interface Contrato {
@@ -23,6 +23,36 @@ interface ContratosTableProps {
 }
 
 const ContratosTable: React.FC<ContratosTableProps> = ({ contratosData, cairoClassName, headerIcons }) => {
+  const [visibleCount, setVisibleCount] = useState(10);
+  const [hasScrollbar, setHasScrollbar] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleScroll = () => {
+    const el = containerRef.current;
+    if (el) {
+      const { scrollTop, scrollHeight, clientHeight } = el;
+      if (scrollHeight - scrollTop <= clientHeight + 5) {
+        setVisibleCount((prev) => Math.min(prev + 10, contratosData.length));
+      }
+    }
+  };
+
+  const checkScrollbar = () => {
+    const el = containerRef.current;
+    if (el) {
+      setHasScrollbar(el.scrollHeight > el.clientHeight);
+    }
+  };
+
+  React.useEffect(() => {
+    checkScrollbar();
+    const observer = new ResizeObserver(checkScrollbar);
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+    return () => observer.disconnect();
+  }, [contratosData, visibleCount]);
+
   return (
     <div className="w-full bg-white rounded-lg relative flex flex-col overflow-hidden h-full">
       <div className="w-6 h-0 left-[10px] top-[17px] absolute origin-top-left rotate-90 bg-zinc-300 outline-1 outline-offset-[-0.50px] outline-neutral-700"></div>
@@ -50,7 +80,12 @@ const ContratosTable: React.FC<ContratosTableProps> = ({ contratosData, cairoCla
         )}
       </div>
 
-      <div className={`flex-1 overflow-y-auto min-h-0 space-y-4 pl-4 pr-1 pb-4 ${cairoClassName}`}>
+      <div
+        ref={containerRef}
+        onScroll={handleScroll}
+        className={`flex-1 overflow-y-auto min-h-0 space-y-4 pl-4 pb-4 ${cairoClassName}`}
+        style={{ paddingRight: hasScrollbar ? '4px' : '16px' }}
+      >
         {contratosData.length > 0 ? (
           contratosData.map((contrato) => (
             <div key={contrato.id} className="p-3 border border-gray-200 rounded-lg shadow-md bg-white">

@@ -31,6 +31,7 @@ const AtestadosTable: React.FC<AtestadosTableProps> = ({
   title = "Histórico de Exames"
 }) => {
   const [visibleCount, setVisibleCount] = useState(10);
+  const [hasScrollbar, setHasScrollbar] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleScroll = () => {
@@ -40,6 +41,22 @@ const AtestadosTable: React.FC<AtestadosTableProps> = ({
       setVisibleCount(prev => Math.min(prev + 10, atestadosData.length));
     }
   };
+
+  const checkScrollbar = () => {
+    const el = containerRef.current;
+    if (el) {
+      setHasScrollbar(el.scrollHeight > el.clientHeight);
+    }
+  };
+
+  React.useEffect(() => {
+    checkScrollbar();
+    const observer = new ResizeObserver(checkScrollbar);
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+    return () => observer.disconnect();
+  }, [atestadosData, visibleCount]);
 
   return (
     <div className="w-full bg-white rounded-lg relative flex flex-col overflow-hidden h-full"> {/* Removido py-4 pr-4 pl-2 */}
@@ -75,7 +92,8 @@ const AtestadosTable: React.FC<AtestadosTableProps> = ({
       <div
         ref={containerRef}
         onScroll={handleScroll}
-        className={`flex-1 overflow-y-auto min-h-0 space-y-4 pl-4 pr-1 pb-4 ${cairoClassName}`}
+        className={`flex-1 overflow-y-auto min-h-0 space-y-4 pl-4 pb-4 ${cairoClassName}`}
+        style={{ paddingRight: hasScrollbar ? '4px' : '16px' }}
       >
         {atestadosData.length > 0 ? (
           atestadosData.slice(0, visibleCount).map((atestado, index) => (
@@ -95,26 +113,26 @@ const AtestadosTable: React.FC<AtestadosTableProps> = ({
                 <div className="col-span-2 h-px bg-gray-200"></div> {/* Separator line after collaborator */}
                 
                 <div className="flex flex-col">
-                  <span className="text-gray-800 font-medium text-sm truncate">{atestado.vencimento || "-"}</span>
-                  <span className="text-gray-500 font-light text-xs">Vencimento</span>
+                  <span className="text-gray-800 font-medium text-sm truncate">{atestado.dataExame || "-"}</span>
+                  <span className="text-gray-500 font-light text-xs">Data Exame</span>
                 </div>
                 
                 <div className="flex flex-col">
-                  <span className="text-gray-800 font-medium text-sm truncate">{atestado.resultado || "N/A"}</span>
-                  <span className="text-gray-500 font-light text-xs">Resultado</span>
+                  <span className="text-gray-800 font-medium text-sm truncate">{atestado.vencimento || "-"}</span>
+                  <span className="text-gray-500 font-light text-xs">Vencimento</span>
                 </div>
 
                 {/* Horizontal Separator Line */}
                 <div className="col-span-2 h-px bg-gray-200"></div>
                 
                 <div className="flex flex-col">
-                  <span className="text-gray-800 font-medium text-sm truncate">{atestado.dataExame || "-"}</span>
-                  <span className="text-gray-500 font-light text-xs">Data Exame</span>
+                  <span className="text-gray-800 font-medium text-sm truncate">{atestado.tipo || "-"}</span>
+                  <span className="text-gray-500 font-light text-xs">Tipo</span>
                 </div>
                 
                 <div className="flex flex-col">
-                  <span className="text-gray-800 font-medium text-sm truncate">{atestado.tipo || "-"}</span>
-                  <span className="text-gray-500 font-light text-xs">Tipo</span>
+                  <span className="text-gray-800 font-medium text-sm truncate">{atestado.resultado || "N/A"}</span>
+                  <span className="text-gray-500 font-light text-xs">Resultado</span>
                 </div>
 
               </div>
