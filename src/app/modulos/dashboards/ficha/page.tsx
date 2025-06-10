@@ -60,6 +60,27 @@ interface FormattedFerias {
   diasDeSaldo: number;
 }
 
+interface AlteracaoEntry {
+  id_empregado: number;
+  nome: string;
+  competencia: string;
+  novo_salario: string;
+  salario_anterior: string | null;
+  motivo: number;
+}
+interface AlteracoesPorEmpresa {
+  id_empresa: number;
+  alteracoes: AlteracaoEntry[];
+}
+interface FormattedAlteracao {
+  nomeColaborador: string;
+  competencia: string;
+  salarioAnterior: number | null;
+  salarioNovo: number;
+  motivo: string;
+  percentual: string;
+}
+
 export const formatDate = (date: Date | null) => {
   if (date) {
     return date.toISOString().split("T")[0];
@@ -264,23 +285,6 @@ const mockContratosRaw = [
   { id: "14", empresa: "Empresa Mu", colaborador: "Patrícia Ribeiro", dataAdmissao: "25/07/2022", dataRescisao: "10/10/2023", salarioBase: "R$ 3.900,00" },
 ];
 
-const sampleAlteracoesSalariaisDetalheData = [
-  { data: "2025-05-15", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1534,00"), salarioNovo: parseCurrency("R$ 1585,62"), percentual: "3,4%", nomeColaborador: "João Silva" },
-  { data: "2025-05-15", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1534,00"), salarioNovo: parseCurrency("R$ 1585,62"), percentual: "3,4%", nomeColaborador: "Maria Oliveira" },
-  { data: "2025-05-15", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1534,00"), salarioNovo: parseCurrency("R$ 1585,62"), percentual: "3,4%", nomeColaborador: "Carlos Pereira" },
-  { data: "2025-05-06", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 0,00"), salarioNovo: parseCurrency("R$ 1585,62"), percentual: "", nomeColaborador: "Ana Costa" },
-  { data: "2025-05-02", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1828,01"), salarioNovo: parseCurrency("R$ 1845,59"), percentual: "1,0%", nomeColaborador: "Lucas Martins" },
-  { data: "2025-05-02", tipo: "ALTERAÇAO DE CARGO", motivo: "ALTERAÇAO DE CARGO", salarioAnterior: parseCurrency("R$ 1518,00"), salarioNovo: parseCurrency("R$ 1560,00"), percentual: "2,8%", nomeColaborador: "Beatriz Souza" },
-  { data: "2025-05-01", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1518,00"), salarioNovo: parseCurrency("R$ 1565,00"), percentual: "3,1%", nomeColaborador: "Rafael Lima" },
-  { data: "2025-05-01", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1518,00"), salarioNovo: parseCurrency("R$ 1585,62"), percentual: "4,5%", nomeColaborador: "Juliana Alves" },
-  { data: "2025-05-01", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1518,00"), salarioNovo: parseCurrency("R$ 1585,62"), percentual: "4,5%", nomeColaborador: "Fernando Rocha" },
-  { data: "2025-05-01", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1518,00"), salarioNovo: parseCurrency("R$ 1565,00"), percentual: "3,1%", nomeColaborador: "Camila Santos" },
-  { data: "2025-05-01", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1518,00"), salarioNovo: parseCurrency("R$ 1565,00"), percentual: "3,1%", nomeColaborador: "Gustavo Mendes" },
-  { data: "2025-05-01", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1534,00"), salarioNovo: parseCurrency("R$ 1585,62"), percentual: "3,4%", nomeColaborador: "Patrícia Ribeiro" },
-  { data: "2025-05-01", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1534,00"), salarioNovo: parseCurrency("R$ 1585,62"), percentual: "3,4%", nomeColaborador: "Roberto Silva" },
-  { data: "2025-05-01", tipo: "Convenção Coletiva", motivo: "Convenção Coletiva", salarioAnterior: parseCurrency("R$ 1534,00"), salarioNovo: parseCurrency("R$ 1732,50"), percentual: "12,9%", nomeColaborador: "Mariana Costa" },
-];
-
 const diffDays = (start: string, end: string): number =>
   Math.ceil((new Date(end).getTime() - new Date(start).getTime()) / (1000*60*60*24));
 
@@ -300,6 +304,8 @@ export default function FichaPessoalPage() {
   const [colaboradorOptions, setColaboradorOptions] = useState<Funcionario[]>([]); 
   const [feriasRaw, setFeriasRaw] = useState<FeriasPorEmpresa[]>([]);
   const [feriasData, setFeriasData] = useState<FormattedFerias[]>([]);
+  const [alteracoesRaw, setAlteracoesRaw] = useState<AlteracoesPorEmpresa[]>([]);
+  const [alteracoesData, setAlteracoesData] = useState<FormattedAlteracao[]>([]);
 
   const initialKpiCardData = [
     { title: "Data de Admissão", value: "N/A", tooltipText: "Data de início do colaborador na empresa." },
@@ -352,7 +358,7 @@ export default function FichaPessoalPage() {
 
         const result = (await response.json()) as {
           dados?: EmpresaFicha[];
-          alteracao_salario?: any[];
+          alteracao_salario?: AlteracoesPorEmpresa[];
           ferias?: FeriasPorEmpresa[];
         };
 
@@ -373,6 +379,7 @@ export default function FichaPessoalPage() {
         }
 
         setFeriasRaw(Array.isArray(result.ferias) ? result.ferias : []);
+        setAlteracoesRaw(Array.isArray(result.alteracao_salario) ? result.alteracao_salario : []);
       } catch (err) {
         console.error("Erro ao buscar dados:", err);
         setError(err instanceof Error ? err.message : "Erro desconhecido");
@@ -500,6 +507,34 @@ export default function FichaPessoalPage() {
       setFeriasData([]);
     }
   }, [selectedEmpresa, dados, feriasRaw]);
+
+  useEffect(() => {
+    if (selectedEmpresa && dados) {
+      const emp = dados.find(e => e.nome_empresa.trim() === selectedEmpresa);
+      const rec = emp && alteracoesRaw.find(a => a.id_empresa === emp.id_empresa);
+      if (rec) {
+        setAlteracoesData(rec.alteracoes.map(a => {
+          const anterior = a.salario_anterior ? parseFloat(a.salario_anterior) : null;
+          const novo = parseFloat(a.novo_salario);
+          const perc = anterior
+            ? `${(((novo - anterior) / anterior) * 100).toFixed(1)}%`
+            : "";
+          return {
+            nomeColaborador: a.nome,
+            competencia: formatDateToBR(a.competencia),
+            salarioAnterior: anterior,
+            salarioNovo: novo,
+            motivo: a.motivo === 0 ? "Primeira Contratação" : "Ajuste",
+            percentual: perc,
+          };
+        }));
+      } else {
+        setAlteracoesData([]);
+      }
+    } else {
+      setAlteracoesData([]);
+    }
+  }, [selectedEmpresa, dados, alteracoesRaw]);
 
   return (
     <div className="bg-[#f7f7f8] flex flex-col flex-1 h-full min-h-0">
@@ -633,7 +668,7 @@ export default function FichaPessoalPage() {
           </div>
           <div className="h-full shadow-md overflow-auto min-h-0 rounded-lg">
             <AlteracoesSalariaisDetalheCard
-              alteracoesData={sampleAlteracoesSalariaisDetalheData}
+              alteracoesData={alteracoesData}
               cairoClassName={cairo.className}
               headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")}
               title="Detalhes de Alterações Salariais"
