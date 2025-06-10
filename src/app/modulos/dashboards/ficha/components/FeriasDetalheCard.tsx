@@ -6,6 +6,8 @@ interface FeriasDetalheEntry {
   nomeColaborador: string;
   inicioPeriodoAquisitivo: string;
   fimPeriodoAquisitivo: string;
+  inicioPeriodoGozo: string;
+  fimPeriodoGozo: string;
   limiteParaGozo: string;
   diasDeDireito: number;
   diasGozados: number;
@@ -77,61 +79,72 @@ const FeriasDetalheCard: React.FC<FeriasDetalheCardProps> = ({
           feriasData.slice(0, visibleCount).map((ferias, index) => (
             <div key={index} className="p-3 border border-gray-200 rounded-lg shadow-md bg-white">
               <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+                {/* Linha 1: Funcionário */}
                 <div className="flex flex-col col-span-2">
-                  <span 
-                    className="text-gray-800 font-medium text-sm truncate" 
-                    title={ferias.nomeColaborador}
-                  >
+                  <span className="text-gray-800 font-medium text-sm truncate" title={ferias.nomeColaborador}>
                     {ferias.nomeColaborador}
                   </span>
                   <span className="text-gray-500 font-light text-xs">Funcionário</span>
                 </div>
                 <div className="col-span-2 h-px bg-gray-200"></div>
-                
+
+                {/* Linha 2: Período Aquisitivo */}
                 <div className="flex flex-col">
                   <span className="text-gray-800 font-medium text-sm truncate">
-                    {ferias.inicioPeriodoAquisitivo || "-"}
+                    {ferias.inicioPeriodoAquisitivo}
                   </span>
                   <span className="text-gray-500 font-light text-xs">Início Aquisitivo</span>
                 </div>
-                
                 <div className="flex flex-col">
                   <span className="text-gray-800 font-medium text-sm truncate">
-                    {ferias.fimPeriodoAquisitivo || "-"}
+                    {ferias.fimPeriodoAquisitivo}
                   </span>
                   <span className="text-gray-500 font-light text-xs">Término Aquisitivo</span>
                 </div>
-
-                <div className="col-span-2 h-px bg-gray-200"></div>
-                
-                <div className="flex flex-col">
-                  <span className="text-gray-800 font-medium text-sm truncate">
-                    {ferias.limiteParaGozo || "-"}
-                  </span>
-                  <span className="text-gray-500 font-light text-xs">Data de Vencimento</span>
-                </div>
-
-                <div className="flex flex-col">
-                  <span className="text-gray-800 font-medium text-sm truncate">
-                    {ferias.diasDeSaldo}
-                  </span>
-                  <span className="text-gray-500 font-light text-xs">Dias Restantes</span>
-                </div>
-
                 <div className="col-span-2 h-px bg-gray-200"></div>
 
+                {/* Linha 3: Período de Gozo */}
+                <div className="flex flex-col">
+                  <span className="text-gray-800 font-medium text-sm truncate">
+                    {ferias.inicioPeriodoGozo}
+                  </span>
+                  <span className="text-gray-500 font-light text-xs">Início Gozo</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-gray-800 font-medium text-sm truncate">
+                    {ferias.fimPeriodoGozo}
+                  </span>
+                  <span className="text-gray-500 font-light text-xs">Término Gozo</span>
+                </div>
+                <div className="col-span-2 h-px bg-gray-200"></div>
+
+                {/* Linha 4: Dias totais e usufruídos */}
                 <div className="flex flex-col">
                   <span className="text-gray-800 font-medium text-sm truncate">
                     {ferias.diasDeDireito}
                   </span>
                   <span className="text-gray-500 font-light text-xs">Total de Dias</span>
                 </div>
-
                 <div className="flex flex-col">
                   <span className="text-gray-800 font-medium text-sm truncate">
                     {ferias.diasGozados}
                   </span>
                   <span className="text-gray-500 font-light text-xs">Dias Usufruídos</span>
+                </div>
+                <div className="col-span-2 h-px bg-gray-200"></div>
+
+                {/* Linha 5: Dias restantes e vencimento */}
+                <div className="flex flex-col">
+                  <span className="text-gray-800 font-medium text-sm truncate">
+                    {ferias.diasDeSaldo}
+                  </span>
+                  <span className="text-gray-500 font-light text-xs">Dias Restantes</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-gray-800 font-medium text-sm truncate">
+                    {ferias.limiteParaGozo}
+                  </span>
+                  <span className="text-gray-500 font-light text-xs">Data de Vencimento</span>
                 </div>
               </div>
             </div>

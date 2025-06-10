@@ -54,6 +54,8 @@ interface FormattedFerias {
   nomeColaborador: string;
   inicioPeriodoAquisitivo: string;
   fimPeriodoAquisitivo: string;
+  inicioPeriodoGozo: string;         // adicionado
+  fimPeriodoGozo: string;            // adicionado
   limiteParaGozo: string;
   diasDeDireito: number;
   diasGozados: number;
@@ -494,6 +496,8 @@ export default function FichaPessoalPage() {
           nomeColaborador: f.nome,
           inicioPeriodoAquisitivo: formatDateToBR(f.inicio_aquisitivo),
           fimPeriodoAquisitivo: formatDateToBR(f.fim_aquisitivo),
+          inicioPeriodoGozo: formatDateToBR(f.inicio_gozo),
+          fimPeriodoGozo: formatDateToBR(f.fim_gozo),
           limiteParaGozo: formatDateToBR(f.fim_aquisitivo),
           diasDeDireito: diffDays(f.inicio_aquisitivo, f.fim_aquisitivo),
           diasGozados: diffDays(f.inicio_gozo, f.fim_gozo),

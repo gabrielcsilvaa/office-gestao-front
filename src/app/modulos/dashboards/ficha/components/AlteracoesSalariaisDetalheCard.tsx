@@ -87,59 +87,51 @@ const AlteracoesSalariaisDetalheCard: React.FC<AlteracoesSalariaisDetalheCardPro
           alteracoesData.slice(0, visibleCount).map((alteracao, index) => (
             <div key={index} className="p-3 border border-gray-200 rounded-lg shadow-md bg-white">
               <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-                
-                {/* Colaborador */}
+                {/* Linha 1: nome do funcionário */}
                 <div className="flex flex-col col-span-2">
                   <span className="text-gray-800 font-medium text-sm truncate">
                     {alteracao.nomeColaborador}
                   </span>
                   <span className="text-gray-500 font-light text-xs">Funcionário</span>
                 </div>
-
                 <div className="col-span-2 h-px bg-gray-200"></div>
 
-                {/* Competência */}
+                {/* Linha 2: competência | motivo */}
                 <div className="flex flex-col">
                   <span className="text-gray-800 font-medium text-sm truncate">
                     {alteracao.competencia}
                   </span>
                   <span className="text-gray-500 font-light text-xs">Competência</span>
                 </div>
+                <div className="flex flex-col">
+                  <span className="text-gray-800 font-medium text-sm truncate">
+                    {alteracao.motivo}
+                  </span>
+                  <span className="text-gray-500 font-light text-xs">Motivo</span>
+                </div>
+                <div className="col-span-2 h-px bg-gray-200"></div>
 
-                {/* Salário Anterior */}
+                {/* Linha 3: salário anterior | salário novo */}
                 <div className="flex flex-col">
                   <span className="text-gray-800 font-medium text-sm truncate">
                     {formatCurrency(alteracao.salarioAnterior)}
                   </span>
                   <span className="text-gray-500 font-light text-xs">Salário Anterior</span>
                 </div>
-
-                <div className="col-span-2 h-px bg-gray-200"></div>
-
-                {/* Salário Novo */}
                 <div className="flex flex-col">
                   <span className="text-gray-800 font-medium text-sm truncate">
                     {formatCurrency(alteracao.salarioNovo)}
                   </span>
                   <span className="text-gray-500 font-light text-xs">Salário Novo</span>
                 </div>
-
                 <div className="col-span-2 h-px bg-gray-200"></div>
 
-                {/* Percentual */}
-                <div className="flex flex-col">
+                {/* Linha 4: variação (%) */}
+                <div className="flex flex-col col-span-2">
                   <span className="text-gray-800 font-medium text-sm truncate">
                     {alteracao.percentual || "-"}
                   </span>
                   <span className="text-gray-500 font-light text-xs">Variação (%)</span>
-                </div>
-
-                {/* Motivo */}
-                <div className="flex flex-col">
-                  <span className="text-gray-800 font-medium text-sm truncate">
-                    {alteracao.motivo}
-                  </span>
-                  <span className="text-gray-500 font-light text-xs">Motivo</span>
                 </div>
               </div>
             </div>
