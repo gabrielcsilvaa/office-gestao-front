@@ -462,7 +462,7 @@ export default function FichaPessoalPage() {
 
   return (
     <div className="bg-[#f7f7f8] flex flex-col flex-1 h-full min-h-0">
-      {/* Header - Changed z-[40] to z-10 */}
+      {/* Header */}
       <div className="relative z-10 flex flex-row items-center justify-start gap-8 p-4 border-b border-black/10 bg-gray-100">
         <h1 className={`text-[32px] leading-8 font-700 text-black ${cairo.className}`}>
           Dashboard de Ficha Pessoal
@@ -481,6 +481,10 @@ export default function FichaPessoalPage() {
           onStartDateChange={handleStartDateChange}
           onEndDateChange={handleEndDateChange}
         />
+        {/* Progress bar */}
+        {loading && (
+          <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-500 animate-pulse" />
+        )}
       </div>
 
       {/* Contéudo rolável */}
