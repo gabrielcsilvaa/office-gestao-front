@@ -7,6 +7,15 @@ import Calendar from "@/components/calendar";
 import { formatDate } from "./services/formatDate";
 import Pagination from "./components/pagination";
 import Reload from "@/components/reload";
+import { formatarCpfCnpj, gerarMesesEntreDatas } from "@/utils/formatadores";
+
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
+
+import Image from "next/image";
+import { maxValueContrato } from "./services/maxValorContrato";
+
 const cairo = Cairo({
   weight: ["500", "600", "700"], // Você pode especificar os pesos que deseja (normal e negrito)
   subsets: ["latin"],
@@ -26,7 +35,7 @@ export default function Clientes() {
   //Estados de data
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
-
+  const [meses, setMeses] = useState<string[] | null>(null)
   //Paginação
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
@@ -55,7 +64,8 @@ export default function Clientes() {
     const fetchClientData = async () => {
       try {
         setLoading(true);
-
+        const mesesgerados = gerarMesesEntreDatas(startDate, endDate)
+        setMeses(mesesgerados)
         // Formata as datas antes de enviar
         const formattedStartDate = formatDate(
           startDate ? new Date(startDate) : null
@@ -131,6 +141,369 @@ export default function Clientes() {
     ? Math.ceil(filteredData.length / itemsPerPage)
     : 0;
 
+const exportToPDF = (data: EmpresaAnalise[] | null, fileName: string, meses: string[] | null) => {
+  if (!data || !meses) return;
+
+  // Configurações iniciais do PDF
+  const doc = new jsPDF({
+    orientation: 'landscape',
+    unit: 'mm'
+  });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const margin = 10;
+
+  // Função auxiliar para formatar valores
+  const formatMoney = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', { 
+      style: 'currency', 
+      currency: 'BRL' 
+    }).format(value);
+  };
+
+  const formatTime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Processar cada empresa
+  data.forEach((empresa, index) => {
+    if (index > 0) {
+      doc.addPage('landscape'); // Adiciona nova página para cada empresa após a primeira
+    }
+
+    // Cabeçalho
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text("Relatório de Análise Empresarial", pageWidth / 2, 15, { align: 'center' });
+    
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Empresa: ${empresa.nome_empresa}`, margin, 25);
+    doc.text(`CNPJ: ${formatarCpfCnpj(empresa.cnpj)}`, margin, 30);
+    doc.text(`Data Cadastro: ${empresa.data_cadastro}`, margin, 35);
+    doc.text(`Início Atividades: ${empresa.data_inicio_atv}`, margin, 40);
+    doc.text(`Responsável: ${empresa.responsavel || 'SEM RESPONSÁVEL'}`, margin, 45);
+
+    // Dados calculados (similares aos que você já tem)
+    const faturamentoTotal = meses.reduce((sum, mes) => sum + (empresa.faturamento?.[mes]?.[0] || 0), 0);
+    const atividadesTotal = meses.reduce((sum, mes) => sum + (empresa.atividades?.[mes] || 0), 0);
+    const lancamentosTotal = empresa.importacoes?.total_lancamentos || 0;
+    const lancamentosManuaisTotal = empresa.importacoes?.total_lancamentos_manuais || 0;
+    const empregadosTotal = meses.reduce((sum, mes) => sum + (empresa.empregados?.[mes] || 0), 0);
+    const nfeEmitidasTotal = meses.reduce((sum, mes) => {
+      const servicos = empresa.importacoes?.servicos?.[mes] || 0;
+      const saidas = empresa.importacoes?.saidas?.[mes] || 0;
+      return sum + servicos + saidas;
+    }, 0);
+    const nfeMovimentadasTotal = meses.reduce((sum, mes) => {
+      const entradas = empresa.importacoes?.entradas?.[mes] || 0;
+      const saidas = empresa.importacoes?.saidas?.[mes] || 0;
+      const servicos = empresa.importacoes?.servicos?.[mes] || 0;
+      return sum + entradas + saidas + servicos;
+    }, 0);
+
+    // Cálculo de custo e rentabilidade
+    const custoHora = parseFloat(process.env.NEXT_PUBLIC_CUSTO_HORA || "0");
+    const valorContrato = maxValueContrato(empresa.escritorios || []);
+    let custoTotal = 0;
+    let rentabilidadeTotal = 0;
+
+    // Preparar dados para a tabela
+    const tableData = [
+      ['Faturamento da Empresa', ...meses.map(mes => formatMoney(empresa.faturamento?.[mes]?.[0] || 0)), formatMoney(faturamentoTotal)],
+      ['Variação de Faturamento', ...meses.map(mes => empresa.faturamento?.[mes]?.[1] || '0.00%'), '0.00%'],
+      ['Tempo Gasto no Sistema', ...meses.map(mes => formatTime(empresa.atividades?.[mes] || 0)), formatTime(atividadesTotal)],
+      ['Lançamentos', ...meses.map(mes => empresa.importacoes?.lancamentos?.[mes] || 0), lancamentosTotal],
+      ['% Lançamentos Manuais', ...meses.map(mes => {
+        const manual = empresa.importacoes?.lancamentos_manuais?.[mes] || 0;
+        const normal = empresa.importacoes?.lancamentos?.[mes] || 0;
+        return normal > 0 ? ((manual / normal) * 100).toFixed(2) + '%' : '0.00%';
+      }), lancamentosTotal > 0 ? ((lancamentosManuaisTotal / lancamentosTotal) * 100).toFixed(2) + '%' : '0.00%'],
+      ['Vínculos de Folha Ativos', ...meses.map(mes => empresa.empregados?.[mes] || 0), empregadosTotal],
+      ['Total NF-e Emitidas', ...meses.map(mes => {
+        const servicos = empresa.importacoes?.servicos?.[mes] || 0;
+        const saidas = empresa.importacoes?.saidas?.[mes] || 0;
+        return servicos + saidas;
+      }), nfeEmitidasTotal],
+      ['Total NF-e Movimentadas', ...meses.map(mes => {
+        const entradas = empresa.importacoes?.entradas?.[mes] || 0;
+        const saidas = empresa.importacoes?.saidas?.[mes] || 0;
+        const servicos = empresa.importacoes?.servicos?.[mes] || 0;
+        return entradas + saidas + servicos;
+      }), nfeMovimentadasTotal],
+      ['Faturamento do Escritório', ...meses.map(() => formatMoney(valorContrato)), formatMoney(valorContrato * meses.length)],
+      ['Custo Operacional', ...meses.map(mes => {
+        const segundos = empresa.atividades?.[mes] || 0;
+        const horas = segundos / 3600;
+        const custo = horas * custoHora;
+        custoTotal += custo;
+        return formatMoney(custo);
+      }), formatMoney(custoTotal)],
+      ['Rentabilidade Operacional', ...meses.map(mes => {
+        const segundos = empresa.atividades?.[mes] || 0;
+        const horas = segundos / 3600;
+        const custo = horas * custoHora;
+        const rentabilidade = valorContrato - custo;
+        rentabilidadeTotal += rentabilidade;
+        return formatMoney(rentabilidade);
+      }), formatMoney(rentabilidadeTotal)]
+    ];
+
+    // Configurar cabeçalhos da tabela
+    const headers = ['Métrica', ...meses, 'Total'];
+
+    // Ajustes na tabela
+    autoTable(doc, {
+      startY: 55,
+      head: [headers],
+      body: tableData,
+      theme: 'grid',
+      styles: {
+        font: 'helvetica',
+        fontSize: 7,
+        cellPadding: 2,
+        lineColor: [200, 200, 200],
+        lineWidth: 0.1,
+        textColor: [50, 50, 50],
+        overflow: 'linebreak',
+        halign: 'center', // Centraliza os dados nas células
+      },
+      headStyles: {
+        fillColor: [41, 128, 185],
+        textColor: [255, 255, 255],
+        fontSize: 8,
+        fontStyle: 'bold',
+        halign: 'center'
+      },
+      columnStyles: {
+        0: { cellWidth: 40, fontStyle: 'bold' }, // Ajustando a largura da primeira coluna
+        ...meses.reduce((acc, _, i) => {
+          acc[i + 1] = { cellWidth: 'auto', halign: 'right' }; // Ajustando a largura das colunas de mês
+          return acc;
+        }, {} as Record<number, any>),
+        [meses.length + 1]: { cellWidth: 'auto', halign: 'right' }
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245]
+      },
+      margin: { left: margin, right: margin },
+      didDrawPage: function(data) {
+        doc.setFontSize(8);
+        doc.text(
+          `Página ${data.pageNumber}`,
+          data.settings.margin.left,
+          doc.internal.pageSize.height - 10
+        );
+      }
+    });
+  });
+
+  // Salvar o PDF
+  doc.save(`${fileName}.pdf`);
+};
+
+const exportToExcel = (data: EmpresaAnalise[] | null, fileName: string, meses: string[] | null) => {
+  if (!data || !meses) return;
+
+  // Funções auxiliares de formatação
+  const formatMoney = (value: number) => {
+    return new Intl.NumberFormat('pt-BR', { 
+      style: 'currency', 
+      currency: 'BRL' 
+    }).format(value);
+  };
+
+  const formatTime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Criar os dados para a planilha
+  const rows: any[][] = [];
+  
+  // Adicionar cabeçalho
+  const headerRow = [
+    'Código', 'Nome', 'CNPJ', 'Situação', 'Responsável', 
+    'Data Cadastro', 'Data Início', 'Email', 'Métrica',
+    ...meses, 
+    'Total'
+  ];
+  rows.push(headerRow);
+
+  // Processar cada empresa
+  data.forEach(empresa => {
+    // Dados básicos da empresa
+    const basicInfo = [
+      empresa.codigo_empresa,
+      empresa.nome_empresa,
+      formatarCpfCnpj(empresa.cnpj),
+      empresa.situacao,
+      empresa.responsavel || 'SEM RESPONSÁVEL',
+      empresa.data_cadastro,
+      empresa.data_inicio_atv,
+      empresa.email || ''
+    ];
+
+    // Calcular totais
+    const faturamentoTotal = meses.reduce((sum, mes) => sum + (empresa.faturamento?.[mes]?.[0] || 0), 0);
+    const atividadesTotal = meses.reduce((sum, mes) => sum + (empresa.atividades?.[mes] || 0), 0);
+    const lancamentosTotal = empresa.importacoes?.total_lancamentos || 0;
+    const lancamentosManuaisTotal = empresa.importacoes?.total_lancamentos_manuais || 0;
+    const empregadosTotal = meses.reduce((sum, mes) => sum + (empresa.empregados?.[mes] || 0), 0);
+    const nfeEmitidasTotal = meses.reduce((sum, mes) => {
+      const servicos = empresa.importacoes?.servicos?.[mes] || 0;
+      const saidas = empresa.importacoes?.saidas?.[mes] || 0;
+      return sum + servicos + saidas;
+    }, 0);
+    const nfeMovimentadasTotal = meses.reduce((sum, mes) => {
+      const entradas = empresa.importacoes?.entradas?.[mes] || 0;
+      const saidas = empresa.importacoes?.saidas?.[mes] || 0;
+      const servicos = empresa.importacoes?.servicos?.[mes] || 0;
+      return sum + entradas + saidas + servicos;
+    }, 0);
+
+    // Cálculo de custo e rentabilidade
+    const custoHora = parseFloat(process.env.NEXT_PUBLIC_CUSTO_HORA || "0");
+    const valorContrato = maxValueContrato(empresa.escritorios || []);
+    let custoTotal = 0;
+    let rentabilidadeTotal = 0;
+
+    // Métricas para cada empresa (11 linhas por empresa)
+    const metricas = [
+      {
+        nome: 'Faturamento da Empresa',
+        valores: meses.map(mes => formatMoney(empresa.faturamento?.[mes]?.[0] || 0)),
+        total: formatMoney(faturamentoTotal)
+      },
+      {
+        nome: 'Variação de Faturamento',
+        valores: meses.map(mes => empresa.faturamento?.[mes]?.[1] || '0.00%'),
+        total: '0.00%'
+      },
+      {
+        nome: 'Tempo Gasto no Sistema',
+        valores: meses.map(mes => formatTime(empresa.atividades?.[mes] || 0)),
+        total: formatTime(atividadesTotal)
+      },
+      {
+        nome: 'Lançamentos',
+        valores: meses.map(mes => empresa.importacoes?.lancamentos?.[mes] || 0),
+        total: lancamentosTotal
+      },
+      {
+        nome: '% Lançamentos Manuais',
+        valores: meses.map(mes => {
+          const manual = empresa.importacoes?.lancamentos_manuais?.[mes] || 0;
+          const normal = empresa.importacoes?.lancamentos?.[mes] || 0;
+          return normal > 0 ? ((manual / normal) * 100).toFixed(2) + '%' : '0.00%';
+        }),
+        total: lancamentosTotal > 0 ? ((lancamentosManuaisTotal / lancamentosTotal) * 100).toFixed(2) + '%' : '0.00%'
+      },
+      {
+        nome: 'Vínculos de Folha Ativos',
+        valores: meses.map(mes => empresa.empregados?.[mes] || 0),
+        total: empregadosTotal
+      },
+      {
+        nome: 'Total NF-e Emitidas',
+        valores: meses.map(mes => {
+          const servicos = empresa.importacoes?.servicos?.[mes] || 0;
+          const saidas = empresa.importacoes?.saidas?.[mes] || 0;
+          return servicos + saidas;
+        }),
+        total: nfeEmitidasTotal
+      },
+      {
+        nome: 'Total NF-e Movimentadas',
+        valores: meses.map(mes => {
+          const entradas = empresa.importacoes?.entradas?.[mes] || 0;
+          const saidas = empresa.importacoes?.saidas?.[mes] || 0;
+          const servicos = empresa.importacoes?.servicos?.[mes] || 0;
+          return entradas + saidas + servicos;
+        }),
+        total: nfeMovimentadasTotal
+      },
+      {
+        nome: 'Faturamento do Escritório',
+        valores: meses.map(() => formatMoney(valorContrato)),
+        total: formatMoney(valorContrato * meses.length)
+      },
+      {
+        nome: 'Custo Operacional',
+        valores: meses.map(mes => {
+          const segundos = empresa.atividades?.[mes] || 0;
+          const horas = segundos / 3600;
+          const custo = horas * custoHora;
+          custoTotal += custo;
+          return formatMoney(custo);
+        }),
+        total: formatMoney(custoTotal)
+      },
+      {
+        nome: 'Rentabilidade Operacional',
+        valores: meses.map(mes => {
+          const segundos = empresa.atividades?.[mes] || 0;
+          const horas = segundos / 3600;
+          const custo = horas * custoHora;
+          const rentabilidade = valorContrato - custo;
+          rentabilidadeTotal += rentabilidade;
+          return formatMoney(rentabilidade);
+        }),
+        total: formatMoney(rentabilidadeTotal)
+      }
+    ];
+
+    // Adicionar linhas para cada métrica
+    metricas.forEach(metrica => {
+      const row = [
+        ...basicInfo,              // Dados básicos repetidos
+        metrica.nome,              // Nome da métrica
+        ...metrica.valores,        // Valores mensais
+        metrica.total              // Valor total
+      ];
+      rows.push(row);
+    });
+
+    // Adicionar linha em branco entre empresas
+    rows.push(Array(headerRow.length).fill(''));
+  });
+
+  // Criar a planilha Excel
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Análise Empresas");
+
+  // Configurar largura das colunas
+  const colWidths = [
+    { wch: 10 },  // Código
+    { wch: 30 },  // Nome
+    { wch: 20 },  // CNPJ
+    { wch: 10 },  // Situação
+    { wch: 25 },  // Responsável
+    { wch: 15 },  // Data Cadastro
+    { wch: 15 },  // Data Início
+    { wch: 25 },  // Email
+    { wch: 30 },  // Métrica
+    ...meses.map(() => ({ wch: 15 })), // Colunas mensais
+    { wch: 15 }   // Total
+  ];
+  ws['!cols'] = colWidths;
+
+  // Estilização básica (cabeçalhos em negrito)
+  const headerStyle = { font: { bold: true }, fill: { fgColor: { rgb: "295f8d" } } };
+  for (let col = 0; col < headerRow.length; col++) {
+    const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
+    if (!ws[cellAddress]) continue;
+    ws[cellAddress].s = headerStyle;
+  }
+
+  // Exportar o arquivo
+  XLSX.writeFile(wb, `${fileName}.xlsx`);
+};
   return (
     <div className="max-h-screen bg-gray-100">
       <div className="h-[70px] flex flex-row items-end pl-4 gap-8 border-b border-black/10 bg-gray-100">
@@ -142,19 +515,52 @@ export default function Clientes() {
           </h1>
 
           <div className="flex items-center gap-2 ml-4 mr-8 w-full">
-            {/* SELEÇÃO DE DATAS  */}
-            <Calendar
-              onStartDateChange={handleStartDateChange}
-              onEndDateChange={handleEndDateChange}
-            />
             <input
               type="text"
               id="inputText"
               value={value}
               onChange={handleChange}
-              className={`${cairo.className} bg-white border-2 border-gray-300 w-[16vw] p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400 ml-auto`}
+              className={`${cairo.className} bg-white border shadow-lg border-gray-400 w-[16vw] h-[38px] p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400`}
               placeholder="Buscar Empresa"
             />
+            {/* SELEÇÃO DE DATAS  */}
+            <Calendar
+              onStartDateChange={handleStartDateChange}
+              onEndDateChange={handleEndDateChange}
+            />
+            <div className="flex gap-4 ml-auto">
+              <button
+                onClick={() =>
+                  exportToPDF(filteredData, "Empresas_Regime_Tributario", meses)
+                }
+                className="p-1 rounded border border-gray-300 cursor-pointer bg-white  hover:bg-green-100 mt-auto"
+                style={{ width: 36, height: 36 }}
+              >
+                <Image
+                  src="/assets/icons/pdf.svg"
+                  alt="Ícone PDF"
+                  width={24}
+                  height={24}
+                  draggable={false}
+                />
+              </button>
+
+              <button
+                onClick={() =>
+                  exportToExcel(filteredData, "Empresas_Regime_Tributario", meses)
+                }
+                className="p-1 rounded border border-gray-300 cursor-pointer bg-white  hover:bg-green-100 mt-auto"
+                style={{ width: 36, height: 36 }}
+              >
+                <Image
+                  src="/assets/icons/excel.svg"
+                  alt="Ícone Excel"
+                  width={24}
+                  height={24}
+                  draggable={false}
+                />
+              </button>
+            </div>
           </div>
         </div>
       </div>
