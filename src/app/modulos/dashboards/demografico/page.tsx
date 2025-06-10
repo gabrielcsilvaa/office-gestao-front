@@ -190,7 +190,7 @@ export default function Demografico() {
         <div className="w-full lg:w-1/2  bg-white rounded shadow">
           <GraficoCargo />
         </div>
-      </div>
+      </div> 
     </div>
   );
 }

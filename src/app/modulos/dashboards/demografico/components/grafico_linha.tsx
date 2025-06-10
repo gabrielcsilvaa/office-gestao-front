@@ -43,7 +43,7 @@ export default function GraficoLinha() {
     }
 
     return () => {
-      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener("keydown", handleKeyDown); 
     };
   }, [isModalOpen, handleKeyDown]);
 
@@ -53,6 +53,7 @@ export default function GraficoLinha() {
         {/* Botão de maximizar */}
         <button
           onClick={() => setIsModalOpen(true)}
+
           className="absolute top-2 right-2 z-10"
         >
           <Image
@@ -100,6 +101,8 @@ export default function GraficoLinha() {
             >
               ✕
             </button>
+            
+            
 
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={dadosMock}>
@@ -123,3 +126,5 @@ export default function GraficoLinha() {
     </>
   );
 }
+
+
