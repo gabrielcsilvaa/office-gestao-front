@@ -1,4 +1,6 @@
-import React from 'react';
+"use client";
+
+import React, { useState, useRef } from 'react';
 import Image from 'next/image'; // Import Image
 
 interface Afastamento {
@@ -22,6 +24,17 @@ interface AfastamentosTableProps {
 }
 
 const AfastamentosTable: React.FC<AfastamentosTableProps> = ({ afastamentosData, cairoClassName, headerIcons }) => {
+  const [visibleCount, setVisibleCount] = useState(10);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleScroll = () => {
+    const el = containerRef.current;
+    if (!el) return;
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 1) {
+      setVisibleCount(prev => Math.min(prev + 10, afastamentosData.length));
+    }
+  };
+
   return (
     <div className="w-full bg-white rounded-lg relative flex flex-col overflow-hidden h-full">
       {/* Barra vertical cinza - igual aos outros cards da página de ficha */}
@@ -53,9 +66,13 @@ const AfastamentosTable: React.FC<AfastamentosTableProps> = ({ afastamentosData,
       </div>
 
       {/* Content Area */}
-      <div className={`flex-1 overflow-y-auto min-h-0 space-y-4 pl-4 pr-1 pb-4 ${cairoClassName}`}>
+      <div
+        ref={containerRef}
+        onScroll={handleScroll}
+        className={`flex-1 overflow-y-auto min-h-0 space-y-4 pl-4 pr-1 pb-4 ${cairoClassName}`}
+      >
         {afastamentosData.length > 0 ? (
-          afastamentosData.map((afastamento, index) => (
+          afastamentosData.slice(0, visibleCount).map((afastamento, index) => (
             <div key={index} className="p-3 border border-gray-200 rounded-lg shadow-md bg-white">
               <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                 

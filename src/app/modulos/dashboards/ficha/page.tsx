@@ -28,6 +28,7 @@ interface Funcionario {
   escolaridade?: string;
   admissao?: string;
   salario?: string;
+  afastamentos?: AfastamentoEntryRaw[];
 }
 
 interface EmpresaFicha {
@@ -81,6 +82,21 @@ interface FormattedAlteracao {
   salarioNovo: number;
   motivo: string;
   percentual: string;
+}
+
+interface AfastamentoEntryRaw {
+  data_inicial: string;
+  data_final: string | null;
+  num_dias: string;
+  tipo: string;
+}
+
+interface Afastamento {
+  inicio: string;
+  termino: string;
+  diasAfastados: string;
+  tipo: string;
+  nomeColaborador: string;
 }
 
 export const formatDate = (date: Date | null) => {
@@ -253,23 +269,6 @@ const atestadosDataRaw = [
   { vencimento: "03/04/2020", dataExame: "03/04/2019", resultado: "Apto com restrições", tipo: "Periódico", nomeColaborador: "Mariana Costa" },
 ];
 
-const mockAfastamentosRaw = [
-  { inicio: "13/08/2015", termino: "10/12/2015", tipo: "Licença maternidade", diasAfastados: "120", nomeColaborador: "João Silva" },
-  { inicio: "01/01/2016", termino: "03/01/2016", tipo: "Doença período igual ou inferior a 15 dias", diasAfastados: "3", nomeColaborador: "Maria Oliveira" },
-  { inicio: "21/09/2015", termino: "18/01/2016", tipo: "Licença maternidade", diasAfastados: "120", nomeColaborador: "Carlos Pereira" },
-  { inicio: "04/01/2016", termino: "04/01/2016", tipo: "Doença período igual ou inferior a 15 dias", diasAfastados: "1", nomeColaborador: "Ana Costa" },
-  { inicio: "10/03/2017", termino: "25/03/2017", tipo: "Licença paternidade", diasAfastados: "15", nomeColaborador: "Lucas Martins" },
-  { inicio: "05/06/2018", termino: "05/07/2018", tipo: "Férias", diasAfastados: "30", nomeColaborador: "Beatriz Souza" },
-  { inicio: "15/09/2019", termino: "20/09/2019", tipo: "Doença período igual ou inferior a 15 dias", diasAfastados: "5", nomeColaborador: "Rafael Lima" },
-  { inicio: "01/02/2020", termino: "15/02/2020", tipo: "Acidente de trabalho", diasAfastados: "14", nomeColaborador: "Juliana Alves" },
-  { inicio: "10/07/2021", termino: "10/08/2021", tipo: "Licença não remunerada", diasAfastados: "31", nomeColaborador: "Fernando Rocha" },
-  { inicio: "03/11/2021", termino: "03/11/2021", tipo: "Atestado médico", diasAfastados: "1", nomeColaborador: "Camila Santos" },
-  { inicio: "20/01/2022", termino: "20/04/2022", tipo: "Licença maternidade", diasAfastados: "90", nomeColaborador: "Gustavo Mendes" },
-  { inicio: "05/05/2022", termino: "10/05/2022", tipo: "Doença período igual ou inferior a 15 dias", diasAfastados: "5", nomeColaborador: "Patrícia Ribeiro" },
-  { inicio: "01/08/2023", termino: "15/08/2023", tipo: "Férias", diasAfastados: "15", nomeColaborador: "Roberto Silva" },
-  { inicio: "10/10/2023", termino: "12/10/2023", tipo: "Atestado médico", diasAfastados: "3", nomeColaborador: "Mariana Costa" },
-];
-
 const mockContratosRaw = [
   { id: "1", empresa: "Empresa Alpha", colaborador: "João Silva", dataAdmissao: "01/01/2020", dataRescisao: "31/12/2021", salarioBase: "R$ 3.500,00" },
   { id: "2", empresa: "Empresa Alpha", colaborador: "João Silva", dataAdmissao: "15/01/2022", salarioBase: "R$ 3.800,00" },
@@ -308,6 +307,7 @@ export default function FichaPessoalPage() {
   const [feriasData, setFeriasData] = useState<FormattedFerias[]>([]);
   const [alteracoesRaw, setAlteracoesRaw] = useState<AlteracoesPorEmpresa[]>([]);
   const [alteracoesData, setAlteracoesData] = useState<FormattedAlteracao[]>([]);
+  const [afastamentosData, setAfastamentosData] = useState<Afastamento[]>([]);
 
   const initialKpiCardData = [
     { title: "Data de Admissão", value: "N/A", tooltipText: "Data de início do colaborador na empresa." },
@@ -473,16 +473,12 @@ export default function FichaPessoalPage() {
     const atestadoPlaceholder = () => ({
       vencimento: "", dataExame: "", resultado: "", tipo: "", nomeColaborador: ""
     });
-    const afastamentoPlaceholder = () => ({
-      inicio: "", termino: "", tipo: "", diasAfastados: "", nomeColaborador: ""
-    });
     const contratoPlaceholder = (index: number) => ({
       id: `placeholder-${index}`, empresa: "", colaborador: "", dataAdmissao: "", dataRescisao: "", salarioBase: ""
     });
 
     return {
       atestados: padArray(atestadosDataRaw, targetLength, atestadoPlaceholder),
-      afastamentos: padArray(mockAfastamentosRaw, targetLength, afastamentoPlaceholder),
       contratos: padArray(mockContratosRaw, targetLength, contratoPlaceholder),
     };
   }, []);
@@ -492,7 +488,7 @@ export default function FichaPessoalPage() {
       const emp = dados.find(e => e.nome_empresa.trim() === selectedEmpresa);
       const rec = emp && feriasRaw.find(f => f.id_empresa === emp.id_empresa);
       if (rec) {
-        setFeriasData(rec.ferias.map(f => ({
+        const feriasFormatadas = rec.ferias.map(f => ({
           nomeColaborador: f.nome,
           inicioPeriodoAquisitivo: formatDateToBR(f.inicio_aquisitivo),
           fimPeriodoAquisitivo: formatDateToBR(f.fim_aquisitivo),
@@ -503,7 +499,40 @@ export default function FichaPessoalPage() {
           diasGozados: diffDays(f.inicio_gozo, f.fim_gozo),
           diasDeSaldo: diffDays(f.inicio_aquisitivo, f.fim_aquisitivo)
             - diffDays(f.inicio_gozo, f.fim_gozo),
-        })));
+          // Manter as datas originais para ordenação
+          _dataVencimento: f.fim_aquisitivo,
+          _dataInicioAquisitivo: f.inicio_aquisitivo,
+        }));
+
+        // Aplicar ordenação multi-critério
+        feriasFormatadas.sort((a, b) => {
+          // 1º critério: Nome do funcionário (alfabética)
+          const nomeComparison = a.nomeColaborador.localeCompare(b.nomeColaborador);
+          if (nomeComparison !== 0) return nomeComparison;
+
+          // 2º critério: Data de vencimento (mais urgente primeiro)
+          try {
+            const dataVencimentoA = new Date(a._dataVencimento);
+            const dataVencimentoB = new Date(b._dataVencimento);
+            const vencimentoComparison = dataVencimentoA.getTime() - dataVencimentoB.getTime();
+            if (vencimentoComparison !== 0) return vencimentoComparison;
+          } catch (e) {
+            // Em caso de erro na conversão de data, continua para o próximo critério
+          }
+
+          // 3º critério: Data de início do período aquisitivo (mais antigo primeiro)
+          try {
+            const dataInicioA = new Date(a._dataInicioAquisitivo);
+            const dataInicioB = new Date(b._dataInicioAquisitivo);
+            return dataInicioA.getTime() - dataInicioB.getTime();
+          } catch (e) {
+            return 0;
+          }
+        });
+
+        // Remover as propriedades auxiliares antes de definir o estado
+        const feriasLimpas = feriasFormatadas.map(({ _dataVencimento, _dataInicioAquisitivo, ...ferias }) => ferias);
+        setFeriasData(feriasLimpas);
       } else {
         setFeriasData([]);
       }
@@ -517,7 +546,7 @@ export default function FichaPessoalPage() {
       const emp = dados.find(e => e.nome_empresa.trim() === selectedEmpresa);
       const rec = emp && alteracoesRaw.find(a => a.id_empresa === emp.id_empresa);
       if (rec) {
-        setAlteracoesData(rec.alteracoes.map(a => {
+        const alteracoesFormatadas = rec.alteracoes.map(a => {
           const anterior = a.salario_anterior ? parseFloat(a.salario_anterior) : null;
           const novo = parseFloat(a.novo_salario);
           const perc = anterior
@@ -530,8 +559,34 @@ export default function FichaPessoalPage() {
             salarioNovo: novo,
             motivo: a.motivo === 0 ? "Primeira Contratação" : "Ajuste",
             percentual: perc,
+            // Manter a data original para ordenação
+            _dataCompetencia: a.competencia,
           };
-        }));
+        });
+
+        // Aplicar ordenação multi-critério
+        alteracoesFormatadas.sort((a, b) => {
+          // 1º critério: Nome do funcionário (alfabética)
+          const nomeComparison = a.nomeColaborador.localeCompare(b.nomeColaborador);
+          if (nomeComparison !== 0) return nomeComparison;
+
+          // 2º critério: Data da competência (mais recente primeiro)
+          try {
+            const dataCompetenciaA = new Date(a._dataCompetencia);
+            const dataCompetenciaB = new Date(b._dataCompetencia);
+            const competenciaComparison = dataCompetenciaB.getTime() - dataCompetenciaA.getTime();
+            if (competenciaComparison !== 0) return competenciaComparison;
+          } catch (e) {
+            // Em caso de erro na conversão de data, continua para o próximo critério
+          }
+
+          // 3º critério: Valor do salário novo (maior para menor)
+          return b.salarioNovo - a.salarioNovo;
+        });
+
+        // Remover a propriedade auxiliar antes de definir o estado
+        const alteracoesLimpas = alteracoesFormatadas.map(({ _dataCompetencia, ...alteracao }) => alteracao);
+        setAlteracoesData(alteracoesLimpas);
       } else {
         setAlteracoesData([]);
       }
@@ -539,6 +594,40 @@ export default function FichaPessoalPage() {
       setAlteracoesData([]);
     }
   }, [selectedEmpresa, dados, alteracoesRaw]);
+
+  useEffect(() => {
+    if (selectedEmpresa && dados) {
+      const empresaSelecionada = dados.find(
+        (emp) => emp.nome_empresa.trim() === selectedEmpresa
+      );
+
+      if (empresaSelecionada && empresaSelecionada.funcionarios) {
+        const todosAfastamentosDaEmpresa: Afastamento[] = [];
+        empresaSelecionada.funcionarios.forEach((funcionario) => {
+          if (funcionario.afastamentos && funcionario.afastamentos.length > 0) {
+            const afastamentosDoFuncionario = funcionario.afastamentos.map(
+              (a) => ({
+                inicio: formatDateToBR(a.data_inicial),
+                termino: a.data_final ? formatDateToBR(a.data_final) : "N/A",
+                diasAfastados: parseFloat(a.num_dias).toString(),
+                tipo: a.tipo,
+                nomeColaborador: funcionario.nome, // Use o nome do funcionário do loop
+              })
+            );
+            todosAfastamentosDaEmpresa.push(...afastamentosDoFuncionario);
+          }
+        });
+        // Opcional: Ordenar os afastamentos por data de início, se desejado
+        // todosAfastamentosDaEmpresa.sort((a, b) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime());
+        setAfastamentosData(todosAfastamentosDaEmpresa);
+      } else {
+        setAfastamentosData([]);
+      }
+    } else {
+      // Se nenhuma empresa estiver selecionada, limpa os dados de afastamento
+      setAfastamentosData([]);
+    }
+  }, [selectedEmpresa, dados]); // Depende apenas de selectedEmpresa e dados
 
   return (
     <div className="bg-[#f7f7f8] flex flex-col flex-1 h-full min-h-0">
@@ -634,7 +723,7 @@ export default function FichaPessoalPage() {
         </div>
 
         {/* Tabelas */}
-        <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6 h-[350px]"> 
+        <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6 h-[450px]"> 
           <div className="lg:col-span-1 h-full shadow-md overflow-auto min-h-0 rounded-lg">
             <AtestadosTable 
               atestadosData={processedTableData.atestados} 
@@ -645,7 +734,7 @@ export default function FichaPessoalPage() {
 
           <div className="lg:col-span-1 h-full shadow-md overflow-auto min-h-0 rounded-lg">
             <AfastamentosTable 
-              afastamentosData={processedTableData.afastamentos} 
+              afastamentosData={afastamentosData}
               cairoClassName={cairo.className} 
               headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")}
             />
