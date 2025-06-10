@@ -29,6 +29,7 @@ interface Funcionario {
   admissao?: string;
   salario?: string;
   afastamentos?: AfastamentoEntryRaw[];
+  exames?: ExameEntryRaw[];
 }
 
 interface EmpresaFicha {
@@ -95,6 +96,21 @@ interface Afastamento {
   inicio: string;
   termino: string;
   diasAfastados: string;
+  tipo: string;
+  nomeColaborador: string;
+}
+
+interface ExameEntryRaw {
+  data_exame: string;
+  data_vencimento: string;
+  resultado: string;
+  tipo: string;
+}
+
+interface Exame {
+  vencimento: string;
+  dataExame: string;
+  resultado: string;
   tipo: string;
   nomeColaborador: string;
 }
@@ -252,23 +268,6 @@ const valorPorGrupoDataFicha = [
   { name: "Empréstimo Consignado (Desconto)", value: -400.00 },
 ];
 
-const atestadosDataRaw = [
-  { vencimento: "30/10/2023", dataExame: "30/10/2021", resultado: "Apto", tipo: "Admissional", nomeColaborador: "João Silva" },
-  { vencimento: "06/01/2023", dataExame: "07/01/2022", resultado: "Apto", tipo: "Periódico", nomeColaborador: "Maria Oliveira" },
-  { vencimento: "22/12/2022", dataExame: "23/12/2021", resultado: "Apto", tipo: "Mudança de Função", nomeColaborador: "Carlos Pereira" },
-  { vencimento: "12/12/2022", dataExame: "13/12/2021", resultado: "Apto", tipo: "Retorno ao Trabalho", nomeColaborador: "Ana Costa" },
-  { vencimento: "07/11/2022", dataExame: "08/11/2021", resultado: "Apto", tipo: "Demissional", nomeColaborador: "Lucas Martins" },
-  { vencimento: "27/02/2013", dataExame: "28/02/2012", resultado: "Apto", tipo: "Periódico", nomeColaborador: "Beatriz Souza" },
-  { vencimento: "15/05/2024", dataExame: "15/05/2023", resultado: "Apto", tipo: "Periódico", nomeColaborador: "Rafael Lima" },
-  { vencimento: "10/08/2023", dataExame: "10/08/2022", resultado: "Inapto", tipo: "Periódico", nomeColaborador: "Juliana Alves" },
-  { vencimento: "20/03/2023", dataExame: "20/03/2022", resultado: "Apto com restrições", tipo: "Mudança de Função", nomeColaborador: "Fernando Rocha" },
-  { vencimento: "05/07/2022", dataExame: "05/07/2021", resultado: "Apto", tipo: "Retorno ao Trabalho", nomeColaborador: "Camila Santos" },
-  { vencimento: "14/02/2022", dataExame: "14/02/2020", resultado: "Apto", tipo: "Admissional", nomeColaborador: "Gustavo Mendes" },
-  { vencimento: "18/09/2021", dataExame: "18/09/2020", resultado: "Apto", tipo: "Periódico", nomeColaborador: "Patrícia Ribeiro" },
-  { vencimento: "25/11/2020", dataExame: "25/11/2019", resultado: "Apto", tipo: "Demissional", nomeColaborador: "Roberto Silva" },
-  { vencimento: "03/04/2020", dataExame: "03/04/2019", resultado: "Apto com restrições", tipo: "Periódico", nomeColaborador: "Mariana Costa" },
-];
-
 const mockContratosRaw = [
   { id: "1", empresa: "Empresa Alpha", colaborador: "João Silva", dataAdmissao: "01/01/2020", dataRescisao: "31/12/2021", salarioBase: "R$ 3.500,00" },
   { id: "2", empresa: "Empresa Alpha", colaborador: "João Silva", dataAdmissao: "15/01/2022", salarioBase: "R$ 3.800,00" },
@@ -308,6 +307,7 @@ export default function FichaPessoalPage() {
   const [alteracoesRaw, setAlteracoesRaw] = useState<AlteracoesPorEmpresa[]>([]);
   const [alteracoesData, setAlteracoesData] = useState<FormattedAlteracao[]>([]);
   const [afastamentosData, setAfastamentosData] = useState<Afastamento[]>([]);
+  const [examesData, setExamesData] = useState<Exame[]>([]);
 
   const initialKpiCardData = [
     { title: "Data de Admissão", value: "N/A", tooltipText: "Data de início do colaborador na empresa." },
@@ -369,6 +369,21 @@ export default function FichaPessoalPage() {
         // rawDados tipado como EmpresaFicha[]
         const rawDados: EmpresaFicha[] = Array.isArray(result.dados) ? result.dados : [];
         setDados(rawDados);
+
+        // Console.log para exibir funcionários com exames não vazios
+        if (rawDados.length > 0) {
+          const funcionariosComExames = rawDados.flatMap(empresa => 
+            empresa.funcionarios?.filter(funcionario => 
+              funcionario.exames && funcionario.exames.length > 0
+            ) || []
+          );
+          
+          if (funcionariosComExames.length > 0) {
+            console.log("Funcionários com exames:", funcionariosComExames);
+          } else {
+            console.log("Nenhum funcionário possui exames registrados");
+          }
+        }
 
         if (rawDados.length > 0) {
           // agora item é do tipo EmpresaFicha e uniqueEmpresas é string[]
@@ -470,18 +485,60 @@ export default function FichaPessoalPage() {
       return [...arr, ...placeholders];
     };
 
-    const atestadoPlaceholder = () => ({
-      vencimento: "", dataExame: "", resultado: "", tipo: "", nomeColaborador: ""
-    });
     const contratoPlaceholder = (index: number) => ({
       id: `placeholder-${index}`, empresa: "", colaborador: "", dataAdmissao: "", dataRescisao: "", salarioBase: ""
     });
 
     return {
-      atestados: padArray(atestadosDataRaw, targetLength, atestadoPlaceholder),
       contratos: padArray(mockContratosRaw, targetLength, contratoPlaceholder),
     };
   }, []);
+
+  useEffect(() => {
+    if (selectedEmpresa && dados) {
+      const empresaSelecionada = dados.find(
+        (emp) => emp.nome_empresa.trim() === selectedEmpresa
+      );
+
+      if (empresaSelecionada && empresaSelecionada.funcionarios) {
+        const todosExamesDaEmpresa: Exame[] = [];
+        empresaSelecionada.funcionarios.forEach((funcionario) => {
+          if (funcionario.exames && funcionario.exames.length > 0) {
+            const examesDoFuncionario = funcionario.exames.map(
+              (e) => ({
+                vencimento: formatDateToBR(e.data_vencimento),
+                dataExame: formatDateToBR(e.data_exame),
+                resultado: e.resultado,
+                tipo: e.tipo,
+                nomeColaborador: funcionario.nome,
+              })
+            );
+            todosExamesDaEmpresa.push(...examesDoFuncionario);
+          }
+        });
+        
+        // Ordenar exames: 1º por nome, 2º por data de vencimento (mais urgente primeiro)
+        todosExamesDaEmpresa.sort((a, b) => {
+          const nomeComparison = a.nomeColaborador.localeCompare(b.nomeColaborador);
+          if (nomeComparison !== 0) return nomeComparison;
+          
+          try {
+            const dataA = new Date(a.vencimento.split('/').reverse().join('-'));
+            const dataB = new Date(b.vencimento.split('/').reverse().join('-'));
+            return dataA.getTime() - dataB.getTime();
+          } catch (e) {
+            return 0;
+          }
+        });
+        
+        setExamesData(todosExamesDaEmpresa);
+      } else {
+        setExamesData([]);
+      }
+    } else {
+      setExamesData([]);
+    }
+  }, [selectedEmpresa, dados]);
 
   useEffect(() => {
     if (selectedEmpresa && dados) {
@@ -726,9 +783,10 @@ export default function FichaPessoalPage() {
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6 h-[450px]"> 
           <div className="lg:col-span-1 h-full shadow-md overflow-auto min-h-0 rounded-lg">
             <AtestadosTable 
-              atestadosData={processedTableData.atestados} 
+              atestadosData={examesData} 
               cairoClassName={cairo.className} 
               headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")}
+              title="Histórico de Exames"
             />
           </div>
 

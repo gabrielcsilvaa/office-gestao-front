@@ -84,7 +84,7 @@ const AfastamentosTable: React.FC<AfastamentosTableProps> = ({ afastamentosData,
                   >
                     {afastamento.nomeColaborador || "-"}
                   </span>
-                  <span className="text-gray-500 font-light text-xs">Colaborador</span>
+                  <span className="text-gray-500 font-light text-xs">Funcionário</span>
                 </div>
                 <div className="col-span-2 h-px bg-gray-200"></div> {/* Separator line after collaborator */}
                 
