@@ -314,12 +314,12 @@ export default function FichaPessoalPage() {
       try {
         setLoading(true);
         setError(null);
-        setEmpresaOptions([]); 
-        setColaboradorOptions([]); 
-        setSelectedColaborador(""); 
+        setEmpresaOptions([]);
+        setColaboradorOptions([]);
+        setSelectedColaborador("");
 
         if (!startDate || !endDate) {
-          setDados(null); 
+          setDados(null);
           return;
         }
 
@@ -338,25 +338,23 @@ export default function FichaPessoalPage() {
           },
           body: JSON.stringify(body),
         });
+        if (!response.ok) throw new Error(`Erro na API: ${response.statusText}`);
 
-        if (!response.ok) {
-          throw new Error(`Erro na API: ${response.statusText}`);
+        const result = (await response.json()) as { dados?: EmpresaFicha[] };  // tipagem esperada
+
+        // rawDados tipado como EmpresaFicha[]
+        const rawDados: EmpresaFicha[] = Array.isArray(result.dados) ? result.dados : [];
+        setDados(rawDados);
+
+        if (rawDados.length > 0) {
+          // agora item é do tipo EmpresaFicha e uniqueEmpresas é string[]
+          const uniqueEmpresas: string[] = Array.from(
+            new Set(rawDados.map((item) => item.nome_empresa.trim()))
+          ).sort();
+          setEmpresaOptions(uniqueEmpresas);
+        } else {
+          setEmpresaOptions([]);
         }
-
-        const data = await response.json();
-        console.log("Dados recebidos:", data);
-        
-      setDados(data); // Armazena os dados recebidos
-
-      if (Array.isArray(data) && data.length > 0) {
-        const uniqueEmpresas = Array.from(
-          new Set(data.map((item: EmpresaFicha) => item.nome_empresa.trim()))
-        ).sort();
-        setEmpresaOptions(uniqueEmpresas);
-      } else {
-        setEmpresaOptions([]);
-      }
-
       } catch (err) {
         console.error("Erro ao buscar dados:", err);
         setError(err instanceof Error ? err.message : "Erro desconhecido");
