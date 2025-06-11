@@ -78,8 +78,9 @@ interface EmpresaCompletaNovosCliente {
 interface Socio {
   id: number;
   nome: string;
+  cnpj: string;
   data_nascimento: string;
-  idade?: number; // Tornando idade opcional já que vamos calculá-la
+  idade?: number;
 }
 
 export default function Carteira() {
