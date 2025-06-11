@@ -1,7 +1,10 @@
+"use client"
 import Link from "next/link";
 import Image from "next/image";
 import "../../app/globals.css";
 import { Cairo } from "next/font/google";
+import { useRouter } from 'next/navigation';
+
 
 import { useState, useEffect } from "react";
 // Fonte Cairo configurada
@@ -142,6 +145,11 @@ export function Header() {
 }
 
 export function Header2() {
+  const router = useRouter(); 
+
+  const handleLogout = () => {
+    router.push("/")
+  }
   return (
     <header className="flex items-center p-2 h-12 bg-white border-[1px] border-[#E5E5E5]">
       <nav className="flex w-full justify-between items-center">
@@ -151,19 +159,26 @@ export function Header2() {
           Módulo Gestão
         </span>
 
-        <div className="flex gap-2 ml-auto">
+        <div className="flex gap-2 ml-auto cursor-pointer">
+          <Image
+            src="/assets/icons/exit.svg"
+            alt="Ícone de logout"
+            width={35}
+            height={35}
+            onClick={handleLogout}  // Chama a função de logout ao clicar
+          />
           <Image
             src="/assets/icons/Frame 33.svg"
             alt="Ícone"
             width={35}
             height={35}
           />
-          <Image
+          {/* <Image
             src="/assets/icons/Frame 34.svg"
             alt="Ícone"
             width={35}
             height={35}
-          />
+          /> */}
           <Image
             src="/assets/icons/Frame 35.svg"
             alt="Ícone"
