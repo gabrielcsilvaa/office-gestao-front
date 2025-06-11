@@ -13,6 +13,7 @@ import autoTable from 'jspdf-autotable';
 interface Importacoes {
   lancamentos: Record<string, number>;
   porcentagem_lancamentos_manuais: Record<string, string>;
+  entradas:Record<string, number>;
   saidas: Record<string, number>;
   servicos: Record<string, number>;
   total_geral: number;
@@ -360,21 +361,25 @@ export default function Escritorio() {
         ...meses.map((mes) => {
           const servicos = escritorioSelecionado.importacoes.servicos;
           const saidas = escritorioSelecionado.importacoes.saidas;
+          const entradas = escritorioSelecionado.importacoes.entradas
 
           const servicosValor = servicos[mes] || 0; 
           const saidasValor = saidas[mes] || 0; 
+          const entradasValor = entradas[mes] || 0;
 
-          return String(servicosValor + saidasValor || 0); 
+          return String(servicosValor + saidasValor + entradasValor || 0); 
         }),
         (() => {
           const servicos = escritorioSelecionado.importacoes.servicos;
           const saidas = escritorioSelecionado.importacoes.saidas;
+          const entradas = escritorioSelecionado.importacoes.entradas
 
           let soma = 0;
           meses.forEach((mes) => {
             const servicosValor = servicos[mes] || 0; 
             const saidasValor = saidas[mes] || 0; 
-            soma += servicosValor + saidasValor;
+            const entradasValor = entradas[mes] || 0;
+            soma += servicosValor + saidasValor + entradasValor;
           });
 
           return soma.toLocaleString("pt-BR");
