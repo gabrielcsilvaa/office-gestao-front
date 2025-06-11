@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { UserList } from "../interfaces/interface";
 import { Cairo } from "next/font/google";
+import Image from "next/image";
+
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
@@ -31,6 +36,154 @@ export default function ListaUsuario({
   >("todos");
   const [filtroTexto, setFiltroTexto] = useState("");
 
+  const exportToPDF = (data: Usuario[] | null, fileName: string) => {
+    if (!data) return;
+
+    // Configurações iniciais do PDF
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    // Cabeçalho
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text("Relatório Lista de Usuários", pageWidth / 2, 15, {
+      align: "center",
+    });
+
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "normal");
+
+    // Configurações da tabela
+    const columns = [
+      { header: "ID", dataKey: "id" },
+      { header: "NOME", dataKey: "nome" },
+      { header: "STATUS", dataKey: "status" },
+    ];
+
+    // Converte os dados para o formato aceito pelo autoTable
+    const rows = data.map((item) => ({
+      id: item.id,
+      nome: item.NOME,
+      status: item.status,
+    }));
+
+    // Adiciona a tabela ao PDF
+    autoTable(doc, {
+      head: [columns.map((col) => col.header)],
+      body: rows.map((row) => [row.id, row.nome, row.status]),
+      startY: 20, // Posição inicial Y
+      margin: { top: 20, left: 10, right: 10 }, // Margens laterais para melhor adaptação
+      styles: {
+        font: "helvetica", // Fonte limpa e profissional
+        fontSize: 10, // Tamanho de fonte equilibrado
+        cellPadding: 3, // Aumentado para melhor espaçamento interno
+        textColor: [33, 33, 33], // Cor de texto escura para contraste
+        overflow: "linebreak", // Quebra de linha para textos longos
+        halign: "center", // Centraliza o texto nas células
+        valign: "middle", // Alinhamento vertical no centro
+        lineWidth: 0.2, // Linhas finas para um visual mais leve
+        lineColor: [150, 150, 150], // Cinza suave para bordas
+      },
+      headStyles: {
+        fillColor: [41, 128, 185], // Azul profissional para o cabeçalho
+        textColor: [255, 255, 255], // Texto branco no cabeçalho
+        fontSize: 11, // Cabeçalho um pouco maior
+        fontStyle: "bold", // Negrito para destacar
+        halign: "center", // Centraliza o cabeçalho
+        cellPadding: 5, // Maior espaçamento no cabeçalho
+      },
+      alternateRowStyles: {
+        fillColor: [230, 230, 230], // Cor de fundo alternada para linhas (cinza claro)
+      },
+      columnStyles: {
+        0: { halign: "center", cellWidth: 20 }, // Coluna ID alinhada à esquerda
+        1: { halign: "center", cellWidth: "auto" }, // Coluna Nome com largura automática
+        2: { halign: "center", cellWidth: 40 }, // Coluna Status com largura fixa
+      },
+      tableWidth: "auto", // Tabela se ajusta à largura da página (com margens)
+      theme: "grid", // Tema com bordas visíveis
+    });
+
+    // Salva o PDF
+    doc.save(fileName);
+  };
+
+  // Função para exportar em Excel
+  const exportToExcel = (data: Usuario[] | null, fileName: string) => {
+    if (!data) return;
+
+    // Define as colunas da tabela
+    const columns = [
+      { header: "ID", dataKey: "id", width: 10 },
+      { header: "NOME", dataKey: "nome", width: 30 },
+      { header: "STATUS", dataKey: "status", width: 15 },
+    ];
+
+    // Converte os dados para o formato aceito pelo XLSX
+    const rows = data.map((item) => ({
+      id: item.id,
+      nome: item.NOME,
+      status: item.status,
+    }));
+
+    // Cria uma nova planilha
+    const worksheetData = [
+      // Cabeçalho
+      columns.map((col) => col.header),
+      // Linhas de dados
+      ...rows.map((row) => [row.id, row.nome, row.status]),
+    ];
+
+    // Cria a planilha
+    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+
+    // Estiliza o cabeçalho
+    worksheet["!cols"] = columns.map((col) => ({ wch: col.width })); // Define a largura das colunas
+
+    // Aplica formatação ao cabeçalho (estilo básico)
+    const headerRange = XLSX.utils.decode_range(worksheet["!ref"] || "A1:C1");
+    for (let col = headerRange.s.c; col <= headerRange.e.c; col++) {
+      const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
+      if (!worksheet[cellAddress]) continue;
+      worksheet[cellAddress].s = {
+        font: { bold: true, sz: 12, color: { rgb: "FFFFFF" } }, // Fonte em negrito, branca
+        fill: { fgColor: { rgb: "2980B9" } }, // Fundo azul, similar ao PDF
+        alignment: { horizontal: "center", vertical: "center" }, // Centralizado
+        border: {
+          top: { style: "thin", color: { rgb: "000000" } },
+          bottom: { style: "thin", color: { rgb: "000000" } },
+          left: { style: "thin", color: { rgb: "000000" } },
+          right: { style: "thin", color: { rgb: "000000" } },
+        },
+      };
+    }
+
+    // Aplica formatação às linhas de dados (estilo alternado e bordas)
+    for (let row = 1; row <= rows.length; row++) {
+      for (let col = headerRange.s.c; col <= headerRange.e.c; col++) {
+        const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
+        if (!worksheet[cellAddress]) continue;
+        worksheet[cellAddress].s = {
+          font: { sz: 10, color: { rgb: "212121" } }, // Texto escuro
+          fill: { fgColor: { rgb: row % 2 === 0 ? "E6E6E6" : "FFFFFF" } }, // Linhas alternadas
+          alignment: { horizontal: "center", vertical: "center" }, // Centralizado
+          border: {
+            top: { style: "thin", color: { rgb: "969696" } },
+            bottom: { style: "thin", color: { rgb: "969696" } },
+            left: { style: "thin", color: { rgb: "969696" } },
+            right: { style: "thin", color: { rgb: "969696" } },
+          },
+        };
+      }
+    }
+
+    // Cria o workbook e adiciona a planilha
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Relatório de Usuários");
+
+    // Exporta o arquivo
+    XLSX.writeFile(workbook, `${fileName}.xlsx`);
+  };
   useEffect(() => {
     const dadosSimulados: Usuario[] = [
       {
@@ -108,10 +261,18 @@ export default function ListaUsuario({
             </button>
             {/* Topo com título e botões */}
             <div className="w-full p-6 flex animate-fade-fast">
-              <h2 className="text-3xl font-bold text-gray-800 flex-1">
+              <h2 className="items-end text-3xl font-bold text-gray-800 flex">
                 Lista de Usuários
               </h2>
               <div className="flex gap-2 ml-4">
+                <input
+                  type="text"
+                  id="inputText"
+                  value={filtroTexto}
+                  onChange={(e) => setFiltroTexto(e.target.value)}
+                  className={`${cairo.className}  bg-white border-2 border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400`}
+                  placeholder="Buscar Usuário"
+                />
                 <button
                   onClick={() => setFiltroStatus("todos")}
                   className={` px-4 py-2 rounded transition  ${
@@ -142,14 +303,39 @@ export default function ListaUsuario({
                 >
                   Inativo
                 </button>
-                <input
-                  type="text"
-                  id="inputText"
-                  value={filtroTexto}
-                  onChange={(e) => setFiltroTexto(e.target.value)}
-                  className={`${cairo.className}  bg-white border-2 border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400`}
-                  placeholder="Buscar Usuário"
-                />
+              </div>
+              <div className="flex gap-4 ml-auto">
+                <button
+                  onClick={() =>
+                    exportToPDF(usuariosFiltrados, "Lista_usuarios")
+                  }
+                  className="p-1 rounded border border-gray-300 cursor-pointer bg-white  hover:bg-green-100 mt-auto"
+                  style={{ width: 36, height: 36 }}
+                >
+                  <Image
+                    src="/assets/icons/pdf.svg"
+                    alt="Ícone PDF"
+                    width={24}
+                    height={24}
+                    draggable={false}
+                  />
+                </button>
+
+                <button
+                  onClick={() =>
+                    exportToExcel(usuariosFiltrados, "Lista_usuarios")
+                  }
+                  className="p-1 rounded border border-gray-300 cursor-pointer bg-white  hover:bg-green-100 mt-auto"
+                  style={{ width: 36, height: 36 }}
+                >
+                  <Image
+                    src="/assets/icons/excel.svg"
+                    alt="Ícone Excel"
+                    width={24}
+                    height={24}
+                    draggable={false}
+                  />
+                </button>
               </div>
             </div>
 
