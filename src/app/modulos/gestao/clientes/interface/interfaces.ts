@@ -53,6 +53,7 @@ export interface ListaEmpresasProps {
   empresas: EmpresaAnalise[];
   start_date: string | null;
   end_date: string | null;
+  custoPorHora: string;
 }
 
 export interface EmpresaVar {

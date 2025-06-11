@@ -2,6 +2,9 @@ import Link from "next/link";
 import Image from "next/image";
 import "../../app/globals.css";
 import { Cairo } from "next/font/google";
+import { useRouter } from 'next/navigation';
+import NotificationModal from '../notificacao/modalNotificaçao';
+
 
 import { useState, useEffect } from "react";
 // Fonte Cairo configurada
@@ -9,6 +12,13 @@ const cairo = Cairo({
   weight: ["500", "600", "700"],
   subsets: ["latin"],
 });
+
+
+interface Socio {
+  id: number;
+  socio: string;
+  data_nascimento: string;
+}
 
 export function Header() {
   const [isHovered, setIsHovered] = useState(false);
@@ -26,6 +36,7 @@ export function Header() {
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
+
 
   return (
     <>
@@ -142,7 +153,62 @@ export function Header() {
 }
 
 export function Header2() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [aniversariantes, setAniversariantes] = useState<Socio[]>([]);
+
+  const router = useRouter(); 
+
+  const handleNotificationClick = () => {
+    setIsModalOpen(true); // Abre o modal
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false); // Fecha o modal
+  };
+
+  const handleLogout = () => {
+    router.push("/");
+  }
+
+    useEffect(() => {
+    const fetchAniversariosData = async () => {
+      try {
+        const response = await fetch(
+          "/api/analise-carteira/aniversarios-socios",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              start_date: "2024-01-01", // Data estática
+              end_date: "2025-01-01",   // Data estática
+            }),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Erro na API: ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        console.log("Dados de aniversários:", data); // Adicionando o console.log para verificar os dados
+
+        // Aqui você pode decidir o que fazer com os dados, se necessário
+        setAniversariantes(data); // Armazenando os dados dos aniversariantes no estado
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          console.error(err.message);
+        } else {
+          console.error("Erro desconhecido");
+        }
+      }
+    };
+
+    fetchAniversariosData();
+  }, []); 
   return (
+     <>
     <header className="flex items-center p-2 h-12 bg-white border-[1px] border-[#E5E5E5]">
       <nav className="flex w-full justify-between items-center">
         <span
@@ -151,19 +217,27 @@ export function Header2() {
           Módulo Gestão
         </span>
 
-        <div className="flex gap-2 ml-auto">
+        <div className="flex gap-2 ml-auto cursor-pointer">
           <Image
-            src="/assets/icons/Frame 33.svg"
-            alt="Ícone"
+            src="/assets/icons/exit.svg"
+            alt="Ícone de logout"
             width={35}
             height={35}
+            onClick={handleLogout}  
           />
           <Image
+            src="/assets/icons/Frame 33.svg"
+            alt="Ícone de notificação"
+            width={35}
+            height={35}
+            onClick={handleNotificationClick} // Abre o modal
+          />
+          {/* <Image
             src="/assets/icons/Frame 34.svg"
             alt="Ícone"
             width={35}
             height={35}
-          />
+          /> */}
           <Image
             src="/assets/icons/Frame 35.svg"
             alt="Ícone"
@@ -179,5 +253,7 @@ export function Header2() {
         </div>
       </nav>
     </header>
+      <NotificationModal isOpen={isModalOpen} onClose={closeModal} aniversariantes={aniversariantes} />
+    </>
   );
 }
