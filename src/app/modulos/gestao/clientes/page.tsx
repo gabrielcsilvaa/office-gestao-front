@@ -412,6 +412,7 @@ export default function Clientes() {
     };
 
     // Criar os dados para a planilha
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rows: any[][] = [];
 
     // Adicionar cabeçalho
