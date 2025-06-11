@@ -129,7 +129,7 @@ export default function AtividadeModulo({
           },
           headStyles: {
             fillColor: [21, 93, 252],
-            textColor: [0, 0, 0],
+            textColor: [255, 255, 255],
             fontSize: 10,
             fontStyle: "bold",
             halign: "center",
