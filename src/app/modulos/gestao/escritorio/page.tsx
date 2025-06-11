@@ -10,19 +10,25 @@ import { jsPDF } from "jspdf";
 import autoTable from 'jspdf-autotable';
 
 
+interface Importacoes {
+  lancamentos: Record<string, number>;
+  porcentagem_lancamentos_manuais: Record<string, string>;
+  entradas:Record<string, number>;
+  saidas: Record<string, number>;
+  servicos: Record<string, number>;
+  total_geral: number;
+}
+
 interface Escritorio {
   codigo: number;
   escritorio: string;
   clientes: Record<string, number>;
   faturamento: Record<string, [number, string]>;
   tempo_ativo: Record<string, number>;
-  importacoes: {
-    lancamentos: Record<string, number>;
-    porcentagem_lancamentos_manuais: Record<string, string>;
-    total_geral: number;
-  };
+  importacoes: Importacoes;
   vinculos_folha_ativos: Record<string, number>;
 }
+
 
 interface ExportRow {
   metric: string;
@@ -325,24 +331,60 @@ export default function Escritorio() {
     {
       metric: "Notas Fiscais Emitidas",
       values: [
-        ...meses.map(() => String(escritorioSelecionado.importacoes.total_geral || 0)),
+        ...meses.map((mes) => {
+          const servicos = escritorioSelecionado.importacoes.servicos;
+          const saidas = escritorioSelecionado.importacoes.saidas;
+
+          const servicosValor = servicos[mes] || 0; 
+          const saidasValor = saidas[mes] || 0; 
+
+          return String(servicosValor + saidasValor || 0); 
+        }),
         (() => {
-          const totalGeral = Number(escritorioSelecionado.importacoes.total_geral || 0);
-          const soma = totalGeral * meses.length;
+          const servicos = escritorioSelecionado.importacoes.servicos;
+          const saidas = escritorioSelecionado.importacoes.saidas;
+
+          let soma = 0;
+          meses.forEach((mes) => {
+            const servicosValor = servicos[mes] || 0; 
+            const saidasValor = saidas[mes] || 0; 
+            soma += servicosValor + saidasValor;
+          });
+
           return soma.toLocaleString("pt-BR");
         })()
-      ],
+      ]
     },
     {
       metric: "Total de Notas Fiscais Movimentadas",
       values: [
-        ...meses.map(() => String(escritorioSelecionado.importacoes.total_geral || 0)),
+        ...meses.map((mes) => {
+          const servicos = escritorioSelecionado.importacoes.servicos;
+          const saidas = escritorioSelecionado.importacoes.saidas;
+          const entradas = escritorioSelecionado.importacoes.entradas
+
+          const servicosValor = servicos[mes] || 0; 
+          const saidasValor = saidas[mes] || 0; 
+          const entradasValor = entradas[mes] || 0;
+
+          return String(servicosValor + saidasValor + entradasValor || 0); 
+        }),
         (() => {
-          const totalGeral = Number(escritorioSelecionado.importacoes.total_geral || 0);
-          const soma = totalGeral * meses.length;
+          const servicos = escritorioSelecionado.importacoes.servicos;
+          const saidas = escritorioSelecionado.importacoes.saidas;
+          const entradas = escritorioSelecionado.importacoes.entradas
+
+          let soma = 0;
+          meses.forEach((mes) => {
+            const servicosValor = servicos[mes] || 0; 
+            const saidasValor = saidas[mes] || 0; 
+            const entradasValor = entradas[mes] || 0;
+            soma += servicosValor + saidasValor + entradasValor;
+          });
+
           return soma.toLocaleString("pt-BR");
         })()
-      ],
+      ]
     },
     {
       metric: "Custo Operacional",

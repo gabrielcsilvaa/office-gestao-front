@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import * as XLSX from "xlsx";
@@ -141,7 +141,6 @@ export default function AniversariantesSocios({
     setSortConfig({ key, direction });
   };
 
-  // Filtrando sócios a partir da pesquisa
   const filteredSocios = dados.filter((socio) => {
     const searchValue = searchQuery.toLowerCase();
     return (
@@ -150,7 +149,20 @@ export default function AniversariantesSocios({
     );
   });
 
-  // Ordenação dos dados pelo dia da data de nascimento
+    const isAniversarioHoje = (dataNascimento: string): boolean => {
+    if (!dataNascimento) return false;
+
+    const hoje = new Date();
+    const nascimento = new Date(dataNascimento);
+
+    if (isNaN(nascimento.getTime())) return false;
+
+    return (
+      hoje.getDate() === nascimento.getDate() &&
+      hoje.getMonth() === nascimento.getMonth()
+    );
+  };
+
   const sortedSocios = filteredSocios.sort((a, b) => {
     const aDate = new Date(a.data_nascimento);
     const bDate = new Date(b.data_nascimento);
@@ -275,9 +287,18 @@ export default function AniversariantesSocios({
         </thead>
         <tbody className="text-center">
           {sortedSocios.map((socio, index) => {
+            const isBirthday = isAniversarioHoje(socio.data_nascimento);
             const idade = calcularIdade(socio.data_nascimento);
+            const rowClass = isBirthday
+              ? "bg-green-100 text-green-700 font-semibold"
+              : index % 2 === 0
+                ? "bg-white"
+                : "bg-gray-100";
             return (
-              <tr key={socio.id} className="border-b border-gray-300">
+              <tr
+                key={socio.id}
+                className={`${rowClass} border-b border-gray-300`}
+              >
                 <td className="px-4 py-2">{index + 1}</td>
                 <td className="px-4 py-2">{socio.nome.toUpperCase()}</td>
                 <td className="px-4 py-2">{formatDateBr(socio.data_nascimento)}</td>
