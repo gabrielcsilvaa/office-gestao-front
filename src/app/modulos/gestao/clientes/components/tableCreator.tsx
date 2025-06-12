@@ -1,6 +1,6 @@
 import { formatadorBRL, formatarCpfCnpj } from "@/utils/formatadores";
 import { EmpresaVar, ListaEmpresasProps } from "../interface/interfaces";
-import { formatadorSegParaHor } from "@/utils/formatadores";
+import { formatadorSegParaHor, formatarData } from "@/utils/formatadores";
 import { maxValueContrato } from "../services/maxValorContrato";
 
 import { useState } from "react";
@@ -41,7 +41,6 @@ export function ListaEmpresas({
   end_date,
   empresas,
   custoPorHora,
-
 }: ListaEmpresasProps) {
   const meses = gerarIntervaloDeMeses(start_date, end_date);
 
@@ -54,8 +53,8 @@ export function ListaEmpresas({
         codigo_empresa: item.codigo_empresa,
         nome_empresa: item.nome_empresa,
         cnpj: item.cnpj,
-        data_cadastro: item.data_cadastro,
-        data_inicio_atv: item.data_inicio_atv,
+        data_cadastro: formatarData(item.data_cadastro),
+        data_inicio_atv: formatarData(item.data_inicio_atv),
         responsavel: item.responsavel,
         faturamento: {},
         variacao_faturamento: {},
@@ -162,7 +161,9 @@ export function ListaEmpresas({
       empresaData.faturamento_escritorio = item.escritorios ?? [];
 
       // Custo operacional e rentabilidade
-      const custoHora = parseFloat(custoPorHora ||process.env.NEXT_PUBLIC_CUSTO_HORA || "0");
+      const custoHora = parseFloat(
+        custoPorHora || process.env.NEXT_PUBLIC_CUSTO_HORA || "0"
+      );
       const valorContrato = maxValueContrato(item.escritorios);
       let rentabilidadeFinal = 0;
       let custoFinal = 0;

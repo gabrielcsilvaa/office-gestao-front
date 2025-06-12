@@ -7,7 +7,7 @@ import Calendar from "@/components/calendar";
 import { formatDate } from "./services/formatDate";
 import Pagination from "./components/pagination";
 import Reload from "@/components/reload";
-import { formatarCpfCnpj, gerarMesesEntreDatas } from "@/utils/formatadores";
+import { formatarCpfCnpj, formatarData, gerarMesesEntreDatas } from "@/utils/formatadores";
 
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -197,8 +197,8 @@ export default function Clientes() {
       doc.setFont("helvetica", "normal");
       doc.text(`Empresa: ${empresa.nome_empresa}`, margin, 25);
       doc.text(`CNPJ: ${formatarCpfCnpj(empresa.cnpj)}`, margin, 30);
-      doc.text(`Data Cadastro: ${empresa.data_cadastro}`, margin, 35);
-      doc.text(`Início Atividades: ${empresa.data_inicio_atv}`, margin, 40);
+      doc.text(`Data Cadastro: ${formatarData(empresa.data_cadastro)}`, margin, 35);
+      doc.text(`Início Atividades: ${formatarData(empresa.data_inicio_atv)}`, margin, 40);
       doc.text(
         `Responsável: ${empresa.responsavel || "SEM RESPONSÁVEL"}`,
         margin,
@@ -440,8 +440,8 @@ export default function Clientes() {
         formatarCpfCnpj(empresa.cnpj),
         empresa.situacao,
         empresa.responsavel || "SEM RESPONSÁVEL",
-        empresa.data_cadastro,
-        empresa.data_inicio_atv,
+        formatarData(empresa.data_cadastro),
+        formatarData(empresa.data_inicio_atv),
         empresa.email || "",
       ];
 

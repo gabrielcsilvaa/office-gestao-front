@@ -47,11 +47,31 @@ export function formatarCpfCnpj(valor?: string | null): string {
   return valor; // Se não for 11 nem 14 dígitos, retorna como está
 }
 
+export function formatarData(data: string | null | undefined): string {
+  // Se a data for null, undefined ou string vazia, retorna ""
+  if (!data) {
+    return "";
+  }
+
+  // Divide a string da data em partes usando o '-' como separador
+  const partes = data.split("-");
+
+  // Verifica se a data tem o formato correto (yyyy-mm-dd)
+  if (partes.length !== 3) {
+    return ""; // Ou poderia lançar um erro, dependendo do requisito
+  }
+
+  // Extrai ano, mês e dia
+  const [ano, mes, dia] = partes;
+
+  // Retorna a data no formato dd/mm/yyyy
+  return `${dia}/${mes}/${ano}`;
+}
+
 export function gerarMesesEntreDatas(
   start_date: string | null,
   end_date: string | null
 ): string[] {
-
   if (!start_date || !end_date) return [];
   const MESES_PT = [
     "jan",
