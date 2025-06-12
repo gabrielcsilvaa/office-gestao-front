@@ -603,21 +603,23 @@ export default function FichaPessoalPage() {
           const nomeComparison = a.nomeColaborador.localeCompare(b.nomeColaborador);
           if (nomeComparison !== 0) return nomeComparison;
 
-          // 2º critério: Data de vencimento (mais urgente primeiro)
+          // 2º critério: Data de vencimento mais urgente (mais próxima de hoje)
           try {
-            const dataVencimentoA = new Date(a._dataVencimento);
-            const dataVencimentoB = new Date(b._dataVencimento);
-            const vencimentoComparison = dataVencimentoA.getTime() - dataVencimentoB.getTime();
-            if (vencimentoComparison !== 0) return vencimentoComparison;
+            const now = Date.now();
+            const vencA = new Date(a._dataVencimento).getTime();
+            const vencB = new Date(b._dataVencimento).getTime();
+            const diffA = Math.abs(vencA - now);
+            const diffB = Math.abs(vencB - now);
+            if (diffA !== diffB) return diffA - diffB;
           } catch (e) {
-            // Em caso de erro na conversão de data, continua para o próximo critério
+            // falha na conversão da data, ignora e segue
           }
 
           // 3º critério: Data de início do período aquisitivo (mais antigo primeiro)
           try {
-            const dataInicioA = new Date(a._dataInicioAquisitivo);
-            const dataInicioB = new Date(b._dataInicioAquisitivo);
-            return dataInicioA.getTime() - dataInicioB.getTime();
+            const inicioA = new Date(a._dataInicioAquisitivo).getTime();
+            const inicioB = new Date(b._dataInicioAquisitivo).getTime();
+            return inicioA - inicioB;
           } catch (e) {
             return 0;
           }

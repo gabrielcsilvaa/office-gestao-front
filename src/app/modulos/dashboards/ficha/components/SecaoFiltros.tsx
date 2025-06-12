@@ -13,6 +13,7 @@ interface FuncionarioOpcao {
 	nome: string;
 }
 
+
 interface SecaoFiltrosProps {
 	selectedEmpresa: string;
 	onChangeEmpresa: (empresa: string) => void;
