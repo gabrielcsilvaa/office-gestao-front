@@ -14,6 +14,8 @@ import Modal from "../organizacional/components/Modal";
 import EvolucaoChart from "./components/EvolucaoChart";
 import ValorPorGrupoChart from "./components/ValorPorGrupoChart";
 import Calendar from "@/components/calendar";
+import Loading from "@/app/loading";
+
 const cairo = Cairo({
   weight: ["500", "600", "700"],
   subsets: ["latin"],
@@ -291,7 +293,7 @@ export default function FichaPessoalPage() {
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
   const [dados, setDados] = useState<EmpresaFicha[] | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // Inicializar como true
   const [error, setError] = useState<string | null>(null);
   const [empresaOptions, setEmpresaOptions] = useState<string[]>([]);
   const [colaboradorOptions, setColaboradorOptions] = useState<Funcionario[]>([]); 
@@ -729,6 +731,11 @@ export default function FichaPessoalPage() {
     }
   }, [selectedEmpresa, dados, selectedColaborador]); // Adicionar selectedColaborador na dependência
 
+  // Se estiver carregando, mostrar o componente Loading
+  if (loading) {
+    return <Loading />;
+  }
+
   return (
     <div className="bg-[#f7f7f8] flex flex-col flex-1 h-full min-h-0">
       {/* Header */}
@@ -750,10 +757,6 @@ export default function FichaPessoalPage() {
           onStartDateChange={handleStartDateChange}
           onEndDateChange={handleEndDateChange}
         />
-        {/* Progress bar */}
-        {loading && (
-          <div className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-500 animate-pulse" />
-        )}
       </div>
 
       {/* Contéudo rolável */}
@@ -769,7 +772,7 @@ export default function FichaPessoalPage() {
         </div>
 
         {/* Evolução & Valor por Grupo */}
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 h-[400px]">
+        {/* <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 h-[400px]">
           <div className="w-full h-full flex flex-col shadow-md overflow-auto min-h-0 rounded-lg">
             <EvolucaoCard
               kpiSelecionado={evolucaoCardTitle}
@@ -820,7 +823,7 @@ export default function FichaPessoalPage() {
               }
             />
           </div>
-        </div>
+        </div> */}
 
         {/* Tabelas */}
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6 h-[450px]"> 
