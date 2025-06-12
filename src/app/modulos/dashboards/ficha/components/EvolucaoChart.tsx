@@ -5,7 +5,7 @@ import {
   LineChart,
   Line,
   XAxis,
-  YAxis, // Import YAxis
+  YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
@@ -19,18 +19,17 @@ interface ChartDataPoint {
 
 interface EvolucaoChartProps {
   data: ChartDataPoint[];
-  kpiName: string; // This prop will still be accepted but not used for the Line's name
+  kpiName: string;
 }
 
 const EvolucaoChart: React.FC<EvolucaoChartProps> = ({ data, kpiName: originalKpiName }) => {
-  // Custom Tooltip
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white p-2 border border-gray-300 rounded shadow-lg">
           <p className="label text-sm text-gray-700">{`${label}`}</p>
           <p className="intro text-sm text-blue-600">{`${
-            payload[0].name // This name comes from the <Line name={...} /> prop
+            payload[0].name
           } : ${new Intl.NumberFormat("pt-BR", {
             style: "currency",
             currency: "BRL",
@@ -41,13 +40,20 @@ const EvolucaoChart: React.FC<EvolucaoChartProps> = ({ data, kpiName: originalKp
     return null;
   };
 
+  // gera 6 ticks uniformemente distribuídos entre valor mínimo e máximo
+  const values = data.map((d) => d.value);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const TICK_COUNT = 5;
+  const ticks = Array.from({ length: TICK_COUNT }, (_, i) => min + ((max - min) * i) / (TICK_COUNT - 1));
+
   return (
     <ResponsiveContainer width="100%" height="100%">
       <LineChart
         data={data}
         margin={{
-          top: 5,
-          right: 20,
+          top: 10,
+          right: 40, // Increased from 20 to 30
           left: 0,
           bottom: 40,
         }}
@@ -58,38 +64,44 @@ const EvolucaoChart: React.FC<EvolucaoChartProps> = ({ data, kpiName: originalKp
             <stop offset="95%" stopColor="#818cf8" stopOpacity={0.05} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" vertical={false} />
+        <CartesianGrid
+          strokeDasharray="3 3"
+          stroke="#e0e0e0"
+          vertical={false}
+          horizontal={true}
+        />
         <XAxis
           dataKey="month"
           tickLine={false}
           axisLine={false}
-          tick={{ fontSize: 10, fill: "#737373" }}
-          angle={-35} // Angle labels to prevent overlap
+          tick={{ fontSize: 10, fill: "transparent" }}
+          angle={-35}
           textAnchor="end"
-          interval={0} // Show all ticks
-          dy={15} // Adjust vertical position of ticks
+          interval={0}
+          dy={15}
         />
         <YAxis
-          domain={['dataMin', 'dataMax']} // Dynamically set Y-axis domain
-          axisLine={false} // Hide Y-axis line
-          tickLine={false} // Hide Y-axis tick lines
-          tick={false} // Hide Y-axis labels (ticks)
+          domain={[min, max]}
+          axisLine={false}
+          tickLine={false}
+          ticks={ticks} // usa ticks uniformes
+          tick={{ fontSize: 10, fill: "transparent" }} // oculta valor
         />
         <Tooltip content={<CustomTooltip />} />
         <Line
           type="monotone"
           dataKey="value"
-          name="Evolução de Custo Total" // Set static name here
-          stroke="#6366f1" // Indigo color for the line
+          name="Evolução de Custo Total"
+          stroke="#6366f1"
           strokeWidth={2}
           dot={{
-            stroke: "#6366f1", // Indigo border for dots
+            stroke: "#6366f1",
             strokeWidth: 2,
-            fill: "#fff", // White fill for dots
+            fill: "#fff",
             r: 4,
           }}
           activeDot={{
-            stroke: "#4f46e5", // Darker indigo for active dot
+            stroke: "#4f46e5",
             strokeWidth: 2,
             fill: "#fff",
             r: 6,

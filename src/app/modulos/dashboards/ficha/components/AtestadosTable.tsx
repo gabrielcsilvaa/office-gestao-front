@@ -1,12 +1,14 @@
-import React from 'react';
+"use client";
+
+import React, { useState, useRef } from 'react';
 import Image from 'next/image'; // Import Image
 
-interface Atestado {
+interface Exame {
   vencimento: string;
   dataExame: string;
   resultado: string;
   tipo: string;
-  nomeColaborador?: string; // Add collaborator name
+  nomeColaborador: string;
 }
 
 interface IconProps {
@@ -16,12 +18,46 @@ interface IconProps {
 }
 
 interface AtestadosTableProps {
-  atestadosData: Atestado[];
+  atestadosData: Exame[];
   cairoClassName: string;
-  headerIcons?: IconProps[]; // Add headerIcons prop
+  headerIcons?: IconProps[];
+  title?: string;
 }
 
-const AtestadosTable: React.FC<AtestadosTableProps> = ({ atestadosData, cairoClassName, headerIcons }) => {
+const AtestadosTable: React.FC<AtestadosTableProps> = ({
+  atestadosData,
+  cairoClassName,
+  headerIcons,
+  title = "Histórico de Exames"
+}) => {
+  const [visibleCount, setVisibleCount] = useState(10);
+  const [hasScrollbar, setHasScrollbar] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleScroll = () => {
+    const el = containerRef.current;
+    if (!el) return;
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 1) {
+      setVisibleCount(prev => Math.min(prev + 10, atestadosData.length));
+    }
+  };
+
+  const checkScrollbar = () => {
+    const el = containerRef.current;
+    if (el) {
+      setHasScrollbar(el.scrollHeight > el.clientHeight);
+    }
+  };
+
+  React.useEffect(() => {
+    checkScrollbar();
+    const observer = new ResizeObserver(checkScrollbar);
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+    return () => observer.disconnect();
+  }, [atestadosData, visibleCount]);
+
   return (
     <div className="w-full bg-white rounded-lg relative flex flex-col overflow-hidden h-full"> {/* Removido py-4 pr-4 pl-2 */}
       {/* Barra vertical cinza - igual aos outros cards da página de ficha */}
@@ -30,8 +66,8 @@ const AtestadosTable: React.FC<AtestadosTableProps> = ({ atestadosData, cairoCla
       {/* Header Section - Alinhado com EvolucaoCard */}
       <div className="flex justify-between items-start pt-[14px] px-5 mb-3 flex-shrink-0"> {/* Aplicado pt-[14px] px-5 */}
         <div className="flex-grow overflow-hidden mr-3">
-          <div title="Histórico de Atestados" className={`text-black text-xl font-semibold leading-normal ${cairoClassName} whitespace-nowrap overflow-hidden text-ellipsis`}>
-            Histórico de Atestados
+          <div title={title} className={`text-black text-xl font-semibold leading-normal ${cairoClassName} whitespace-nowrap overflow-hidden text-ellipsis`}>
+            {title}
           </div>
         </div>
         {/* Icons Area */}
@@ -53,9 +89,14 @@ const AtestadosTable: React.FC<AtestadosTableProps> = ({ atestadosData, cairoCla
       </div>
 
       {/* Content Area - com padding próprio */}
-      <div className={`flex-1 overflow-y-auto min-h-0 space-y-4 pl-4 pr-1 pb-4 ${cairoClassName}`}> {/* Alterado space-y-3 para space-y-4 */}
+      <div
+        ref={containerRef}
+        onScroll={handleScroll}
+        className={`flex-1 overflow-y-auto min-h-0 space-y-4 pl-4 pb-4 ${cairoClassName}`}
+        style={{ paddingRight: hasScrollbar ? '4px' : '16px' }}
+      >
         {atestadosData.length > 0 ? (
-          atestadosData.map((atestado, index) => (
+          atestadosData.slice(0, visibleCount).map((atestado, index) => (
             <div key={index} className="p-3 border border-gray-200 rounded-lg shadow-md bg-white">
               <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                 
@@ -67,22 +108,9 @@ const AtestadosTable: React.FC<AtestadosTableProps> = ({ atestadosData, cairoCla
                   >
                     {atestado.nomeColaborador || "-"}
                   </span>
-                  <span className="text-gray-500 font-light text-xs">Colaborador</span>
+                  <span className="text-gray-500 font-light text-xs">Funcionário</span>
                 </div>
                 <div className="col-span-2 h-px bg-gray-200"></div> {/* Separator line after collaborator */}
-                
-                <div className="flex flex-col">
-                  <span className="text-gray-800 font-medium text-sm truncate">{atestado.vencimento || "-"}</span>
-                  <span className="text-gray-500 font-light text-xs">Vencimento</span>
-                </div>
-                
-                <div className="flex flex-col">
-                  <span className="text-gray-800 font-medium text-sm truncate">{atestado.resultado || "N/A"}</span>
-                  <span className="text-gray-500 font-light text-xs">Resultado</span>
-                </div>
-
-                {/* Horizontal Separator Line */}
-                <div className="col-span-2 h-px bg-gray-200"></div>
                 
                 <div className="flex flex-col">
                   <span className="text-gray-800 font-medium text-sm truncate">{atestado.dataExame || "-"}</span>
@@ -90,8 +118,21 @@ const AtestadosTable: React.FC<AtestadosTableProps> = ({ atestadosData, cairoCla
                 </div>
                 
                 <div className="flex flex-col">
+                  <span className="text-gray-800 font-medium text-sm truncate">{atestado.vencimento || "-"}</span>
+                  <span className="text-gray-500 font-light text-xs">Vencimento</span>
+                </div>
+
+                {/* Horizontal Separator Line */}
+                <div className="col-span-2 h-px bg-gray-200"></div>
+                
+                <div className="flex flex-col">
                   <span className="text-gray-800 font-medium text-sm truncate">{atestado.tipo || "-"}</span>
                   <span className="text-gray-500 font-light text-xs">Tipo</span>
+                </div>
+                
+                <div className="flex flex-col">
+                  <span className="text-gray-800 font-medium text-sm truncate">{atestado.resultado || "N/A"}</span>
+                  <span className="text-gray-500 font-light text-xs">Resultado</span>
                 </div>
 
               </div>
@@ -99,7 +140,7 @@ const AtestadosTable: React.FC<AtestadosTableProps> = ({ atestadosData, cairoCla
           ))
         ) : (
           <div className={`flex items-center justify-center h-full text-gray-500 ${cairoClassName}`}>
-            Nenhum atestado encontrado.
+            Nenhum exame encontrado.
           </div>
         )}
       </div>
