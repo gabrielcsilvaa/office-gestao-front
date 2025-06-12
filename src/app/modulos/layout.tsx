@@ -21,21 +21,16 @@ export default function ModulosLayout({
   }, [router]);
 
   return (
-    // Altura da tela garantida no container raiz
     <div className="flex h-screen antialiased">
-      {/* Sidebar */}
       <div>
         <Header />
       </div>
 
-      {/* Conteúdo principal: full width, full height, flex column */}
       <div className="flex flex-col w-full h-full overflow-hidden">
-        {/* Header fixo ou controlado */}
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 relative z-20">
           <Header2 />
         </div>
 
-        {/* Conteúdo com scroll controlado */}
         <main className="flex-grow overflow-auto">{children}</main>
       </div>
     </div>

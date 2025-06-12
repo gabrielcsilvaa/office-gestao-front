@@ -1,16 +1,15 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import Image from 'next/image';
 
 interface AlteracaoSalarialDetalheEntry {
-  data: string;
-  tipo: string; // Keep in interface for data compatibility
+  competencia: string;
   motivo: string;
-  salarioAnterior: number;
+  salarioAnterior: number | null;
   salarioNovo: number;
   percentual: string;
-  nomeColaborador?: string; // Add collaborator name
+  nomeColaborador: string;
 }
 
 interface IconProps {
@@ -26,24 +25,47 @@ interface AlteracoesSalariaisDetalheCardProps {
   title?: string;
 }
 
-// Sample data for AlteracoesSalariaisDetalheCard
-const sampleAlteracoesSalariaisDetalheData: AlteracaoSalarialDetalheEntry[] = [
-  { data: "2023-05-15", tipo: "Promoção", motivo: "Desempenho Excepcional", salarioAnterior: 5000, salarioNovo: 6000, percentual: "20.00%", nomeColaborador: "Ana Silva" },
-  { data: "2024-01-10", tipo: "Ajuste Anual", motivo: "Inflação e Custo de Vida", salarioAnterior: 6000, salarioNovo: 6300, percentual: "5.00%", nomeColaborador: "Carlos Pereira" },
-];
-
 const AlteracoesSalariaisDetalheCard: React.FC<AlteracoesSalariaisDetalheCardProps> = ({
-  alteracoesData = sampleAlteracoesSalariaisDetalheData, // Default to sample data
+  alteracoesData,
   cairoClassName,
   headerIcons,
-  title = "Histórico de Alterações Salariais" // Default title
+  title = "Histórico de Alterações Salariais"
 }) => {
-  const formatCurrency = (value: number) => {
-    return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  const [visibleCount, setVisibleCount] = useState(10);
+  const [hasScrollbar, setHasScrollbar] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleScroll = () => {
+    const el = containerRef.current;
+    if (!el) return;
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 1) {
+      setVisibleCount(prev => Math.min(prev + 10, alteracoesData.length));
+    }
   };
 
+  const formatCurrency = (value: number | null) =>
+    value !== null
+      ? value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+      : "N/A";
+
+  const checkScrollbar = () => {
+    const el = containerRef.current;
+    if (el) {
+      setHasScrollbar(el.scrollHeight > el.clientHeight);
+    }
+  };
+
+  React.useEffect(() => {
+    checkScrollbar();
+    const observer = new ResizeObserver(checkScrollbar);
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+    return () => observer.disconnect();
+  }, [alteracoesData, visibleCount]);
+
   return (
-    <div className="w-full bg-white rounded-lg relative flex flex-col overflow-hidden h-full">
+    <div className="w-full bg-white rounded-lg relative flex flex-col overflow-hidden h-full shadow-md">
       {/* Vertical bar copied from AtestadosTable */}
       <div className="w-6 h-0 left-[10px] top-[17px] absolute origin-top-left rotate-90 bg-zinc-300 outline-1 outline-offset-[-0.50px] outline-neutral-700"></div>
       
@@ -73,57 +95,62 @@ const AlteracoesSalariaisDetalheCard: React.FC<AlteracoesSalariaisDetalheCardPro
       </div>
 
       {/* Content Area */}
-      <div className={`flex-1 overflow-y-auto min-h-0 space-y-4 pl-4 pr-1 pb-4 ${cairoClassName}`}>
+      <div
+        ref={containerRef}
+        onScroll={handleScroll}
+        className={`flex-1 overflow-y-auto min-h-0 space-y-4 pl-4 pb-4 ${cairoClassName}`}
+        style={{ paddingRight: hasScrollbar ? '4px' : '16px' }}
+      >
         {alteracoesData.length > 0 ? (
-          alteracoesData.map((alteracao, index) => (
+          alteracoesData.slice(0, visibleCount).map((alteracao, index) => (
             <div key={index} className="p-3 border border-gray-200 rounded-lg shadow-md bg-white">
               <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-                
-                {/* 1ª linha: Colaborador (2 colunas) */}
+                {/* Linha 1: nome do funcionário */}
                 <div className="flex flex-col col-span-2">
-                  <span 
-                    className="text-gray-800 font-medium text-sm truncate" 
-                    title={alteracao.nomeColaborador || "N/A"}
-                  >
-                    {alteracao.nomeColaborador || "N/A"}
+                  <span className="text-gray-800 font-medium text-sm truncate">
+                    {alteracao.nomeColaborador}
                   </span>
-                  <span className="text-gray-500 font-light text-xs">Colaborador</span>
+                  <span className="text-gray-500 font-light text-xs">Funcionário</span>
                 </div>
-                
-                <div className="col-span-2 h-px bg-gray-200"></div>
-                
-                {/* 2ª linha: Salário Anterior | Salário Novo */}
-                <div className="flex flex-col">
-                  <span className="text-gray-800 font-medium text-sm truncate">{formatCurrency(alteracao.salarioAnterior)}</span>
-                  <span className="text-gray-500 font-light text-xs">Salário Anterior</span>
-                </div>
-                
-                <div className="flex flex-col">
-                  <span className="text-gray-800 font-medium text-sm truncate">{formatCurrency(alteracao.salarioNovo)}</span>
-                  <span className="text-gray-500 font-light text-xs">Salário Novo</span>
-                </div>
-
                 <div className="col-span-2 h-px bg-gray-200"></div>
 
-                {/* 3ª linha: Percentual | Data */}
+                {/* Linha 2: competência | motivo */}
                 <div className="flex flex-col">
-                  <span className="text-gray-800 font-medium text-sm truncate">{alteracao.percentual || "-"}</span>
-                  <span className="text-gray-500 font-light text-xs">Percentual</span>
+                  <span className="text-gray-800 font-medium text-sm truncate">
+                    {alteracao.competencia}
+                  </span>
+                  <span className="text-gray-500 font-light text-xs">Competência</span>
                 </div>
-
                 <div className="flex flex-col">
-                  <span className="text-gray-800 font-medium text-sm truncate">{alteracao.data || "-"}</span>
-                  <span className="text-gray-500 font-light text-xs">Data</span>
-                </div>
-
-                <div className="col-span-2 h-px bg-gray-200"></div>
-
-                {/* 4ª linha: Motivo (2 colunas) */}
-                <div className="flex flex-col col-span-2">
-                  <span className="text-gray-800 font-medium text-sm truncate" title={alteracao.motivo}>{alteracao.motivo || "-"}</span>
+                  <span className="text-gray-800 font-medium text-sm truncate">
+                    {alteracao.motivo}
+                  </span>
                   <span className="text-gray-500 font-light text-xs">Motivo</span>
                 </div>
+                <div className="col-span-2 h-px bg-gray-200"></div>
 
+                {/* Linha 3: salário anterior | salário novo */}
+                <div className="flex flex-col">
+                  <span className="text-gray-800 font-medium text-sm truncate">
+                    {formatCurrency(alteracao.salarioAnterior)}
+                  </span>
+                  <span className="text-gray-500 font-light text-xs">Salário Anterior</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-gray-800 font-medium text-sm truncate">
+                    {formatCurrency(alteracao.salarioNovo)}
+                  </span>
+                  <span className="text-gray-500 font-light text-xs">Salário Novo</span>
+                </div>
+                <div className="col-span-2 h-px bg-gray-200"></div>
+
+                {/* Linha 4: variação (%) */}
+                <div className="flex flex-col col-span-2">
+                  <span className="text-gray-800 font-medium text-sm truncate">
+                    {alteracao.percentual || "-"}
+                  </span>
+                  <span className="text-gray-500 font-light text-xs">Variação (%)</span>
+                </div>
               </div>
             </div>
           ))

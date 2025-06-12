@@ -73,26 +73,16 @@ const DissidioCard: React.FC<DissidioCardProps> = ({
           Dissídio
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          {filteredIcons.map((icon, index) => {
-            let iconWidth = 16;
-            let iconHeight = 16;
-            if (icon.adjustSize) {
-              iconWidth = 14;
-              iconHeight = icon.src.includes("lay") ? 16 : 14;
-            }
-            return (
-              <Fragment key={`s1-icon-fragment-${index}`}>
-                <Image
-                  key={`s1-icon-${index}`}
-                  src={icon.src}
-                  alt={icon.alt}
-                  width={iconWidth}
-                  height={iconHeight}
-                  className="cursor-pointer"
-                />
-              </Fragment>
-            );
-          })}
+          {sectionIcons.map((icon, index) => (
+            <Image
+              key={index}
+              src={icon.src}
+              alt={icon.alt}
+              width={icon.adjustSize ? 14 : 16}
+              height={icon.adjustSize ? (icon.src.includes("lay") ? 16 : 14) : 16}
+              className="cursor-pointer opacity-60 hover:opacity-100"
+            />
+          ))}
         </div>
       </div>
       <div className="w-full h-[calc(489px-50px)] px-4 pt-2 pb-4 left-0 top-[50px] absolute bg-white overflow-y-auto">

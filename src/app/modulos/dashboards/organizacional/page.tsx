@@ -3,12 +3,16 @@ import { Cairo } from "next/font/google";
 import SelecaoIndicadores from "./components/SelecaoIndicadores";
 import SecaoFiltros from "./components/SecaoFiltros";
 import { useState, useMemo } from "react";
+import Modal from "./components/Modal";
+import EvolucaoChart from "./components/EvolucaoChart";
+import ValorPorGrupoChart from "./components/ValorPorGrupoChart";
 import EvolucaoCard from "./components/EvolucaoCard";
 import ValorPorGrupoCard from "./components/ValorPorGrupoCard";
 import DissidioCard from "./components/DissidioCard";
 import ValorPorPessoaCard from "./components/ValorPorPessoaCard";
 import ValorPorCalculoCard from "./components/ValorPorCalculoCard";
 import KpiCardsGrid from "./components/KpiCardsGrid"; 
+import { Header2 } from "../../../../components/header";
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
@@ -56,10 +60,13 @@ const valorPorGrupoData = [
 
 export default function DashboardOrganizacional() {
   const [kpiSelecionado, setKpiSelecionado] = useState<string>("Proventos"); 
+  const [modalContent, setModalContent] = useState<React.ReactNode | null>(null);
 
   const handleKpiChange = (kpi: string) => {
     setKpiSelecionado(kpi);
   };
+
+  const handleCloseModal = () => setModalContent(null);
 
   const cardsData = [
     { title: "Proventos", value: "R$ 5.811.200,00", tooltipText: "Total de proventos recebidos no período." },
@@ -87,46 +94,86 @@ export default function DashboardOrganizacional() {
   }, []); 
 
   return (
-    <div className="bg-[#f7f7f8] h-[75vh]">
-      <div className=" flex flex-col items-start p-4 gap-4 border-b border-black/10 bg-gray-100">
+    <div className="bg-[#f7f7f8] fixed inset-0 flex flex-col overflow-hidden">
+      <Header2 />
+      <div className="flex flex-col items-start p-4 gap-4 border-b border-black/10 bg-gray-100">
         <SelecaoIndicadores 
           indicadorSelecionado={kpiSelecionado}
           onSelecaoIndicador={handleKpiChange}
         />
         <SecaoFiltros />
       </div>
-      <div className="p-4 overflow-y-auto h-full">
+      <div className="flex-1 p-4 overflow-y-auto">
         <KpiCardsGrid cardsData={cardsData} />
 
-        <div className="mt-4 flex flex-row gap-4">
+        <div className="mt-6 flex flex-row gap-6">
           <EvolucaoCard
             kpiSelecionado={kpiSelecionado}
             processedEvolucaoChartData={processedEvolucaoChartData}
-            sectionIcons={sectionIcons}
+            sectionIcons={sectionIcons.filter(icon => icon.alt === "Maximize")}
             cairoClassName={cairo.className}
+            onMaximize={() =>
+              setModalContent(
+                <div className="flex flex-col w-[90vw] h-[80vh]">
+                  <h2 className={`text-2xl font-bold mb-2 ${cairo.className}`}>
+                    Evolução de {kpiSelecionado}
+                  </h2>
+                  <p className={`text-base text-gray-500 mb-4 ${cairo.className}`}>
+                    Variação mensal de {kpiSelecionado.toLowerCase()} no período selecionado.
+                  </p>
+                  <div className="flex-1">
+                    <EvolucaoChart
+                      data={processedEvolucaoChartData}
+                      kpiName={kpiSelecionado}
+                    />
+                  </div>
+                </div>
+              )
+            }
           />
           <ValorPorGrupoCard
             valorPorGrupoData={valorPorGrupoData}
-            sectionIcons={sectionIcons}
+            sectionIcons={sectionIcons.filter(icon => icon.alt === "Maximize")}
             cairoClassName={cairo.className}
+            onMaximize={() =>
+              setModalContent(
+                <div className="flex flex-col w-[90vw] h-[80vh]">
+                  <h2 className={`text-2xl font-bold mb-2 ${cairo.className}`}>
+                    Valor Por Grupo e Evento
+                  </h2>
+                  <p className={`text-base text-gray-500 mb-4 ${cairo.className}`}>
+                    Mostra a distribuição de valores por grupo e evento.
+                  </p>
+                  <div className="flex-1">
+                    <ValorPorGrupoChart data={valorPorGrupoData} />
+                  </div>
+                </div>
+              )
+            }
           />
         </div>
 
-        <div className="mt-4 flex flex-row gap-4">
+        <div className="mt-6 flex flex-row gap-6">
           <DissidioCard
-            sectionIcons={sectionIcons}
+            sectionIcons={sectionIcons.filter(icon => icon.alt === "Maximize")}
             cairoClassName={cairo.className}
           />
           <ValorPorPessoaCard
-            sectionIcons={sectionIcons}
+            sectionIcons={sectionIcons.filter(icon => icon.alt === "Maximize")}
             cairoClassName={cairo.className}
           />
           <ValorPorCalculoCard
-            sectionIcons={sectionIcons}
+            sectionIcons={sectionIcons.filter(icon => icon.alt === "Maximize")}
             cairoClassName={cairo.className}
           />
         </div>
       </div>
+
+      {modalContent && (
+        <Modal isOpen onClose={handleCloseModal}>
+          {modalContent}
+        </Modal>
+      )}
     </div>
   );
-}                 
+}

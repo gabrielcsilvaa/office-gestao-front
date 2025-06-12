@@ -1,4 +1,6 @@
-import React from 'react';
+"use client";
+
+import React, { useState, useRef } from 'react';
 import Image from 'next/image'; // Import Image
 
 interface Afastamento {
@@ -22,6 +24,34 @@ interface AfastamentosTableProps {
 }
 
 const AfastamentosTable: React.FC<AfastamentosTableProps> = ({ afastamentosData, cairoClassName, headerIcons }) => {
+  const [visibleCount, setVisibleCount] = useState(10);
+  const [hasScrollbar, setHasScrollbar] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const handleScroll = () => {
+    const el = containerRef.current;
+    if (!el) return;
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 1) {
+      setVisibleCount(prev => Math.min(prev + 10, afastamentosData.length));
+    }
+  };
+
+  const checkScrollbar = () => {
+    const el = containerRef.current;
+    if (el) {
+      setHasScrollbar(el.scrollHeight > el.clientHeight);
+    }
+  };
+
+  React.useEffect(() => {
+    checkScrollbar();
+    const observer = new ResizeObserver(checkScrollbar);
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+    return () => observer.disconnect();
+  }, [afastamentosData, visibleCount]);
+
   return (
     <div className="w-full bg-white rounded-lg relative flex flex-col overflow-hidden h-full">
       {/* Barra vertical cinza - igual aos outros cards da página de ficha */}
@@ -53,9 +83,14 @@ const AfastamentosTable: React.FC<AfastamentosTableProps> = ({ afastamentosData,
       </div>
 
       {/* Content Area */}
-      <div className={`flex-1 overflow-y-auto min-h-0 space-y-4 pl-4 pr-1 pb-4 ${cairoClassName}`}>
+      <div
+        ref={containerRef}
+        onScroll={handleScroll}
+        className={`flex-1 overflow-y-auto min-h-0 space-y-4 pl-4 pb-4 ${cairoClassName}`}
+        style={{ paddingRight: hasScrollbar ? '4px' : '16px' }}
+      >
         {afastamentosData.length > 0 ? (
-          afastamentosData.map((afastamento, index) => (
+          afastamentosData.slice(0, visibleCount).map((afastamento, index) => (
             <div key={index} className="p-3 border border-gray-200 rounded-lg shadow-md bg-white">
               <div className="grid grid-cols-2 gap-x-4 gap-y-3">
                 
@@ -67,7 +102,7 @@ const AfastamentosTable: React.FC<AfastamentosTableProps> = ({ afastamentosData,
                   >
                     {afastamento.nomeColaborador || "-"}
                   </span>
-                  <span className="text-gray-500 font-light text-xs">Colaborador</span>
+                  <span className="text-gray-500 font-light text-xs">Funcionário</span>
                 </div>
                 <div className="col-span-2 h-px bg-gray-200"></div> {/* Separator line after collaborator */}
                 

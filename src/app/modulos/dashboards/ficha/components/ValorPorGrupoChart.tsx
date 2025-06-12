@@ -16,7 +16,7 @@ import {
 interface ChartDataPoint {
   name: string;
   value: number;
-  fullName?: string; // Add optional property for full name
+  fullName?: string;
 }
 
 interface ValorPorGrupoChartProps {
@@ -24,23 +24,20 @@ interface ValorPorGrupoChartProps {
 }
 
 const ValorPorGrupoChart: React.FC<ValorPorGrupoChartProps> = ({ data }) => {
-  const ITEM_WIDTH = 60; // Increased from 28 to 40 for thicker bars
-  const MAX_LABEL_LENGTH = 17; // Based on "Horas Extras (50%)"
+  const ITEM_WIDTH = 60;
+  const MAX_LABEL_LENGTH = 17;
   
-  // Function to truncate text
   const truncateText = (text: string, maxLength: number = MAX_LABEL_LENGTH): string => {
     if (text.length <= maxLength) return text;
     return text.substring(0, maxLength - 3) + "...";
   };
 
-  // Process data to include truncated names
   const processedData = data.map(item => ({
     ...item,
-    fullName: item.name, // Store original name
-    name: truncateText(item.name) // Use truncated name for display
+    fullName: item.name,
+    name: truncateText(item.name)
   }));
 
-  // Custom tick component with native tooltip
   const CustomTick = (props: any) => {
     const { x, y, payload } = props;
     const originalData = processedData.find(item => item.name === payload.value);
@@ -77,7 +74,6 @@ const ValorPorGrupoChart: React.FC<ValorPorGrupoChartProps> = ({ data }) => {
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
-      // Find the original data point to get the full name
       const originalData = processedData.find(item => item.name === label);
       const displayLabel = originalData?.fullName || label;
       
@@ -96,7 +92,7 @@ const ValorPorGrupoChart: React.FC<ValorPorGrupoChartProps> = ({ data }) => {
   const CustomizedLabel: React.FC<any> = (props) => {
     const { x, y, width, value } = props;
     const formattedValue = formatCurrency(value);
-    const labelYPosition = value >= 0 ? y - 5 : y + 15; // Adjust based on positive/negative
+    const labelYPosition = value >= 0 ? y - 5 : y + 15;
 
     return (
       <text 
