@@ -30,13 +30,26 @@ export default function AtividadeModulo({
 }: Props) {
   if (!mostrarMensagem) return null;
 
-  const exportToPDF = (data: DadosModulo | null, fileName: string) => {
-    if (!data) return;
+  // 1. Criar array ordenado de sistemas (módulos) pelo total_sistema (decrescente)
+  const sistemasOrdenados = dados
+    ? Object.entries(dados).sort(
+        ([, a], [, b]) => b.total_sistema - a.total_sistema
+      )
+    : [];
 
-    // Inicializa o documento PDF
-    const doc = new jsPDF({
-      orientation: "landscape",
-    });
+  // 2. Função para calcular o total de horas por mês em um sistema
+  const calcularTotalPorMes = (sistema: string, mes: string) => {
+    if (!dados || !dados[sistema]) return 0;
+    return dados[sistema].usuarios.reduce(
+      (total, usuario) => total + (usuario.atividades[mes] || 0),
+      0
+    );
+  };
+
+  const exportToPDF = (fileName: string) => {
+    if (!dados) return;
+
+    const doc = new jsPDF({ orientation: "landscape" });
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
 
@@ -69,30 +82,35 @@ export default function AtividadeModulo({
     currentY += 10;
 
     // Itera sobre cada sistema
-    Object.entries(data).forEach(
+    sistemasOrdenados.forEach(
       ([sistema, { usuarios, total_sistema }], index) => {
+
+        
         // Verifica se há espaço suficiente para a tabela
         const estimatedTableHeight = usuarios.length * 6 + 30; // Aproximadamente 6mm por linha + cabeçalho + margens
         if (currentY + estimatedTableHeight > pageHeight - 20) {
           doc.addPage();
           currentY = marginTop;
         }
-
+        
         // Adiciona título do sistema
         doc.setFontSize(12);
         doc.setFont("helvetica", "bold");
         doc.setTextColor(33, 33, 33);
         doc.text(sistema, marginLeft, currentY);
         currentY += 8;
-
+        
         // Define as colunas
         const columns = [
           { header: "Usuário", dataKey: "usuario" },
           { header: "Total Horas", dataKey: "total_horas" },
         ];
-
+        
         // Prepara os dados da tabela
-        const rows = usuarios.map((user) => ({
+        const usuariosOrdenados = [...usuarios].sort(
+        (a, b) => b.total_usuario - a.total_usuario
+      );
+        const rows = usuariosOrdenados.map((user) => ({
           usuario: user.usuario,
           total_horas: formatadorSegParaHor(user.total_usuario),
         }));
@@ -159,13 +177,18 @@ export default function AtividadeModulo({
           },
         });
 
-        // Atualiza a posição Y para o próximo sistema
         // eslint-disable-next-line
-        currentY = (doc as any).lastAutoTable.finalY + 10;
+        const lastTable = (doc as any).lastAutoTable;
+        if (lastTable) {
+          currentY = lastTable.finalY + 10;
 
-        // Adiciona espaço extra entre sistemas, mas não no último
-        if (index < Object.keys(data).length - 1) {
-          currentY += 5;
+          // Adiciona espaço extra entre sistemas, mas não no último
+          if (index < sistemasOrdenados.length - 1) {
+            currentY += 5;
+          }
+        } else {
+          // Fallback caso lastAutoTable não exista
+          currentY += 30; // Espaço padrão
         }
       }
     );
@@ -174,14 +197,13 @@ export default function AtividadeModulo({
     doc.save(`${fileName}.pdf`);
   };
 
-  const exportToExcel = (data: DadosModulo | null, fileName: string) => {
-    if (!data) return;
+  const exportToExcel = (fileName: string) => {
+    if (!dados) return;
 
-    // Cria o workbook
     const wb = XLSX.utils.book_new();
 
     // Itera sobre cada sistema
-    Object.entries(data).forEach(([sistema, { usuarios, total_sistema }]) => {
+    sistemasOrdenados.forEach(([sistema, { usuarios, total_sistema }]) => {
       // Prepara os dados da tabela
       const rows = usuarios.map((user) => ({
         usuario: user.usuario,
@@ -282,23 +304,17 @@ export default function AtividadeModulo({
         className="bg-white w-full h-full flex flex-col gap-4 items-center p-6 rounded-2xl shadow-lg animate-fade-fast relative max-w-[80vw] max-h-[90vh] overflow-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <button
-          onClick={fecharMensagem}
-          className="absolute top-4 right-4 text-gray-800 font-bold text-2xl hover:text-gray-600 transition cursor-pointer"
-          aria-label="Fechar"
-        >
-          &times;
-        </button>
+        {/* Cabeçalho */}
         <div className="flex gap-2 ml-4 w-full items-center mr-8">
           <h2
-            className={` ${cairo.className} text-3xl font-bold text-gray-800 p-6`}
+            className={`${cairo.className} text-3xl font-bold text-gray-800 p-6`}
           >
             Atividades por Módulo
           </h2>
           <div className="flex gap-4 ml-auto">
             <button
-              onClick={() => exportToPDF(dados, "Atividades_modulo")}
-              className="p-1 rounded border border-gray-300 cursor-pointer bg-white  hover:bg-green-100 mt-auto"
+              onClick={() => exportToPDF("Atividades_modulo")}
+              className="p-1 rounded border border-gray-300 cursor-pointer bg-white hover:bg-green-100 mt-auto"
               style={{ width: 36, height: 36 }}
             >
               <Image
@@ -309,10 +325,9 @@ export default function AtividadeModulo({
                 draggable={false}
               />
             </button>
-
             <button
-              onClick={() => exportToExcel(dados, "Atividades_modulo")}
-              className="p-1 rounded border border-gray-300 cursor-pointer bg-white  hover:bg-green-100 mt-auto"
+              onClick={() => exportToExcel("Atividades_modulo")}
+              className="p-1 rounded border border-gray-300 cursor-pointer bg-white hover:bg-green-100 mt-auto"
               style={{ width: 36, height: 36 }}
             >
               <Image
@@ -325,6 +340,8 @@ export default function AtividadeModulo({
             </button>
           </div>
         </div>
+
+        {/* Tabela de dados */}
         <div className="shadow-lg overflow-auto flex-1 w-full">
           <table className="min-w-full table-auto border border-gray-300 text-sm text-left">
             <thead className="bg-gray-100 text-xs">
@@ -337,34 +354,30 @@ export default function AtividadeModulo({
                 ))}
                 <th className="border px-4 py-2 text-center">Total</th>
               </tr>
-              <tr></tr>
             </thead>
             <tbody>
-              {dados &&
-                Object.entries(dados).map(([chave]) => (
-                  <tr
-                    key={chave}
-                    className={`${cairo.className} bg-white font-semibold cursor-pointer hover:bg-gray-100`}
-                  >
-                    <td className="text-center whitespace-nowrap border px-2 py-3 font-bold text-black">
-                      {chave}
+              {sistemasOrdenados.map(([sistema, sistemaData]) => (
+                <tr
+                  key={sistema}
+                  className={`${cairo.className} bg-white font-semibold cursor-pointer hover:bg-gray-100`}
+                >
+                  <td className="text-center whitespace-nowrap border px-2 py-3 font-bold text-black">
+                    {sistema}
+                  </td>
+                  {meses.map((mes) => (
+                    <td key={mes} className="border px-2 py-1 text-center">
+                      {`${formatadorNumeroComPontos(
+                        calcularTotalPorMes(sistema, mes) / 3600
+                      )}h`}
                     </td>
-                    {meses.map((mes) => {
-                      let tempo = 0;
-                      for (const usuario of dados[chave].usuarios) {
-                        tempo += usuario.atividades[mes] || 0;
-                      }
-                      return (
-                        <td key={mes} className="border px-2 py-1 text-center">
-                          {`${formatadorNumeroComPontos(tempo / 3600)}h`}
-                        </td>
-                      );
-                    })}
-                    <td className="border px-2 py-1 text-center">
-                      {`${formatadorNumeroComPontos(dados[chave].total_sistema / 3600)}h`}
-                    </td>
-                  </tr>
-                ))}
+                  ))}
+                  <td className="border px-2 py-1 text-center">
+                    {`${formatadorNumeroComPontos(
+                      sistemaData.total_sistema / 3600
+                    )}h`}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
