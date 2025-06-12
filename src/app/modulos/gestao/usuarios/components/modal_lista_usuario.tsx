@@ -35,6 +35,21 @@ export default function ListaUsuario({
     "ativo" | "inativo" | "todos"
   >("todos");
   const [filtroTexto, setFiltroTexto] = useState("");
+  const [filtroTabela, setFiltroTabela] = useState<{
+    campo: "id" | "nome" | "status";
+    direcao: "asc" | "desc";
+  }>({ campo: "id", direcao: "asc" });
+
+  const handleFiltroTabela = (campo: "id" | "nome" | "status") => {
+    setFiltroTabela((prev) => {
+      // Se clicar no mesmo campo, inverte a direção
+      if (prev.campo === campo) {
+        return { ...prev, direcao: prev.direcao === "asc" ? "desc" : "asc" };
+      }
+      // Se clicar em campo diferente, ordena ascendente por padrão
+      return { campo, direcao: "asc" };
+    });
+  };
 
   const exportToPDF = (data: Usuario[] | null, fileName: string) => {
     if (!data) return;
@@ -238,6 +253,26 @@ export default function ListaUsuario({
     return true;
   });
 
+  const usuariosFiltradosEOrdenados = [...usuariosFiltrados].sort((a, b) => {
+    let resultado = 0;
+
+    // Comparação com base no campo selecionado
+    switch (filtroTabela.campo) {
+      case "nome":
+        resultado = a.NOME.localeCompare(b.NOME);
+        break;
+      case "status":
+        resultado = a.status.localeCompare(b.status);
+        break;
+      case "id":
+      default:
+        resultado = a.id - b.id;
+    }
+
+    // Aplica a direção (asc ou desc)
+    return filtroTabela.direcao === "asc" ? resultado : -resultado;
+  });
+
   return (
     <>
       {mostrarMensagem && (
@@ -344,13 +379,34 @@ export default function ListaUsuario({
               <table className="min-w-full table-auto border border-gray-300 text-sm text-left">
                 <thead className="bg-gray-100">
                   <tr>
-                    <th className="border w-[5vw] py-2 text-center">ID</th>
-                    <th className="border px-4 py-2 text-center">Nome</th>
-                    <th className="border px-4 py-2 text-center">Status</th>
+                    <th
+                      onClick={() => handleFiltroTabela("id")}
+                      className="border w-[5vw] py-2 cursor-pointer text-center"
+                    >
+                      ID{" "}
+                      {filtroTabela.campo === "id" &&
+                        (filtroTabela.direcao === "asc" ? "" : "↓")}
+                    </th>
+                    <th
+                      onClick={() => handleFiltroTabela("nome")}
+                      className="border px-4 py-2 cursor-pointer text-center"
+                    >
+                      Nome{" "}
+                      {filtroTabela.campo === "nome" &&
+                        (filtroTabela.direcao === "asc" ? "↑" : "↓")}
+                    </th>
+                    <th
+                      onClick={() => handleFiltroTabela("status")}
+                      className="border px-4 py-2 cursor-pointer text-center"
+                    >
+                      Status{" "}
+                      {filtroTabela.campo === "status" &&
+                        (filtroTabela.direcao === "asc" ? "↑" : "↓")}
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {usuariosFiltrados.map((usuario) => (
+                  {usuariosFiltradosEOrdenados.map((usuario) => (
                     <tr key={usuario.id}>
                       <td
                         className={`border px-4 py-2 ${cairo.className} font-[700] text-center`}
