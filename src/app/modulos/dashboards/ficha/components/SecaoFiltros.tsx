@@ -1,7 +1,6 @@
 "use client";
 
 import { Cairo } from "next/font/google";
-import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 
 const cairo = Cairo({
@@ -41,6 +40,16 @@ export default function SecaoFiltros({
 	const [isColaboradorOpen, setIsColaboradorOpen] = useState(false);
 	const colaboradorRef = useRef<HTMLDivElement>(null);
 
+	const [empresaSearch, setEmpresaSearch] = useState<string>("");           
+	const filteredEmpresas = empresaOptionsList.filter(e =>                   
+		e.toLowerCase().includes(empresaSearch.toLowerCase())
+	);                                                                        
+
+	const [colSearch, setColSearch] = useState<string>("");                   
+	const filteredColabs = colaboradorOptionsList.filter(c =>                 
+		c.nome.toLowerCase().includes(colSearch.toLowerCase())
+	);                                                                        
+
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
 			if (empresaRef.current && !empresaRef.current.contains(event.target as Node)) {
@@ -58,13 +67,6 @@ export default function SecaoFiltros({
 
 	return (
 		<div className="flex flex-row items-center gap-8">
-			<Image
-				src="/assets/icons/icon-filter.svg"
-				alt="Filter Icon"
-				width={20}
-				height={20}
-				className="cursor-pointer"
-			/>
 			<div className="w-[1px] h-[30px] bg-[#373A40]" />
 			<div className="flex items-center gap-4">
 				<div className="relative" ref={empresaRef}>
@@ -75,7 +77,7 @@ export default function SecaoFiltros({
 						aria-expanded={isEmpresaOpen}
 						aria-label="Empresa"
 						onClick={() => setIsEmpresaOpen(!isEmpresaOpen)}
-						className={`w-60 px-4 h-[36px] flex items-center justify-between bg-white rounded-md border border-neutral-700 text-gray-500 text-sm font-semibold leading-tight ${cairo.className} hover:bg-[var(--color-neutral-700)] hover:text-white cursor-pointer`}
+						className={`w-60 px-4 h-[44px] flex items-center justify-between bg-white rounded-md border border-neutral-700 text-gray-500 text-sm font-semibold leading-tight ${cairo.className} hover:bg-[var(--color-neutral-700)] hover:text-white cursor-pointer`}
 					>
 						<span className="flex-grow whitespace-nowrap overflow-hidden text-ellipsis">
 							{selectedEmpresa || "Empresa"}
@@ -85,28 +87,34 @@ export default function SecaoFiltros({
 						</svg>
 					</div>
 					{isEmpresaOpen && (
-						<div className="absolute mt-1 w-60 bg-white border border-neutral-300 rounded-md shadow-lg z-10 max-h-60 overflow-y-auto">
-							{!areDatesSelected ? (
+						<div className="absolute mt-1 w-60 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+							{/* campo de pesquisa */}
+							<div className="px-3 py-2 border-b">
+								<input
+									type="text"
+									value={empresaSearch}
+									onChange={e => setEmpresaSearch(e.target.value)}
+									placeholder="Pesquisar empresa..."
+									className="w-full text-sm px-2 py-1 border rounded"
+								/>
+							</div>
+							{/* lista filtrada */}
+							{ !areDatesSelected ? (
 								<div className="px-4 py-2 text-sm text-gray-500">
 									Selecione as datas para carregar as empresas.
 								</div>
-							) : empresaOptionsList.length === 0 ? (
+							) : filteredEmpresas.length === 0 ? (
 								<div className="px-4 py-2 text-sm text-gray-500">
 									Nenhuma empresa encontrada.
 								</div>
 							) : (
-								empresaOptionsList.map(option => (
+								filteredEmpresas.map(option => (
 									<div
 										key={option}
 										onClick={() => { onChangeEmpresa(option); setIsEmpresaOpen(false); }}
-										className={`px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center justify-between ${selectedEmpresa === option ? 'bg-blue-50' : ''}`}
+										className={`px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer ${selectedEmpresa===option?'bg-blue-50':''}`}
 									>
 										{option}
-										{selectedEmpresa === option && (
-											<svg className="w-4 h-4 fill-current text-blue-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-												<path fillRule="evenodd" clipRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" />
-											</svg>
-										)}
 									</div>
 								))
 							)}
@@ -122,7 +130,7 @@ export default function SecaoFiltros({
 						aria-expanded={isColaboradorOpen}
 						aria-label="Funcionário"
 						onClick={() => setIsColaboradorOpen(!isColaboradorOpen)}
-						className={`w-80 px-4 h-[36px] flex items-center justify-between bg-white rounded-md border border-neutral-700 text-gray-500 text-sm font-semibold leading-tight ${cairo.className} hover:bg-[var(--color-neutral-700)] hover:text-white cursor-pointer`}
+						className={`w-80 px-4 h-[44px] flex items-center justify-between bg-white rounded-md border border-neutral-700 text-gray-500 text-sm font-semibold leading-tight ${cairo.className} hover:bg-[var(--color-neutral-700)] hover:text-white cursor-pointer`}
 					>
 						<span className="flex-grow whitespace-nowrap overflow-hidden text-ellipsis">
 							{selectedColaborador || "Funcionário"}
@@ -132,32 +140,34 @@ export default function SecaoFiltros({
 						</svg>
 					</div>
 					{isColaboradorOpen && (
-						<div className="absolute mt-1 w-80 bg-white border border-neutral-300 rounded-md shadow-lg z-10 max-h-60 overflow-y-auto">
-							{!isEmpresaSelected ? (
+						<div className="absolute mt-1 w-80 bg-white border rounded-md shadow-lg max-h-60 overflow-y-auto">
+							{/* campo de pesquisa */}
+							<div className="px-3 py-2 border-b">
+								<input
+									type="text"
+									value={colSearch}
+									onChange={e => setColSearch(e.target.value)}
+									placeholder="Pesquisar funcionário..."
+									className="w-full text-sm px-2 py-1 border rounded"
+								/>
+							</div>
+							{/* lista filtrada */}
+							{ !isEmpresaSelected ? (
 								<div className="px-4 py-2 text-sm text-gray-500">
 									Selecione uma empresa para carregar os funcionários.
 								</div>
-							) : colaboradorOptionsList.length === 0 ? (
+							) : filteredColabs.length === 0 ? (
 								<div className="px-4 py-2 text-sm text-gray-500">
 									Nenhum colaborador encontrado para esta empresa.
 								</div>
 							) : (
-								colaboradorOptionsList.map(option => (
+								filteredColabs.map(opt => (
 									<div
-										key={option.id_empregado} // Use unique id_empregado for key
-										onClick={() => {
-											// Pass employee name to handler, assuming selectedColaborador stores the name
-											onChangeColaborador(selectedColaborador === option.nome ? "" : option.nome);
-											setIsColaboradorOpen(false);
-										}}
-										className={`px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center justify-between ${selectedColaborador === option.nome ? 'bg-blue-50' : ''}`}
+										key={opt.id_empregado}
+										onClick={() => { onChangeColaborador(opt.nome); setIsColaboradorOpen(false); }}
+										className={`px-4 py-2 text-sm hover:bg-gray-100 cursor-pointer ${selectedColaborador===opt.nome?'bg-blue-50':''}`}
 									>
-										{option.nome} {/* Display employee name */}
-										{selectedColaborador === option.nome && (
-											<svg className="w-4 h-4 fill-current text-blue-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-												<path fillRule="evenodd" clipRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" />
-											</svg>
-										)}
+										{opt.nome}
 									</div>
 								))
 							)}
