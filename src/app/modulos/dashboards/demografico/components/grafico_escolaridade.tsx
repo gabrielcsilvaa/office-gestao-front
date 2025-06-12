@@ -19,6 +19,7 @@ interface GraficoEscolaridadeProps {
   }[];
 }
 
+
 export default function GraficoEscolaridade({ dados = [] }: GraficoEscolaridadeProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -46,6 +47,9 @@ export default function GraficoEscolaridade({ dados = [] }: GraficoEscolaridadeP
         colaboradores: item.total,
       }))
     : [];
+    console.log("Dados formatados:", dadosFormatados);
+    
+console.log("dados recebidos no GraficoEscolaridade:", dados);
 
   const GraficoPequeno = () => (
     <div className="w-full h-full pt-2">

@@ -29,13 +29,18 @@ export default function Demografico() {
   };
 
 
-  
+
+const [dadosDemograficos, setDadosDemograficos] = useState([]);
 
 
-const [dadosDemograficos, setDadosDemograficos] = useState<any>(null);
+
+
+
+
+
 
 useEffect(() => {
-  const fetchDemografico = async () => {
+  const fetchDados = async () => {
     try {
       const response = await fetch("/api/dashboards-demografico", {
         method: "POST",
@@ -49,29 +54,31 @@ useEffect(() => {
       });
 
       if (!response.ok) {
-        throw new Error("Erro ao buscar dados demográficos");
+        throw new Error("Erro na requisição: " + response.statusText);
       }
 
-      const data = await response.json();
-      setDadosDemograficos(data);
+      const resultado = await response.json();
+      console.log("Dados recebidos:", resultado);
+
+      // Armazena apenas o array de dados
+      setDadosDemograficos(resultado.dados);
+
     } catch (error) {
-      console.error("Erro ao buscar dados demográficos:", error);
+      console.error("Erro ao buscar dados:", error);
     }
   };
 
-  fetchDemografico();
+  fetchDados();
 }, []);
 
-// Observe o estado toda vez que mudar
-useEffect(() => {
-  console.log("dadosDemograficos atualizado:", dadosDemograficos);
-}, [dadosDemograficos]);
-// console.log("tete", dadosDemograficos.dados.cpf);
+
+  // Observe o estado toda vez que mudar
+  useEffect(() => {
+    console.log("dadosDemograficos atualizado:", dadosDemograficos);
+  }, [dadosDemograficos]);
+  // console.log("tete", dadosDemograficos.dados.cpf);
 
   return (
-
-
-
     // Container principal da página.
     <div className="bg-gray-100 h-full p-4 overflow-y-auto">
       {/* Seção do Cabeçalho e Filtros */}
@@ -233,7 +240,7 @@ useEffect(() => {
                 <GraficoCategoria />
               </div>
               <div className="aspect-square w-full h-[300px]">
-                <GraficoEscolaridade dados={dadosDemograficos?.escolaridade ?? []} />
+                <GraficoEscolaridade dados={dadosDemograficos} />
               </div>
             </div>
           </div>
