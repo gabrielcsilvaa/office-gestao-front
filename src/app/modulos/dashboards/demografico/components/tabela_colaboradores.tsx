@@ -12,80 +12,80 @@ export default function TabelaColaboradores() {
     {
       nome: "JOSE ORLANDO QUEIROZ",
       departamento: "GERAL",
-      centroCusto: "GERAL",
+      faturamento: "GERAL",
       number: "1",
     },
     {
       nome: "MARIA REGINALDA ROGÉRIO DE ALMEIDA",
       departamento: "FILIAL 2",
-      centroCusto: "GERAL",
+      faturamento: "GERAL",
       number: "1",
     },
     {
       nome: "BRUNO DE SOUZA SIERRA",
       departamento: "FILIAL 4",
-      centroCusto: "GERAL",
+      faturamento: "GERAL",
       number: "1",
     },
     {
       nome: "MARIA APARECIDA CALIXTO",
       departamento: "MATRIZ",
-      centroCusto: "MATRIZ",
+      faturamento: "MATRIZ",
       number: "1",
     },
     {
       nome: "MARIA ELSANGELA DE LEMOS BARBOSA",
       departamento: "PRODUÇÃO",
-      centroCusto: "GERAL",
+      faturamento: "GERAL",
       number: "1",
     },
     {
       nome: "FRANCISCO TAO BEZERRA DO NASCIMENTO",
       departamento: "MATRIZ",
-      centroCusto: "GERAL",
+      faturamento: "GERAL",
       number: "1",
     },
     {
       nome: "MARIA DE FATIMA HOLANDA DOS SANTOS SILVA",
       departamento: "PARC",
-      centroCusto: "PARC",
+      faturamento: "PARC",
       number: "1",
     },
 
     {
       nome: "MARIA DE FATIMA HOLANDA DOS SANTOS SILVA",
       departamento: "PARC",
-      centroCusto: "PARC",
+      faturamento: "PARC",
       number: "1",
     },
     {
       nome: "MARIA DE FATIMA HOLANDA DOS SANTOS SILVA",
       departamento: "PARC",
-      centroCusto: "PARC",
+      faturamento: "PARC",
       number: "1",
     },
     {
       nome: "MARIA DE FATIMA HOLANDA DOS SANTOS SILVA",
       departamento: "PARC",
-      centroCusto: "PARC",
+      faturamento: "PARC",
       number: "1",
     },
     {
       nome: "MARIA DE FATIMA HOLANDA DOS SANTOS SILVA",
       departamento: "PARC",
-      centroCusto: "PARC",
+      faturamento: "PARC",
       number: "1",
     },
     {
       nome: "MARIA DE FATIMA HOLANDA DOS SANTOS SILVA",
       departamento: "PARC",
-      centroCusto: "PARC",
+      faturamento: "PARC",
       number: "1",
     },
     {
       nome: "MARIA DE FATIMA HOLANDA DOS SANTOS SILVA",
       departamento: "PARC",
-      centroCusto: "PARC",
+      faturamento: "PARC",
       number: "1",
     },
 
@@ -119,7 +119,7 @@ export default function TabelaColaboradores() {
           <tr>
             <th className="py-3 px-4 text-left">NOME</th>
             <th className="py-3 px-4 text-left">DEPARTAMENTO</th>
-            <th className="py-3 px-4 text-left">CENTRO DE CUSTO</th>
+            <th className="py-3 px-4 text-left">FATURAMENTO</th>
             <th className="py-3 px-4 text-left"></th>
           </tr>
         </thead>
@@ -128,7 +128,7 @@ export default function TabelaColaboradores() {
             <tr key={index} className="border-b">
               <td className="py-2 px-4">{colab.nome}</td>
               <td className="py-2 px-4">{colab.departamento}</td>
-              <td className="py-2 px-4">{colab.centroCusto}</td>
+              <td className="py-2 px-4">{colab.faturamento}</td>
               <td className="py-2 px-4">{colab.number}</td>
             </tr>
           ))}

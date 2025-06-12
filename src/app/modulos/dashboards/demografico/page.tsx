@@ -1,10 +1,10 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import GraficoLinha from "./components/grafico_linha";
 import GraficosGenero from "./components/grafico_genero";
 import GraficoFaixaEtaria from "./components/grafico_faixa_etaria";
 import GraficoCategoria from "./components/grafico_categoria";
-import  GraficoEscolaridade  from "./components/grafico_escolaridade";
+import GraficoEscolaridade from "./components/grafico_escolaridade";
 import GraficoCargo from "./components/grafico_cargo";
 import TabelaColaboradores from "./components/tabela_colaboradores";
 import { RotateCcw } from "lucide-react";
@@ -28,16 +28,62 @@ export default function Demografico() {
     });
   };
 
+
+  
+
+
+const [dadosDemograficos, setDadosDemograficos] = useState<any>(null);
+
+useEffect(() => {
+  const fetchDemografico = async () => {
+    try {
+      const response = await fetch("/api/dashboards-demografico", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          start_date: "2024-01-01",
+          end_date: "2024-12-31",
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Erro ao buscar dados demográficos");
+      }
+
+      const data = await response.json();
+      setDadosDemograficos(data);
+    } catch (error) {
+      console.error("Erro ao buscar dados demográficos:", error);
+    }
+  };
+
+  fetchDemografico();
+}, []);
+
+// Observe o estado toda vez que mudar
+useEffect(() => {
+  console.log("dadosDemograficos atualizado:", dadosDemograficos);
+}, [dadosDemograficos]);
+// console.log("tete", dadosDemograficos.dados.cpf);
+
   return (
+
+
+
     // Container principal da página.
     <div className="bg-gray-100 h-full p-4 overflow-y-auto">
-
       {/* Seção do Cabeçalho e Filtros */}
       <div className="bg-gray-100 py-2 mb-6">
-        <div className="px-6"> {/* Wrapper interno para o conteúdo do cabeçalho */}
+        <div className="px-6">
+          {" "}
+          {/* Wrapper interno para o conteúdo do cabeçalho */}
           {/* Título e Botões agrupados à esquerda */}
-          <div className="flex flex-col md:flex-row md:items-center flex-wrap gap-4 mb-6 ">            
-            <h1 className="text-2xl font-bold whitespace-nowrap ">Dashboard Demográfico</h1>
+          <div className="flex flex-col md:flex-row md:items-center flex-wrap gap-4 mb-6 ">
+            <h1 className="text-2xl font-bold whitespace-nowrap ">
+              Dashboard Demográfico
+            </h1>
             <div className="flex items-center flex-wrap gap-x-4 gap-y-2">
               <button
                 onClick={resetarFiltros}
@@ -53,8 +99,6 @@ export default function Demografico() {
                   "Contratações",
                   "Demissões",
                   "Más Contratações",
-                  "Afastamentos",
-                  "Em Férias",
                 ].map((nome) => (
                   <button
                     key={nome}
@@ -71,7 +115,6 @@ export default function Demografico() {
               </div>
             </div>
           </div>
-
           {/* Filtros */}
           <div className="flex flex-col md:flex-row md:items-center flex-wrap gap-4">
             <select
@@ -81,7 +124,9 @@ export default function Demografico() {
                 setFiltros((prev) => ({ ...prev, centroCusto: e.target.value }))
               }
             >
-              <option value="" disabled hidden>Centro de Custo</option>
+              <option value="" disabled hidden>
+                Centro de Custo
+              </option>
               <option value="1">Opção 1</option>
               <option value="2">Opção 2</option>
             </select>
@@ -89,10 +134,15 @@ export default function Demografico() {
               className="w-full md:w-[232px] p-2 border rounded text-black-700 bg-white"
               value={filtros.departamento}
               onChange={(e) =>
-                setFiltros((prev) => ({ ...prev, departamento: e.target.value }))
+                setFiltros((prev) => ({
+                  ...prev,
+                  departamento: e.target.value,
+                }))
               }
             >
-              <option value="" disabled hidden>Departamento</option>
+              <option value="" disabled hidden>
+                Departamento
+              </option>
               <option value="1">Opção 1</option>
               <option value="2">Opção 2</option>
             </select>
@@ -100,10 +150,15 @@ export default function Demografico() {
               className="w-full md:w-[232px] p-2 border rounded text-black-700 bg-white"
               value={filtros.tipoColaborador}
               onChange={(e) =>
-                setFiltros((prev) => ({ ...prev, tipoColaborador: e.target.value }))
+                setFiltros((prev) => ({
+                  ...prev,
+                  tipoColaborador: e.target.value,
+                }))
               }
             >
-              <option value="" disabled hidden>Colaborador/Diretor/Autônomo</option>
+              <option value="" disabled hidden>
+                Colaborador/Diretor/Autônomo
+              </option>
               <option value="1">Opção 1</option>
               <option value="2">Opção 2</option>
             </select>
@@ -114,17 +169,18 @@ export default function Demografico() {
                 setFiltros((prev) => ({ ...prev, servico: e.target.value }))
               }
             >
-              <option value="" disabled hidden>Serviço</option>
+              <option value="" disabled hidden>
+                Serviço
+              </option>
               <option value="1">Opção 1</option>
               <option value="2">Opção 2</option>
             </select>
           </div>
-        </div> {/* Fim do wrapper interno `px-6` */}
-      </div> {/* Fim da Seção do Cabeçalho e Filtros */}
-
-              
+        </div>{" "}
+        {/* Fim do wrapper interno `px-6` */}
+      </div>{" "}
+      {/* Fim da Seção do Cabeçalho e Filtros */}
       <div className="h-px bg-gray-300 my-6"></div>
-
       {/* Linha com cards e gráficos laterais */}
       <div className="flex flex-col lg:flex-row gap-4">
         {/* Cards + Gráfico de Linha */}
@@ -150,7 +206,9 @@ export default function Demografico() {
               </div>
               <div className="bg-white p-4 rounded border-l-4 border-red-500 shadow-sm">
                 <div className="text-2xl font-bold text-black">1.777</div>
-                <div className="text-sm text-gray-500">Períodos de Afastamento</div>
+                <div className="text-sm text-gray-500">
+                  Períodos de Afastamento
+                </div>
               </div>
             </div>
 
@@ -175,13 +233,12 @@ export default function Demografico() {
                 <GraficoCategoria />
               </div>
               <div className="aspect-square w-full h-[300px]">
-                <GraficoEscolaridade />
+                <GraficoEscolaridade dados={dadosDemograficos?.escolaridade ?? []} />
               </div>
             </div>
           </div>
         </div>
       </div>
-
       {/* Parte inferior: Tabela e gráfico de cargos */}
       <div className="flex flex-col lg:flex-row gap-4 mt-4">
         <div className="w-full lg:w-1/2  bg-white rounded shadow">
@@ -190,7 +247,7 @@ export default function Demografico() {
         <div className="w-full lg:w-1/2  bg-white rounded shadow">
           <GraficoCargo />
         </div>
-      </div> 
+      </div>
     </div>
   );
 }
