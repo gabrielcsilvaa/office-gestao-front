@@ -178,10 +178,39 @@ export default function AniversariantesParceiros({
       calculateYears(parceria.data_inicio_atividades)
     ]);
 
+    const pageWidth  = doc.internal.pageSize.getWidth();
+
+    const tableWidth = 50 + 40 + 20 + 40 + 20;
+
+    const marginLR = (pageWidth - tableWidth) / 2;
+
+    const marginTop = 10;
+
+    let currentY = marginTop;
+
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text(
+      "Aniversário de Parceria",
+      pageWidth / 2,
+      currentY,
+      { align: "center" }
+    );
+    currentY += 8;
+
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(100);
+    doc.text(
+      `Gerado em: ${new Date().toLocaleDateString("pt-BR")} às ${new Date().toLocaleTimeString("pt-BR")}`,
+      marginLR,
+      currentY
+    );
+
     const tableHeaders = ['Nome', 'Data Cadastro', 'Anos de Parceria', 'Data Início Atividades', 'Anos de Atividade'];
 
     autoTable(doc, {
-      startY: 50,
+      startY: currentY,
       head: [tableHeaders],
       body: tableData,
       theme: 'grid',
@@ -204,14 +233,14 @@ export default function AniversariantesParceiros({
       columnStyles: {
         0: { cellWidth: 50, fontStyle: 'bold' },
         1: { cellWidth: 40, halign: 'right' },
-        2: { cellWidth: 30, halign: 'right' },
-        3: { cellWidth: 40, halign: 'right' },
-        4: { cellWidth: 30, halign: 'right' },
+        2: { cellWidth: 20, halign: 'center' },
+        3: { cellWidth: 40, halign: 'center' },
+        4: { cellWidth: 20, halign: 'center' },
       },
       alternateRowStyles: {
         fillColor: [245, 245, 245],
       },
-      margin: { left: 4, right: 2 },
+      margin: { left: marginLR, right: marginLR },
       didDrawPage: function (data) {
         doc.setFontSize(8);
         doc.text('Página ' + data.pageNumber, data.settings.margin.left, doc.internal.pageSize.height - 10);
@@ -221,7 +250,6 @@ export default function AniversariantesParceiros({
     doc.save(`${fileName}.pdf`);
   };
 
-  // Função para exportar para Excel
   const exportToExcel = (data: Parceria[], fileName: string) => {
     const ws = XLSX.utils.json_to_sheet(data.map((parceria) => ({
       Nome: parceria.nome,

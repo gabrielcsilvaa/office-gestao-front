@@ -52,10 +52,39 @@ const exportToPDF = (data: regimeTributario[], fileName: string) => {
     empresa.responsavel_legal,
   ]);
 
+  const pageWidth  = doc.internal.pageSize.getWidth();
+
+  const tableWidth = 50 + 40 + 30 + 40;
+
+  const marginLR = (pageWidth - tableWidth) / 2;
+
+  const marginTop = 10;
+
+  let currentY = marginTop;
+
+  doc.setFontSize(16);
+  doc.setFont("helvetica", "bold");
+  doc.text(
+    "Empresas por Regime Tributário",
+    pageWidth / 2,
+    currentY,
+    { align: "center" }
+  );
+  currentY += 8;
+
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(100);
+  doc.text(
+    `Gerado em: ${new Date().toLocaleDateString("pt-BR")} às ${new Date().toLocaleTimeString("pt-BR")}`,
+    marginLR,
+    currentY
+  );
+
   const tableHeaders = ['Nome Empresa', 'CNPJ', 'Regime Tributário', 'Responsável Legal'];
 
   autoTable(doc, {
-    startY: 50,
+    startY: currentY,
     head: [tableHeaders],
     body: tableData,
     theme: 'grid',
@@ -77,14 +106,14 @@ const exportToPDF = (data: regimeTributario[], fileName: string) => {
     },
     columnStyles: {
       0: { cellWidth: 50, fontStyle: 'bold' },
-      1: { cellWidth: 40, halign: 'right' },
-      2: { cellWidth: 30, halign: 'right' },
-      3: { cellWidth: 40, halign: 'right' },
+      1: { cellWidth: 40, halign: 'center' },
+      2: { cellWidth: 30, halign: 'center' },
+      3: { cellWidth: 40, halign: 'left' },
     },
     alternateRowStyles: {
       fillColor: [245, 245, 245],
     },
-    margin: { left: 4, right: 2 },
+    margin: { left: marginLR, right: marginLR },
     didDrawPage: function (data) {
       doc.setFontSize(8);
       doc.text('Página ' + data.pageNumber, data.settings.margin.left, doc.internal.pageSize.height - 10);
