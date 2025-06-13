@@ -830,7 +830,7 @@ export default function FichaPessoalPage() {
          {/* KPIs: animação de slide down/up */}
          {/* This div with `transform` creates a stacking context. Its children (tooltips z-50) will be stacked relative to it. */}
          {/* This container itself needs to be effectively above the header's z-[40]. */}
-         <div className={`transition-all duration-500 ease-in-out transform origin-top
+         <div className={`transition-all duration-200 ease-in-out transform origin-top
              ${selectedColaborador
                ? 'max-h-[800px] opacity-100 translate-y-0'
                : 'max-h-0 opacity-0 -translate-y-4'}`}>
