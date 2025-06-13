@@ -61,6 +61,8 @@ interface Regime {
   name: string;
   value: number;
   empresas: Empresa[];
+  nome_empresa: string;
+  data_inatividade: string | null;
 }
 
 interface EmpresaCompletaNovosCliente {
@@ -82,6 +84,52 @@ interface Socio {
   data_nascimento: string;
   idade?: number;
 }
+  const empresasExcluidas = [
+    "EMPRESA EXEMPLO REAL LTDA",
+    "EMPRESA EXEMPLO PRESUMIDO LTDA",
+    "EMPRESA EXEMPLO SIMPLES NACIONAL LTDA",
+    "EMPRESA DESONERAÇÃO DA EMPRESA DESONERAÇÃO DA",
+    "EMPRESA DESONERAÇÃO DA FOLHA",
+    "EMPRESA DOMÉSTICO",
+    "EMPRESA MODELO - EVENTOS E-SOCIAL",
+    "EMPRESA MODELO CONTÁBIL SPED",
+    "EMPRESA MODELO PLANO DE CONTAS CONTABIL",
+    "SILVEIRA FONTENELE - EMPRESA MODELO",
+    "EMPRESA SIMPLES - COMERCIO",
+    "EMPRESA SIMPLES - COMERCIO E SERVIÇO",
+    "EMPRESA SIMPLES - COMERCIO E IND",
+    "EMPRESA SIMPLES - COMERCIO, SERV E IND",
+    "EMPRESA SIMPLES - INDUSTRIA",
+    "EMPRESA SIMPLES - MEI",
+    "EMPRESA SIMPLES - SERVIÇO",
+    "LUCRO PRESUMIDO - COM, SERV E IND",
+    "LUCRO PRESUMIDO - COMERCIO",
+    "LUCRO PRESUMIDO - COMERCIO E INDUSTRIA",
+    "LUCRO PRESUMIDO - COMERCIO E SERVIÇO",
+    "LUCRO PRESUMIDO - INDUSTRIA",
+    "LUCRO PRESUMIDO - POSTO DE COMBUSTIVEL",
+    "LUCRO PRESUMIDO - SERVIÇO",
+    "LUCRO PRESUMIDO - TRANSPORTADORA",
+    "LUCRO REAL - COM, SERV E IND",
+    "LUCRO REAL - INDUSTRIA",
+    "LUCRO REAL - SERVIÇO",
+    "LUCRO REAL - TRANSPORTADORA",
+    "LUCRO REAL- COMERCIO",
+    "MODELO LUCRO PRESUMIDO - COM SERV",
+    "MODELO LUCRO PRESUMIDO - SERVIÇO",
+    "MODELO SIMPLES NACIONAL - COM SERV",
+    "MODELO SIMPLES NACIONAL - COM SERV IND",
+    "MODELO SIMPLES NACIONAL - COMERCIO",
+    "MODELO SIMPLES NACIONAL - SERVIÇO",
+    "REAL - COMERCIO E INDUSTRIA",
+    "REAL - POSTO DE COMBUSTIVEL",
+    "REAL - COMERCIO E SERVIÇO",
+    "MATRIZ PRESUMIDO - COM, SERV E IND",
+    "FILIAL PRESUMIDO - COM, SERV E IND",
+    "FOLHA PROFESSOR",
+    "ATIVIDADE IMOB RET PMCMV",
+    "SIMPLES TRANSPORTADORA",
+  ];
 
 export default function Carteira() {
   const [selectedOption, setSelectedOption] =
@@ -120,18 +168,31 @@ export default function Carteira() {
       return;
     }
 
-    // Agrupar por regime tributário
-    const groupedByRegime = empresas.reduce(
+    const empresasAtivas = empresas.filter(e =>
+      e.data_inatividade === null &&
+      !empresasExcluidas.includes(e.nome_empresa)
+    );
+
+    const groupedByRegime = empresasAtivas.reduce(
       (acc: { [key: string]: Regime }, empresa) => {
         const regime = empresa.regime_tributario || "Não especificado";
-        if (!acc[regime])
-          acc[regime] = { name: regime, value: 0, empresas: [] };
+        if (!acc[regime]) {
+          acc[regime] = {
+            name: regime,
+            value: 0,
+            empresas: [],
+            nome_empresa: regime,       
+            data_inatividade: null        
+          };
+        }
         acc[regime].value += 1;
         acc[regime].empresas.push(empresa);
         return acc;
       },
       {}
     );
+
+
     setRegimesData(Object.values(groupedByRegime));
 
     // Processar ramo de atividade
@@ -227,7 +288,6 @@ export default function Carteira() {
     e: React.ChangeEvent<HTMLSelectElement>
   ) => {
     const selected = e.target.value;
-    console.log("🔎 escritório selecionado:", selected);
     setSelectedOption(selected);
   };
 
@@ -469,7 +529,6 @@ export default function Carteira() {
           )
         ).sort() as string[];
 
-        console.log("🏢 Lista de escritórios:", nomesEscritorios);
         setEscritorios(nomesEscritorios);
       } catch (err: unknown) {
         if (err instanceof Error) setError(err.message);
