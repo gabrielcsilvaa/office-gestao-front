@@ -10,8 +10,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-
-
 interface GraficoEscolaridadeProps {
   dados: {
     escolaridade: string;
@@ -19,8 +17,9 @@ interface GraficoEscolaridadeProps {
   }[];
 }
 
-
-export default function GraficoEscolaridade({ dados = [] }: GraficoEscolaridadeProps) {
+export default function GraficoEscolaridade({
+  dados = [],
+}: GraficoEscolaridadeProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -47,10 +46,10 @@ export default function GraficoEscolaridade({ dados = [] }: GraficoEscolaridadeP
         colaboradores: item.total,
       }))
     : [];
-    console.log("Dados formatados:", dadosFormatados);
-    
-console.log("dados recebidos no GraficoEscolaridade:", dados);
-console.log("Dados recebidos pelo grafico de escolaridade:", dados )
+  console.log("Dados formatados:", dadosFormatados);
+
+  console.log("dados recebidos no GraficoEscolaridade:", dados);
+  console.log("Dados recebidos pelo grafico de escolaridade:", dados);
 
   const GraficoPequeno = () => (
     <div className="w-full h-full pt-2">
@@ -64,7 +63,13 @@ console.log("Dados recebidos pelo grafico de escolaridade:", dados )
           margin={{ top: 5, right: 20, left: 50, bottom: 5 }}
         >
           <XAxis type="number" hide />
-          <YAxis type="category" dataKey="name" tickLine={false} />
+          <YAxis
+            type="category"
+            dataKey="name"
+            tickLine={false}
+            width={50} // aumenta espaço lateral pro texto
+            tick={{ fontSize: 10 }} // diminui o tamanho da fonte
+          />
           <Tooltip cursor={{ fill: "#f5f5f5" }} />
           <Bar dataKey="colaboradores" barSize={20} fill="#8884d8" />
         </BarChart>
@@ -125,7 +130,8 @@ console.log("Dados recebidos pelo grafico de escolaridade:", dados )
                     dataKey="name"
                     tickLine={false}
                     axisLine={false}
-                    tick={{ fontSize: 14, fill: "#333" }}
+                    width={180} // mais espaço pro texto
+                    tick={{ fontSize: 12, fill: "#333" }} // fonte um pouco menor
                   />
                   <Tooltip
                     cursor={{ fill: "#f5f5f5" }}

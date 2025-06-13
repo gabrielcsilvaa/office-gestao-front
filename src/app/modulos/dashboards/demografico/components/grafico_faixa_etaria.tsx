@@ -10,15 +10,14 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const data = [
-  { name: "00 a 25", colaboradores: 414 },
-  { name: "26 a 35", colaboradores: 885 },
-  { name: "36 a 45", colaboradores: 775 },
-  { name: "46 a 55", colaboradores: 518 },
-  { name: "55+", colaboradores: 387 },
-];
+interface GraficoFaixaEtariaProps {
+  dados: {
+    name: string;
+    colaboradores: number;
+  }[];
+}
 
-export default function GraficoFaixaEtaria() {
+export default function GraficoFaixaEtaria({ dados }: GraficoFaixaEtariaProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -39,7 +38,6 @@ export default function GraficoFaixaEtaria() {
     };
   }, [isModalOpen, handleKeyDown]);
 
-  // Componente pequeno para a tela principal
   const GraficoPequeno = () => (
     <div className="w-full h-full pt-2">
       <h3
@@ -53,16 +51,12 @@ export default function GraficoFaixaEtaria() {
       </h3>
       <ResponsiveContainer width="100%" height="90%">
         <BarChart
-          data={data}
+          data={dados}
           layout="vertical"
           margin={{ top: 5, right: 20, left: 20, bottom: 5 }}
         >
           <XAxis type="number" hide />
-          <YAxis
-            type="category"
-            dataKey="name"
-            tickLine={false}
-          />
+          <YAxis type="category" dataKey="name" tickLine={false} />
           <Tooltip cursor={{ fill: "#f5f5f5" }} />
           <Bar dataKey="colaboradores" barSize={20} fill="#8884d8" />
         </BarChart>
@@ -72,7 +66,6 @@ export default function GraficoFaixaEtaria() {
 
   return (
     <>
-      {/* Container principal com o mesmo estilo do modelo */}
       <div className="relative bg-white rounded-xl shadow-md h-[300px]">
         <button
           onClick={() => setIsModalOpen(true)}
@@ -87,11 +80,10 @@ export default function GraficoFaixaEtaria() {
           />
         </button>
         <div className="p-2 h-full">
-            <GraficoPequeno />
+          <GraficoPequeno />
         </div>
       </div>
 
-      {/* Modal com gráfico grande, baseado no modelo */}
       {isModalOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
@@ -101,25 +93,23 @@ export default function GraficoFaixaEtaria() {
             className="bg-white p-6 rounded-lg shadow-2xl w-[90vw] h-[90vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Cabeçalho do Modal */}
             <div className="relative flex justify-center items-center mb-4 flex-shrink-0">
-                <h2 className="w-full text-xl font-bold text-gray-800 text-center">
-                    Colaboradores por Faixa Etária
-                </h2>
-                <button
-                    onClick={() => setIsModalOpen(false)}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 text-3xl text-gray-500 hover:text-gray-900"
-                    aria-label="Fechar modal"
-                >
-                    &times;
-                </button>
+              <h2 className="w-full text-xl font-bold text-gray-800 text-center">
+                Colaboradores por Faixa Etária
+              </h2>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="absolute right-0 top-1/2 -translate-y-1/2 text-3xl text-gray-500 hover:text-gray-900"
+                aria-label="Fechar modal"
+              >
+                &times;
+              </button>
             </div>
 
-            {/* Container do Gráfico Grande */}
             <div className="flex-grow w-full h-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                  data={data}
+                  data={dados}
                   layout="vertical"
                   margin={{ top: 20, right: 30, left: 40, bottom: 20 }}
                 >
