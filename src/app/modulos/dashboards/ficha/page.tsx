@@ -498,9 +498,16 @@ export default function FichaPessoalPage() {
         
         // Ordenar contratos: 1º por nome, 2º por data de admissão (mais recente primeiro)
         todosContratosDaEmpresa.sort((a, b) => {
+          // 1º critério: Nome do funcionário (alfabética)
           const nomeComparison = a.colaborador.localeCompare(b.colaborador);
           if (nomeComparison !== 0) return nomeComparison;
           
+          // 2º critério: Status do contrato (ativos primeiro)
+          const aAtivo = a.dataRescisao === "" ? 1 : 0;
+          const bAtivo = b.dataRescisao === "" ? 1 : 0;
+          if (aAtivo !== bAtivo) return bAtivo - aAtivo;
+
+          // 3º critério: Data de admissão (mais recente primeiro)
           try {
             const dataA = new Date(a.dataAdmissao.split('/').reverse().join('-'));
             const dataB = new Date(b.dataAdmissao.split('/').reverse().join('-'));
@@ -548,15 +555,32 @@ export default function FichaPessoalPage() {
           }
         });
         
-        // Ordenar exames: 1º por nome, 2º por data de vencimento (mais urgente primeiro)
+        // Aplicar ordenação multi-critério para Histórico de Exames
+        // 1º critério: Nome do funcionário (alfabética A–Z)
+        // 2º critério: Data de vencimento mais urgente (mais próxima de hoje)
+        // 3º critério: Data do exame (mais recente primeiro)
         todosExamesDaEmpresa.sort((a, b) => {
+          // 1º critério: Nome do funcionário (alfabética)
           const nomeComparison = a.nomeColaborador.localeCompare(b.nomeColaborador);
           if (nomeComparison !== 0) return nomeComparison;
           
+          // 2º critério: Data de vencimento mais urgente (mais próxima de hoje)
           try {
-            const dataA = new Date(a.vencimento.split('/').reverse().join('-'));
-            const dataB = new Date(b.vencimento.split('/').reverse().join('-'));
-            return dataA.getTime() - dataB.getTime();
+            const now = Date.now();
+            const vencA = new Date(a.vencimento.split('/').reverse().join('-')).getTime();
+            const vencB = new Date(b.vencimento.split('/').reverse().join('-')).getTime();
+            const diffA = Math.abs(vencA - now);
+            const diffB = Math.abs(vencB - now);
+            if (diffA !== diffB) return diffA - diffB;
+          } catch (e) {
+            // falha na conversão da data, ignora e segue
+          }
+
+          // 3º critério: Data do exame (mais recente primeiro)
+          try {
+            const dataExameA = new Date(a.dataExame.split('/').reverse().join('-')).getTime();
+            const dataExameB = new Date(b.dataExame.split('/').reverse().join('-')).getTime();
+            return dataExameB - dataExameA;
           } catch (e) {
             return 0;
           }
@@ -597,7 +621,10 @@ export default function FichaPessoalPage() {
           _dataInicioAquisitivo: f.inicio_aquisitivo,
         }));
 
-        // Aplicar ordenação multi-critério
+        // Aplicar ordenação multi-critério para Detalhes de Férias
+        // 1º critério: Nome do funcionário (alfabética A–Z)
+        // 2º critério: Data de vencimento mais urgente (mais próxima de hoje)
+        // 3º critério: Data de início do período aquisitivo (mais antiga primeiro)
         feriasFormatadas.sort((a, b) => {
           // 1º critério: Nome do funcionário (alfabética)
           const nomeComparison = a.nomeColaborador.localeCompare(b.nomeColaborador);
@@ -664,7 +691,10 @@ export default function FichaPessoalPage() {
           };
         });
 
-        // Aplicar ordenação multi-critério
+        // Aplicar ordenação multi-critério para Detalhes de Alterações Salariais
+        // 1º critério: Nome do funcionário (alfabética A–Z)
+        // 2º critério: Data da competência (mais recente primeiro)
+        // 3º critério: Valor do salário novo (maior para menor)
         alteracoesFormatadas.sort((a, b) => {
           // 1º critério: Nome do funcionário (alfabética)
           const nomeComparison = a.nomeColaborador.localeCompare(b.nomeColaborador);
@@ -721,6 +751,30 @@ export default function FichaPessoalPage() {
               })
             );
             todosAfastamentosDaEmpresa.push(...afastamentosDoFuncionario);
+          }
+        });
+        
+        // Aplicar ordenação multi-critério para Histórico de Afastamentos
+        // 1º critério: Nome do funcionário (alfabética A–Z)
+        // 2º critério: Status do afastamento (ativos primeiro - termino = "N/A")
+        // 3º critério: Data de início (mais recente primeiro)
+        todosAfastamentosDaEmpresa.sort((a, b) => {
+          // 1º critério: Nome do funcionário (alfabética)
+          const nomeComparison = a.nomeColaborador.localeCompare(b.nomeColaborador);
+          if (nomeComparison !== 0) return nomeComparison;
+
+          // 2º critério: Status do afastamento (ativos primeiro)
+          const aAtivo = a.termino === "N/A" ? 1 : 0;
+          const bAtivo = b.termino === "N/A" ? 1 : 0;
+          if (aAtivo !== bAtivo) return bAtivo - aAtivo;
+
+          // 3º critério: Data de início (mais recente primeiro)
+          try {
+            const dataInicioA = new Date(a.inicio.split('/').reverse().join('-')).getTime();
+            const dataInicioB = new Date(b.inicio.split('/').reverse().join('-')).getTime();
+            return dataInicioB - dataInicioA;
+          } catch (e) {
+            return 0;
           }
         });
         
