@@ -13,13 +13,13 @@ interface FuncionarioOpcao {
 	nome: string;
 }
 
-
 interface SecaoFiltrosProps {
 	selectedEmpresa: string;
 	onChangeEmpresa: (empresa: string) => void;
 	selectedColaborador: string;
 	onChangeColaborador: (colaborador: string) => void;
 	empresaOptionsList?: string[];
+	empresaOptionsData?: Array<{id_empresa: number; nome_empresa: string}>; // Adicionar dados completos das empresas
 	areDatesSelected?: boolean;
 	colaboradorOptionsList?: FuncionarioOpcao[];
 	isEmpresaSelected?: boolean;
@@ -31,6 +31,7 @@ export default function SecaoFiltros({
 	selectedColaborador,
 	onChangeColaborador,
 	empresaOptionsList = [],
+	empresaOptionsData = [], // Receber dados completos
 	areDatesSelected = false,
 	colaboradorOptionsList = [], 
 	isEmpresaSelected = false,   
@@ -42,14 +43,20 @@ export default function SecaoFiltros({
 	const colaboradorRef = useRef<HTMLDivElement>(null);
 
 	const [empresaSearch, setEmpresaSearch] = useState<string>("");           
-	const filteredEmpresas = empresaOptionsList.filter(e =>                   
-		e.toLowerCase().includes(empresaSearch.toLowerCase())
-	);                                                                        
+	const filteredEmpresas = empresaOptionsData.filter(empresa => {
+		const searchLower = empresaSearch.toLowerCase();
+		const nomeMatch = empresa.nome_empresa.toLowerCase().includes(searchLower);
+		const idMatch = empresa.id_empresa.toString().includes(searchLower);
+		return nomeMatch || idMatch;
+	});                                                                        
 
 	const [colSearch, setColSearch] = useState<string>("");                   
-	const filteredColabs = colaboradorOptionsList.filter(c =>                 
-		c.nome.toLowerCase().includes(colSearch.toLowerCase())
-	);
+	const filteredColabs = colaboradorOptionsList.filter(c => {
+		const searchLower = colSearch.toLowerCase();
+		const nomeMatch = c.nome.toLowerCase().includes(searchLower);
+		const idMatch = c.id_empregado.toString().includes(searchLower);
+		return nomeMatch || idMatch;
+	});
 
 	// Refs para os inputs de pesquisa
 	const empresaSearchInputRef = useRef<HTMLInputElement>(null);
@@ -186,16 +193,16 @@ export default function SecaoFiltros({
 												</p>
 											</div>
 										)}
-										{filteredEmpresas.map((option, index) => (
+										{filteredEmpresas.map((empresa, index) => (
 											<div
-												key={option}
-												onClick={() => { onChangeEmpresa(option); setIsEmpresaOpen(false); setEmpresaSearch(""); }}
+												key={empresa.id_empresa}
+												onClick={() => { onChangeEmpresa(empresa.nome_empresa); setIsEmpresaOpen(false); setEmpresaSearch(""); }}
 												className={`px-4 py-3 text-sm hover:bg-blue-50 cursor-pointer transition-colors flex items-center justify-between group ${
-													selectedEmpresa === option ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:text-blue-600'
+													selectedEmpresa === empresa.nome_empresa ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:text-blue-600'
 												}`}
 											>
-												<span className="truncate">{option}</span>
-												{selectedEmpresa === option && (
+												<span className="truncate">{empresa.nome_empresa}</span>
+												{selectedEmpresa === empresa.nome_empresa && (
 													<svg className="w-4 h-4 text-blue-600 flex-shrink-0 ml-2" fill="currentColor" viewBox="0 0 20 20">
 														<path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
 													</svg>
@@ -314,7 +321,7 @@ export default function SecaoFiltros({
 												{selectedColaborador === opt.nome && (
 													<svg className="w-4 h-4 text-blue-600 flex-shrink-0 ml-2" fill="currentColor" viewBox="0 0 20 20">
 														<path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-													</svg>
+												</svg>
 												)}
 											</div>
 										))}

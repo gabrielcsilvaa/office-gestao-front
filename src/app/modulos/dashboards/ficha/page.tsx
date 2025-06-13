@@ -296,6 +296,7 @@ export default function FichaPessoalPage() {
   const [loading, setLoading] = useState(true); // Inicializar como true
   const [error, setError] = useState<string | null>(null);
   const [empresaOptions, setEmpresaOptions] = useState<string[]>([]);
+  const [empresaOptionsData, setEmpresaOptionsData] = useState<Array<{id_empresa: number; nome_empresa: string}>>([]); // Adicionar estado para dados completos
   const [colaboradorOptions, setColaboradorOptions] = useState<Funcionario[]>([]); 
   const [feriasRaw, setFeriasRaw] = useState<FeriasPorEmpresa[]>([]);
   const [feriasData, setFeriasData] = useState<FormattedFerias[]>([]);
@@ -382,13 +383,21 @@ export default function FichaPessoalPage() {
         }
 
         if (rawDados.length > 0) {
-          // agora item é do tipo EmpresaFicha e uniqueEmpresas é string[]
+          // Manter lista de nomes para compatibilidade
           const uniqueEmpresas: string[] = Array.from(
             new Set(rawDados.map((item) => item.nome_empresa.trim()))
           ).sort();
           setEmpresaOptions(uniqueEmpresas);
+
+          // Adicionar dados completos das empresas
+          const empresasCompletas = rawDados.map(item => ({
+            id_empresa: item.id_empresa,
+            nome_empresa: item.nome_empresa.trim()
+          })).sort((a, b) => a.nome_empresa.localeCompare(b.nome_empresa));
+          setEmpresaOptionsData(empresasCompletas);
         } else {
           setEmpresaOptions([]);
+          setEmpresaOptionsData([]);
         }
 
         setFeriasRaw(Array.isArray(result.ferias) ? result.ferias : []);
@@ -805,6 +814,7 @@ export default function FichaPessoalPage() {
           selectedColaborador={selectedColaborador}
           onChangeColaborador={setSelectedColaborador}
           empresaOptionsList={empresaOptions}
+          empresaOptionsData={empresaOptionsData}
           areDatesSelected={!!(startDate && endDate)}
           colaboradorOptionsList={colaboradorOptions}
           isEmpresaSelected={!!selectedEmpresa}
