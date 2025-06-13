@@ -312,7 +312,13 @@ export default function SecaoFiltros({
 										{filteredColabs.map((opt, index) => (
 											<div
 												key={opt.id_empregado}
-												onClick={() => { onChangeColaborador(opt.nome); setIsColaboradorOpen(false); setColSearch(""); }}
+												onClick={() => { 
+													// Implementar toggle: se já está selecionado, desseleciona
+													const novoColaborador = selectedColaborador === opt.nome ? "" : opt.nome;
+													onChangeColaborador(novoColaborador); 
+													setIsColaboradorOpen(false); 
+													setColSearch(""); 
+												}}
 												className={`px-4 py-3 text-sm hover:bg-blue-50 cursor-pointer transition-colors flex items-center justify-between group ${
 													selectedColaborador === opt.nome ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:text-blue-600'
 												}`}
