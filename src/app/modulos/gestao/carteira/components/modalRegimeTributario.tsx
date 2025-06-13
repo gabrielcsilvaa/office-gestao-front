@@ -84,7 +84,7 @@ const exportToPDF = (data: regimeTributario[], fileName: string) => {
   const tableHeaders = ['Nome Empresa', 'CNPJ', 'Regime Tributário', 'Responsável Legal'];
 
   autoTable(doc, {
-    startY: currentY,
+    startY: currentY + 4,
     head: [tableHeaders],
     body: tableData,
     theme: 'grid',

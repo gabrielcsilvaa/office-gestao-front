@@ -113,7 +113,7 @@ export default function AniversariantesSocios({
     const tableHeaders = ['Nome', 'Data de Nascimento', 'Idade'];
 
     autoTable(doc, {
-      startY: currentY,
+      startY: currentY + 4,
       head: [tableHeaders],
       body: tableData,
       theme: 'grid',

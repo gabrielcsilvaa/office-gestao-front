@@ -83,7 +83,7 @@ const exportToPDF = (data: empresaRamoAtividade[], fileName: string) => {
     const tableHeaders = ['Nome Empresa', 'CNPJ', 'Ramo de Atividade', 'Responsável Legal'];
 
     autoTable(doc, {
-      startY: currentY,
+      startY: currentY + 4,
       head: [tableHeaders],
       body: tableData,
       theme: 'grid',
@@ -105,9 +105,9 @@ const exportToPDF = (data: empresaRamoAtividade[], fileName: string) => {
       },
       columnStyles: {
         0: { cellWidth: 50, fontStyle: 'bold' },
-        1: { cellWidth: 40, halign: 'right' },
-        2: { cellWidth: 30, halign: 'right' },
-        3: { cellWidth: 40, halign: 'right' },
+        1: { cellWidth: 40, halign: 'center' },
+        2: { cellWidth: 30, halign: 'center' },
+        3: { cellWidth: 40, halign: 'left' },
       },
       alternateRowStyles: {
         fillColor: [245, 245, 245],

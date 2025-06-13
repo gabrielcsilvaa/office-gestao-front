@@ -196,7 +196,7 @@ export default function AniversariantesParceiros({
       currentY,
       { align: "center" }
     );
-    currentY += 8;
+
 
     doc.setFontSize(10);
     doc.setFont("helvetica", "normal");
@@ -206,11 +206,11 @@ export default function AniversariantesParceiros({
       marginLR,
       currentY
     );
-
+    currentY += 8;
     const tableHeaders = ['Nome', 'Data Cadastro', 'Anos de Parceria', 'Data Início Atividades', 'Anos de Atividade'];
 
     autoTable(doc, {
-      startY: currentY,
+      startY: currentY + 4,
       head: [tableHeaders],
       body: tableData,
       theme: 'grid',
@@ -232,7 +232,7 @@ export default function AniversariantesParceiros({
       },
       columnStyles: {
         0: { cellWidth: 50, fontStyle: 'bold' },
-        1: { cellWidth: 40, halign: 'right' },
+        1: { cellWidth: 40, halign: 'center' },
         2: { cellWidth: 20, halign: 'center' },
         3: { cellWidth: 40, halign: 'center' },
         4: { cellWidth: 20, halign: 'center' },
