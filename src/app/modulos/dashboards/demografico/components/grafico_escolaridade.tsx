@@ -50,6 +50,7 @@ export default function GraficoEscolaridade({ dados = [] }: GraficoEscolaridadeP
     console.log("Dados formatados:", dadosFormatados);
     
 console.log("dados recebidos no GraficoEscolaridade:", dados);
+console.log("Dados recebidos pelo grafico de escolaridade:", dados )
 
   const GraficoPequeno = () => (
     <div className="w-full h-full pt-2">
