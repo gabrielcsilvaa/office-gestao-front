@@ -263,7 +263,7 @@ export default function AniversariantesSocios({
       <div className="flex justify-end gap-4 mb-4">
         <button
           onClick={() => exportToPDF(sortedSocios, "Aniversariantes_Socios")}
-          className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto "
+          className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto cursor-pointer"
           style={{ width: 36, height: 36 }}
         >
           <Image
@@ -277,7 +277,7 @@ export default function AniversariantesSocios({
 
         <button
           onClick={() => exportToExcel(sortedSocios, "Aniversariantes_Socios")}
-          className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto "
+          className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto cursor-pointer "
           style={{ width: 36, height: 36 }}
         >
           <Image

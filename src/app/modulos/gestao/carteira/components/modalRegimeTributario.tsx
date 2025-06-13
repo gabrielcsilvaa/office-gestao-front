@@ -298,7 +298,7 @@ export default function ListaEmpresasRegimeTributario({
         <div className="flex gap-4">
           <button
             onClick={() => exportToPDF(empresasFiltradas, "Empresas_Regime_Tributario")}
-            className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
+            className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto cursor-pointer"
             style={{ width: 36, height: 36 }}
           >
             <Image
@@ -312,7 +312,7 @@ export default function ListaEmpresasRegimeTributario({
 
           <button
             onClick={() => exportToExcel(empresasFiltradas, "Empresas_Regime_Tributario")}
-            className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
+            className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto cursor-pointer"
             style={{ width: 36, height: 36 }}
           >
             <Image

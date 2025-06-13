@@ -306,7 +306,7 @@ export default function ModalEmpresasCard({
         <div className="flex gap-4">
           <button
             onClick={() => exportToPDF(filteredEmpresas, "Empresas")}
-            className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
+            className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto cursor-pointer"
             style={{ width: 36, height: 36 }}
           >
             <Image
@@ -320,7 +320,7 @@ export default function ModalEmpresasCard({
 
           <button
             onClick={() => exportToExcel(filteredEmpresas, "Empresas")}
-            className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
+            className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto cursor-pointer"
             style={{ width: 36, height: 36 }}
           >
             <Image
