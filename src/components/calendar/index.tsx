@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 
 import { registerLocale } from "react-datepicker";
@@ -16,6 +16,8 @@ const cairo = Cairo({
 interface CalendarProps {
   onStartDateChange: (date: string | null) => void;
   onEndDateChange: (date: string | null) => void;
+  initialStartDate?: string | null; // reintroduzido
+  initialEndDate?: string | null;   // reintroduzido
 }
 
 // Função que aplica máscara dd/mm/yyyy no input
@@ -27,26 +29,27 @@ function maskDate(value: string | undefined | null) {
   return digits.slice(0, 2) + "/" + digits.slice(2, 4) + "/" + digits.slice(4);
 }
 
+// Novo helper para criar Date local a partir de string "yyyy-mm-dd"
+function parseISODate(value: string): Date {
+  const [yyyy, mm, dd] = value.split("-");
+  return new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+}
+
 // Função para converter string dd/mm/yyyy em Date ou null se inválido
 function parseDate(value: string): Date | null {
   const parts = value.split("/");
   if (parts.length !== 3) return null;
   const [dd, mm, yyyy] = parts;
   if (dd.length !== 2 || mm.length !== 2 || yyyy.length !== 4) return null;
-
-  const date = new Date(`${yyyy}-${mm}-${dd}`);
-  if (isNaN(date.getTime())) return null;
-
+  const d = new Date(Number(yyyy), Number(mm) - 1, Number(dd));
+  if (isNaN(d.getTime())) return null;
   // Validação extra: garantir que dia, mês e ano batem com o date criado
   if (
-    date.getDate() !== Number(dd) ||
-    date.getMonth() + 1 !== Number(mm) ||
-    date.getFullYear() !== Number(yyyy)
-  ) {
-    return null;
-  }
-
-  return date;
+    d.getDate() !== Number(dd) ||
+    d.getMonth() + 1 !== Number(mm) ||
+    d.getFullYear() !== Number(yyyy)
+  ) return null;
+  return d;
 }
 
 // Função para formatar Date para dd/mm/yyyy
@@ -58,25 +61,50 @@ function formatDateToInput(date: Date | null) {
   return `${dd}/${mm}/${yyyy}`;
 }
 
-// Função para formatar Date para yyyy-mm-dd para enviar no callback
+// Ajuste em formatDateISO: manter como está ou usar local (já sem UTC)
 function formatDateISO(date: Date | null) {
   if (!date) return null;
-  return date.toISOString().split("T")[0];
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
 
 export default function Calendar({
   onStartDateChange,
   onEndDateChange,
+  initialStartDate = null,
+  initialEndDate = null,
 }: CalendarProps) {
-  const [startDate, setStartDate] = useState<Date | null>(null);
-  const [endDate, setEndDate] = useState<Date | null>(null);
-
-  // Estados para armazenar o valor do input como string mascarada
+  // inicialização via props usando parseISODate
+  const [startDate, setStartDate] = useState<Date | null>(() =>
+    initialStartDate ? parseISODate(initialStartDate) : null
+  );
+  const [endDate, setEndDate] = useState<Date | null>(() =>
+    initialEndDate ? parseISODate(initialEndDate) : null
+  );
   const [startInput, setStartInput] = useState("");
   const [endInput, setEndInput] = useState("");
 
+  // REINTRODUZIR estados para controlar abertura do picker
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
+
+  // quando props mudam, atualiza input interno
+  useEffect(() => {
+    if (initialStartDate) {
+      const d = parseISODate(initialStartDate);
+      setStartDate(d);
+      setStartInput(formatDateToInput(d));
+    }
+  }, [initialStartDate]);
+  useEffect(() => {
+    if (initialEndDate) {
+      const d = parseISODate(initialEndDate);
+      setEndDate(d);
+      setEndInput(formatDateToInput(d));
+    }
+  }, [initialEndDate]);
 
   const handleStartChangeRaw = (
     event?:

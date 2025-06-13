@@ -559,6 +559,8 @@ export default function Carteira() {
               })}
             </select>
             <Calendar
+              initialStartDate={startDate}
+              initialEndDate={endDate}
               onStartDateChange={handleStartDateChange}
               onEndDateChange={handleEndDateChange}
             />

@@ -463,9 +463,11 @@ export default function Escritorio() {
         </div>
         <div className="mt-6">
           <Calendar
-            onStartDateChange={handleStartDateChange}
-            onEndDateChange={handleEndDateChange}
-          />
+          initialStartDate={startDate}
+          initialEndDate={endDate}
+          onStartDateChange={handleStartDateChange}
+          onEndDateChange={handleEndDateChange}
+        />
         </div>
         <button
           onClick={() => exportToExcel(data)}

@@ -820,6 +820,8 @@ export default function FichaPessoalPage() {
           isEmpresaSelected={!!selectedEmpresa}
         />
         <Calendar
+          initialStartDate={startDate}
+          initialEndDate={endDate}
           onStartDateChange={handleStartDateChange}
           onEndDateChange={handleEndDateChange}
         />
