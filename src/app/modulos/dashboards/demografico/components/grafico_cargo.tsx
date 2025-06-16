@@ -3,30 +3,27 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 
-const GraficoCargo = () => {
-  // Estado para controlar a visibilidade do modal
+interface ColaboradorCargo {
+  cargo: string;
+  total: number;
+}
+
+interface GraficoCargoProps {
+  dados: ColaboradorCargo[];
+}
+
+const GraficoCargo: React.FC<GraficoCargoProps> = ({ dados }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  
+    
 
-  const colaboradores = [
-    { id: 1, cargo: "AGENTE DE REGIS...", numeroDeColaboradores: 126 },
-    { id: 2, cargo: "VENDEDOR(A)", numeroDeColaboradores: 107 },
-    { id: 3, cargo: "DIRETOR ADMINIS...", numeroDeColaboradores: 68 },
-    { id: 4, cargo: "SERVENTE DE OBR...", numeroDeColaboradores: 65 },
-    { id: 5, cargo: "DIRETOR GERAL D...", numeroDeColaboradores: 63 },
-    { id: 6, cargo: "DIRETOR", numeroDeColaboradores: 60 },
-    { id: 7, cargo: "PINTOR", numeroDeColaboradores: 57 },
-    { id: 8, cargo: "MOTORISTA", numeroDeColaboradores: 55 },
-    { id: 9, cargo: "PEDREIRO", numeroDeColaboradores: 54 },
-    { id: 10, cargo: "COSTUREIRA(O) E...", numeroDeColaboradores: 53 },
-    { id: 11, cargo: "BALCONISTA", numeroDeColaboradores: 47 },
-  ];
-
-  // Hook para fechar o modal com a tecla 'Escape'
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === "Escape") {
       setIsModalOpen(false);
     }
   }, []);
+
+
 
   useEffect(() => {
     if (isModalOpen) {
@@ -39,19 +36,16 @@ const GraficoCargo = () => {
     };
   }, [isModalOpen, handleKeyDown]);
 
-  // Constante que renderiza o conteúdo do gráfico para ser reutilizada
   const ChartContent = () => {
-    const maxColaboradores = Math.max(
-      ...colaboradores.map((c) => c.numeroDeColaboradores),
-      0
-    );
+    const maxColaboradores = Math.max(...dados.map((c) => c.total), 0);
+
     return (
       <div className="h-full w-full overflow-y-auto">
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <tbody>
-            {colaboradores.map((colaborador) => (
+            {dados.map((colaborador, index) => (
               <tr
-                key={colaborador.id}
+                key={index}
                 style={{ borderBottom: "1px solid #E2E8F0" }}
                 className="hover:bg-gray-50"
               >
@@ -75,7 +69,7 @@ const GraficoCargo = () => {
                   <div
                     style={{
                       width: `${
-                        (colaborador.numeroDeColaboradores / maxColaboradores) *
+                        (colaborador.total / maxColaboradores) *
                         100
                       }%`,
                       backgroundColor: "#68D391",
@@ -92,7 +86,7 @@ const GraficoCargo = () => {
                       fontWeight: "bold",
                     }}
                   >
-                    {colaborador.numeroDeColaboradores}
+                    {colaborador.total}
                   </span>
                 </td>
               </tr>
@@ -122,10 +116,10 @@ const GraficoCargo = () => {
           />
         </button>
         <div className="p-4 flex-grow overflow-hidden">
-            <h3 className="text-center font-bold text-lg mb-4">
-                Colaboradores por Cargo
-            </h3>
-            <ChartContent />
+          <h3 className="text-center font-bold text-lg mb-4">
+            Colaboradores por Cargo
+          </h3>
+          <ChartContent />
         </div>
       </div>
 
