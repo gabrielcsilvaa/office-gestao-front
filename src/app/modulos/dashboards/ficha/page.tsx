@@ -10,11 +10,18 @@ import AfastamentosTable from "./components/AfastamentosTable";
 import ContratosTable from "./components/ContratosTable";
 import FeriasDetalheCard from "./components/FeriasDetalheCard";
 import AlteracoesSalariaisDetalheCard from "./components/AlteracoesSalariaisDetalheCard";
-import Modal from "../organizacional/components/Modal";
+import Modal from "../organizacional/components/Modal"; // Ajuste o path se Modal foi movido para /components
 import EvolucaoChart from "./components/EvolucaoChart";
 import ValorPorGrupoChart from "./components/ValorPorGrupoChart";
 import Calendar from "@/components/calendar";
 import Loading from "@/app/loading";
+
+// Importe os novos componentes de tabela para o modal
+import FeriasModalTable from "./components/FeriasModalTable";
+import AtestadosModalTable from "./components/AtestadosModalTable";
+import AfastamentosModalTable from "./components/AfastamentosModalTable";
+import ContratosModalTable from "./components/ContratosModalTable";
+import AlteracoesSalariaisModalTable from "./components/AlteracoesSalariaisModalTable";
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
@@ -903,16 +910,16 @@ export default function FichaPessoalPage() {
               title="Histórico de Exames"
               onMaximize={() =>
                 setModalContent(
-                  <div className="flex flex-col w-[90vw] h-[80vh]">
-                    <h2 className={`text-2xl font-bold mb-2 ${cairo.className}`}>
-                      Histórico de Exames
+                  <div className="flex flex-col w-full h-full max-h-[calc(80vh-4rem)]">
+                    <h2 className={`text-2xl font-bold mb-4 ${cairo.className}`}>
+                      Histórico de Exames Detalhado
                     </h2>
-                    <AtestadosTable
-                      atestadosData={examesData}
-                      cairoClassName={cairo.className}
-                      headerIcons={[]}
-                      title=""
-                    />
+                    <div className="flex-1 overflow-auto">
+                      <AtestadosModalTable
+                        atestadosData={examesData}
+                        cairoClassName={cairo.className}
+                      />
+                    </div>
                   </div>
                 )
               }
@@ -926,15 +933,16 @@ export default function FichaPessoalPage() {
               headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")}
               onMaximize={() =>
                 setModalContent(
-                  <div className="flex flex-col w-[90vw] h-[80vh]">
-                    <h2 className={`text-2xl font-bold mb-2 ${cairo.className}`}>
-                      Histórico de Afastamentos
+                  <div className="flex flex-col w-full h-full max-h-[calc(80vh-4rem)]">
+                    <h2 className={`text-2xl font-bold mb-4 ${cairo.className}`}>
+                      Histórico de Afastamentos Detalhado
                     </h2>
-                    <AfastamentosTable
-                      afastamentosData={afastamentosData}
-                      cairoClassName={cairo.className}
-                      headerIcons={[]}
-                    />
+                    <div className="flex-1 overflow-auto">
+                      <AfastamentosModalTable
+                        afastamentosData={afastamentosData}
+                        cairoClassName={cairo.className}
+                      />
+                    </div>
                   </div>
                 )
               }
@@ -948,15 +956,16 @@ export default function FichaPessoalPage() {
               headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")}
               onMaximize={() =>
                 setModalContent(
-                  <div className="flex flex-col w-[90vw] h-[80vh]">
-                    <h2 className={`text-2xl font-bold mb-2 ${cairo.className}`}>
+                  <div className="flex flex-col w-full h-full max-h-[calc(80vh-4rem)]">
+                    <h2 className={`text-2xl font-bold mb-4 ${cairo.className}`}>
                       Detalhes de Contratos
                     </h2>
-                    <ContratosTable
-                      contratosData={contratosData}
-                      cairoClassName={cairo.className}
-                      headerIcons={[]}
-                    />
+                    <div className="flex-1 overflow-auto">
+                      <ContratosModalTable
+                        contratosData={contratosData}
+                        cairoClassName={cairo.className}
+                      />
+                    </div>
                   </div>
                 )
               }
@@ -974,16 +983,16 @@ export default function FichaPessoalPage() {
               title="Detalhes de Férias"
               onMaximize={() =>
                 setModalContent(
-                  <div className="flex flex-col w-[90vw] h-[80vh]">
-                    <h2 className={`text-2xl font-bold mb-2 ${cairo.className}`}>
+                  <div className="flex flex-col w-full h-full max-h-[calc(80vh-4rem)]">
+                    <h2 className={`text-2xl font-bold mb-4 ${cairo.className}`}>
                       Detalhes de Férias
                     </h2>
-                    <FeriasDetalheCard
-                      feriasData={feriasData}
-                      cairoClassName={cairo.className}
-                      headerIcons={[]}
-                      title=""
-                    />
+                    <div className="flex-1 overflow-auto">
+                      <FeriasModalTable
+                        feriasData={feriasData}
+                        cairoClassName={cairo.className}
+                      />
+                    </div>
                   </div>
                 )
               }
@@ -997,16 +1006,16 @@ export default function FichaPessoalPage() {
               title="Detalhes de Alterações Salariais"
               onMaximize={() =>
                 setModalContent(
-                  <div className="flex flex-col w-[90vw] h-[80vh]">
-                    <h2 className={`text-2xl font-bold mb-2 ${cairo.className}`}>
+                  <div className="flex flex-col w-full h-full max-h-[calc(80vh-4rem)]">
+                    <h2 className={`text-2xl font-bold mb-4 ${cairo.className}`}>
                       Detalhes de Alterações Salariais
                     </h2>
-                    <AlteracoesSalariaisDetalheCard
-                      alteracoesData={alteracoesData}
-                      cairoClassName={cairo.className}
-                      headerIcons={[]}
-                      title=""
-                    />
+                    <div className="flex-1 overflow-auto">
+                      <AlteracoesSalariaisModalTable
+                        alteracoesData={alteracoesData}
+                        cairoClassName={cairo.className}
+                      />
+                    </div>
                   </div>
                 )
               }
