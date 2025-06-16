@@ -8,7 +8,6 @@ interface ExameEntry {
   vencimento: string;      // Expected format: "DD/MM/YYYY" or "N/A"
   tipo: string;
   resultado: string;
-  // Add an optional id if your data source provides one for a more stable key
   id?: string | number; 
 }
 
@@ -20,7 +19,6 @@ interface AtestadosModalTableProps {
 type SortKey = keyof ExameEntry | null;
 type SortDirection = 'ascending' | 'descending';
 
-// Helper function to parse DD/MM/YYYY strings to Date objects
 const parseDateString = (dateStr: string): Date | null => {
   if (!dateStr || typeof dateStr !== 'string' || dateStr.toLowerCase() === 'n/a') {
     return null;
@@ -45,49 +43,52 @@ const AtestadosModalTable: React.FC<AtestadosModalTableProps> = ({ atestadosData
   const [sortKey, setSortKey] = useState<SortKey>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>('ascending');
   
-  // Use useMemo for sortedData to avoid re-sorting on every render unless dependencies change
   const sortedData = useMemo(() => {
     let sortableItems = [...atestadosData];
     if (sortKey !== null) {
       sortableItems.sort((a, b) => {
-        const valA = a[sortKey];
-        const valB = b[sortKey];
+        const valA = a[sortKey!]; 
+        const valB = b[sortKey!]; 
 
-        // Handle null, undefined, or "N/A" by pushing them to the end
-        const isValANil = valA === null || valA === undefined || String(valA).toLowerCase() === 'n/a';
-        const isValBNil = valB === null || valB === undefined || String(valB).toLowerCase() === 'n/a';
-
-        if (isValANil && isValBNil) return 0;
-        if (isValANil) return 1; // a is nil, b is not, so a comes after b
-        if (isValBNil) return -1; // b is nil, a is not, so a comes before b
+        let comparisonResult: number = 0;
 
         if (sortKey === 'dataExame' || sortKey === 'vencimento') {
           const dateA = parseDateString(String(valA));
           const dateB = parseDateString(String(valB));
+          const aIsNilDate = dateA === null;
+          const bIsNilDate = dateB === null;
 
-          if (dateA === null && dateB === null) return 0;
-          if (dateA === null) return 1; // Treat null dates as "later"
-          if (dateB === null) return -1; // Treat null dates as "later"
+          if (aIsNilDate && bIsNilDate) {
+            return 0; // Ambos nulos, ordem indiferente
+          }
+          if (aIsNilDate) { // A é nulo, B não é
+            return sortDirection === 'ascending' ? 1 : -1; // Nulo no final se ascendente, no início se descendente
+          }
+          if (bIsNilDate) { // B é nulo, A não é
+            return sortDirection === 'ascending' ? -1 : 1; // Nulo no final se ascendente, no início se descendente
+          }
+          // Ambas são datas válidas
+          if (dateA!.getTime() < dateB!.getTime()) comparisonResult = -1;
+          else if (dateA!.getTime() > dateB!.getTime()) comparisonResult = 1;
+          else comparisonResult = 0;
+          
+        } else { // String fields: nomeColaborador, tipo, resultado
+          // Para campos não-data, manter nulos/N/A no final consistentemente
+          const aIsConsideredNilString = valA === null || valA === undefined || String(valA).toLowerCase() === 'n/a' || String(valA).trim() === '';
+          const bIsConsideredNilString = valB === null || valB === undefined || String(valB).toLowerCase() === 'n/a' || String(valB).trim() === '';
 
-          if (dateA.getTime() < dateB.getTime()) {
-            return sortDirection === 'ascending' ? -1 : 1;
-          }
-          if (dateA.getTime() > dateB.getTime()) {
-            return sortDirection === 'ascending' ? 1 : -1;
-          }
-          return 0;
-        } else {
-          // Default string comparison (case-insensitive)
+          if (aIsConsideredNilString && !bIsConsideredNilString) return 1; 
+          if (!aIsConsideredNilString && bIsConsideredNilString) return -1;
+          if (aIsConsideredNilString && bIsConsideredNilString) return 0;
+          
           const strA = String(valA).toLowerCase();
           const strB = String(valB).toLowerCase();
-          if (strA < strB) {
-            return sortDirection === 'ascending' ? -1 : 1;
-          }
-          if (strA > strB) {
-            return sortDirection === 'ascending' ? 1 : -1;
-          }
-          return 0;
+          if (strA < strB) comparisonResult = -1;
+          else if (strA > strB) comparisonResult = 1;
+          else comparisonResult = 0;
         }
+        
+        return sortDirection === 'ascending' ? comparisonResult : -comparisonResult;
       });
     }
     return sortableItems;

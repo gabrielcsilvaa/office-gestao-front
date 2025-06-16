@@ -8,7 +8,7 @@ interface AlteracaoSalarialEntryModal {
   motivo: string;
   salarioAnterior: number | null;
   salarioNovo: number;
-  percentual: string; // Expected format: "X.X%" or ""
+  percentual: string; // Expected format: "X.X%" or "" or "-"
   id?: string | number; // Optional ID for a more stable key
 }
 
@@ -63,47 +63,88 @@ const AlteracoesSalariaisModalTable: React.FC<AlteracoesSalariaisModalTableProps
     let sortableItems = [...alteracoesData];
     if (sortKey !== null) {
       sortableItems.sort((a, b) => {
-        const valA = a[sortKey];
-        const valB = b[sortKey];
+        const valA = a[sortKey!];
+        const valB = b[sortKey!];
 
-        const isValANil = valA === null || valA === undefined || String(valA).toLowerCase() === 'n/a' || String(valA).trim() === "" || (sortKey === 'percentual' && String(valA).trim() === "-");
-        const isValBNil = valB === null || valB === undefined || String(valB).toLowerCase() === 'n/a' || String(valB).trim() === "" || (sortKey === 'percentual' && String(valB).trim() === "-");
-
-        if (isValANil && isValBNil) return 0;
-        if (isValANil) return 1;
-        if (isValBNil) return -1;
+        let comparisonResult: number = 0;
 
         if (sortKey === 'competencia') {
           const dateA = parseDateString(String(valA));
           const dateB = parseDateString(String(valB));
-          if (dateA === null && dateB === null) return 0;
-          if (dateA === null) return 1;
-          if (dateB === null) return -1;
-          if (dateA.getTime() < dateB.getTime()) return sortDirection === 'ascending' ? -1 : 1;
-          if (dateA.getTime() > dateB.getTime()) return sortDirection === 'ascending' ? 1 : -1;
-          return 0;
-        } else if (sortKey === 'salarioAnterior' || sortKey === 'salarioNovo') {
-          const numA = Number(valA); // Already number or null
-          const numB = Number(valB); // Already number or null
-          if (numA < numB) return sortDirection === 'ascending' ? -1 : 1;
-          if (numA > numB) return sortDirection === 'ascending' ? 1 : -1;
-          return 0;
+          const aIsNilDate = dateA === null;
+          const bIsNilDate = dateB === null;
+
+          if (aIsNilDate && bIsNilDate) return 0;
+          if (aIsNilDate) return sortDirection === 'ascending' ? 1 : -1; // Nil date at end for asc, start for desc
+          if (bIsNilDate) return sortDirection === 'ascending' ? -1 : 1; // Nil date at end for asc, start for desc
+          
+          if (dateA!.getTime() < dateB!.getTime()) comparisonResult = -1;
+          else if (dateA!.getTime() > dateB!.getTime()) comparisonResult = 1;
+          else comparisonResult = 0;
+
+        } else if (sortKey === 'salarioAnterior') {
+          const numA = valA as number | null;
+          const numB = valB as number | null;
+          const aIsNilNumeric = numA === null; // "N/A"
+          const bIsNilNumeric = numB === null; // "N/A"
+
+          if (aIsNilNumeric && bIsNilNumeric) return 0;
+          // If A is N/A: N/A comes first in ascending, last in descending
+          if (aIsNilNumeric) return sortDirection === 'ascending' ? -1 : 1; 
+          // If B is N/A: N/A comes first in ascending, last in descending
+          if (bIsNilNumeric) return sortDirection === 'ascending' ? 1 : -1;
+
+          // Both are valid numbers
+          if (numA! < numB!) comparisonResult = -1;
+          else if (numA! > numB!) comparisonResult = 1;
+          else comparisonResult = 0;
+
+        } else if (sortKey === 'salarioNovo') {
+          const numA = Number(valA);
+          const numB = Number(valB);
+          const aIsInvalid = isNaN(numA);
+          const bIsInvalid = isNaN(numB);
+          if (aIsInvalid && !bIsInvalid) return 1; 
+          if (!aIsInvalid && bIsInvalid) return -1;
+          if (aIsInvalid && bIsInvalid) return 0;
+
+          if (numA < numB) comparisonResult = -1;
+          else if (numA > numB) comparisonResult = 1;
+          else comparisonResult = 0;
+          
         } else if (sortKey === 'percentual') {
           const percA = parsePercentageString(String(valA));
           const percB = parsePercentageString(String(valB));
-          if (percA === null && percB === null) return 0;
-          if (percA === null) return 1;
-          if (percB === null) return -1;
-          if (percA < percB) return sortDirection === 'ascending' ? -1 : 1;
-          if (percA > percB) return sortDirection === 'ascending' ? 1 : -1;
-          return 0;
+          const aIsNilPerc = percA === null; // True if valA was "-" or unparseable
+          const bIsNilPerc = percB === null; // True if valB was "-" or unparseable
+
+          if (aIsNilPerc && bIsNilPerc) return 0;
+          // If A is "-": "-" comes first in ascending, last in descending
+          if (aIsNilPerc) return sortDirection === 'ascending' ? -1 : 1; 
+          // If B is "-": "-" comes first in ascending, last in descending
+          if (bIsNilPerc) return sortDirection === 'ascending' ? 1 : -1;
+
+          // Both are valid numbers
+          if (percA! < percB!) comparisonResult = -1;
+          else if (percA! > percB!) comparisonResult = 1;
+          else comparisonResult = 0;
+
         } else { // nomeColaborador, motivo (string sort)
+          const aIsNilString = valA === null || valA === undefined || String(valA).toLowerCase() === 'n/a' || String(valA).trim() === '';
+          const bIsNilString = valB === null || valB === undefined || String(valB).toLowerCase() === 'n/a' || String(valB).trim() === '';
+
+          if (aIsNilString && !bIsNilString) return 1; // Nil string always at end
+          if (!aIsNilString && bIsNilString) return -1; // Nil string always at end
+          if (aIsNilString && bIsNilString) return 0;
+          
           const strA = String(valA).toLowerCase();
           const strB = String(valB).toLowerCase();
-          if (strA < strB) return sortDirection === 'ascending' ? -1 : 1;
-          if (strA > strB) return sortDirection === 'ascending' ? 1 : -1;
-          return 0;
+          if (strA < strB) comparisonResult = -1;
+          else if (strA > strB) comparisonResult = 1;
+          else comparisonResult = 0;
         }
+        
+        return sortDirection === 'ascending' ? comparisonResult : -comparisonResult;
       });
     }
     return sortableItems;
@@ -137,7 +178,7 @@ const AlteracoesSalariaisModalTable: React.FC<AlteracoesSalariaisModalTableProps
   }
 
   return (
-    <div className="flex-1 min-h-[350px] flex flex-col"> {/* Adicionado flex-1 */}
+    <div className="flex-1 min-h-[350px] flex flex-col">
       <div className="overflow-x-auto">
         <table className={`min-w-full divide-y divide-gray-200 ${cairoClassName}`}>
           <thead className="bg-gray-50">

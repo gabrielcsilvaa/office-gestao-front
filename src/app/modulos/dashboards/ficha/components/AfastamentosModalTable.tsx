@@ -19,7 +19,6 @@ interface AfastamentosModalTableProps {
 type SortKeyAfastamento = keyof AfastamentoEntry | null;
 type SortDirectionAfastamento = 'ascending' | 'descending';
 
-// Helper function to parse DD/MM/YYYY strings to Date objects (can be shared if in a utils file)
 const parseDateString = (dateStr: string): Date | null => {
   if (!dateStr || typeof dateStr !== 'string' || dateStr.toLowerCase() === 'n/a') {
     return null;
@@ -47,41 +46,63 @@ const AfastamentosModalTable: React.FC<AfastamentosModalTableProps> = ({ afastam
     let sortableItems = [...afastamentosData];
     if (sortKey !== null) {
       sortableItems.sort((a, b) => {
-        const valA = a[sortKey];
-        const valB = b[sortKey];
+        const valA = a[sortKey!]; 
+        const valB = b[sortKey!]; 
 
-        const isValANil = valA === null || valA === undefined || String(valA).toLowerCase() === 'n/a';
-        const isValBNil = valB === null || valB === undefined || String(valB).toLowerCase() === 'n/a';
-
-        if (isValANil && isValBNil) return 0;
-        if (isValANil) return 1;
-        if (isValBNil) return -1;
+        let comparisonResult: number = 0;
 
         if (sortKey === 'inicio' || sortKey === 'termino') {
           const dateA = parseDateString(String(valA));
           const dateB = parseDateString(String(valB));
-          if (dateA === null && dateB === null) return 0;
-          if (dateA === null) return 1;
-          if (dateB === null) return -1;
-          if (dateA.getTime() < dateB.getTime()) return sortDirection === 'ascending' ? -1 : 1;
-          if (dateA.getTime() > dateB.getTime()) return sortDirection === 'ascending' ? 1 : -1;
-          return 0;
+          const aIsNilDate = dateA === null;
+          const bIsNilDate = dateB === null;
+
+          if (aIsNilDate && bIsNilDate) {
+            return 0; 
+          }
+          if (aIsNilDate) { 
+            return sortDirection === 'ascending' ? 1 : -1; 
+          }
+          if (bIsNilDate) { 
+            return sortDirection === 'ascending' ? -1 : 1; 
+          }
+          
+          if (dateA!.getTime() < dateB!.getTime()) comparisonResult = -1;
+          else if (dateA!.getTime() > dateB!.getTime()) comparisonResult = 1;
+          else comparisonResult = 0;
+
         } else if (sortKey === 'diasAfastados') {
+          // Nulos/N/A para números sempre no final
           const numA = parseFloat(String(valA));
           const numB = parseFloat(String(valB));
-          if (isNaN(numA) && isNaN(numB)) return 0;
-          if (isNaN(numA)) return 1;
-          if (isNaN(numB)) return -1;
-          if (numA < numB) return sortDirection === 'ascending' ? -1 : 1;
-          if (numA > numB) return sortDirection === 'ascending' ? 1 : -1;
-          return 0;
+          const aIsNilNumeric = isNaN(numA) || String(valA).toLowerCase() === 'n/a';
+          const bIsNilNumeric = isNaN(numB) || String(valB).toLowerCase() === 'n/a';
+          
+          if (aIsNilNumeric && !bIsNilNumeric) return 1;
+          if (!aIsNilNumeric && bIsNilNumeric) return -1;
+          if (aIsNilNumeric && bIsNilNumeric) return 0;
+
+          if (numA < numB) comparisonResult = -1;
+          else if (numA > numB) comparisonResult = 1;
+          else comparisonResult = 0;
+
         } else { // nomeColaborador, tipo (string sort)
+          // Nulos/N/A para strings sempre no final
+          const aIsNilString = valA === null || valA === undefined || String(valA).toLowerCase() === 'n/a' || String(valA).trim() === '';
+          const bIsNilString = valB === null || valB === undefined || String(valB).toLowerCase() === 'n/a' || String(valB).trim() === '';
+
+          if (aIsNilString && !bIsNilString) return 1;
+          if (!aIsNilString && bIsNilString) return -1;
+          if (aIsNilString && bIsNilString) return 0;
+          
           const strA = String(valA).toLowerCase();
           const strB = String(valB).toLowerCase();
-          if (strA < strB) return sortDirection === 'ascending' ? -1 : 1;
-          if (strA > strB) return sortDirection === 'ascending' ? 1 : -1;
-          return 0;
+          if (strA < strB) comparisonResult = -1;
+          else if (strA > strB) comparisonResult = 1;
+          else comparisonResult = 0;
         }
+        
+        return sortDirection === 'ascending' ? comparisonResult : -comparisonResult;
       });
     }
     return sortableItems;

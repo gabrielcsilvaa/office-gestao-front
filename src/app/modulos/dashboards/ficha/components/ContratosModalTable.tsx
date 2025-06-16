@@ -6,9 +6,8 @@ interface ContratoEntry {
   id: string; // ou number, dependendo da origem
   colaborador: string;
   dataAdmissao: string;    // Expected format: "DD/MM/YYYY"
-  dataRescisao: string;    // Expected format: "DD/MM/YYYY" or "" or "N/A"
+  dataRescisao: string;    // Expected format: "DD/MM/YYYY" or "" or "N/A" or "Ativo"
   salarioBase: string;     // Expected format: "R$ X.XXX,XX"
-  // empresa: string; // Removido conforme solicitado anteriormente
 }
 
 interface ContratosModalTableProps {
@@ -21,8 +20,8 @@ type SortDirectionContrato = 'ascending' | 'descending';
 
 // Helper function to parse DD/MM/YYYY strings to Date objects
 const parseDateString = (dateStr: string): Date | null => {
-  if (!dateStr || typeof dateStr !== 'string' || dateStr.toLowerCase() === 'n/a' || dateStr.trim() === "") {
-    return null;
+  if (!dateStr || typeof dateStr !== 'string' || dateStr.toLowerCase() === 'n/a' || dateStr.trim() === "" || dateStr.toLowerCase() === 'ativo') {
+    return null; // Treat "Ativo" as a nil date for parsing, specific handling in sort
   }
   const parts = dateStr.split('/');
   if (parts.length === 3) {
@@ -58,41 +57,66 @@ const ContratosModalTable: React.FC<ContratosModalTableProps> = ({ contratosData
     let sortableItems = [...contratosData];
     if (sortKey !== null) {
       sortableItems.sort((a, b) => {
-        const valA = a[sortKey];
-        const valB = b[sortKey];
+        const valA = a[sortKey!];
+        const valB = b[sortKey!];
 
-        const isValANil = valA === null || valA === undefined || String(valA).toLowerCase() === 'n/a' || String(valA).trim() === "";
-        const isValBNil = valB === null || valB === undefined || String(valB).toLowerCase() === 'n/a' || String(valB).trim() === "";
-
-        if (isValANil && isValBNil) return 0;
-        if (isValANil) return 1;
-        if (isValBNil) return -1;
+        let comparisonResult: number = 0;
 
         if (sortKey === 'dataAdmissao' || sortKey === 'dataRescisao') {
           const dateA = parseDateString(String(valA));
           const dateB = parseDateString(String(valB));
-          if (dateA === null && dateB === null) return 0;
-          if (dateA === null) return 1; // Null dates (e.g. active contract for dataRescisao) go last
-          if (dateB === null) return -1;
-          if (dateA.getTime() < dateB.getTime()) return sortDirection === 'ascending' ? -1 : 1;
-          if (dateA.getTime() > dateB.getTime()) return sortDirection === 'ascending' ? 1 : -1;
-          return 0;
+          
+          // Specific check for "Ativo" or other nil-like date strings
+          const aIsEffectivelyNilDate = dateA === null || (sortKey === 'dataRescisao' && String(valA).toLowerCase() === 'ativo');
+          const bIsEffectivelyNilDate = dateB === null || (sortKey === 'dataRescisao' && String(valB).toLowerCase() === 'ativo');
+
+          if (aIsEffectivelyNilDate && bIsEffectivelyNilDate) {
+            return 0;
+          }
+          if (aIsEffectivelyNilDate) { // A is "Ativo" or unparseable, B is a valid date
+            return sortDirection === 'ascending' ? 1 : -1; 
+          }
+          if (bIsEffectivelyNilDate) { // B is "Ativo" or unparseable, A is a valid date
+            return sortDirection === 'ascending' ? -1 : 1;
+          }
+          
+          // Both are valid dates (and not "Ativo" if dataRescisao)
+          if (dateA!.getTime() < dateB!.getTime()) comparisonResult = -1;
+          else if (dateA!.getTime() > dateB!.getTime()) comparisonResult = 1;
+          else comparisonResult = 0;
+
         } else if (sortKey === 'salarioBase') {
+          // Nulos/N/A para números sempre no final
           const numA = parseCurrencyString(String(valA));
           const numB = parseCurrencyString(String(valB));
-          if (numA === null && numB === null) return 0;
-          if (numA === null) return 1;
-          if (numB === null) return -1;
-          if (numA < numB) return sortDirection === 'ascending' ? -1 : 1;
-          if (numA > numB) return sortDirection === 'ascending' ? 1 : -1;
-          return 0;
+          const aIsNilNumeric = numA === null;
+          const bIsNilNumeric = numB === null;
+          
+          if (aIsNilNumeric && !bIsNilNumeric) return 1;
+          if (!aIsNilNumeric && bIsNilNumeric) return -1;
+          if (aIsNilNumeric && bIsNilNumeric) return 0;
+
+          if (numA! < numB!) comparisonResult = -1;
+          else if (numA! > numB!) comparisonResult = 1;
+          else comparisonResult = 0;
+
         } else { // colaborador (string sort)
+          // Nulos/N/A para strings sempre no final
+          const aIsNilString = valA === null || valA === undefined || String(valA).toLowerCase() === 'n/a' || String(valA).trim() === '';
+          const bIsNilString = valB === null || valB === undefined || String(valB).toLowerCase() === 'n/a' || String(valB).trim() === '';
+
+          if (aIsNilString && !bIsNilString) return 1;
+          if (!aIsNilString && bIsNilString) return -1;
+          if (aIsNilString && bIsNilString) return 0;
+          
           const strA = String(valA).toLowerCase();
           const strB = String(valB).toLowerCase();
-          if (strA < strB) return sortDirection === 'ascending' ? -1 : 1;
-          if (strA > strB) return sortDirection === 'ascending' ? 1 : -1;
-          return 0;
+          if (strA < strB) comparisonResult = -1;
+          else if (strA > strB) comparisonResult = 1;
+          else comparisonResult = 0;
         }
+        
+        return sortDirection === 'ascending' ? comparisonResult : -comparisonResult;
       });
     }
     return sortableItems;
