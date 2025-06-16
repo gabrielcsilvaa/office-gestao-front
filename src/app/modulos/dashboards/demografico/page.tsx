@@ -48,14 +48,28 @@ export default function Demografico() {
   useEffect(() => {
     const fetchDados = async () => {
       try {
+        // --- 1. Definir as datas de início e fim dinamicamente ---
+        const today = new Date();
+        const currentYear = today.getFullYear();
+        // start_date será 01 de janeiro do ano atual
+        const startDate = new Date(currentYear, 0, 1); // Mês 0 é Janeiro
+        // end_date será o dia atual
+        const endDate = today;
+
+        // Formatar as datas para o formato "YYYY-MM-DD" para a API
+        const formatApiDate = (date: Date) => date.toISOString().split("T")[0];
+
+        const apiStartDate = formatApiDate(startDate);
+        const apiEndDate = formatApiDate(endDate);
+
         const response = await fetch("/api/dashboards-demografico", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            start_date: "2024-01-01",
-            end_date: "2024-12-31",
+            start_date: apiStartDate, // Usar a data de início dinâmica
+            end_date: apiEndDate, // Usar a data de fim dinâmica (hoje)
           }),
         });
 
@@ -66,24 +80,48 @@ export default function Demografico() {
         const resultado = await response.json();
         console.log("Dados recebidos:", resultado);
 
-        const funcionarios = resultado.dados.flatMap(
-          (empresa) => empresa.funcionarios || []
-        );
+        interface Funcionario {
+          id_empregado: number;
+          nome: string;
+          data_nascimento: string;
+          cpf: string;
+          sexo: "M" | "F";
+          escolaridade: string;
+          departamento: string;
+          admissao: string;
+          demissao: string | null;
+          salario: string;
+          venc_ferias: string | null;
+          cargo: string;
+          categoria: number;
+          afastamentos: { data_inicio: string; data_fim: string | null }[];
+        }
 
-        const startDate = new Date("2024-01-01");
-        const endDate = new Date("2024-12-31");
+        const funcionarios: Funcionario[] =
+          resultado.dados?.flatMap(
+            (empresa: { funcionarios?: Funcionario[] }) =>
+              empresa.funcionarios || []
+          ) || [];
+
         const monthlyDataMap = new Map<
           string,
           { Ativos: number; Contratações: number; Demissões: number }
         >();
 
-        // Inicializa o mapa com todos os meses do ano (formato 'Jan/24', 'Fev/24', etc.)
         const monthsInOrder: string[] = [];
+        // Loop do primeiro dia do ano até o mês atual
         for (
           let d = new Date(startDate);
           d <= endDate;
           d.setMonth(d.getMonth() + 1)
         ) {
+          // Garante que não criamos meses futuros além do mês atual
+          if (
+            d.getMonth() > today.getMonth() &&
+            d.getFullYear() === today.getFullYear()
+          ) {
+            break;
+          }
           const monthKey = `${d.toLocaleString("pt-BR", { month: "short" }).replace(".", "")}/${d.getFullYear().toString().slice(-2)}`;
           monthlyDataMap.set(monthKey, {
             Ativos: 0,
@@ -93,11 +131,11 @@ export default function Demografico() {
           monthsInOrder.push(monthKey);
         }
 
-        // Processa as contratações e demissões
+        // Processa as contratações e demissões (sem alterações na lógica interna, pois já usa as datas do funcionário)
         for (const funcionario of funcionarios) {
           if (funcionario.admissao) {
             const admissaoDate = new Date(funcionario.admissao);
-            // Certifique-se que a data está dentro do período de interesse
+            // Certifique-se que a data está dentro do período de interesse (do ano atual até hoje)
             if (admissaoDate >= startDate && admissaoDate <= endDate) {
               const monthKey = `${admissaoDate.toLocaleString("pt-BR", { month: "short" }).replace(".", "")}/${admissaoDate.getFullYear().toString().slice(-2)}`;
               const data = monthlyDataMap.get(monthKey);
@@ -108,7 +146,7 @@ export default function Demografico() {
           }
           if (funcionario.demissao) {
             const demissaoDate = new Date(funcionario.demissao);
-            // Certifique-se que a data está dentro do período de interesse
+            // Certifique-se que a data está dentro do período de interesse (do ano atual até hoje)
             if (demissaoDate >= startDate && demissaoDate <= endDate) {
               const monthKey = `${demissaoDate.toLocaleString("pt-BR", { month: "short" }).replace(".", "")}/${demissaoDate.getFullYear().toString().slice(-2)}`;
               const data = monthlyDataMap.get(monthKey);
@@ -120,7 +158,6 @@ export default function Demografico() {
         }
 
         // Calcula Ativos mensalmente
-        // Iterar sobre os meses em ordem para calcular os ativos corretamente
         for (const monthKey of monthsInOrder) {
           const currentMonthDate = new Date(
             parseInt(`20${monthKey.split("/")[1]}`),
@@ -142,11 +179,11 @@ export default function Demografico() {
               ? new Date(funcionario.demissao)
               : null;
 
-            // Um funcionário está ativo se ele foi admitido até o final do mês atual E
-            // não foi demitido, OU foi demitido após o final do mês atual
-            const hiredByEndOfMonth = admissaoDate < nextMonthDate; // Admissão antes do início do próximo mês
+            // Um funcionário está ativo se ele foi admitido ATÉ o final do mês atual E
+            // não foi demitido, OU foi demitido APÓS o final do mês atual
+            const hiredByEndOfMonth = admissaoDate < nextMonthDate;
             const notTerminatedByEndOfMonth =
-              !demissaoDate || demissaoDate >= nextMonthDate; // Demissão no próximo mês ou depois, ou sem demissão
+              !demissaoDate || demissaoDate >= nextMonthDate;
 
             if (hiredByEndOfMonth && notTerminatedByEndOfMonth) {
               activeForThisMonth++;
@@ -158,7 +195,6 @@ export default function Demografico() {
           }
         }
 
-        // Converte o mapa para um array de objetos no formato esperado pelo Recharts
         const dadosParaGraficoLinha: DadosLinha[] = monthsInOrder.map(
           (monthKey) => ({
             month: monthKey,
@@ -183,36 +219,36 @@ export default function Demografico() {
         setPercentualMasculino(percMasculino);
         setPercentualFeminino(percFeminino);
 
-        // Escolaridade
+        interface DadosEscolaridade {
+          escolaridade: string;
+          total: number;
+        }
         const escolaridadeMap = new Map<string, number>();
         for (const funcionario of funcionarios) {
           const esc = funcionario.escolaridade || "Não informado";
           escolaridadeMap.set(esc, (escolaridadeMap.get(esc) || 0) + 1);
         }
-
-        const dadosEscolaridade = Array.from(escolaridadeMap.entries()).map(
-          ([escolaridade, total]) => ({
-            escolaridade,
-            total,
-          })
-        );
+        const dadosEscolaridade: DadosEscolaridade[] = Array.from(
+          escolaridadeMap.entries()
+        ).map(([escolaridade, total]) => ({ escolaridade, total }));
         setDadosDemograficos(dadosEscolaridade);
 
+        // Cargo
+        interface DadosCargo {
+          cargo: string;
+          total: number;
+        }
         // Cargo
         const cargoMap = new Map<string, number>();
         for (const funcionario of funcionarios) {
           const cargo = funcionario.cargo || "Não informado";
           cargoMap.set(cargo, (cargoMap.get(cargo) || 0) + 1);
         }
-
-        const dadosCargo = Array.from(cargoMap.entries()).map(
-          ([cargo, total]) => ({
-            cargo,
-            total,
-          })
+        const dadosCargo: DadosCargo[] = Array.from(cargoMap.entries()).map(
+          ([cargo, total]) => ({ cargo, total })
         );
-
         setDadosCargo(dadosCargo);
+
         // Faixa Etária
         const getFaixaEtaria = (idade: number) => {
           if (idade <= 25) return "00 a 25";
