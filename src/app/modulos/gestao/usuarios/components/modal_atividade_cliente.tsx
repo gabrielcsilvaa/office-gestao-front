@@ -32,7 +32,7 @@ interface AtividadesEmpresa
 }
 
 interface Empresa {
-  id: number | string; // Será o codi_emp
+  id: number | string;
   atividades: AtividadesEmpresa;
   nome: string;
 }
@@ -58,12 +58,17 @@ interface ExcelRow {
   total_importacoes: number;
   total_lancamentos: number;
   total_lancamentos_manuais: number;
-  // aqui dizemos: toda chave `${any}_${'horas'|'importacoes'|'lancamentos'|'lancamentos_manuais'}`
-  // é permitida e vale string | number
   [
     key: `${string}_${"horas" | "importacoes" | "lancamentos" | "lancamentos_manuais"}`
   ]: string | number;
 }
+
+type SortDirection = "asc" | "desc";
+type SortKey =
+  | "id"
+  | "nome"
+  | `${string}_${"horas" | "importacoes" | "lancamentos" | "lancamentosManuais"}`
+  | `total_${"tempo_gasto" | "importacoes" | "lancamentos" | "lancamentos_manuais"}`;
 
 export default function AtividadeCliente({
   mostrarMensagem,
@@ -74,18 +79,97 @@ export default function AtividadeCliente({
 }: ListaEmpresaProps) {
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
   const [filtroTexto, setFiltroTexto] = useState("");
+  const [sortKey, setSortKey] = useState<SortKey>("id");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+
+  // Função para alternar ordenação
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDirection("asc");
+    }
+  };
+
+  // Função para ordenar empresas
+  const getSortedEmpresas = () => {
+    const sorted = [...empresasFiltradas];
+    sorted.sort((a, b) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let aValue: any;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let bValue: any;
+
+      if (sortKey === "id") {
+        aValue = a.id;
+        bValue = b.id;
+      } else if (sortKey === "nome") {
+        aValue = a.nome ?? "";
+        bValue = b.nome ?? "";
+      } else if (sortKey.startsWith("total_")) {
+        const key = sortKey.replace("total_", "") as keyof TotalAtividades;
+        aValue = a.atividades.total[key];
+        bValue = b.atividades.total[key];
+      } else {
+        // Meses
+        const [mes, subKey] = sortKey.split("_");
+
+        const atividadeA = a.atividades[mes];
+        const atividadeB = b.atividades[mes];
+
+        function isAtividadeMes(obj: unknown): obj is AtividadeMes {
+          return (
+            obj !== undefined &&
+            obj !== null &&
+            typeof obj === "object" &&
+            "horas" in obj &&
+            "importacoes" in obj &&
+            "lancamentos" in obj &&
+            "lancamentosManuais" in obj
+          );
+        }
+
+        aValue = isAtividadeMes(atividadeA)
+          ? atividadeA[subKey as keyof AtividadeMes]
+          : undefined;
+        bValue = isAtividadeMes(atividadeB)
+          ? atividadeB[subKey as keyof AtividadeMes]
+          : undefined;
+      }
+
+      // Se for horas, comparar como número
+      if (sortKey.endsWith("horas") || sortKey === "total_tempo_gasto") {
+        aValue = typeof aValue === "number" ? aValue : 0;
+        bValue = typeof bValue === "number" ? bValue : 0;
+      }
+
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        if (sortDirection === "asc") {
+          return aValue.localeCompare(bValue, "pt-BR", { numeric: true });
+        } else {
+          return bValue.localeCompare(aValue, "pt-BR", { numeric: true });
+        }
+      } else {
+        if (sortDirection === "asc") {
+          return (aValue ?? 0) - (bValue ?? 0);
+        } else {
+          return (bValue ?? 0) - (aValue ?? 0);
+        }
+      }
+    });
+    return sorted;
+  };
 
   const exportToPDF = (data: dadosUsuarios | null, fileName: string) => {
     if (!data || !data.analises.length) return;
 
-    // Inicializa o documento PDF
     const doc = new jsPDF({
       orientation: "landscape",
     });
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
 
-    // Define as colunas
     const columns = [
       { header: "ID", dataKey: "codi_emp" as const },
       { header: "Razão Social", dataKey: "razao_social" as const },
@@ -98,7 +182,6 @@ export default function AtividadeCliente({
       },
     ];
 
-    // Agrupa totais por empresa
     const empresasMap = new Map<
       number,
       {
@@ -112,18 +195,15 @@ export default function AtividadeCliente({
     data.analises.forEach((analise) => {
       analise.empresas.forEach((empresa) => {
         const codi_emp = empresa.codi_emp;
-
-        // Encontra a empresa correspondente no infoempresas
         if (infoEmpresas) {
           const infoEmpresa = infoEmpresas.Empresas.find(
             (emp) => emp.codigo_empresa === codi_emp
           );
-
           if (!empresasMap.has(codi_emp)) {
             empresasMap.set(codi_emp, {
               razao_social: infoEmpresa
                 ? infoEmpresa.razao_social
-                : `Empresa ${codi_emp}`, // Substitua com a Razão Social real
+                : `Empresa ${codi_emp}`,
               total_horas: 0,
               total_importacoes: 0,
               total_lancamentos: 0,
@@ -142,7 +222,6 @@ export default function AtividadeCliente({
       });
     });
 
-    // Prepara os dados da tabela
     const rows = Array.from(empresasMap.entries()).map(
       ([codi_emp, totals]) => ({
         codi_emp: codi_emp.toString(),
@@ -154,25 +233,21 @@ export default function AtividadeCliente({
       })
     );
 
-    // Calcula a largura total disponível
-
     const marginLeft = 10;
     const marginRight = 10;
     const maxTableWidth = pageWidth - (marginLeft + marginRight);
-    const baseWidth = maxTableWidth / (1 + 2 + 1 + 1 + 1 + 1); // Proporções: ID(1), Razão Social(2), outros(1)
+    const baseWidth = maxTableWidth / (1 + 2 + 1 + 1 + 1 + 1);
 
-    // Ajusta as larguras das colunas
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const columnStyles: { [key: number]: any } = {
-      0: { halign: "center", cellWidth: baseWidth }, // ID
-      1: { halign: "left", cellWidth: baseWidth * 2 }, // Razão Social
-      2: { halign: "center", cellWidth: baseWidth }, // Total Horas
-      3: { halign: "center", cellWidth: baseWidth }, // Total Importações
-      4: { halign: "center", cellWidth: baseWidth }, // Total Lançamentos
-      5: { halign: "center", cellWidth: baseWidth }, // Total L. Manuais
+      0: { halign: "center", cellWidth: baseWidth },
+      1: { halign: "left", cellWidth: baseWidth * 2 },
+      2: { halign: "center", cellWidth: baseWidth },
+      3: { halign: "center", cellWidth: baseWidth },
+      4: { halign: "center", cellWidth: baseWidth },
+      5: { halign: "center", cellWidth: baseWidth },
     };
 
-    // Adiciona o título
     doc.setFontSize(16);
     doc.setFont("helvetica", "bold");
     doc.text(
@@ -182,7 +257,6 @@ export default function AtividadeCliente({
       { align: "center" }
     );
 
-    // Configura a tabela
     autoTable(doc, {
       head: [columns.map((col) => col.header)],
       body: rows.map((row) => columns.map((col) => row[col.dataKey] ?? "")),
@@ -225,14 +299,12 @@ export default function AtividadeCliente({
       },
     });
 
-    // Salva o PDF
     doc.save(`${fileName}.pdf`);
   };
 
   const exportToExcel = (data: dadosUsuarios | null, fileName: string) => {
     if (!data || !data.analises.length) return;
 
-    // Agrupa dados por empresa
     const empresasMap = new Map<
       number,
       {
@@ -248,13 +320,10 @@ export default function AtividadeCliente({
     data.analises.forEach((analise) => {
       analise.empresas.forEach((empresa) => {
         const codi_emp = empresa.codi_emp;
-
-        // Encontra a empresa correspondente no infoempresas
         if (infoEmpresas) {
           const infoEmpresa = infoEmpresas.Empresas.find(
             (emp) => emp.codigo_empresa === codi_emp
           );
-
           if (!empresasMap.has(codi_emp)) {
             empresasMap.set(codi_emp, {
               razao_social: infoEmpresa
@@ -296,17 +365,14 @@ export default function AtividadeCliente({
       });
     });
 
-    // Meses disponíveis (ajuste conforme necessário)
     const meses = Object.keys(
       empresasMap.values().next().value?.atividades || {}
     );
 
-    // Prepara os dados para a tabela
     const rows: ExcelRow[] = Array.from(empresasMap.entries()).map(
       ([codi_emp, empresaData]) => ({
         codi_emp: codi_emp.toString(),
         razao_social: empresaData.razao_social,
-        // aqui o TS já sabe que essas props dinâmicas existem
         ...meses.reduce(
           (acc, mes) => ({
             ...acc,
@@ -320,7 +386,7 @@ export default function AtividadeCliente({
             [`${mes}_lancamentos_manuais`]:
               empresaData.atividades[mes]?.lancamentos_manuais ?? 0,
           }),
-          // eslint-disable-next-line
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           {} as Record<string, any>
         ),
         total_horas: formatadorSegParaHor(empresaData.total_horas),
@@ -330,9 +396,7 @@ export default function AtividadeCliente({
       })
     );
 
-    // Cria a planilha
     const ws_data = [
-      // Cabeçalho nível 1
       [
         "ID",
         "Razão Social",
@@ -342,7 +406,6 @@ export default function AtividadeCliente({
         "",
         "",
       ],
-      // Cabeçalho nível 2
       [
         "",
         "",
@@ -357,19 +420,13 @@ export default function AtividadeCliente({
         "Lançamentos",
         "L. Manuais",
       ],
-      // Dados
-
       ...rows.map((row) => [
         row.codi_emp,
         row.razao_social,
-
         ...meses.flatMap((mes) => [
           row[`${mes}_horas`],
-
           row[`${mes}_importacoes`],
-
           row[`${mes}_lancamentos`],
-
           row[`${mes}_lancamentos_manuais`],
         ]),
         row.total_horas,
@@ -381,24 +438,19 @@ export default function AtividadeCliente({
 
     const ws = XLSX.utils.aoa_to_sheet(ws_data);
 
-    // Ajusta a mesclagem para os cabeçalhos
     ws["!merges"] = [
-      // Mescla ID e Razão Social na primeira linha
       { s: { r: 0, c: 0 }, e: { r: 1, c: 0 } },
       { s: { r: 0, c: 1 }, e: { r: 1, c: 1 } },
-      // Mescla meses
       ...meses.map((_, i) => ({
         s: { r: 0, c: 2 + i * 4 },
         e: { r: 0, c: 2 + i * 4 + 3 },
       })),
-      // Mescla Total
       {
         s: { r: 0, c: 2 + meses.length * 4 },
         e: { r: 0, c: 2 + meses.length * 4 + 3 },
       },
     ];
 
-    // Ajusta a formatação
     const range = XLSX.utils.decode_range(ws["!ref"]!);
     for (let R = 0; R <= range.e.r; R++) {
       for (let C = 0; C <= range.e.c; C++) {
@@ -430,31 +482,29 @@ export default function AtividadeCliente({
       }
     }
 
-    // Define larguras das colunas
     ws["!cols"] = [
-      { wch: 10 }, // ID
-      { wch: 40 }, // Razão Social
+      { wch: 10 },
+      { wch: 40 },
       ...meses.flatMap(() => [
-        { wch: 12 }, // Horas
-        { wch: 10 }, // Importações
-        { wch: 10 }, // Lançamentos
-        { wch: 10 }, // L. Manuais
+        { wch: 12 },
+        { wch: 10 },
+        { wch: 10 },
+        { wch: 10 },
       ]),
-      { wch: 12 }, // Total Horas
-      { wch: 10 }, // Total Importações
-      { wch: 10 }, // Total Lançamentos
-      { wch: 10 }, // Total L. Manuais
+      { wch: 12 },
+      { wch: 10 },
+      { wch: 10 },
+      { wch: 10 },
     ];
 
-    // Cria o workbook e salva
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Relatório");
     XLSX.writeFile(wb, `${fileName}.xlsx`);
   };
+
   useEffect(() => {
     if (!dados) {
       if (mostrarMensagem) {
-        // Opcional: mostrar placeholder vazio ou mensagem de "sem dados"
         setEmpresas([]);
       }
       return;
@@ -547,7 +597,6 @@ export default function AtividadeCliente({
 
   if (!mostrarMensagem) return null;
 
-  // Filtra empresas pelo código convertido para string (permitindo filtro parcial)
   const empresasFiltradas = empresas.filter((empresa) => {
     const filtro = filtroTexto.toLowerCase();
     const idString = empresa.id.toString().toLowerCase();
@@ -569,6 +618,14 @@ export default function AtividadeCliente({
     { label: "Lançamentos", key: "total_lancamentos" },
     { label: "L. Manuais", key: "total_lancamentos_manuais" },
   ];
+
+  const sortedEmpresas = getSortedEmpresas();
+
+  // Helper para mostrar seta de ordenação
+  const renderSortArrow = (key: SortKey) => {
+    if (sortKey !== key) return null;
+    return <span className="ml-1">{sortDirection === "asc" ? "▲" : "▼"}</span>;
+  };
 
   return (
     <>
@@ -639,16 +696,18 @@ export default function AtividadeCliente({
                 <thead className="bg-gray-100">
                   <tr>
                     <th
-                      className="border px-4 py-2 whitespace-nowrap text-center align-middle"
+                      className="border px-4 py-2 whitespace-nowrap text-center align-middle cursor-pointer select-none"
                       rowSpan={2}
+                      onClick={() => handleSort("id")}
                     >
-                      ID
+                      ID{renderSortArrow("id")}
                     </th>
                     <th
-                      className="border px-4 py-2 whitespace-nowrap text-center align-middle"
+                      className="border px-4 py-2 whitespace-nowrap text-center align-middle cursor-pointer select-none"
                       rowSpan={2}
+                      onClick={() => handleSort("nome")}
                     >
-                      Razão Social
+                      Razão Social{renderSortArrow("nome")}
                     </th>
                     {meses.map((mes) => (
                       <th
@@ -668,27 +727,31 @@ export default function AtividadeCliente({
                   </tr>
                   <tr>
                     {meses.map((mes) =>
-                      subColunas.map(({ label }) => (
+                      subColunas.map(({ label, key }) => (
                         <th
                           key={`${mes}-${label}`}
-                          className="border px-4 py-2 whitespace-nowrap"
+                          className="border px-4 py-2 whitespace-nowrap cursor-pointer select-none"
+                          onClick={() => handleSort(`${mes}_${key}` as SortKey)}
                         >
                           {label}
+                          {renderSortArrow(`${mes}_${key}` as SortKey)}
                         </th>
                       ))
                     )}
-                    {subColunasTotais.map(({ label }) => (
+                    {subColunasTotais.map(({ label, key }) => (
                       <th
                         key={`total-${label}`}
-                        className="border px-4 py-2 whitespace-nowrap"
+                        className="border px-4 py-2 whitespace-nowrap cursor-pointer select-none"
+                        onClick={() => handleSort(`total_${key}` as SortKey)}
                       >
                         {label}
+                        {renderSortArrow(`total_${key}` as SortKey)}
                       </th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {empresasFiltradas.map((empresa) => (
+                  {sortedEmpresas.map((empresa) => (
                     <tr key={empresa.id}>
                       <td className="border px-4 py-2 font-bold text-blackwhitespace-nowrap text-center align-middle">
                         {empresa.id}

@@ -35,6 +35,13 @@ interface ExportRow {
   values: (string | number)[];
 }
 
+type ColStyle = {
+  cellWidth: number;
+  halign: 'left' | 'center' | 'right';
+  fontStyle: 'bold' | 'normal';
+};
+
+
 
 export default function Escritorio() {
   const thStyle = "px-4 py-2 text-left text-sm font-semibold bg-gray-100 border-b border-gray-300 capitalize text-[#373A40]";
@@ -47,6 +54,7 @@ export default function Escritorio() {
   const [error, setError] = useState<string | null>(null);
   const [startDate, setStartDate] = useState<string | null>("2024-01-01");
   const [endDate, setEndDate] = useState<string | null>("2024-12-31");
+  
 
   // Formata número em moeda BRL
   function formatCurrency(value: number) {
@@ -126,6 +134,34 @@ export default function Escritorio() {
     doc.setFont('helvetica', 'bold');
     ;
 
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    const marginLR = 10;  
+ 
+    const marginTop = 10;
+
+    let currentY   = marginTop;
+
+
+    doc.setFontSize(16);
+    doc.setFont("helvetica", "bold");
+    doc.text(
+      "Dados do Escritorio",
+      pageWidth / 2,
+      currentY,
+      { align: "center" }
+    );
+    currentY += 8;
+
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(100);
+    doc.text(
+      `Gerado em: ${new Date().toLocaleDateString("pt-BR")} às ${new Date().toLocaleTimeString("pt-BR")}`,
+      marginLR,
+      currentY
+    );
+
     // Preparar dados da tabela
     const tableData = data.map(row => [
       row.metric,
@@ -146,9 +182,21 @@ export default function Escritorio() {
       'Total'
     ];
 
+    const usablePageWidth = pageWidth - marginLR * 2;
+    const weights = tableHeaders.map((_, idx) => idx === 0 ? 2 : 1);
+    const totalWeight = weights.reduce((sum, w) => sum + w, 0);
+    const unitWidth = usablePageWidth / totalWeight;
+    const dynamicColumnStyles: Record<number, ColStyle> = {};
+    tableHeaders.forEach((_, idx) => {
+      dynamicColumnStyles[idx] = {
+        cellWidth: unitWidth * weights[idx],
+        halign:    idx === 0 ? 'left' : 'center',
+        fontStyle: idx === 0 ? 'bold' : 'normal'
+      };
+    });
     // Configurar e gerar a tabela
     autoTable(doc, {
-      startY: 50,
+      startY: currentY + 4 ,
       head: [tableHeaders],
       body: tableData,
       theme: 'grid',
@@ -168,25 +216,11 @@ export default function Escritorio() {
         fontStyle: 'bold',
         halign: 'center',
       },
-      columnStyles: {
-        0: { cellWidth: 25, fontStyle: 'bold' },
-        1: { cellWidth: 15, halign: 'right' },
-        2: { cellWidth: 15, halign: 'right' },
-        3: { cellWidth: 15, halign: 'right' },
-        4: { cellWidth: 15, halign: 'right' },
-        5: { cellWidth: 15, halign: 'right' },
-        6: { cellWidth: 15, halign: 'right' },
-        7: { cellWidth: 15, halign: 'right' },
-        8: { cellWidth: 15, halign: 'right' },
-        9: { cellWidth: 15, halign: 'right' },
-        10: { cellWidth: 15, halign: 'right' },
-        11: { cellWidth: 15, halign: 'right' },
-        12: { cellWidth: 15, fontStyle: 'bold', halign: 'right' },
-      },
+      columnStyles: dynamicColumnStyles,
       alternateRowStyles: {
         fillColor: [245, 245, 245],
       },
-      margin: { left: 4, right: 2 },
+      margin: { left: marginLR, right: marginLR },
       didDrawPage: function(data) {
         // Adicionar rodapé em cada página
         doc.setFontSize(8);
@@ -470,7 +504,7 @@ export default function Escritorio() {
         <button
           onClick={() => exportToExcel(data)}
           title="Exportar para Excel"
-          className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto  justify-center ml-auto self-center"
+          className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto  justify-center ml-auto self-center bg-white cursor-pointer"
           style={{ width: 36, height: 36 }}
         >
           <Image
@@ -485,7 +519,7 @@ export default function Escritorio() {
         <button
           onClick={() => exportToPDF(data, "Relatorio_Escritorio")}
           title="Exportar para Excel"
-          className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto "
+          className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto bg-white cursor-pointer"
           style={{ width: 36, height: 36 }}
         >
         <Image

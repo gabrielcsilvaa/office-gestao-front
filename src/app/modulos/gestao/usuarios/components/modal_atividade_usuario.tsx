@@ -43,6 +43,13 @@ interface ListaUsuarioProps {
   meses: string[];
 }
 
+type SortOrder = "asc" | "desc" | null;
+
+interface SortState {
+  col: string | null;
+  order: SortOrder;
+}
+
 export default function ListaUsuario({
   mostrarMensagem,
   fecharMensagem,
@@ -51,6 +58,7 @@ export default function ListaUsuario({
 }: ListaUsuarioProps) {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [filtroTexto, setFiltroTexto] = useState("");
+  const [sort, setSort] = useState<SortState>({ col: null, order: null });
 
   // Interface para os dados
   interface Atividade {
@@ -69,6 +77,9 @@ export default function ListaUsuario({
   };
 
   const exportToExcel = (data: dadosUsuarios | null, fileName: string) => {
+    // ... (sem alteração)
+    // (copie a função inteira do seu código original)
+    // ... (sem alteração)
     if (!data || !data.analises.length) return;
 
     // Extrai todos os meses únicos dos dados
@@ -80,9 +91,8 @@ export default function ListaUsuario({
         });
       });
     });
-    meses.sort(); // Ordena os meses (opcional, ajustar conforme necessário)
+    meses.sort();
 
-    // Define as colunas
     const subHeaders = ["Horas", "Importações", "Lançamentos", "L. Manuais"];
     const headers = [
       "Usuários",
@@ -95,7 +105,6 @@ export default function ListaUsuario({
       ...subHeaders.map((sub) => `Total ${sub}`),
     ];
 
-    // Agrupa dados por usuário
     const usuariosMap = new Map<string, { [mes: string]: Atividade }>();
     data.analises.forEach((analise) => {
       const usuario = analise.nome_usuario;
@@ -121,17 +130,12 @@ export default function ListaUsuario({
       });
     });
 
-    // Prepara os dados da planilha
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const worksheetData: any[] = [
-     
-      // Cabeçalho principal
       headers,
-      // Subcabeçalhos
       ["", ...meses.flatMap(() => subHeaders), ...subHeaders],
     ];
 
-    // Adiciona linhas de usuários
     usuariosMap.forEach((usuarioData, usuario) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const row: any[] = [usuario];
@@ -140,7 +144,6 @@ export default function ListaUsuario({
       let totalLancamentos = 0;
       let totalLancamentosManuais = 0;
 
-      // Dados por mês
       meses.forEach((mes) => {
         const atividade = usuarioData[mes] || {
           tempo_gasto: 0,
@@ -158,7 +161,6 @@ export default function ListaUsuario({
         totalLancamentosManuais += atividade.lancamentos_manuais;
       });
 
-      // Totais
       row.push(secondsToHHMMSS(totalHoras));
       row.push(totalImportacoes);
       row.push(totalLancamentos);
@@ -167,25 +169,22 @@ export default function ListaUsuario({
       worksheetData.push(row);
     });
 
-    // Cria a planilha
     const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
 
-    // Define larguras das colunas
     worksheet["!cols"] = [
-      { wch: 15 }, // Usuários
+      { wch: 15 },
       ...meses.flatMap(() => [
-        { wch: 12 }, // Horas
-        { wch: 10 }, // Importações
-        { wch: 10 }, // Lançamentos
-        { wch: 10 }, // L. Manuais
+        { wch: 12 },
+        { wch: 10 },
+        { wch: 10 },
+        { wch: 10 },
       ]),
-      { wch: 12 }, // Total Horas
-      { wch: 10 }, // Total Importações
-      { wch: 10 }, // Total Lançamentos
-      { wch: 10 }, // Total L. Manuais
+      { wch: 12 },
+      { wch: 10 },
+      { wch: 10 },
+      { wch: 10 },
     ];
 
-    // Aplica formatação
     const range = XLSX.utils.decode_range(worksheet["!ref"] || "A1:Z2");
     for (let row = range.s.r; row <= range.e.r; row++) {
       for (let col = range.s.c; col <= range.e.c; col++) {
@@ -209,7 +208,6 @@ export default function ListaUsuario({
       }
     }
 
-    // Formata linhas de dados
     for (let row = 2; row < worksheetData.length; row++) {
       for (let col = range.s.c; col <= range.e.c; col++) {
         const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
@@ -231,20 +229,18 @@ export default function ListaUsuario({
       }
     }
 
-    // Mescla células do cabeçalho para "Usuários" e "Total"
     worksheet["!merges"] = [
-      { s: { r: 0, c: 0 }, e: { r: 1, c: 0 } }, // Usuários
+      { s: { r: 0, c: 0 }, e: { r: 1, c: 0 } },
       ...meses.map((_, i) => ({
         s: { r: 0, c: 1 + i * 4 },
         e: { r: 0, c: 4 + i * 4 },
-      })), // Meses
+      })),
       {
         s: { r: 0, c: 1 + meses.length * 4 },
         e: { r: 0, c: 4 + meses.length * 4 },
-      }, // Total
+      },
     ];
 
-    // Cria o workbook
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(
       workbook,
@@ -252,23 +248,21 @@ export default function ListaUsuario({
       "Relatório de Atividades"
     );
 
-    // Exporta o arquivo
     XLSX.writeFile(workbook, `${fileName}.xlsx`);
   };
 
   //Função para exportar o pdf
 
   const exportToPDF = (data: dadosUsuarios | null, fileName: string) => {
+    // ... (sem alteração)
     if (!data || !data.analises.length) return;
 
-    // Inicializa o documento PDF
     const doc = new jsPDF({
-      orientation: "landscape", // Mantém orientação horizontal
+      orientation: "landscape",
     });
     const pageWidth = doc.internal.pageSize.getWidth();
     const pageHeight = doc.internal.pageSize.getHeight();
 
-    // Define as colunas
     const columns = [
       { header: "Usuários", dataKey: "usuario" as const },
       { header: "Total Horas", dataKey: "total_horas" as const },
@@ -280,7 +274,6 @@ export default function ListaUsuario({
       },
     ];
 
-    // Agrupa totais por usuário
     const usuariosMap = new Map<
       string,
       {
@@ -312,43 +305,42 @@ export default function ListaUsuario({
       });
     });
 
-    // Prepara os dados da tabela
-    const rows = Array.from(usuariosMap.entries()).map(([usuario, totals]) => ({
-      usuario,
-      total_horas: secondsToHHMMSS(totals.total_horas),
-      total_importacoes: totals.total_importacoes,
-      total_lancamentos: totals.total_lancamentos,
-      total_lancamentos_manuais: totals.total_lancamentos_manuais,
-    }));
+    // ORDENAÇÃO: do maior para o menor total_horas
+    const rows = Array.from(usuariosMap.entries())
+      .map(([usuario, totals]) => ({
+        usuario,
+        total_horas: secondsToHHMMSS(totals.total_horas),
+        total_importacoes: totals.total_importacoes,
+        total_lancamentos: totals.total_lancamentos,
+        total_lancamentos_manuais: totals.total_lancamentos_manuais,
+        _total_horas_raw: totals.total_horas, // campo auxiliar para ordenação
+      }))
+      .sort((a, b) => b._total_horas_raw - a._total_horas_raw);
 
-    // Calcula a largura total disponível
-    const totalColumns = columns.length; // 5 colunas
+    const totalColumns = columns.length;
     const marginLeft = 10;
     const marginRight = 10;
-    const maxTableWidth = pageWidth - (marginLeft + marginRight); // Largura disponível
-    const minColumnWidth = 20; // Largura mínima para legibilidade
-    const baseWidth = Math.max(minColumnWidth, maxTableWidth / totalColumns); // Largura base proporcional
+    const maxTableWidth = pageWidth - (marginLeft + marginRight);
+    const minColumnWidth = 20;
+    const baseWidth = Math.max(minColumnWidth, maxTableWidth / totalColumns);
 
-    // Ajusta as larguras das colunas para caber exatamente na página
-    const totalDesiredWidth = baseWidth * 1.5 + baseWidth * 1.2 + baseWidth * 3; // Usuários (1.5x) + Horas (1.2x) + 3 outras (1x)
-    const scaleFactor = Math.min(1, maxTableWidth / totalDesiredWidth); // Fator de escala para ajustar à página
+    const totalDesiredWidth = baseWidth * 1.5 + baseWidth * 1.2 + baseWidth * 3;
+    const scaleFactor = Math.min(1, maxTableWidth / totalDesiredWidth);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const columnStyles: { [key: number]: any } = {
-      0: { halign: "left", cellWidth: baseWidth * 1.5 * scaleFactor }, // Usuários
-      1: { cellWidth: baseWidth * 1.2 * scaleFactor }, // Total Horas
-      2: { cellWidth: baseWidth * scaleFactor }, // Total Importações
-      3: { cellWidth: baseWidth * scaleFactor }, // Total Lançamentos
-      4: { cellWidth: baseWidth * scaleFactor }, // Total L. Manuais
+      0: { halign: "left", cellWidth: baseWidth * 1.5 * scaleFactor },
+      1: { cellWidth: baseWidth * 1.2 * scaleFactor },
+      2: { cellWidth: baseWidth * scaleFactor },
+      3: { cellWidth: baseWidth * scaleFactor },
+      4: { cellWidth: baseWidth * scaleFactor },
     };
 
-    // Adiciona o título
     doc.setFontSize(16);
     doc.setFont("helvetica", "bold");
     doc.text("Relatório de Atividades - Totais", pageWidth / 2, 10, {
       align: "center",
     });
 
-    // Configura a tabela
     autoTable(doc, {
       head: [columns.map((col) => col.header)],
       body: rows.map((row) => columns.map((col) => row[col.dataKey] ?? "")),
@@ -356,8 +348,8 @@ export default function ListaUsuario({
       margin: { top: 20, left: marginLeft, right: marginRight, bottom: 20 },
       styles: {
         font: "helvetica",
-        fontSize: 8, // Reduzido para compactar
-        cellPadding: 2, // Reduzido para economizar espaço
+        fontSize: 8,
+        cellPadding: 2,
         textColor: [33, 33, 33],
         overflow: "linebreak",
         halign: "center",
@@ -377,9 +369,9 @@ export default function ListaUsuario({
         fillColor: [230, 230, 230],
       },
       columnStyles,
-      tableWidth: "wrap", // Ajusta à largura da página
+      tableWidth: "wrap",
       theme: "grid",
-      pageBreak: "auto", // Quebras de página automáticas
+      pageBreak: "auto",
       didDrawPage: (data) => {
         doc.setFontSize(8);
         doc.setTextColor(100);
@@ -391,7 +383,6 @@ export default function ListaUsuario({
       },
     });
 
-    // Salva o PDF
     doc.save(`${fileName}.pdf`);
   };
 
@@ -495,11 +486,43 @@ export default function ListaUsuario({
     };
   }, [fecharMensagem]);
 
-  if (!mostrarMensagem) return null;
-
-  const usuariosFiltrados = usuarios.filter((usuario) =>
+  // Filtro de texto
+  let usuariosFiltrados = usuarios.filter((usuario) =>
     usuario.NOME.toLowerCase().includes(filtroTexto.toLowerCase())
   );
+
+  // Ordenação
+  const getSortValue = (usuario: Usuario, col: string): string | number => {
+    if (col === "NOME") return usuario.NOME;
+    if (col.startsWith("total_")) {
+      const key = col as keyof TotalAtividades;
+      return usuario.atividades.total[key] ?? 0;
+    }
+    // col = mes-key, ex: "2024-03-horas"
+    const [mes, key] = col.split("-");
+    if (usuario.atividades[mes]) {
+      const atividade = usuario.atividades[mes] as AtividadeMes;
+      return atividade[key as keyof AtividadeMes] ?? 0;
+    }
+    return 0;
+  };
+
+  if (sort.col && sort.order) {
+    usuariosFiltrados = [...usuariosFiltrados].sort((a, b) => {
+      const aValue = getSortValue(a, sort.col!);
+      const bValue = getSortValue(b, sort.col!);
+
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        return sort.order === "asc"
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+      // Para números
+      return sort.order === "asc"
+        ? Number(aValue) - Number(bValue)
+        : Number(bValue) - Number(aValue);
+    });
+  }
 
   const subColunas = [
     { label: "Horas", key: "horas" },
@@ -514,6 +537,35 @@ export default function ListaUsuario({
     { label: "Lançamentos", key: "total_lancamentos" },
     { label: "L. Manuais", key: "total_lancamentos_manuais" },
   ];
+
+  // Função para alternar ordenação
+  const handleSort = (col: string) => {
+    setSort((prev) => {
+      if (prev.col === col) {
+        if (prev.order === "asc") return { col, order: "desc" };
+        if (prev.order === "desc") return { col: null, order: null };
+      }
+      return { col, order: "asc" };
+    });
+  };
+
+  // Ícone de ordenação
+  const SortIcon = ({
+    active,
+    order,
+  }: {
+    active: boolean;
+    order: SortOrder;
+  }) => (
+    <span className="inline-block ml-1 align-middle">
+      {active && order === "asc" && <span>▲</span>}
+      {active && order === "desc" && <span>▼</span>}
+      {!active && <span className="opacity-30">↕</span>}
+    </span>
+  );
+
+  if (!mostrarMensagem) return null;
+
   return (
     <>
       {mostrarMensagem && (
@@ -582,8 +634,16 @@ export default function ListaUsuario({
               <table className="min-w-full table-auto border border-gray-300 text-sm text-center">
                 <thead className="bg-gray-100">
                   <tr>
-                    <th className="border px-4 py-2" rowSpan={2}>
+                    <th
+                      className="border px-4 py-2 cursor-pointer select-none"
+                      rowSpan={2}
+                      onClick={() => handleSort("NOME")}
+                    >
                       Usuários
+                      <SortIcon
+                        active={sort.col === "NOME"}
+                        order={sort.order}
+                      />
                     </th>
                     {meses.map((mes) => (
                       <th
@@ -603,21 +663,31 @@ export default function ListaUsuario({
                   </tr>
                   <tr>
                     {meses.map((mes) =>
-                      subColunas.map(({ label }) => (
+                      subColunas.map(({ label, key }) => (
                         <th
                           key={`${mes}-${label}`}
-                          className="border px-4 py-2 whitespace-nowrap"
+                          className="border px-4 py-2 whitespace-nowrap cursor-pointer select-none"
+                          onClick={() => handleSort(`${mes}-${key}`)}
                         >
                           {label}
+                          <SortIcon
+                            active={sort.col === `${mes}-${key}`}
+                            order={sort.order}
+                          />
                         </th>
                       ))
                     )}
-                    {subColunasTotais.map(({ label }) => (
+                    {subColunasTotais.map(({ label, key }) => (
                       <th
                         key={`total-${label}`}
-                        className="border px-4 py-2 whitespace-nowrap"
+                        className="border px-4 py-2 whitespace-nowrap cursor-pointer select-none"
+                        onClick={() => handleSort(key)}
                       >
                         {label}
+                        <SortIcon
+                          active={sort.col === key}
+                          order={sort.order}
+                        />
                       </th>
                     ))}
                   </tr>

@@ -17,6 +17,7 @@
     "jspdf-autotable": "^5.0.2",
     "lucide-react": "^0.511.0",
     "next": "^15.3.2",
+    "next-auth": "^4.24.11",
     "office-gestao-front": "file:",
     "pdf-lib": "^1.17.1",
     "pdfmake": "^0.2.20",
