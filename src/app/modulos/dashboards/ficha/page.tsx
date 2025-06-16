@@ -15,6 +15,8 @@ import EvolucaoChart from "./components/EvolucaoChart";
 import ValorPorGrupoChart from "./components/ValorPorGrupoChart";
 import Calendar from "@/components/calendar";
 import Loading from "@/app/loading";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
 
 // Importe os novos componentes de tabela para o modal
 import FeriasModalTable from "./components/FeriasModalTable";
@@ -808,6 +810,87 @@ export default function FichaPessoalPage() {
     return <Loading />;
   }
 
+  // Função para exportar exames para PDF no padrão dos modais da carteira
+  const exportExamesToPDF = (data: Exame[], fileName: string) => {
+    const doc = new jsPDF();
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+
+    const tableData = data.map((e) => [
+      e.nomeColaborador,
+      e.tipo,
+      e.dataExame,
+      e.vencimento,
+      e.resultado,
+    ]);
+    const tableHeaders = [
+      "Nome do Funcionário",
+      "Tipo",
+      "Data do Exame",
+      "Data de Vencimento",
+      "Resultado",
+    ];
+
+    autoTable(doc, {
+      startY: 50,
+      head: [tableHeaders],
+      body: tableData,
+      theme: 'grid',
+      styles: {
+        font: 'helvetica',
+        fontSize: 8,
+        cellPadding: 1,
+        lineColor: [200, 200, 200],
+        lineWidth: 0.1,
+        textColor: [50, 50, 50],
+        overflow: 'linebreak'
+      },
+      headStyles: {
+        fillColor: [41, 128, 185],
+        textColor: [255, 255, 255],
+        fontSize: 9,
+        fontStyle: 'bold',
+        halign: 'center',
+      },
+      columnStyles: {
+        0: { cellWidth: 50, fontStyle: 'bold' },
+        1: { cellWidth: 30, halign: 'right' },
+        2: { cellWidth: 30, halign: 'right' },
+        3: { cellWidth: 30, halign: 'right' },
+        4: { cellWidth: 30, halign: 'right' },
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245],
+      },
+      margin: { left: 4, right: 2 },
+      didDrawPage: function (data) {
+        doc.setFontSize(8);
+        doc.text('Página ' + data.pageNumber, data.settings.margin.left, doc.internal.pageSize.height - 10);
+      }
+    });
+
+    doc.save(`${fileName}.pdf`);
+  };
+
+  // Função para exportar exames para Excel (usando XLSX, igual ao padrão do carteira)
+  const exportExamesToExcel = (data: Exame[], fileName: string) => {
+    // Importação dinâmica para evitar erro em ambiente SSR
+    import("xlsx").then(XLSX => {
+      const ws = XLSX.utils.json_to_sheet(
+        data.map(e => ({
+          "Nome do Funcionário": e.nomeColaborador,
+          "Tipo": e.tipo,
+          "Data do Exame": e.dataExame,
+          "Data de Vencimento": e.vencimento,
+          "Resultado": e.resultado,
+        }))
+      );
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Exames");
+      XLSX.writeFile(wb, `${fileName}.xlsx`);
+    });
+  };
+
   return (
     <div className="bg-[#f7f7f8] flex flex-col flex-1 h-full min-h-0">
       {/* Header */}
@@ -920,55 +1003,8 @@ export default function FichaPessoalPage() {
                         className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
                         style={{ width: 36, height: 36 }}
                         onClick={() => {
-                          // Exportar PDF (abre janela de impressão apenas da tabela)
-                          const printWindow = window.open('', '', 'width=900,height=700');
-                          if (printWindow) {
-                            printWindow.document.write(`
-                              <html>
-                                <head>
-                                  <title>Histórico de Exames</title>
-                                  <style>
-                                    body { font-family: Arial, sans-serif; padding: 24px; }
-                                    table { border-collapse: collapse; width: 100%; }
-                                    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-                                    th { background: #f3f3f3; }
-                                    h2 { margin-bottom: 16px; }
-                                  </style>
-                                </head>
-                                <body>
-                                  <h2>Histórico de Exames</h2>
-                                  <table>
-                                    <thead>
-                                      <tr>
-                                        <th>Nome do Colaborador</th>
-                                        <th>Tipo</th>
-                                        <th>Data do Exame</th>
-                                        <th>Data de Vencimento</th>
-                                        <th>Resultado</th>
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      ${examesData.map(e => `
-                                        <tr>
-                                          <td>${e.nomeColaborador}</td>
-                                          <td>${e.tipo}</td>
-                                          <td>${e.dataExame}</td>
-                                          <td>${e.vencimento}</td>
-                                          <td>${e.resultado}</td>
-                                        </tr>
-                                      `).join("")}
-                                    </tbody>
-                                  </table>
-                                </body>
-                              </html>
-                            `);
-                            printWindow.document.close();
-                            printWindow.focus();
-                            setTimeout(() => {
-                              printWindow.print();
-                              printWindow.close();
-                            }, 500);
-                          }
+                          // Exportar PDF (padrão carteira)
+                          exportExamesToPDF(examesData, "Historico_Exames");
                         }}
                       >
                         <img
@@ -983,45 +1019,8 @@ export default function FichaPessoalPage() {
                         className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
                         style={{ width: 36, height: 36 }}
                         onClick={() => {
-                          // Exportar Excel (XLSX simples via tabela HTML)
-                          const tableHtml = `
-                            <table>
-                              <thead>
-                                <tr>
-                                  <th>Nome do Colaborador</th>
-                                  <th>Tipo</th>
-                                  <th>Data do Exame</th>
-                                  <th>Data de Vencimento</th>
-                                  <th>Resultado</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                ${examesData.map(e => `
-                                  <tr>
-                                    <td>${e.nomeColaborador}</td>
-                                    <td>${e.tipo}</td>
-                                    <td>${e.dataExame}</td>
-                                    <td>${e.vencimento}</td>
-                                    <td>${e.resultado}</td>
-                                  </tr>
-                                `).join("")}
-                              </tbody>
-                            </table>
-                          `;
-                          const blob = new Blob(
-                            [
-                              '\ufeff',
-                              tableHtml
-                            ],
-                            { type: "application/vnd.ms-excel" }
-                          );
-                          const url = URL.createObjectURL(blob);
-                          const link = document.createElement("a");
-                          link.href = url;
-                          link.setAttribute("download", "historico_exames.xls");
-                          document.body.appendChild(link);
-                          link.click();
-                          document.body.removeChild(link);
+                          // Exportar Excel (padrão carteira, editável e sem erro de extensão)
+                          exportExamesToExcel(examesData, "Historico_Exames");
                         }}
                       >
                         <img
