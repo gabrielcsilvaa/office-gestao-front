@@ -901,6 +901,21 @@ export default function FichaPessoalPage() {
               cairoClassName={cairo.className} 
               headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")}
               title="Histórico de Exames"
+              onMaximize={() =>
+                setModalContent(
+                  <div className="flex flex-col w-[90vw] h-[80vh]">
+                    <h2 className={`text-2xl font-bold mb-2 ${cairo.className}`}>
+                      Histórico de Exames
+                    </h2>
+                    <AtestadosTable
+                      atestadosData={examesData}
+                      cairoClassName={cairo.className}
+                      headerIcons={[]}
+                      title=""
+                    />
+                  </div>
+                )
+              }
             />
           </div>
 
@@ -909,6 +924,20 @@ export default function FichaPessoalPage() {
               afastamentosData={afastamentosData}
               cairoClassName={cairo.className} 
               headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")}
+              onMaximize={() =>
+                setModalContent(
+                  <div className="flex flex-col w-[90vw] h-[80vh]">
+                    <h2 className={`text-2xl font-bold mb-2 ${cairo.className}`}>
+                      Histórico de Afastamentos
+                    </h2>
+                    <AfastamentosTable
+                      afastamentosData={afastamentosData}
+                      cairoClassName={cairo.className}
+                      headerIcons={[]}
+                    />
+                  </div>
+                )
+              }
             />
           </div>
 
@@ -917,10 +946,24 @@ export default function FichaPessoalPage() {
               contratosData={contratosData}
               cairoClassName={cairo.className}
               headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")}
+              onMaximize={() =>
+                setModalContent(
+                  <div className="flex flex-col w-[90vw] h-[80vh]">
+                    <h2 className={`text-2xl font-bold mb-2 ${cairo.className}`}>
+                      Detalhes de Contratos
+                    </h2>
+                    <ContratosTable
+                      contratosData={contratosData}
+                      cairoClassName={cairo.className}
+                      headerIcons={[]}
+                    />
+                  </div>
+                )
+              }
             />
           </div>
         </div>
-        
+
         {/* Férias & Alterações */}
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 h-[450px]">
           <div className="h-full shadow-md overflow-auto min-h-0 rounded-lg">
@@ -929,6 +972,20 @@ export default function FichaPessoalPage() {
               cairoClassName={cairo.className}
               headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")}
               title="Detalhes de Férias"
+              onMaximize={() =>
+                setModalContent(
+                  <div className="flex flex-col w-[90vw] h-[80vh]">
+                    <h2 className={`text-2xl font-bold mb-2 ${cairo.className}`}>
+                      Detalhes de Férias
+                    </h2>
+                    <FeriasDetalheCard
+                      feriasData={feriasData}
+                      cairoClassName={cairo.className}
+                      headerIcons={[]}
+                    />
+                  </div>
+                )
+              }
             />
           </div>
           <div className="h-full shadow-md overflow-auto min-h-0 rounded-lg">
@@ -937,6 +994,21 @@ export default function FichaPessoalPage() {
               cairoClassName={cairo.className}
               headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")}
               title="Detalhes de Alterações Salariais"
+              onMaximize={() =>
+                setModalContent(
+                  <div className="flex flex-col w-[90vw] h-[80vh]">
+                    <h2 className={`text-2xl font-bold mb-2 ${cairo.className}`}>
+                      Detalhes de Alterações Salariais
+                    </h2>
+                    <AlteracoesSalariaisDetalheCard
+                      alteracoesData={alteracoesData}
+                      cairoClassName={cairo.className}
+                      headerIcons={[]}
+                      title=""
+                    />
+                  </div>
+                )
+              }
             />
           </div>
         </div>

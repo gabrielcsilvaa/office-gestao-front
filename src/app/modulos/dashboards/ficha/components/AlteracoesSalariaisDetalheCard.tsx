@@ -21,15 +21,17 @@ interface IconProps {
 interface AlteracoesSalariaisDetalheCardProps {
   alteracoesData: AlteracaoSalarialDetalheEntry[];
   cairoClassName: string;
-  headerIcons?: IconProps[];
-  title?: string;
+  headerIcons: IconProps[];
+  title: string;
+  onMaximize?: () => void;
 }
 
 const AlteracoesSalariaisDetalheCard: React.FC<AlteracoesSalariaisDetalheCardProps> = ({
   alteracoesData,
   cairoClassName,
   headerIcons,
-  title = "Histórico de Alterações Salariais"
+  title = "Histórico de Alterações Salariais",
+  onMaximize,
 }) => {
   const [visibleCount, setVisibleCount] = useState(10);
   const [hasScrollbar, setHasScrollbar] = useState(false);
@@ -87,6 +89,7 @@ const AlteracoesSalariaisDetalheCard: React.FC<AlteracoesSalariaisDetalheCardPro
                   width={16}
                   height={16}
                   className="opacity-60 hover:opacity-100"
+                  onClick={icon.alt === "Maximize" ? onMaximize : undefined}
                 />
               </div>
             ))}
