@@ -914,6 +914,125 @@ export default function FichaPessoalPage() {
                     <h2 className={`text-2xl font-bold mb-4 ${cairo.className}`}>
                       Histórico de Exames Detalhado
                     </h2>
+                    {/* Botões de exportação estilo painel fixo */}
+                    <div className="flex gap-4 mb-4 justify-end">
+                      <button
+                        className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
+                        style={{ width: 36, height: 36 }}
+                        onClick={() => {
+                          // Exportar PDF (abre janela de impressão apenas da tabela)
+                          const printWindow = window.open('', '', 'width=900,height=700');
+                          if (printWindow) {
+                            printWindow.document.write(`
+                              <html>
+                                <head>
+                                  <title>Histórico de Exames</title>
+                                  <style>
+                                    body { font-family: Arial, sans-serif; padding: 24px; }
+                                    table { border-collapse: collapse; width: 100%; }
+                                    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+                                    th { background: #f3f3f3; }
+                                    h2 { margin-bottom: 16px; }
+                                  </style>
+                                </head>
+                                <body>
+                                  <h2>Histórico de Exames</h2>
+                                  <table>
+                                    <thead>
+                                      <tr>
+                                        <th>Nome do Colaborador</th>
+                                        <th>Tipo</th>
+                                        <th>Data do Exame</th>
+                                        <th>Data de Vencimento</th>
+                                        <th>Resultado</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      ${examesData.map(e => `
+                                        <tr>
+                                          <td>${e.nomeColaborador}</td>
+                                          <td>${e.tipo}</td>
+                                          <td>${e.dataExame}</td>
+                                          <td>${e.vencimento}</td>
+                                          <td>${e.resultado}</td>
+                                        </tr>
+                                      `).join("")}
+                                    </tbody>
+                                  </table>
+                                </body>
+                              </html>
+                            `);
+                            printWindow.document.close();
+                            printWindow.focus();
+                            setTimeout(() => {
+                              printWindow.print();
+                              printWindow.close();
+                            }, 500);
+                          }
+                        }}
+                      >
+                        <img
+                          src="/assets/icons/pdf.svg"
+                          alt="Exportar PDF"
+                          width={24}
+                          height={24}
+                          draggable={false}
+                        />
+                      </button>
+                      <button
+                        className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
+                        style={{ width: 36, height: 36 }}
+                        onClick={() => {
+                          // Exportar Excel (XLSX simples via tabela HTML)
+                          const tableHtml = `
+                            <table>
+                              <thead>
+                                <tr>
+                                  <th>Nome do Colaborador</th>
+                                  <th>Tipo</th>
+                                  <th>Data do Exame</th>
+                                  <th>Data de Vencimento</th>
+                                  <th>Resultado</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                ${examesData.map(e => `
+                                  <tr>
+                                    <td>${e.nomeColaborador}</td>
+                                    <td>${e.tipo}</td>
+                                    <td>${e.dataExame}</td>
+                                    <td>${e.vencimento}</td>
+                                    <td>${e.resultado}</td>
+                                  </tr>
+                                `).join("")}
+                              </tbody>
+                            </table>
+                          `;
+                          const blob = new Blob(
+                            [
+                              '\ufeff',
+                              tableHtml
+                            ],
+                            { type: "application/vnd.ms-excel" }
+                          );
+                          const url = URL.createObjectURL(blob);
+                          const link = document.createElement("a");
+                          link.href = url;
+                          link.setAttribute("download", "historico_exames.xls");
+                          document.body.appendChild(link);
+                          link.click();
+                          document.body.removeChild(link);
+                        }}
+                      >
+                        <img
+                          src="/assets/icons/excel.svg"
+                          alt="Exportar Excel"
+                          width={24}
+                          height={24}
+                          draggable={false}
+                        />
+                      </button>
+                    </div>
                     <div className="flex-1 overflow-auto">
                       <AtestadosModalTable
                         atestadosData={examesData}
