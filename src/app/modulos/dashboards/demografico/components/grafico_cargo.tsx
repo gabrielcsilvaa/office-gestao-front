@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, FormEvent } from "react";
 import Image from "next/image";
+import { Search } from "lucide-react"; // Lupa estilosa
 
 interface ColaboradorCargo {
   cargo: string;
@@ -14,16 +15,11 @@ interface GraficoCargoProps {
 
 const GraficoCargo: React.FC<GraficoCargoProps> = ({ dados }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
-    
+  const [busca, setBusca] = useState("");
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === "Escape") {
-      setIsModalOpen(false);
-    }
+    if (e.key === "Escape") setIsModalOpen(false);
   }, []);
-
-
 
   useEffect(() => {
     if (isModalOpen) {
@@ -31,19 +27,36 @@ const GraficoCargo: React.FC<GraficoCargoProps> = ({ dados }) => {
     } else {
       document.removeEventListener("keydown", handleKeyDown);
     }
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isModalOpen, handleKeyDown]);
 
-  const ChartContent = () => {
+  const ChartContent = ({
+    mostrarTodos = false,
+    filtrarBusca = "",
+  }: {
+    mostrarTodos?: boolean;
+    filtrarBusca?: string;
+  }) => {
+    let dadosExibidos = dados;
+
+    if (filtrarBusca) {
+      dadosExibidos = dados.filter((c) =>
+        c.cargo.toLowerCase().includes(filtrarBusca.toLowerCase())
+      );
+    }
+
     const maxColaboradores = Math.max(...dados.map((c) => c.total), 0);
 
     return (
-      <div className="h-full w-full overflow-y-auto">
+      <div
+        className="w-full overflow-y-auto"
+        style={{
+          maxHeight: mostrarTodos ? "100%" : "600px",
+        }}
+      >
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
           <tbody>
-            {dados.map((colaborador, index) => (
+            {dadosExibidos.map((colaborador, index) => (
               <tr
                 key={index}
                 style={{ borderBottom: "1px solid #E2E8F0" }}
@@ -67,16 +80,15 @@ const GraficoCargo: React.FC<GraficoCargoProps> = ({ dados }) => {
                   }}
                 >
                   <div
+                    title={`${colaborador.cargo}: ${colaborador.total}`}
                     style={{
-                      width: `${
-                        (colaborador.total / maxColaboradores) *
-                        100
-                      }%`,
+                      width: `${(colaborador.total / maxColaboradores) * 100}%`,
                       backgroundColor: "#68D391",
                       height: "20px",
                       borderRadius: "4px",
                       marginRight: "8px",
                       border: "1px solid #2F855A",
+                      cursor: "default",
                     }}
                   />
                   <span
@@ -97,9 +109,15 @@ const GraficoCargo: React.FC<GraficoCargoProps> = ({ dados }) => {
     );
   };
 
+  // Submissão do formulário de busca (Enter ou clique na lupa)
+  const handleSubmitBusca = (e: FormEvent) => {
+    e.preventDefault(); // evita reload da página
+    // Busca já é feita em tempo real, então nada precisa ser feito aqui
+  };
+
   return (
     <>
-      {/* Container Principal */}
+      {/* Gráfico Principal */}
       <div className="relative bg-white rounded-xl shadow-md h-full flex flex-col border border-gray-200">
         <button
           onClick={() => setIsModalOpen(true)}
@@ -129,19 +147,38 @@ const GraficoCargo: React.FC<GraficoCargoProps> = ({ dados }) => {
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
           onClick={() => setIsModalOpen(false)}
         >
-          {/* A classe bg-gray-100 foi trocada por bg-white aqui */}
           <div
             className="bg-white rounded-lg shadow-2xl w-[90vw] h-[90vh] p-6 flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Cabeçalho do Modal */}
-            <div className="relative flex justify-center items-center mb-4 flex-shrink-0">
-              <h2 className="w-full text-xl font-bold text-gray-800 text-center">
+            {/* Cabeçalho com Título + Barra de Pesquisa */}
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-800">
                 Colaboradores por Cargo
               </h2>
+
+              <form
+                onSubmit={handleSubmitBusca}
+                className="flex items-center gap-2"
+              >
+                <input
+                  type="text"
+                  placeholder="Buscar cargo..."
+                  value={busca}
+                  onChange={(e) => setBusca(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-400"
+                />
+                <button
+                  type="submit"
+                  className="p-2 rounded-md bg-green-500 hover:bg-green-600 text-white"
+                >
+                  <Search className="w-4 h-4" />
+                </button>
+              </form>
+
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="absolute right-0 top-1/2 -translate-y-1/2 text-3xl text-gray-500 hover:text-gray-900"
+                className="text-3xl text-gray-500 hover:text-gray-900 ml-4"
                 aria-label="Fechar modal"
               >
                 &times;
@@ -150,7 +187,7 @@ const GraficoCargo: React.FC<GraficoCargoProps> = ({ dados }) => {
 
             {/* Área de Conteúdo com Rolagem */}
             <div className="flex-grow overflow-auto border rounded-lg bg-white">
-              <ChartContent />
+              <ChartContent mostrarTodos filtrarBusca={busca} />
             </div>
           </div>
         </div>

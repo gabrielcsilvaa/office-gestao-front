@@ -34,8 +34,16 @@ export default function Demografico() {
   const [percentualMasculino, setPercentualMasculino] = useState(0);
   const [percentualFeminino, setPercentualFeminino] = useState(0);
 
-
   const [dadosCargo, setDadosCargo] = useState([]);
+
+  interface DadosLinha {
+    month: string;
+    Ativos: number;
+    Contratações: number;
+    Demissões: number;
+  }
+
+  const [dadosEmpresas, setDadosEmpresas] = useState<DadosLinha[]>([]);
 
   useEffect(() => {
     const fetchDados = async () => {
@@ -61,6 +69,106 @@ export default function Demografico() {
         const funcionarios = resultado.dados.flatMap(
           (empresa) => empresa.funcionarios || []
         );
+
+        const startDate = new Date("2024-01-01");
+        const endDate = new Date("2024-12-31");
+        const monthlyDataMap = new Map<
+          string,
+          { Ativos: number; Contratações: number; Demissões: number }
+        >();
+
+        // Inicializa o mapa com todos os meses do ano (formato 'Jan/24', 'Fev/24', etc.)
+        const monthsInOrder: string[] = [];
+        for (
+          let d = new Date(startDate);
+          d <= endDate;
+          d.setMonth(d.getMonth() + 1)
+        ) {
+          const monthKey = `${d.toLocaleString("pt-BR", { month: "short" }).replace(".", "")}/${d.getFullYear().toString().slice(-2)}`;
+          monthlyDataMap.set(monthKey, {
+            Ativos: 0,
+            Contratações: 0,
+            Demissões: 0,
+          });
+          monthsInOrder.push(monthKey);
+        }
+
+        // Processa as contratações e demissões
+        for (const funcionario of funcionarios) {
+          if (funcionario.admissao) {
+            const admissaoDate = new Date(funcionario.admissao);
+            // Certifique-se que a data está dentro do período de interesse
+            if (admissaoDate >= startDate && admissaoDate <= endDate) {
+              const monthKey = `${admissaoDate.toLocaleString("pt-BR", { month: "short" }).replace(".", "")}/${admissaoDate.getFullYear().toString().slice(-2)}`;
+              const data = monthlyDataMap.get(monthKey);
+              if (data) {
+                data.Contratações++;
+              }
+            }
+          }
+          if (funcionario.demissao) {
+            const demissaoDate = new Date(funcionario.demissao);
+            // Certifique-se que a data está dentro do período de interesse
+            if (demissaoDate >= startDate && demissaoDate <= endDate) {
+              const monthKey = `${demissaoDate.toLocaleString("pt-BR", { month: "short" }).replace(".", "")}/${demissaoDate.getFullYear().toString().slice(-2)}`;
+              const data = monthlyDataMap.get(monthKey);
+              if (data) {
+                data.Demissões++;
+              }
+            }
+          }
+        }
+
+        // Calcula Ativos mensalmente
+        // Iterar sobre os meses em ordem para calcular os ativos corretamente
+        for (const monthKey of monthsInOrder) {
+          const currentMonthDate = new Date(
+            parseInt(`20${monthKey.split("/")[1]}`),
+            new Date(
+              Date.parse(monthKey.split("/")[0] + " 1, 2000")
+            ).getMonth(),
+            1
+          );
+          const nextMonthDate = new Date(
+            currentMonthDate.getFullYear(),
+            currentMonthDate.getMonth() + 1,
+            1
+          ); // Start of next month
+
+          let activeForThisMonth = 0;
+          for (const funcionario of funcionarios) {
+            const admissaoDate = new Date(funcionario.admissao);
+            const demissaoDate = funcionario.demissao
+              ? new Date(funcionario.demissao)
+              : null;
+
+            // Um funcionário está ativo se ele foi admitido até o final do mês atual E
+            // não foi demitido, OU foi demitido após o final do mês atual
+            const hiredByEndOfMonth = admissaoDate < nextMonthDate; // Admissão antes do início do próximo mês
+            const notTerminatedByEndOfMonth =
+              !demissaoDate || demissaoDate >= nextMonthDate; // Demissão no próximo mês ou depois, ou sem demissão
+
+            if (hiredByEndOfMonth && notTerminatedByEndOfMonth) {
+              activeForThisMonth++;
+            }
+          }
+          const data = monthlyDataMap.get(monthKey);
+          if (data) {
+            data.Ativos = activeForThisMonth;
+          }
+        }
+
+        // Converte o mapa para um array de objetos no formato esperado pelo Recharts
+        const dadosParaGraficoLinha: DadosLinha[] = monthsInOrder.map(
+          (monthKey) => ({
+            month: monthKey,
+            Ativos: monthlyDataMap.get(monthKey)?.Ativos || 0,
+            Contratações: monthlyDataMap.get(monthKey)?.Contratações || 0,
+            Demissões: monthlyDataMap.get(monthKey)?.Demissões || 0,
+          })
+        );
+
+        setDadosEmpresas(dadosParaGraficoLinha);
 
         // Gênero
         const total = funcionarios.length;
@@ -103,7 +211,6 @@ export default function Demografico() {
             total,
           })
         );
-
 
         setDadosCargo(dadosCargo);
         // Faixa Etária
@@ -288,7 +395,7 @@ export default function Demografico() {
             </div>
 
             <div className="flex-1 min-h-[300px] md:min-h-[300px] bg-white rounded shadow">
-              <GraficoLinha />
+              <GraficoLinha dados={dadosEmpresas} />
             </div>
           </div>
         </div>
