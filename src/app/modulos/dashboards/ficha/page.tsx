@@ -891,6 +891,346 @@ export default function FichaPessoalPage() {
     });
   };
 
+  // Função para exportar afastamentos para PDF (padrão carteira)
+  const exportAfastamentosToPDF = (data: Afastamento[], fileName: string) => {
+    const doc = new jsPDF();
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+
+    const tableData = data.map((a) => [
+      a.nomeColaborador,
+      a.tipo,
+      a.inicio,
+      a.termino,
+      a.diasAfastados,
+    ]);
+    const tableHeaders = [
+      "Nome do Funcionário",
+      "Tipo",
+      "Data de Início",
+      "Data de Término",
+      "Dias Afastados",
+    ];
+
+    autoTable(doc, {
+      startY: 50,
+      head: [tableHeaders],
+      body: tableData,
+      theme: 'grid',
+      styles: {
+        font: 'helvetica',
+        fontSize: 8,
+        cellPadding: 1,
+        lineColor: [200, 200, 200],
+        lineWidth: 0.1,
+        textColor: [50, 50, 50],
+        overflow: 'linebreak'
+      },
+      headStyles: {
+        fillColor: [41, 128, 185],
+        textColor: [255, 255, 255],
+        fontSize: 9,
+        fontStyle: 'bold',
+        halign: 'center',
+      },
+      columnStyles: {
+        0: { cellWidth: 50, fontStyle: 'bold' },
+        1: { cellWidth: 30, halign: 'right' },
+        2: { cellWidth: 30, halign: 'right' },
+        3: { cellWidth: 30, halign: 'right' },
+        4: { cellWidth: 30, halign: 'right' },
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245],
+      },
+      margin: { left: 4, right: 2 },
+      didDrawPage: function (data) {
+        doc.setFontSize(8);
+        doc.text('Página ' + data.pageNumber, data.settings.margin.left, doc.internal.pageSize.height - 10);
+      }
+    });
+
+    doc.save(`${fileName}.pdf`);
+  };
+
+  // Função para exportar afastamentos para Excel (padrão carteira)
+  const exportAfastamentosToExcel = (data: Afastamento[], fileName: string) => {
+    import("xlsx").then(XLSX => {
+      const ws = XLSX.utils.json_to_sheet(
+        data.map(a => ({
+          "Nome do Funcionário": a.nomeColaborador,
+          "Tipo": a.tipo,
+          "Data de Início": a.inicio,
+          "Data de Término": a.termino,
+          "Dias Afastados": a.diasAfastados,
+        }))
+      );
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Afastamentos");
+      XLSX.writeFile(wb, `${fileName}.xlsx`);
+    });
+  };
+
+  // Função para exportar contratos para PDF (padrão carteira)
+  const exportContratosToPDF = (data: Contrato[], fileName: string) => {
+    const doc = new jsPDF();
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+
+    const tableData = data.map((c) => [
+      c.colaborador,
+      c.empresa,
+      c.dataAdmissao,
+      c.dataRescisao,
+      c.salarioBase,
+    ]);
+    const tableHeaders = [
+      "Nome do Funcionário",
+      "Empresa",
+      "Data de Admissão",
+      "Data de Rescisão",
+      "Salário Base",
+    ];
+
+    autoTable(doc, {
+      startY: 50,
+      head: [tableHeaders],
+      body: tableData,
+      theme: 'grid',
+      styles: {
+        font: 'helvetica',
+        fontSize: 8,
+        cellPadding: 1,
+        lineColor: [200, 200, 200],
+        lineWidth: 0.1,
+        textColor: [50, 50, 50],
+        overflow: 'linebreak'
+      },
+      headStyles: {
+        fillColor: [41, 128, 185],
+        textColor: [255, 255, 255],
+        fontSize: 9,
+        fontStyle: 'bold',
+        halign: 'center',
+      },
+      columnStyles: {
+        0: { cellWidth: 50, fontStyle: 'bold' },
+        1: { cellWidth: 40, halign: 'right' },
+        2: { cellWidth: 30, halign: 'right' },
+        3: { cellWidth: 30, halign: 'right' },
+        4: { cellWidth: 30, halign: 'right' },
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245],
+      },
+      margin: { left: 4, right: 2 },
+      didDrawPage: function (data) {
+        doc.setFontSize(8);
+        doc.text('Página ' + data.pageNumber, data.settings.margin.left, doc.internal.pageSize.height - 10);
+      }
+    });
+
+    doc.save(`${fileName}.pdf`);
+  };
+
+  // Função para exportar contratos para Excel (padrão carteira)
+  const exportContratosToExcel = (data: Contrato[], fileName: string) => {
+    import("xlsx").then(XLSX => {
+      const ws = XLSX.utils.json_to_sheet(
+        data.map(c => ({
+          "Nome do Funcionário": c.colaborador,
+          "Empresa": c.empresa,
+          "Data de Admissão": c.dataAdmissao,
+          "Data de Rescisão": c.dataRescisao,
+          "Salário Base": c.salarioBase,
+        }))
+      );
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Contratos");
+      XLSX.writeFile(wb, `${fileName}.xlsx`);
+    });
+  };
+
+  // Função para exportar férias para PDF (padrão carteira)
+  const exportFeriasToPDF = (data: FormattedFerias[], fileName: string) => {
+    const doc = new jsPDF();
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+
+    const tableData = data.map((f) => [
+      f.nomeColaborador,
+      f.inicioPeriodoAquisitivo,
+      f.fimPeriodoAquisitivo,
+      f.inicioPeriodoGozo,
+      f.fimPeriodoGozo,
+      f.limiteParaGozo,
+      f.diasDeDireito,
+      f.diasGozados,
+      f.diasDeSaldo,
+    ]);
+    const tableHeaders = [
+      "Nome do Funcionário",
+      "Início Período Aquisitivo",
+      "Fim Período Aquisitivo",
+      "Início Gozo",
+      "Fim Gozo",
+      "Limite para Gozo",
+      "Dias de Direito",
+      "Dias Gozados",
+      "Dias de Saldo",
+    ];
+
+    autoTable(doc, {
+      startY: 50,
+      head: [tableHeaders],
+      body: tableData,
+      theme: 'grid',
+      styles: {
+        font: 'helvetica',
+        fontSize: 8,
+        cellPadding: 1,
+        lineColor: [200, 200, 200],
+        lineWidth: 0.1,
+        textColor: [50, 50, 50],
+        overflow: 'linebreak'
+      },
+      headStyles: {
+        fillColor: [41, 128, 185],
+        textColor: [255, 255, 255],
+        fontSize: 9,
+        fontStyle: 'bold',
+        halign: 'center',
+      },
+      columnStyles: {
+        0: { cellWidth: 50, fontStyle: 'bold' },
+        1: { cellWidth: 30, halign: 'right' },
+        2: { cellWidth: 30, halign: 'right' },
+        3: { cellWidth: 30, halign: 'right' },
+        4: { cellWidth: 30, halign: 'right' },
+        5: { cellWidth: 30, halign: 'right' },
+        6: { cellWidth: 20, halign: 'right' },
+        7: { cellWidth: 20, halign: 'right' },
+        8: { cellWidth: 20, halign: 'right' },
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245],
+      },
+      margin: { left: 4, right: 2 },
+      didDrawPage: function (data) {
+        doc.setFontSize(8);
+        doc.text('Página ' + data.pageNumber, data.settings.margin.left, doc.internal.pageSize.height - 10);
+      }
+    });
+
+    doc.save(`${fileName}.pdf`);
+  };
+
+  // Função para exportar férias para Excel (padrão carteira)
+  const exportFeriasToExcel = (data: FormattedFerias[], fileName: string) => {
+    import("xlsx").then(XLSX => {
+      const ws = XLSX.utils.json_to_sheet(
+        data.map(f => ({
+          "Nome do Funcionário": f.nomeColaborador,
+          "Início Período Aquisitivo": f.inicioPeriodoAquisitivo,
+          "Fim Período Aquisitivo": f.fimPeriodoAquisitivo,
+          "Início Gozo": f.inicioPeriodoGozo,
+          "Fim Gozo": f.fimPeriodoGozo,
+          "Limite para Gozo": f.limiteParaGozo,
+          "Dias de Direito": f.diasDeDireito,
+          "Dias Gozados": f.diasGozados,
+          "Dias de Saldo": f.diasDeSaldo,
+        }))
+      );
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Férias");
+      XLSX.writeFile(wb, `${fileName}.xlsx`);
+    });
+  };
+
+  // Função para exportar alterações salariais para PDF (padrão carteira)
+  const exportAlteracoesToPDF = (data: FormattedAlteracao[], fileName: string) => {
+    const doc = new jsPDF();
+    doc.setFontSize(13);
+    doc.setFont('helvetica', 'bold');
+
+    const tableData = data.map((a) => [
+      a.nomeColaborador,
+      a.competencia,
+      a.salarioAnterior !== null ? a.salarioAnterior.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "N/A",
+      a.salarioNovo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+      a.motivo,
+      a.percentual,
+    ]);
+    const tableHeaders = [
+      "Nome do Funcionário",
+      "Competência",
+      "Salário Anterior",
+      "Salário Novo",
+      "Motivo",
+      "Variação (%)",
+    ];
+
+    autoTable(doc, {
+      startY: 50,
+      head: [tableHeaders],
+      body: tableData,
+      theme: 'grid',
+      styles: {
+        font: 'helvetica',
+        fontSize: 8,
+        cellPadding: 1,
+        lineColor: [200, 200, 200],
+        lineWidth: 0.1,
+        textColor: [50, 50, 50],
+        overflow: 'linebreak'
+      },
+      headStyles: {
+        fillColor: [41, 128, 185],
+        textColor: [255, 255, 255],
+        fontSize: 9,
+        fontStyle: 'bold',
+        halign: 'center',
+      },
+      columnStyles: {
+        0: { cellWidth: 50, fontStyle: 'bold' },
+        1: { cellWidth: 30, halign: 'right' },
+        2: { cellWidth: 30, halign: 'right' },
+        3: { cellWidth: 30, halign: 'right' },
+        4: { cellWidth: 30, halign: 'right' },
+        5: { cellWidth: 20, halign: 'right' },
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245],
+      },
+      margin: { left: 4, right: 2 },
+      didDrawPage: function (data) {
+        doc.setFontSize(8);
+        doc.text('Página ' + data.pageNumber, data.settings.margin.left, doc.internal.pageSize.height - 10);
+      }
+    });
+
+    doc.save(`${fileName}.pdf`);
+  };
+
+  // Função para exportar alterações salariais para Excel (padrão carteira)
+  const exportAlteracoesToExcel = (data: FormattedAlteracao[], fileName: string) => {
+    import("xlsx").then(XLSX => {
+      const ws = XLSX.utils.json_to_sheet(
+        data.map(a => ({
+          "Nome do Funcionário": a.nomeColaborador,
+          "Competência": a.competencia,
+          "Salário Anterior": a.salarioAnterior !== null ? a.salarioAnterior.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "N/A",
+          "Salário Novo": a.salarioNovo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+          "Motivo": a.motivo,
+          "Variação (%)": a.percentual,
+        }))
+      );
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Alterações");
+      XLSX.writeFile(wb, `${fileName}.xlsx`);
+    });
+  };
+
   return (
     <div className="bg-[#f7f7f8] flex flex-col flex-1 h-full min-h-0">
       {/* Header */}
@@ -1055,6 +1395,39 @@ export default function FichaPessoalPage() {
                     <h2 className={`text-2xl font-bold mb-4 ${cairo.className}`}>
                       Histórico de Afastamentos Detalhado
                     </h2>
+                    {/* Botões de exportação estilo painel fixo */}
+                    <div className="flex gap-4 mb-4 justify-end">
+                      <button
+                        className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
+                        style={{ width: 36, height: 36 }}
+                        onClick={() => {
+                          exportAfastamentosToPDF(afastamentosData, "Historico_Afastamentos");
+                        }}
+                      >
+                        <img
+                          src="/assets/icons/pdf.svg"
+                          alt="Exportar PDF"
+                          width={24}
+                          height={24}
+                          draggable={false}
+                        />
+                      </button>
+                      <button
+                        className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
+                        style={{ width: 36, height: 36 }}
+                        onClick={() => {
+                          exportAfastamentosToExcel(afastamentosData, "Historico_Afastamentos");
+                        }}
+                      >
+                        <img
+                          src="/assets/icons/excel.svg"
+                          alt="Exportar Excel"
+                          width={24}
+                          height={24}
+                          draggable={false}
+                        />
+                      </button>
+                    </div>
                     <div className="flex-1 overflow-auto">
                       <AfastamentosModalTable
                         afastamentosData={afastamentosData}
@@ -1078,6 +1451,39 @@ export default function FichaPessoalPage() {
                     <h2 className={`text-2xl font-bold mb-4 ${cairo.className}`}>
                       Detalhes de Contratos
                     </h2>
+                    {/* Botões de exportação estilo painel fixo */}
+                    <div className="flex gap-4 mb-4 justify-end">
+                      <button
+                        className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
+                        style={{ width: 36, height: 36 }}
+                        onClick={() => {
+                          exportContratosToPDF(contratosData, "Contratos");
+                        }}
+                      >
+                        <img
+                          src="/assets/icons/pdf.svg"
+                          alt="Exportar PDF"
+                          width={24}
+                          height={24}
+                          draggable={false}
+                        />
+                      </button>
+                      <button
+                        className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
+                        style={{ width: 36, height: 36 }}
+                        onClick={() => {
+                          exportContratosToExcel(contratosData, "Contratos");
+                        }}
+                      >
+                        <img
+                          src="/assets/icons/excel.svg"
+                          alt="Exportar Excel"
+                          width={24}
+                          height={24}
+                          draggable={false}
+                        />
+                      </button>
+                    </div>
                     <div className="flex-1 overflow-auto">
                       <ContratosModalTable
                         contratosData={contratosData}
@@ -1105,6 +1511,39 @@ export default function FichaPessoalPage() {
                     <h2 className={`text-2xl font-bold mb-4 ${cairo.className}`}>
                       Detalhes de Férias
                     </h2>
+                    {/* Botões de exportação estilo painel fixo */}
+                    <div className="flex gap-4 mb-4 justify-end">
+                      <button
+                        className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
+                        style={{ width: 36, height: 36 }}
+                        onClick={() => {
+                          exportFeriasToPDF(feriasData, "Ferias");
+                        }}
+                      >
+                        <img
+                          src="/assets/icons/pdf.svg"
+                          alt="Exportar PDF"
+                          width={24}
+                          height={24}
+                          draggable={false}
+                        />
+                      </button>
+                      <button
+                        className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
+                        style={{ width: 36, height: 36 }}
+                        onClick={() => {
+                          exportFeriasToExcel(feriasData, "Ferias");
+                        }}
+                      >
+                        <img
+                          src="/assets/icons/excel.svg"
+                          alt="Exportar Excel"
+                          width={24}
+                          height={24}
+                          draggable={false}
+                        />
+                      </button>
+                    </div>
                     <div className="flex-1 overflow-auto">
                       <FeriasModalTable
                         feriasData={feriasData}
@@ -1128,6 +1567,39 @@ export default function FichaPessoalPage() {
                     <h2 className={`text-2xl font-bold mb-4 ${cairo.className}`}>
                       Detalhes de Alterações Salariais
                     </h2>
+                    {/* Botões de exportação estilo painel fixo */}
+                    <div className="flex gap-4 mb-4 justify-end">
+                      <button
+                        className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
+                        style={{ width: 36, height: 36 }}
+                        onClick={() => {
+                          exportAlteracoesToPDF(alteracoesData, "Alteracoes_Salariais");
+                        }}
+                      >
+                        <img
+                          src="/assets/icons/pdf.svg"
+                          alt="Exportar PDF"
+                          width={24}
+                          height={24}
+                          draggable={false}
+                        />
+                      </button>
+                      <button
+                        className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
+                        style={{ width: 36, height: 36 }}
+                        onClick={() => {
+                          exportAlteracoesToExcel(alteracoesData, "Alteracoes_Salariais");
+                        }}
+                      >
+                        <img
+                          src="/assets/icons/excel.svg"
+                          alt="Exportar Excel"
+                          width={24}
+                          height={24}
+                          draggable={false}
+                        />
+                      </button>
+                    </div>
                     <div className="flex-1 overflow-auto">
                       <AlteracoesSalariaisModalTable
                         alteracoesData={alteracoesData}
