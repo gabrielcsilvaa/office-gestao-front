@@ -2,17 +2,16 @@ import Link from "next/link";
 import Image from "next/image";
 import "../../app/globals.css";
 import { Cairo } from "next/font/google";
-import { useRouter } from 'next/navigation';
-import NotificationModal from '../notificacao/modalNotificaçao';
-
+import { useRouter } from "next/navigation";
+import NotificationModal from "../notificacao/modalNotificaçao";
 
 import { useState, useEffect } from "react";
+import { signOut } from "next-auth/react";
 // Fonte Cairo configurada
 const cairo = Cairo({
   weight: ["500", "600", "700"],
   subsets: ["latin"],
 });
-
 
 interface Socio {
   id: number;
@@ -37,7 +36,6 @@ export function Header() {
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
-
   return (
     <>
       {/* Zona invisível que detecta mouse perto da borda esquerda */}
@@ -48,7 +46,9 @@ export function Header() {
           style={{ cursor: "pointer" }}
           onMouseEnter={() => setIsHovered(true)}
         >
-          <div className={`bg-[var(--left-menu-gray)] rounded-r-lg p-2 text-lg  text-white`}>{`<`}</div>
+          <div
+            className={`bg-[var(--left-menu-gray)] rounded-r-lg p-2 text-lg  text-white`}
+          >{`<`}</div>
         </div>
       )}
 
@@ -156,7 +156,7 @@ export function Header2() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [aniversariantes, setAniversariantes] = useState<Socio[]>([]);
 
-  const router = useRouter(); 
+  const router = useRouter();
 
   const handleNotificationClick = () => {
     setIsModalOpen(true); // Abre o modal
@@ -166,11 +166,17 @@ export function Header2() {
     setIsModalOpen(false); // Fecha o modal
   };
 
-  const handleLogout = () => {
-    router.push("/");
-  }
+  const handleLogout = async (): Promise<void> => {
+    try {
+      await signOut({ redirect: false }); // Não redireciona automaticamente
+      router.push("/"); // Redireciona manualmente após logout
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error);
+      router.push("/");
+    }
+  };
 
-    useEffect(() => {
+  useEffect(() => {
     const fetchAniversariosData = async () => {
       try {
         const response = await fetch(
@@ -182,7 +188,7 @@ export function Header2() {
             },
             body: JSON.stringify({
               start_date: "2024-01-01", // Data estática
-              end_date: "2025-01-01",   // Data estática
+              end_date: "2025-01-01", // Data estática
             }),
           }
         );
@@ -206,54 +212,58 @@ export function Header2() {
     };
 
     fetchAniversariosData();
-  }, []); 
+  }, []);
   return (
-     <>
-    <header className="flex items-center p-2 h-12 bg-white border-[1px] border-[#E5E5E5]">
-      <nav className="flex w-full justify-between items-center">
-        <span
-          className={`${cairo.className} font-[700] text-[28px] text-[var(--left-menu-gray)]`}
-        >
-          Módulo Gestão
-        </span>
+    <>
+      <header className="flex items-center p-2 h-12 bg-white border-[1px] border-[#E5E5E5]">
+        <nav className="flex w-full justify-between items-center">
+          <span
+            className={`${cairo.className} font-[700] text-[28px] text-[var(--left-menu-gray)]`}
+          >
+            Módulo Gestão
+          </span>
 
-        <div className="flex gap-2 ml-auto cursor-pointer">
-          <Image
-            src="/assets/icons/exit.svg"
-            alt="Ícone de logout"
-            width={35}
-            height={35}
-            onClick={handleLogout}  
-          />
-          <Image
-            src="/assets/icons/Frame 33.svg"
-            alt="Ícone de notificação"
-            width={35}
-            height={35}
-            onClick={handleNotificationClick} // Abre o modal
-          />
-          {/* <Image
+          <div className="flex gap-2 ml-auto cursor-pointer">
+            <Image
+              src="/assets/icons/exit.svg"
+              alt="Ícone de logout"
+              width={35}
+              height={35}
+              onClick={handleLogout}
+            />
+            <Image
+              src="/assets/icons/Frame 33.svg"
+              alt="Ícone de notificação"
+              width={35}
+              height={35}
+              onClick={handleNotificationClick} // Abre o modal
+            />
+            {/* <Image
             src="/assets/icons/Frame 34.svg"
             alt="Ícone"
             width={35}
             height={35}
           /> */}
-          <Image
-            src="/assets/icons/Frame 35.svg"
-            alt="Ícone"
-            width={35}
-            height={35}
-          />
-          <Image
-            src="/assets/icons/Frame 36.svg"
-            alt="Ícone"
-            width={35}
-            height={35}
-          />
-        </div>
-      </nav>
-    </header>
-      <NotificationModal isOpen={isModalOpen} onClose={closeModal} aniversariantes={aniversariantes} />
+            <Image
+              src="/assets/icons/Frame 35.svg"
+              alt="Ícone"
+              width={35}
+              height={35}
+            />
+            <Image
+              src="/assets/icons/Frame 36.svg"
+              alt="Ícone"
+              width={35}
+              height={35}
+            />
+          </div>
+        </nav>
+      </header>
+      <NotificationModal
+        isOpen={isModalOpen}
+        onClose={closeModal}
+        aniversariantes={aniversariantes}
+      />
     </>
   );
 }

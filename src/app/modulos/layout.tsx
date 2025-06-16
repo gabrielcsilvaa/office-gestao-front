@@ -1,24 +1,36 @@
 "use client";
-
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useSession, SessionProvider } from "next-auth/react";
 import "../globals.css";
 import { Header, Header2 } from "../../components/header/index";
+import Reload from "@/components/reload";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function ModulosLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  return (
+    <SessionProvider>
+      <ModulosLayoutContent>{children}</ModulosLayoutContent>
+    </SessionProvider>
+  );
+}
+
+function ModulosLayoutContent({ children }: { children: React.ReactNode }) {
+  const { data: session, status } = useSession();
   const router = useRouter();
 
   useEffect(() => {
-    const isLoginPage = window.location.pathname === "/";
-    if (!isLoginPage) {
-      const token = localStorage.getItem("token");
-      if (!token) router.push("/");
+    if (!session && status !== "loading") {
+      router.push("/");
     }
-  }, [router]);
+  }, [session, status, router]);
+
+  if (status === "loading") {
+    return <Reload />;
+  }
 
   return (
     <div className="flex h-screen antialiased">
