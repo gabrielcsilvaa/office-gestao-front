@@ -982,6 +982,7 @@ export default function FichaPessoalPage() {
                       feriasData={feriasData}
                       cairoClassName={cairo.className}
                       headerIcons={[]}
+                      title=""
                     />
                   </div>
                 )
