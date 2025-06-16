@@ -832,7 +832,7 @@ export default function FichaPessoalPage() {
     ];
 
     autoTable(doc, {
-      startY: 50,
+      startY: 20, // <-- aqui
       head: [tableHeaders],
       body: tableData,
       theme: 'grid',
@@ -913,7 +913,7 @@ export default function FichaPessoalPage() {
     ];
 
     autoTable(doc, {
-      startY: 50,
+      startY: 20, // <-- aqui
       head: [tableHeaders],
       body: tableData,
       theme: 'grid',
@@ -993,7 +993,7 @@ export default function FichaPessoalPage() {
     ];
 
     autoTable(doc, {
-      startY: 50,
+      startY: 20, // <-- aqui
       head: [tableHeaders],
       body: tableData,
       theme: 'grid',
@@ -1051,9 +1051,9 @@ export default function FichaPessoalPage() {
     });
   };
 
-  // Função para exportar férias para PDF (padrão carteira)
+  // Função para exportar férias para PDF (padrão carteira, colunas mais compactas)
   const exportFeriasToPDF = (data: FormattedFerias[], fileName: string) => {
-    const doc = new jsPDF();
+    const doc = new jsPDF({ orientation: "landscape" }); // Use paisagem para mais largura
     doc.setFontSize(13);
     doc.setFont('helvetica', 'bold');
 
@@ -1081,7 +1081,7 @@ export default function FichaPessoalPage() {
     ];
 
     autoTable(doc, {
-      startY: 50,
+      startY: 20,
       head: [tableHeaders],
       body: tableData,
       theme: 'grid',
@@ -1102,15 +1102,15 @@ export default function FichaPessoalPage() {
         halign: 'center',
       },
       columnStyles: {
-        0: { cellWidth: 50, fontStyle: 'bold' },
-        1: { cellWidth: 30, halign: 'right' },
-        2: { cellWidth: 30, halign: 'right' },
-        3: { cellWidth: 30, halign: 'right' },
-        4: { cellWidth: 30, halign: 'right' },
-        5: { cellWidth: 30, halign: 'right' },
-        6: { cellWidth: 20, halign: 'right' },
-        7: { cellWidth: 20, halign: 'right' },
-        8: { cellWidth: 20, halign: 'right' },
+        0: { cellWidth: 40, fontStyle: 'bold' }, // Nome do Funcionário
+        1: { cellWidth: 24, halign: 'right' },   // Início Período Aquisitivo
+        2: { cellWidth: 24, halign: 'right' },   // Fim Período Aquisitivo
+        3: { cellWidth: 22, halign: 'right' },   // Início Gozo
+        4: { cellWidth: 22, halign: 'right' },   // Fim Gozo
+        5: { cellWidth: 24, halign: 'right' },   // Limite para Gozo
+        6: { cellWidth: 18, halign: 'right' },   // Dias de Direito
+        7: { cellWidth: 18, halign: 'right' },   // Dias Gozados
+        8: { cellWidth: 18, halign: 'right' },   // Dias de Saldo
       },
       alternateRowStyles: {
         fillColor: [245, 245, 245],
@@ -1171,7 +1171,7 @@ export default function FichaPessoalPage() {
     ];
 
     autoTable(doc, {
-      startY: 50,
+      startY: 20, // <-- aqui
       head: [tableHeaders],
       body: tableData,
       theme: 'grid',
