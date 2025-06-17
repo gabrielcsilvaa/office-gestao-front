@@ -1019,7 +1019,7 @@ export default function FichaPessoalPage() {
     const tableData = data.map((c) => [
       c.colaborador,
       c.dataAdmissao,
-      c.dataRescisao,
+      c.dataRescisao === "" ? "Ativo" : c.dataRescisao,
       c.salarioBase,
     ]);
     const tableHeaders = [
@@ -1192,7 +1192,7 @@ export default function FichaPessoalPage() {
       a.salarioAnterior !== null ? a.salarioAnterior.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "N/A",
       a.salarioNovo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
       a.motivo,
-      a.percentual,
+      a.percentual === "" ? "-" : a.percentual, // Modified line
     ]);
     const tableHeaders = [
       "Nome do Funcionário",
@@ -1482,7 +1482,7 @@ export default function FichaPessoalPage() {
                 setModalContent(
                   <div className="flex flex-col w-full h-full max-h-[calc(80vh-4rem)]">
                     <h2 className={`text-2xl font-bold mb-4 ${cairo.className}`}>
-                      Detalhes de Contratos
+                      Histórico de Contratos Detalhado
                     </h2>
                     {/* Botões de exportação estilo painel fixo */}
                     <div className="flex gap-4 mb-4 justify-end">
