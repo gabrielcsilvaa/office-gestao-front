@@ -10,15 +10,13 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const data = [
-  { name: "Empregado", colaboradores: 2275 },
-  { name: "Diretor", colaboradores: 441 },
-  { name: "Estagiário", colaboradores: 48 },
-  { name: "Empregado Domés...", colaboradores: 35 },
-  { name: "Trabalhador Autôno...", colaboradores: 33 },
-];
+interface CategoriaData {
+  name: string;
+  colaboradores: number;
+}
 
-export default function GraficoCategoria() {
+
+export default function GraficoCategoria({dados}: { dados: CategoriaData[] }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -54,7 +52,7 @@ export default function GraficoCategoria() {
       </h3>
       <ResponsiveContainer width="100%" height="90%">
         <BarChart
-          data={data}
+          data={dados}
           layout="vertical"
           margin={{ top: 5, right: 20, left: 50, bottom: 5 }}
         >
@@ -116,7 +114,7 @@ export default function GraficoCategoria() {
             <div className="flex-grow w-full h-full">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                  data={data}
+                  data={dados}
                   layout="vertical"
                   margin={{ top: 20, right: 30, left: 70, bottom: 20 }}
                 >

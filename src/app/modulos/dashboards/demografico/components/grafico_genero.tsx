@@ -50,7 +50,7 @@ const GraficoGenero = ({
           <span style={{ fontSize: "1.1em", fontWeight: "bold", color: "#007bff" }}>
             {masculinoPercentual.toFixed(1)}%
           </span>
-          <Image src="/assets/icons/man.svg" alt="Ícone masculino" width={60} height={60} />
+          <Image src="/assets/icons/man.svg" alt="Ícone masculino" width={150} height={150} />
         </div>
         <div style={{ width: "1px", backgroundColor: "#ccc", height: "70%" }} />
         {/* Feminino */}
@@ -58,7 +58,7 @@ const GraficoGenero = ({
           <span style={{ fontSize: "1.1em", fontWeight: "bold", color: "#ff69b4" }}>
             {femininoPercentual.toFixed(1)}%
           </span>
-          <Image src="/assets/icons/woman.svg" alt="Ícone feminino" width={60} height={60} />
+          <Image src="/assets/icons/woman.svg" alt="Ícone feminino" width={150} height={150} />
         </div>
       </div>
     </div>
@@ -80,7 +80,7 @@ const GraficoGenero = ({
         <span style={{ fontSize: "3em", fontWeight: "bold", color: "#007bff" }}>
           {masculinoPercentual.toFixed(1)}%
         </span>
-        <Image src="/assets/icons/man.svg" alt="Ícone masculino" width={150} height={150} />
+        <Image src="/assets/icons/man.svg" alt="Ícone masculino" width={250} height={250} />
       </div>
       <div style={{ width: "2px", backgroundColor: "#ccc", height: "60%" }} />
       {/* Feminino */}
@@ -88,7 +88,7 @@ const GraficoGenero = ({
         <span style={{ fontSize: "3em", fontWeight: "bold", color: "#ff69b4" }}>
           {femininoPercentual.toFixed(1)}%
         </span>
-        <Image src="/assets/icons/woman.svg" alt="Ícone feminino" width={150} height={150} />
+        <Image src="/assets/icons/woman.svg" alt="Ícone feminino" width={250} height={250} />
       </div>
     </div>
   );

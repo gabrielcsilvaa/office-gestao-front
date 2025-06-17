@@ -5,7 +5,6 @@ import { useState, useEffect, useCallback } from "react";
 import Image from "next/image"; // Supondo que você use Next.js para imagens
 
 export default function TabelaColaboradores() {
-  // Estado para controlar a visibilidade do modal
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const colaboradores = [

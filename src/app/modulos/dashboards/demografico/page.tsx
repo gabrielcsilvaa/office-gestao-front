@@ -36,6 +36,14 @@ export default function Demografico() {
 
   const [dadosCargo, setDadosCargo] = useState([]);
 
+  const [cardsData, setCardsData] = useState({
+    ativos: 0,
+    contratacoes: 0,
+    demissoes: 0,
+    afastamentos: 0,
+    turnover: "0.0",
+  });
+
   interface DadosLinha {
     month: string;
     Ativos: number;
@@ -44,6 +52,7 @@ export default function Demografico() {
   }
 
   const [dadosEmpresas, setDadosEmpresas] = useState<DadosLinha[]>([]);
+  const [dadosCategoria, setDadosCategoria] = useState([]);
 
   useEffect(() => {
     const fetchDados = async () => {
@@ -79,6 +88,78 @@ export default function Demografico() {
 
         const resultado = await response.json();
         console.log("Dados recebidos:", resultado);
+
+        // Contar colaboradores por categoria
+        const categoriaContagem: { [key: string]: number } = {};
+
+        resultado.dados.forEach((empresa: any) => {
+          empresa.funcionarios.forEach((funcionario: any) => {
+            const categoria = funcionario.categoria || "Não Informado";
+            categoriaContagem[categoria] =
+              (categoriaContagem[categoria] || 0) + 1;
+          });
+        });
+
+        // Transformar em array para o gráfico
+        const dadosCategoria = Object.entries(categoriaContagem).map(
+          ([categoria, total]) => ({
+            name: categoria,
+            colaboradores: total,
+          })
+        );
+
+        setDadosCategoria(dadosCategoria);
+
+        const empresas = resultado.dados || [];
+
+        let ativos = 0;
+        let contratacoes = 0;
+        let demissoes = 0;
+        let afastamentos = 0;
+
+        empresas.forEach((empresa: any) => {
+          empresa.funcionarios.forEach((func: any) => {
+            const admissao = new Date(func.admissao);
+            const demissao = func.demissao ? new Date(func.demissao) : null;
+
+            // Ativos
+            if (!demissao) ativos++;
+
+            // Contratações no período
+            if (admissao >= startDate && admissao <= endDate) {
+              contratacoes++;
+            }
+
+            // Demissões no período
+            if (demissao && demissao >= startDate && demissao <= endDate) {
+              demissoes++;
+            }
+
+            // Afastamentos no período
+            if (func.afastamentos && Array.isArray(func.afastamentos)) {
+              func.afastamentos.forEach((afast: any) => {
+                const ini = new Date(afast.data_inicio);
+                const fim = afast.data_fim ? new Date(afast.data_fim) : null;
+
+                const dentroPeriodo =
+                  (ini >= startDate && ini <= endDate) ||
+                  (fim && fim >= startDate && fim <= endDate);
+
+                if (dentroPeriodo) afastamentos++;
+              });
+            }
+          });
+        });
+
+        const turnover = (demissoes / (ativos + demissoes)) * 100;
+
+        setCardsData({
+          ativos,
+          contratacoes,
+          demissoes,
+          afastamentos,
+          turnover: `${turnover.toFixed(1)}%`,
+        });
 
         interface Funcionario {
           id_empregado: number;
@@ -219,36 +300,36 @@ export default function Demografico() {
         setPercentualMasculino(percMasculino);
         setPercentualFeminino(percFeminino);
 
-        interface DadosEscolaridade {
-          escolaridade: string;
-          total: number;
-        }
+        // Escolaridade
         const escolaridadeMap = new Map<string, number>();
         for (const funcionario of funcionarios) {
           const esc = funcionario.escolaridade || "Não informado";
           escolaridadeMap.set(esc, (escolaridadeMap.get(esc) || 0) + 1);
         }
-        const dadosEscolaridade: DadosEscolaridade[] = Array.from(
-          escolaridadeMap.entries()
-        ).map(([escolaridade, total]) => ({ escolaridade, total }));
+
+        const dadosEscolaridade = Array.from(escolaridadeMap.entries()).map(
+          ([escolaridade, total]) => ({
+            escolaridade,
+            total,
+          })
+        );
         setDadosDemograficos(dadosEscolaridade);
 
-        // Cargo
-        interface DadosCargo {
-          cargo: string;
-          total: number;
-        }
         // Cargo
         const cargoMap = new Map<string, number>();
         for (const funcionario of funcionarios) {
           const cargo = funcionario.cargo || "Não informado";
           cargoMap.set(cargo, (cargoMap.get(cargo) || 0) + 1);
         }
-        const dadosCargo: DadosCargo[] = Array.from(cargoMap.entries()).map(
-          ([cargo, total]) => ({ cargo, total })
-        );
-        setDadosCargo(dadosCargo);
 
+        const dadosCargo = Array.from(cargoMap.entries()).map(
+          ([cargo, total]) => ({
+            cargo,
+            total,
+          })
+        );
+
+        setDadosCargo(dadosCargo);
         // Faixa Etária
         const getFaixaEtaria = (idade: number) => {
           if (idade <= 25) return "00 a 25";
@@ -407,23 +488,33 @@ export default function Demografico() {
           <div className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
               <div className="bg-white p-4 rounded border-l-4 border-red-500 shadow-sm">
-                <div className="text-2xl font-bold text-black">53,7%</div>
+                <div className="text-2xl font-bold text-black">
+                  {cardsData.turnover}
+                </div>
                 <div className="text-sm text-gray-500">Turnover</div>
               </div>
               <div className="bg-white p-4 rounded border-l-4 border-green-500 shadow-sm">
-                <div className="text-2xl font-bold text-black">2.919</div>
+                <div className="text-2xl font-bold text-black">
+                  {cardsData.ativos}
+                </div>
                 <div className="text-sm text-gray-500">Ativos</div>
               </div>
               <div className="bg-white p-4 rounded border-l-4 border-green-500 shadow-sm">
-                <div className="text-2xl font-bold text-black">1.741</div>
+                <div className="text-2xl font-bold text-black">
+                  {cardsData.contratacoes}
+                </div>
                 <div className="text-sm text-gray-500">Contratações</div>
               </div>
               <div className="bg-white p-4 rounded border-l-4 border-red-500 shadow-sm">
-                <div className="text-2xl font-bold text-black">1.456</div>
+                <div className="text-2xl font-bold text-black">
+                  {cardsData.demissoes}
+                </div>
                 <div className="text-sm text-gray-500">Demissões</div>
               </div>
               <div className="bg-white p-4 rounded border-l-4 border-red-500 shadow-sm">
-                <div className="text-2xl font-bold text-black">1.777</div>
+                <div className="text-2xl font-bold text-black">
+                  {cardsData.afastamentos}
+                </div>
                 <div className="text-sm text-gray-500">
                   Períodos de Afastamento
                 </div>
@@ -449,7 +540,7 @@ export default function Demografico() {
                 <GraficoFaixaEtaria dados={dadosFaixaEtaria} />
               </div>
               <div className="aspect-square w-full h-[300px]">
-                <GraficoCategoria />
+                <GraficoCategoria dados={dadosCategoria} />
               </div>
               <div className="aspect-square w-full h-[300px]">
                 <GraficoEscolaridade dados={dadosDemograficos} />
