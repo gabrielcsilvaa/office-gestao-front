@@ -292,6 +292,48 @@ const valorPorGrupoDataFicha = [
 const diffDays = (start: string, end: string): number =>
   Math.ceil((new Date(end).getTime() - new Date(start).getTime()) / (1000*60*60*24));
 
+// Helper function to add a common header to PDF documents
+const addHeaderToPDF = (
+  doc: jsPDF,
+  reportTitle: string,
+  empresaFilter: string,
+  startDateFilter: string | null,
+  endDateFilter: string | null
+): number => {
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const margin = 10; // Page margin for header content
+  let currentY = 15; // Initial Y position for the header
+
+  // Report Title
+  doc.setFontSize(16);
+  doc.setFont('helvetica', 'bold');
+  doc.text(reportTitle, pageWidth / 2, currentY, { align: 'center' });
+  currentY += 8; // Space after title
+
+  // Filter Info & Generation Date
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+
+  // Line 1: Empresa (left) and Generated At (right)
+  if (empresaFilter) {
+    doc.text(`Empresa: ${empresaFilter}`, margin, currentY);
+  }
+  const now = new Date();
+  const generatedAt = `Gerado em: ${now.toLocaleDateString('pt-BR')} ${now.toLocaleTimeString('pt-BR')}`;
+  const generatedAtWidth = doc.getTextWidth(generatedAt);
+  doc.text(generatedAt, pageWidth - margin - generatedAtWidth, currentY);
+  currentY += 6; // Space for next line
+
+  // Line 2: Período (left)
+  if (startDateFilter && endDateFilter) {
+    doc.text(`Período: ${formatDateToBR(startDateFilter)} - ${formatDateToBR(endDateFilter)}`, margin, currentY);
+  }
+  currentY += 8; // Space before table starts
+
+  return currentY; // Return the Y position for the autoTable to start
+};
+
+
 export default function FichaPessoalPage() {
   const [selectedEmpresa, setSelectedEmpresa] = useState<string>("");
   const [selectedColaborador, setSelectedColaborador] = useState<string>("");
@@ -811,10 +853,9 @@ export default function FichaPessoalPage() {
   }
 
   // Função para exportar exames para PDF no padrão dos modais da carteira
-  const exportExamesToPDF = (data: Exame[], fileName: string) => {
+  const exportExamesToPDF = (data: Exame[], reportName: string) => {
     const doc = new jsPDF(); // Default is portrait
-    doc.setFontSize(13);
-    doc.setFont('helvetica', 'bold');
+    const tableStartY = addHeaderToPDF(doc, reportName, selectedEmpresa, startDate, endDate);
 
     const tableData = data.map((e) => [
       e.nomeColaborador,
@@ -832,7 +873,7 @@ export default function FichaPessoalPage() {
     ];
 
     autoTable(doc, {
-      startY: 20, 
+      startY: tableStartY, 
       head: [tableHeaders],
       body: tableData,
       theme: 'grid',
@@ -869,7 +910,7 @@ export default function FichaPessoalPage() {
       }
     });
 
-    doc.save(`${fileName}.pdf`);
+    doc.save(`${reportName.replace(/ /g, "_")}.pdf`);
   };
 
   // Função para exportar exames para Excel (usando XLSX, igual ao padrão do carteira)
@@ -892,10 +933,9 @@ export default function FichaPessoalPage() {
   };
 
   // Função para exportar afastamentos para PDF (padrão carteira)
-  const exportAfastamentosToPDF = (data: Afastamento[], fileName: string) => {
+  const exportAfastamentosToPDF = (data: Afastamento[], reportName: string) => {
     const doc = new jsPDF(); // Default is portrait
-    doc.setFontSize(13);
-    doc.setFont('helvetica', 'bold');
+    const tableStartY = addHeaderToPDF(doc, reportName, selectedEmpresa, startDate, endDate);
 
     const tableData = data.map((a) => [
       a.nomeColaborador,
@@ -913,7 +953,7 @@ export default function FichaPessoalPage() {
     ];
 
     autoTable(doc, {
-      startY: 20, 
+      startY: tableStartY, 
       head: [tableHeaders],
       body: tableData,
       theme: 'grid',
@@ -950,7 +990,7 @@ export default function FichaPessoalPage() {
       }
     });
 
-    doc.save(`${fileName}.pdf`);
+    doc.save(`${reportName.replace(/ /g, "_")}.pdf`);
   };
 
   // Função para exportar afastamentos para Excel (padrão carteira)
@@ -972,10 +1012,9 @@ export default function FichaPessoalPage() {
   };
 
   // Função para exportar contratos para PDF (padrão carteira)
-  const exportContratosToPDF = (data: Contrato[], fileName: string) => {
+  const exportContratosToPDF = (data: Contrato[], reportName: string) => {
     const doc = new jsPDF(); // Default is portrait
-    doc.setFontSize(13);
-    doc.setFont('helvetica', 'bold');
+    const tableStartY = addHeaderToPDF(doc, reportName, selectedEmpresa, startDate, endDate);
 
     const tableData = data.map((c) => [
       c.colaborador,
@@ -991,7 +1030,7 @@ export default function FichaPessoalPage() {
     ];
 
     autoTable(doc, {
-      startY: 20, 
+      startY: tableStartY, 
       head: [tableHeaders],
       body: tableData,
       theme: 'grid',
@@ -1027,7 +1066,7 @@ export default function FichaPessoalPage() {
       }
     });
 
-    doc.save(`${fileName}.pdf`);
+    doc.save(`${reportName.replace(/ /g, "_")}.pdf`);
   };
 
   // Função para exportar contratos para Excel (padrão carteira)
@@ -1048,10 +1087,9 @@ export default function FichaPessoalPage() {
   };
 
   // Função para exportar férias para PDF (padrão carteira, colunas mais compactas)
-  const exportFeriasToPDF = (data: FormattedFerias[], fileName: string) => {
+  const exportFeriasToPDF = (data: FormattedFerias[], reportName: string) => {
     const doc = new jsPDF({ orientation: "landscape" }); 
-    doc.setFontSize(13);
-    doc.setFont('helvetica', 'bold');
+    const tableStartY = addHeaderToPDF(doc, reportName, selectedEmpresa, startDate, endDate);
 
     const tableData = data.map((f) => [
       f.nomeColaborador,
@@ -1077,7 +1115,7 @@ export default function FichaPessoalPage() {
     ];
 
     autoTable(doc, {
-      startY: 20,
+      startY: tableStartY,
       head: [tableHeaders],
       body: tableData,
       theme: 'grid',
@@ -1118,7 +1156,7 @@ export default function FichaPessoalPage() {
       }
     });
 
-    doc.save(`${fileName}.pdf`);
+    doc.save(`${reportName.replace(/ /g, "_")}.pdf`);
   };
 
   // Função para exportar férias para Excel (padrão carteira)
@@ -1144,10 +1182,9 @@ export default function FichaPessoalPage() {
   };
 
   // Função para exportar alterações salariais para PDF (padrão carteira)
-  const exportAlteracoesToPDF = (data: FormattedAlteracao[], fileName: string) => {
+  const exportAlteracoesToPDF = (data: FormattedAlteracao[], reportName: string) => {
     const doc = new jsPDF(); // Default is portrait
-    doc.setFontSize(13);
-    doc.setFont('helvetica', 'bold');
+    const tableStartY = addHeaderToPDF(doc, reportName, selectedEmpresa, startDate, endDate);
 
     const tableData = data.map((a) => [
       a.nomeColaborador,
@@ -1167,7 +1204,7 @@ export default function FichaPessoalPage() {
     ];
 
     autoTable(doc, {
-      startY: 20, 
+      startY: tableStartY, 
       head: [tableHeaders],
       body: tableData,
       theme: 'grid',
@@ -1205,7 +1242,7 @@ export default function FichaPessoalPage() {
       }
     });
 
-    doc.save(`${fileName}.pdf`);
+    doc.save(`${reportName.replace(/ /g, "_")}.pdf`);
   };
 
   // Função para exportar alterações salariais para Excel (padrão carteira)
@@ -1340,7 +1377,7 @@ export default function FichaPessoalPage() {
                         style={{ width: 36, height: 36 }}
                         onClick={() => {
                           // Exportar PDF (padrão carteira)
-                          exportExamesToPDF(examesData, "Historico_Exames");
+                          exportExamesToPDF(examesData, "Histórico de Exames");
                         }}
                       >
                         <img
@@ -1356,7 +1393,7 @@ export default function FichaPessoalPage() {
                         style={{ width: 36, height: 36 }}
                         onClick={() => {
                           // Exportar Excel (padrão carteira, editável e sem erro de extensão)
-                          exportExamesToExcel(examesData, "Historico_Exames");
+                          exportExamesToExcel(examesData, "Histórico de Exames");
                         }}
                       >
                         <img
@@ -1397,7 +1434,7 @@ export default function FichaPessoalPage() {
                         className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
                         style={{ width: 36, height: 36 }}
                         onClick={() => {
-                          exportAfastamentosToPDF(afastamentosData, "Historico_Afastamentos");
+                          exportAfastamentosToPDF(afastamentosData, "Histórico de Afastamentos");
                         }}
                       >
                         <img
@@ -1412,7 +1449,7 @@ export default function FichaPessoalPage() {
                         className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
                         style={{ width: 36, height: 36 }}
                         onClick={() => {
-                          exportAfastamentosToExcel(afastamentosData, "Historico_Afastamentos");
+                          exportAfastamentosToExcel(afastamentosData, "Histórico de Afastamentos");
                         }}
                       >
                         <img
@@ -1453,7 +1490,7 @@ export default function FichaPessoalPage() {
                         className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
                         style={{ width: 36, height: 36 }}
                         onClick={() => {
-                          exportContratosToPDF(contratosData, "Contratos");
+                          exportContratosToPDF(contratosData, "Detalhes de Contratos");
                         }}
                       >
                         <img
@@ -1468,7 +1505,7 @@ export default function FichaPessoalPage() {
                         className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
                         style={{ width: 36, height: 36 }}
                         onClick={() => {
-                          exportContratosToExcel(contratosData, "Contratos");
+                          exportContratosToExcel(contratosData, "Detalhes de Contratos");
                         }}
                       >
                         <img
@@ -1513,7 +1550,7 @@ export default function FichaPessoalPage() {
                         className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
                         style={{ width: 36, height: 36 }}
                         onClick={() => {
-                          exportFeriasToPDF(feriasData, "Ferias");
+                          exportFeriasToPDF(feriasData, "Detalhes de Férias");
                         }}
                       >
                         <img
@@ -1528,7 +1565,7 @@ export default function FichaPessoalPage() {
                         className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
                         style={{ width: 36, height: 36 }}
                         onClick={() => {
-                          exportFeriasToExcel(feriasData, "Ferias");
+                          exportFeriasToExcel(feriasData, "Detalhes de Férias");
                         }}
                       >
                         <img
@@ -1569,7 +1606,7 @@ export default function FichaPessoalPage() {
                         className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
                         style={{ width: 36, height: 36 }}
                         onClick={() => {
-                          exportAlteracoesToPDF(alteracoesData, "Alteracoes_Salariais");
+                          exportAlteracoesToPDF(alteracoesData, "Detalhes de Alterações Salariais");
                         }}
                       >
                         <img
@@ -1584,7 +1621,7 @@ export default function FichaPessoalPage() {
                         className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
                         style={{ width: 36, height: 36 }}
                         onClick={() => {
-                          exportAlteracoesToExcel(alteracoesData, "Alteracoes_Salariais");
+                          exportAlteracoesToExcel(alteracoesData, "Detalhes de Alterações Salariais");
                         }}
                       >
                         <img
