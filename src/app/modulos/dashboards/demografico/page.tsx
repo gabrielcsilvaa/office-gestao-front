@@ -52,7 +52,11 @@ export default function Demografico() {
   }
 
   const [dadosEmpresas, setDadosEmpresas] = useState<DadosLinha[]>([]);
+
   const [dadosCategoria, setDadosCategoria] = useState([]);
+
+  const [colaboradores, setColaboradores] = useState([]);
+
 
   useEffect(() => {
     const fetchDados = async () => {
@@ -88,6 +92,18 @@ export default function Demografico() {
 
         const resultado = await response.json();
         console.log("Dados recebidos:", resultado);
+
+        // Extração de colaboradores (nome e departamento)
+        const colaboradoresExtraidos = resultado.dados.flatMap((empresa: any) =>
+          empresa.funcionarios.map((func: any) => ({
+            nome: func.nome,
+            departamento: func.departamento || "Não informado",
+            faturamento: "-", // por enquanto estático, você pode mudar depois
+          }))
+        );
+
+        // Depois disso, você pode passá-los para um state se quiser
+        setColaboradores(colaboradoresExtraidos);
 
         // Contar colaboradores por categoria
         const categoriaContagem: { [key: string]: number } = {};
@@ -553,7 +569,7 @@ export default function Demografico() {
       {/* Parte inferior: tabela e gráfico de cargo */}
       <div className="flex flex-col lg:flex-row gap-4 mt-4">
         <div className="w-full lg:w-1/2 bg-white rounded shadow">
-          <TabelaColaboradores />
+          <TabelaColaboradores colaboradores={colaboradores} />
         </div>
         <div className="w-full lg:w-1/2 bg-white rounded shadow">
           <GraficoCargo dados={dadosCargo} />
