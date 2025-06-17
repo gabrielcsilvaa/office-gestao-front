@@ -979,14 +979,12 @@ export default function FichaPessoalPage() {
 
     const tableData = data.map((c) => [
       c.colaborador,
-      c.empresa,
       c.dataAdmissao,
       c.dataRescisao,
       c.salarioBase,
     ]);
     const tableHeaders = [
       "Nome do Funcionário",
-      "Empresa",
       "Data de Admissão",
       "Data de Rescisão",
       "Salário Base",
@@ -1014,11 +1012,10 @@ export default function FichaPessoalPage() {
         halign: 'center',
       },
       columnStyles: {
-        0: { cellWidth: 55, fontStyle: 'bold' }, // Nome do Funcionário
-        1: { cellWidth: 45, halign: 'left' },    // Empresa (text, so left align)
-        2: { cellWidth: 30, halign: 'right' },   // Data de Admissão
-        3: { cellWidth: 30, halign: 'right' },   // Data de Rescisão
-        4: { cellWidth: 40, halign: 'right' },   // Salário Base
+        0: { cellWidth: 70, fontStyle: 'bold' }, // Nome do Funcionário
+        1: { cellWidth: 40, halign: 'right' },   // Data de Admissão
+        2: { cellWidth: 40, halign: 'right' },   // Data de Rescisão
+        3: { cellWidth: 50, halign: 'right' },   // Salário Base
       },
       alternateRowStyles: {
         fillColor: [245, 245, 245],
@@ -1039,7 +1036,6 @@ export default function FichaPessoalPage() {
       const ws = XLSX.utils.json_to_sheet(
         data.map(c => ({
           "Nome do Funcionário": c.colaborador,
-          "Empresa": c.empresa,
           "Data de Admissão": c.dataAdmissao,
           "Data de Rescisão": c.dataRescisao,
           "Salário Base": c.salarioBase,
