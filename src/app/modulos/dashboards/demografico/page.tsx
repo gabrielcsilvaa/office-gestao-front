@@ -57,57 +57,42 @@ export default function Demografico() {
 
   const [colaboradores, setColaboradores] = useState([]);
 
-
   useEffect(() => {
     const fetchDados = async () => {
       try {
-        // --- 1. Definir as datas de início e fim dinamicamente ---
         const today = new Date();
         const currentYear = today.getFullYear();
-        // start_date será 01 de janeiro do ano atual
-        const startDate = new Date(currentYear, 0, 1); // Mês 0 é Janeiro
-        // end_date será o dia atual
+        const startDate = new Date(currentYear, 0, 1);
         const endDate = today;
 
-        // Formatar as datas para o formato "YYYY-MM-DD" para a API
         const formatApiDate = (date: Date) => date.toISOString().split("T")[0];
-
         const apiStartDate = formatApiDate(startDate);
         const apiEndDate = formatApiDate(endDate);
 
         const response = await fetch("/api/dashboards-demografico", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            start_date: apiStartDate, // Usar a data de início dinâmica
-            end_date: apiEndDate, // Usar a data de fim dinâmica (hoje)
+            start_date: apiStartDate,
+            end_date: apiEndDate,
           }),
         });
 
-        if (!response.ok) {
+        if (!response.ok)
           throw new Error("Erro na requisição: " + response.statusText);
-        }
 
         const resultado = await response.json();
-        console.log("Dados recebidos:", resultado);
-
-        // Extração de colaboradores (nome e departamento)
         const colaboradoresExtraidos = resultado.dados.flatMap((empresa: any) =>
           empresa.funcionarios.map((func: any) => ({
             nome: func.nome,
             departamento: func.departamento || "Não informado",
-            faturamento: "-", // por enquanto estático, você pode mudar depois
+            faturamento: "-",
           }))
         );
 
-        // Depois disso, você pode passá-los para um state se quiser
         setColaboradores(colaboradoresExtraidos);
 
-        // Contar colaboradores por categoria
         const categoriaContagem: { [key: string]: number } = {};
-
         resultado.dados.forEach((empresa: any) => {
           empresa.funcionarios.forEach((funcionario: any) => {
             const categoria = funcionario.categoria || "Não Informado";
@@ -116,43 +101,31 @@ export default function Demografico() {
           });
         });
 
-        // Transformar em array para o gráfico
         const dadosCategoria = Object.entries(categoriaContagem).map(
           ([categoria, total]) => ({
             name: categoria,
             colaboradores: total,
           })
         );
-
         setDadosCategoria(dadosCategoria);
 
         const empresas = resultado.dados || [];
-
-        let ativos = 0;
-        let contratacoes = 0;
-        let demissoes = 0;
-        let afastamentos = 0;
+        let ativos = 0,
+          contratacoes = 0,
+          demissoes = 0,
+          afastamentos = 0;
 
         empresas.forEach((empresa: any) => {
           empresa.funcionarios.forEach((func: any) => {
             const admissao = new Date(func.admissao);
             const demissao = func.demissao ? new Date(func.demissao) : null;
 
-            // Ativos
             if (!demissao) ativos++;
-
-            // Contratações no período
-            if (admissao >= startDate && admissao <= endDate) {
-              contratacoes++;
-            }
-
-            // Demissões no período
-            if (demissao && demissao >= startDate && demissao <= endDate) {
+            if (admissao >= startDate && admissao <= endDate) contratacoes++;
+            if (demissao && demissao >= startDate && demissao <= endDate)
               demissoes++;
-            }
 
-            // Afastamentos no período
-            if (func.afastamentos && Array.isArray(func.afastamentos)) {
+            if (Array.isArray(func.afastamentos)) {
               func.afastamentos.forEach((afast: any) => {
                 const ini = new Date(afast.data_inicio);
                 const fim = afast.data_fim ? new Date(afast.data_fim) : null;
@@ -168,7 +141,6 @@ export default function Demografico() {
         });
 
         const turnover = (demissoes / (ativos + demissoes)) * 100;
-
         setCardsData({
           ativos,
           contratacoes,
@@ -177,166 +149,41 @@ export default function Demografico() {
           turnover: `${turnover.toFixed(1)}%`,
         });
 
-        interface Funcionario {
-          id_empregado: number;
-          nome: string;
-          data_nascimento: string;
-          cpf: string;
-          sexo: "M" | "F";
-          escolaridade: string;
-          departamento: string;
-          admissao: string;
-          demissao: string | null;
-          salario: string;
-          venc_ferias: string | null;
-          cargo: string;
-          categoria: number;
-          afastamentos: { data_inicio: string; data_fim: string | null }[];
-        }
-
-        const funcionarios: Funcionario[] =
-          resultado.dados?.flatMap(
-            (empresa: { funcionarios?: Funcionario[] }) =>
-              empresa.funcionarios || []
-          ) || [];
-
-        const monthlyDataMap = new Map<
-          string,
-          { Ativos: number; Contratações: number; Demissões: number }
-        >();
-
-        const monthsInOrder: string[] = [];
-        // Loop do primeiro dia do ano até o mês atual
-        for (
-          let d = new Date(startDate);
-          d <= endDate;
-          d.setMonth(d.getMonth() + 1)
-        ) {
-          // Garante que não criamos meses futuros além do mês atual
-          if (
-            d.getMonth() > today.getMonth() &&
-            d.getFullYear() === today.getFullYear()
-          ) {
-            break;
-          }
-          const monthKey = `${d.toLocaleString("pt-BR", { month: "short" }).replace(".", "")}/${d.getFullYear().toString().slice(-2)}`;
-          monthlyDataMap.set(monthKey, {
-            Ativos: 0,
-            Contratações: 0,
-            Demissões: 0,
-          });
-          monthsInOrder.push(monthKey);
-        }
-
-        // Processa as contratações e demissões (sem alterações na lógica interna, pois já usa as datas do funcionário)
-        for (const funcionario of funcionarios) {
-          if (funcionario.admissao) {
-            const admissaoDate = new Date(funcionario.admissao);
-            // Certifique-se que a data está dentro do período de interesse (do ano atual até hoje)
-            if (admissaoDate >= startDate && admissaoDate <= endDate) {
-              const monthKey = `${admissaoDate.toLocaleString("pt-BR", { month: "short" }).replace(".", "")}/${admissaoDate.getFullYear().toString().slice(-2)}`;
-              const data = monthlyDataMap.get(monthKey);
-              if (data) {
-                data.Contratações++;
-              }
-            }
-          }
-          if (funcionario.demissao) {
-            const demissaoDate = new Date(funcionario.demissao);
-            // Certifique-se que a data está dentro do período de interesse (do ano atual até hoje)
-            if (demissaoDate >= startDate && demissaoDate <= endDate) {
-              const monthKey = `${demissaoDate.toLocaleString("pt-BR", { month: "short" }).replace(".", "")}/${demissaoDate.getFullYear().toString().slice(-2)}`;
-              const data = monthlyDataMap.get(monthKey);
-              if (data) {
-                data.Demissões++;
-              }
-            }
-          }
-        }
-
-        // Calcula Ativos mensalmente
-        for (const monthKey of monthsInOrder) {
-          const currentMonthDate = new Date(
-            parseInt(`20${monthKey.split("/")[1]}`),
-            new Date(
-              Date.parse(monthKey.split("/")[0] + " 1, 2000")
-            ).getMonth(),
-            1
-          );
-          const nextMonthDate = new Date(
-            currentMonthDate.getFullYear(),
-            currentMonthDate.getMonth() + 1,
-            1
-          ); // Start of next month
-
-          let activeForThisMonth = 0;
-          for (const funcionario of funcionarios) {
-            const admissaoDate = new Date(funcionario.admissao);
-            const demissaoDate = funcionario.demissao
-              ? new Date(funcionario.demissao)
-              : null;
-
-            // Um funcionário está ativo se ele foi admitido ATÉ o final do mês atual E
-            // não foi demitido, OU foi demitido APÓS o final do mês atual
-            const hiredByEndOfMonth = admissaoDate < nextMonthDate;
-            const notTerminatedByEndOfMonth =
-              !demissaoDate || demissaoDate >= nextMonthDate;
-
-            if (hiredByEndOfMonth && notTerminatedByEndOfMonth) {
-              activeForThisMonth++;
-            }
-          }
-          const data = monthlyDataMap.get(monthKey);
-          if (data) {
-            data.Ativos = activeForThisMonth;
-          }
-        }
-
-        const dadosParaGraficoLinha: DadosLinha[] = monthsInOrder.map(
-          (monthKey) => ({
-            month: monthKey,
-            Ativos: monthlyDataMap.get(monthKey)?.Ativos || 0,
-            Contratações: monthlyDataMap.get(monthKey)?.Contratações || 0,
-            Demissões: monthlyDataMap.get(monthKey)?.Demissões || 0,
-          })
+        // Dados detalhados para gráficos
+        const funcionarios = resultado.dados.flatMap(
+          (empresa: any) => empresa.funcionarios
         );
-
-        setDadosEmpresas(dadosParaGraficoLinha);
 
         // Gênero
         const total = funcionarios.length;
         const totalMasculino = funcionarios.filter(
-          (f) => f.sexo === "M"
+          (f: any) => f.sexo === "M"
         ).length;
-        const totalFeminino = funcionarios.filter((f) => f.sexo === "F").length;
+        const totalFeminino = funcionarios.filter(
+          (f: any) => f.sexo === "F"
+        ).length;
 
-        const percMasculino = total ? (totalMasculino / total) * 100 : 0;
-        const percFeminino = total ? (totalFeminino / total) * 100 : 0;
-
-        setPercentualMasculino(percMasculino);
-        setPercentualFeminino(percFeminino);
+        setPercentualMasculino((totalMasculino / total) * 100 || 0);
+        setPercentualFeminino((totalFeminino / total) * 100 || 0);
 
         // Escolaridade
         const escolaridadeMap = new Map<string, number>();
-        for (const funcionario of funcionarios) {
-          const esc = funcionario.escolaridade || "Não informado";
+        funcionarios.forEach((f: any) => {
+          const esc = f.escolaridade || "Não informado";
           escolaridadeMap.set(esc, (escolaridadeMap.get(esc) || 0) + 1);
-        }
+        });
 
         const dadosEscolaridade = Array.from(escolaridadeMap.entries()).map(
-          ([escolaridade, total]) => ({
-            escolaridade,
-            total,
-          })
+          ([escolaridade, total]) => ({ escolaridade, total })
         );
         setDadosDemograficos(dadosEscolaridade);
 
         // Cargo
         const cargoMap = new Map<string, number>();
-        for (const funcionario of funcionarios) {
-          const cargo = funcionario.cargo || "Não informado";
+        funcionarios.forEach((f: any) => {
+          const cargo = f.cargo || "Não informado";
           cargoMap.set(cargo, (cargoMap.get(cargo) || 0) + 1);
-        }
+        });
 
         const dadosCargo = Array.from(cargoMap.entries()).map(
           ([cargo, total]) => ({
@@ -344,8 +191,8 @@ export default function Demografico() {
             total,
           })
         );
-
         setDadosCargo(dadosCargo);
+
         // Faixa Etária
         const getFaixaEtaria = (idade: number) => {
           if (idade <= 25) return "00 a 25";
@@ -367,19 +214,107 @@ export default function Demografico() {
         };
 
         const faixaEtariaMap = new Map<string, number>();
-        for (const funcionario of funcionarios) {
-          const dataNascimento = funcionario.data_nascimento;
-          if (dataNascimento) {
-            const idade = calcularIdade(dataNascimento);
+        funcionarios.forEach((f: any) => {
+          if (f.data_nascimento) {
+            const idade = calcularIdade(f.data_nascimento);
             const faixa = getFaixaEtaria(idade);
             faixaEtariaMap.set(faixa, (faixaEtariaMap.get(faixa) || 0) + 1);
           }
-        }
+        });
 
         const dadosFaixa = Array.from(faixaEtariaMap.entries()).map(
           ([name, colaboradores]) => ({ name, colaboradores })
         );
         setDadosFaixaEtaria(dadosFaixa);
+
+        // Gráfico linha mensal (Ativos, Contratações e Demissões)
+        const monthlyDataMap = new Map<
+          string,
+          { Ativos: number; Contratações: number; Demissões: number }
+        >();
+
+        const monthsInOrder: string[] = [];
+        for (
+          let d = new Date(startDate);
+          d <= endDate;
+          d.setMonth(d.getMonth() + 1)
+        ) {
+          if (
+            d.getMonth() > today.getMonth() &&
+            d.getFullYear() === today.getFullYear()
+          )
+            break;
+
+          const monthKey = `${d.toLocaleString("pt-BR", { month: "short" }).replace(".", "")}/${d.getFullYear().toString().slice(-2)}`;
+          monthlyDataMap.set(monthKey, {
+            Ativos: 0,
+            Contratações: 0,
+            Demissões: 0,
+          });
+          monthsInOrder.push(monthKey);
+        }
+
+        for (const funcionario of funcionarios) {
+          if (funcionario.admissao) {
+            const admissaoDate = new Date(funcionario.admissao);
+            if (admissaoDate >= startDate && admissaoDate <= endDate) {
+              const monthKey = `${admissaoDate.toLocaleString("pt-BR", { month: "short" }).replace(".", "")}/${admissaoDate.getFullYear().toString().slice(-2)}`;
+              const data = monthlyDataMap.get(monthKey);
+              if (data) data.Contratações++;
+            }
+          }
+
+          if (funcionario.demissao) {
+            const demissaoDate = new Date(funcionario.demissao);
+            if (demissaoDate >= startDate && demissaoDate <= endDate) {
+              const monthKey = `${demissaoDate.toLocaleString("pt-BR", { month: "short" }).replace(".", "")}/${demissaoDate.getFullYear().toString().slice(-2)}`;
+              const data = monthlyDataMap.get(monthKey);
+              if (data) data.Demissões++;
+            }
+          }
+        }
+
+        for (const monthKey of monthsInOrder) {
+          const [mesAbreviado, anoAbreviado] = monthKey.split("/");
+          const anoCompleto = parseInt(`20${anoAbreviado}`);
+          const mesIndex = new Date(`${mesAbreviado} 1, 2000`).getMonth();
+
+          const endOfMonthDate = new Date(
+            anoCompleto,
+            mesIndex + 1,
+            0,
+            23,
+            59,
+            59,
+            999
+          );
+          let activeForThisMonth = 0;
+
+          for (const funcionario of funcionarios) {
+            const admissaoDate = new Date(funcionario.admissao);
+            const demissaoDate = funcionario.demissao
+              ? new Date(funcionario.demissao)
+              : null;
+
+            const wasAdmitted = admissaoDate <= endOfMonthDate;
+            const notTerminated =
+              !demissaoDate || demissaoDate > endOfMonthDate;
+
+            if (wasAdmitted && notTerminated) activeForThisMonth++;
+          }
+
+          const data = monthlyDataMap.get(monthKey);
+          if (data) data.Ativos = activeForThisMonth;
+        }
+
+        const dadosParaGraficoLinha = monthsInOrder.map((monthKey) => ({
+          month: monthKey,
+          Ativos: monthlyDataMap.get(monthKey)?.Ativos || 0,
+          Contratações: monthlyDataMap.get(monthKey)?.Contratações || 0,
+          Demissões: monthlyDataMap.get(monthKey)?.Demissões || 0,
+        }));
+
+        setDadosEmpresas(dadosParaGraficoLinha);
       } catch (error) {
         console.error("Erro ao buscar dados:", error);
       }
