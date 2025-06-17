@@ -812,7 +812,7 @@ export default function FichaPessoalPage() {
 
   // Função para exportar exames para PDF no padrão dos modais da carteira
   const exportExamesToPDF = (data: Exame[], fileName: string) => {
-    const doc = new jsPDF();
+    const doc = new jsPDF(); // Default is portrait
     doc.setFontSize(13);
     doc.setFont('helvetica', 'bold');
 
@@ -832,7 +832,7 @@ export default function FichaPessoalPage() {
     ];
 
     autoTable(doc, {
-      startY: 20, // <-- aqui
+      startY: 20, 
       head: [tableHeaders],
       body: tableData,
       theme: 'grid',
@@ -853,11 +853,11 @@ export default function FichaPessoalPage() {
         halign: 'center',
       },
       columnStyles: {
-        0: { cellWidth: 50, fontStyle: 'bold' },
-        1: { cellWidth: 30, halign: 'right' },
-        2: { cellWidth: 30, halign: 'right' },
-        3: { cellWidth: 30, halign: 'right' },
-        4: { cellWidth: 30, halign: 'right' },
+        0: { cellWidth: 60, fontStyle: 'bold' }, // Nome do Funcionário
+        1: { cellWidth: 35, halign: 'left' },    // Tipo (text, so left align)
+        2: { cellWidth: 35, halign: 'right' },   // Data do Exame
+        3: { cellWidth: 35, halign: 'right' },   // Data de Vencimento
+        4: { cellWidth: 35, halign: 'left' },    // Resultado (text, so left align)
       },
       alternateRowStyles: {
         fillColor: [245, 245, 245],
@@ -893,7 +893,7 @@ export default function FichaPessoalPage() {
 
   // Função para exportar afastamentos para PDF (padrão carteira)
   const exportAfastamentosToPDF = (data: Afastamento[], fileName: string) => {
-    const doc = new jsPDF();
+    const doc = new jsPDF(); // Default is portrait
     doc.setFontSize(13);
     doc.setFont('helvetica', 'bold');
 
@@ -913,7 +913,7 @@ export default function FichaPessoalPage() {
     ];
 
     autoTable(doc, {
-      startY: 20, // <-- aqui
+      startY: 20, 
       head: [tableHeaders],
       body: tableData,
       theme: 'grid',
@@ -934,11 +934,11 @@ export default function FichaPessoalPage() {
         halign: 'center',
       },
       columnStyles: {
-        0: { cellWidth: 50, fontStyle: 'bold' },
-        1: { cellWidth: 30, halign: 'right' },
-        2: { cellWidth: 30, halign: 'right' },
-        3: { cellWidth: 30, halign: 'right' },
-        4: { cellWidth: 30, halign: 'right' },
+        0: { cellWidth: 60, fontStyle: 'bold' }, // Nome do Funcionário
+        1: { cellWidth: 35, halign: 'left' },    // Tipo (text, so left align)
+        2: { cellWidth: 35, halign: 'right' },   // Data de Início
+        3: { cellWidth: 35, halign: 'right' },   // Data de Término
+        4: { cellWidth: 35, halign: 'right' },   // Dias Afastados
       },
       alternateRowStyles: {
         fillColor: [245, 245, 245],
@@ -973,7 +973,7 @@ export default function FichaPessoalPage() {
 
   // Função para exportar contratos para PDF (padrão carteira)
   const exportContratosToPDF = (data: Contrato[], fileName: string) => {
-    const doc = new jsPDF();
+    const doc = new jsPDF(); // Default is portrait
     doc.setFontSize(13);
     doc.setFont('helvetica', 'bold');
 
@@ -993,7 +993,7 @@ export default function FichaPessoalPage() {
     ];
 
     autoTable(doc, {
-      startY: 20, // <-- aqui
+      startY: 20, 
       head: [tableHeaders],
       body: tableData,
       theme: 'grid',
@@ -1014,11 +1014,11 @@ export default function FichaPessoalPage() {
         halign: 'center',
       },
       columnStyles: {
-        0: { cellWidth: 50, fontStyle: 'bold' },
-        1: { cellWidth: 40, halign: 'right' },
-        2: { cellWidth: 30, halign: 'right' },
-        3: { cellWidth: 30, halign: 'right' },
-        4: { cellWidth: 30, halign: 'right' },
+        0: { cellWidth: 55, fontStyle: 'bold' }, // Nome do Funcionário
+        1: { cellWidth: 45, halign: 'left' },    // Empresa (text, so left align)
+        2: { cellWidth: 30, halign: 'right' },   // Data de Admissão
+        3: { cellWidth: 30, halign: 'right' },   // Data de Rescisão
+        4: { cellWidth: 40, halign: 'right' },   // Salário Base
       },
       alternateRowStyles: {
         fillColor: [245, 245, 245],
@@ -1053,7 +1053,7 @@ export default function FichaPessoalPage() {
 
   // Função para exportar férias para PDF (padrão carteira, colunas mais compactas)
   const exportFeriasToPDF = (data: FormattedFerias[], fileName: string) => {
-    const doc = new jsPDF({ orientation: "landscape" }); // Use paisagem para mais largura
+    const doc = new jsPDF({ orientation: "landscape" }); 
     doc.setFontSize(13);
     doc.setFont('helvetica', 'bold');
 
@@ -1102,15 +1102,15 @@ export default function FichaPessoalPage() {
         halign: 'center',
       },
       columnStyles: {
-        0: { cellWidth: 40, fontStyle: 'bold' }, // Nome do Funcionário
-        1: { cellWidth: 24, halign: 'right' },   // Início Período Aquisitivo
-        2: { cellWidth: 24, halign: 'right' },   // Fim Período Aquisitivo
-        3: { cellWidth: 22, halign: 'right' },   // Início Gozo
-        4: { cellWidth: 22, halign: 'right' },   // Fim Gozo
-        5: { cellWidth: 24, halign: 'right' },   // Limite para Gozo
-        6: { cellWidth: 18, halign: 'right' },   // Dias de Direito
-        7: { cellWidth: 18, halign: 'right' },   // Dias Gozados
-        8: { cellWidth: 18, halign: 'right' },   // Dias de Saldo
+        0: { cellWidth: 50, fontStyle: 'bold' }, // Nome do Funcionário
+        1: { cellWidth: 32, halign: 'right' },   // Início Período Aquisitivo
+        2: { cellWidth: 32, halign: 'right' },   // Fim Período Aquisitivo
+        3: { cellWidth: 30, halign: 'right' },   // Início Gozo
+        4: { cellWidth: 30, halign: 'right' },   // Fim Gozo
+        5: { cellWidth: 32, halign: 'right' },   // Limite para Gozo
+        6: { cellWidth: 25, halign: 'right' },   // Dias de Direito
+        7: { cellWidth: 25, halign: 'right' },   // Dias Gozados
+        8: { cellWidth: 25, halign: 'right' },   // Dias de Saldo
       },
       alternateRowStyles: {
         fillColor: [245, 245, 245],
@@ -1149,7 +1149,7 @@ export default function FichaPessoalPage() {
 
   // Função para exportar alterações salariais para PDF (padrão carteira)
   const exportAlteracoesToPDF = (data: FormattedAlteracao[], fileName: string) => {
-    const doc = new jsPDF();
+    const doc = new jsPDF(); // Default is portrait
     doc.setFontSize(13);
     doc.setFont('helvetica', 'bold');
 
@@ -1171,7 +1171,7 @@ export default function FichaPessoalPage() {
     ];
 
     autoTable(doc, {
-      startY: 20, // <-- aqui
+      startY: 20, 
       head: [tableHeaders],
       body: tableData,
       theme: 'grid',
@@ -1192,12 +1192,12 @@ export default function FichaPessoalPage() {
         halign: 'center',
       },
       columnStyles: {
-        0: { cellWidth: 50, fontStyle: 'bold' },
-        1: { cellWidth: 30, halign: 'right' },
-        2: { cellWidth: 30, halign: 'right' },
-        3: { cellWidth: 30, halign: 'right' },
-        4: { cellWidth: 30, halign: 'right' },
-        5: { cellWidth: 20, halign: 'right' },
+        0: { cellWidth: 52, fontStyle: 'bold' }, // Nome do Funcionário
+        1: { cellWidth: 32, halign: 'right' },   // Competência
+        2: { cellWidth: 32, halign: 'right' },   // Salário Anterior
+        3: { cellWidth: 32, halign: 'right' },   // Salário Novo
+        4: { cellWidth: 32, halign: 'left' },    // Motivo (text, so left align)
+        5: { cellWidth: 24, halign: 'right' },   // Variação (%)
       },
       alternateRowStyles: {
         fillColor: [245, 245, 245],
