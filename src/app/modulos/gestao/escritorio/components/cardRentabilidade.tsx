@@ -1,5 +1,3 @@
-"use client";
-
 import {
   LineChart,
   Line,
@@ -8,6 +6,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   CartesianGrid,
+  ReferenceLine, 
 } from "recharts";
 import { TooltipProps } from "recharts";
 
@@ -63,6 +62,9 @@ export default function RentabilidadeCard({ data }: RentabilidadeProps) {
           <XAxis dataKey="name" />
           <YAxis tickFormatter={(value) => value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} width={120} />
           <Tooltip content={<CustomTooltip />} />
+          
+          <ReferenceLine y={0} stroke="red" strokeWidth={2} strokeDasharray="3 3" />
+          
           <Line
             type="monotone"
             dataKey="value"
