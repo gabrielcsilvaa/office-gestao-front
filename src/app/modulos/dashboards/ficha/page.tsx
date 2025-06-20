@@ -1,6 +1,6 @@
 "use client";
 import { Cairo } from "next/font/google";
-import { useMemo, useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import SecaoFiltros from "./components/SecaoFiltros";
 import KpiCardsGrid from "./components/KpiCardsGrid";
 import EvolucaoCard from "./components/EvolucaoCard";
@@ -10,15 +10,16 @@ import AfastamentosTable from "./components/AfastamentosTable";
 import ContratosTable from "./components/ContratosTable";
 import FeriasDetalheCard from "./components/FeriasDetalheCard";
 import AlteracoesSalariaisDetalheCard from "./components/AlteracoesSalariaisDetalheCard";
-import Modal from "../organizacional/components/Modal"; // Ajuste o path se Modal foi movido para /components
+import Modal from "../organizacional/components/Modal";
 import EvolucaoChart from "./components/EvolucaoChart";
 import ValorPorGrupoChart from "./components/ValorPorGrupoChart";
 import Calendar from "@/components/calendar";
 import Loading from "@/app/loading";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
-import { Funcionario, EmpresaFicha, FeriasPorEmpresa, FormattedFerias, AlteracoesPorEmpresa, FormattedAlteracao, Afastamento, Exame, Contrato, FeriasEntry, AlteracaoEntry, AfastamentoEntryRaw, ExameEntryRaw } from "@/types/fichaPessoal.types";
-import { formatDate, formatDateToBR, formatCurrencyValue, capitalizeWords, calculateAge, parseCurrency, diffDays } from "@/utils/formatters";
+import { EmpresaFicha, FeriasPorEmpresa, AlteracoesPorEmpresa, FormattedFerias, FormattedAlteracao, Afastamento, Exame, Contrato } from "@/types/fichaPessoal.types";
+import { formatDate, formatDateToBR, parseCurrency } from "@/utils/formatters";
+import { useFichaPessoalData } from "@/hooks/useFichaPessoalData";
 
 // Importe os novos componentes de tabela para o modal
 import FeriasModalTable from "./components/FeriasModalTable";
@@ -131,38 +132,43 @@ const addHeaderToPDF = (
 
 
 export default function FichaPessoalPage() {
+  // 🎛️ Estados de filtros e controle da UI
   const [selectedEmpresa, setSelectedEmpresa] = useState<string>("");
   const [selectedColaborador, setSelectedColaborador] = useState<string>("");
   const [modalContent, setModalContent] = useState<React.ReactNode | null>(null);
   const handleCloseModal = () => setModalContent(null);
 
-    //Estados de data
+  // 📅 Estados de data
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
+  
+  // 📊 Estados de dados brutos da API
   const [dados, setDados] = useState<EmpresaFicha[] | null>(null);
-  const [loading, setLoading] = useState(true); // Inicializar como true
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [empresaOptions, setEmpresaOptions] = useState<string[]>([]);
-  const [empresaOptionsData, setEmpresaOptionsData] = useState<Array<{id_empresa: number; nome_empresa: string}>>([]); // Adicionar estado para dados completos
-  const [colaboradorOptions, setColaboradorOptions] = useState<Funcionario[]>([]); 
   const [feriasRaw, setFeriasRaw] = useState<FeriasPorEmpresa[]>([]);
-  const [feriasData, setFeriasData] = useState<FormattedFerias[]>([]);
   const [alteracoesRaw, setAlteracoesRaw] = useState<AlteracoesPorEmpresa[]>([]);
-  const [alteracoesData, setAlteracoesData] = useState<FormattedAlteracao[]>([]);
-  const [afastamentosData, setAfastamentosData] = useState<Afastamento[]>([]);
-  const [examesData, setExamesData] = useState<Exame[]>([]);
-  const [contratosData, setContratosData] = useState<Contrato[]>([]);
 
-  const initialKpiCardData = [
-    { title: "Data de Admissão", value: "N/A", tooltipText: "Data de início do colaborador na empresa." },
-    { title: "Salário Base", value: "N/A", tooltipText: "Salário bruto mensal do colaborador." },
-    { title: "Cargo", value: "N/A", tooltipText: "Cargo atual do colaborador." },
-    { title: "Escolaridade", value: "N/A", tooltipText: "Nível de escolaridade do colaborador." },
-    { title: "Idade", value: "N/A", tooltipText: "Idade atual do colaborador." },
-  ];
-  const [currentKpiCardData, setCurrentKpiCardData] = useState(initialKpiCardData);
+  // 🧠 Hook customizado - Cérebro de dados processados
+  const {
+    kpiCardData,
+    contratosData,
+    examesData,
+    afastamentosData,
+    feriasData,
+    alteracoesData,
+    colaboradorOptions,
+    empresaOptionsData,
+  } = useFichaPessoalData({
+    dados,
+    feriasRaw,
+    alteracoesRaw,
+    selectedEmpresa,
+    selectedColaborador,
+  });
 
-
+  // 📅 Handlers para mudanças de data
   const handleStartDateChange = (date: string | null) => {
     setStartDate(date);
   };
@@ -171,13 +177,13 @@ export default function FichaPessoalPage() {
     setEndDate(date);
   };
 
+  // 🌐 useEffect para buscar dados da API
   useEffect(() => {
     const fetchClientData = async () => {
       try {
         setLoading(true);
         setError(null);
         setEmpresaOptions([]);
-        setColaboradorOptions([]);
         setSelectedColaborador("");
 
         if (!startDate || !endDate) {
@@ -208,9 +214,9 @@ export default function FichaPessoalPage() {
           ferias?: FeriasPorEmpresa[];
         };
 
-        console.log("Dados recebidos:", result);  // exibe { dados, alteracao_salario, ferias }
+        console.log("Dados recebidos:", result);
 
-        // rawDados tipado como EmpresaFicha[]
+        // Dados brutos da API
         const rawDados: EmpresaFicha[] = Array.isArray(result.dados) ? result.dados : [];
         setDados(rawDados);
 
@@ -229,30 +235,23 @@ export default function FichaPessoalPage() {
           }
         }
 
+        // Lista de empresas para o select
         if (rawDados.length > 0) {
-          // Manter lista de nomes para compatibilidade
           const uniqueEmpresas: string[] = Array.from(
             new Set(rawDados.map((item) => item.nome_empresa.trim()))
           ).sort();
           setEmpresaOptions(uniqueEmpresas);
-
-          // Adicionar dados completos das empresas
-          const empresasCompletas = rawDados.map(item => ({
-            id_empresa: item.id_empresa,
-            nome_empresa: item.nome_empresa.trim()
-          })).sort((a, b) => a.nome_empresa.localeCompare(b.nome_empresa));
-          setEmpresaOptionsData(empresasCompletas);
         } else {
           setEmpresaOptions([]);
-          setEmpresaOptionsData([]);
         }
 
+        // Dados de férias e alterações salariais
         setFeriasRaw(Array.isArray(result.ferias) ? result.ferias : []);
         setAlteracoesRaw(Array.isArray(result.alteracao_salario) ? result.alteracao_salario : []);
       } catch (err) {
         console.error("Erro ao buscar dados:", err);
         setError(err instanceof Error ? err.message : "Erro desconhecido");
-        setDados(null); // Clear data on error
+        setDados(null);
         setEmpresaOptions([]);
       } finally {
         setLoading(false);
@@ -261,55 +260,13 @@ export default function FichaPessoalPage() {
 
     fetchClientData();
   }, [startDate, endDate]); 
-
+  // 🔄 Reset colaborador quando empresa muda
   useEffect(() => {
-    if (selectedEmpresa && dados) {
-      const empresaSelecionada = dados.find(
-        (emp) => emp.nome_empresa.trim() === selectedEmpresa // Trim emp.nome_empresa here
-      );
-      if (empresaSelecionada && empresaSelecionada.funcionarios) {
-        const sortedFuncionarios = [...empresaSelecionada.funcionarios].sort((a, b) =>
-          a.nome.localeCompare(b.nome)
-        );
-        setColaboradorOptions(sortedFuncionarios);
-      } else {
-        setColaboradorOptions([]);
-      }
-    } else {
-      setColaboradorOptions([]);
-    }
     setSelectedColaborador("");
-  }, [selectedEmpresa, dados]);
-  
-  useEffect(() => {
-    if (selectedColaborador && colaboradorOptions.length > 0) {
-      const funcionarioSelecionado = colaboradorOptions.find(
-        (func) => func.nome === selectedColaborador
-      );
+  }, [selectedEmpresa]);
 
-      if (funcionarioSelecionado) {
-        setCurrentKpiCardData([
-          { title: "Data de Admissão", value: formatDateToBR(funcionarioSelecionado.admissao), tooltipText: "Data de início do colaborador na empresa." },
-          { title: "Salário Base", value: formatCurrencyValue(funcionarioSelecionado.salario), tooltipText: "Salário bruto mensal do colaborador." },
-          { title: "Cargo", value: capitalizeWords(funcionarioSelecionado.cargo), tooltipText: "Cargo atual do colaborador." },
-          { title: "Escolaridade", value: capitalizeWords(funcionarioSelecionado.escolaridade), tooltipText: "Nível de escolaridade do colaborador." },
-          { title: "Idade", value: calculateAge(funcionarioSelecionado.data_nascimento), tooltipText: "Idade atual do colaborador." },
-        ]);
-      } else {
-        setCurrentKpiCardData(initialKpiCardData);
-      }
-    } else {
-      setCurrentKpiCardData(initialKpiCardData);
-    }
-  }, [selectedColaborador, colaboradorOptions]);
-        
-  const kpiCardData = [
-    { title: "Data de Admissão", value: "01/01/2020", tooltipText: "Data de início do colaborador na empresa." },
-    { title: "Salário Base", value: "R$ 5.000,00", tooltipText: "Salário bruto mensal do colaborador." },
-    { title: "Cargo", value: "Desenvolvedor", tooltipText: "Cargo atual do colaborador." },
-    { title: "Escolaridade", value: "Superior Completo", tooltipText: "Nível de escolaridade do colaborador." },
-    { title: "Idade", value: "30 anos", tooltipText: "Idade atual do colaborador." },
-  ];
+  // 📊 Título da evolução e dados processados para gráficos
+  const evolucaoCardTitle = "Evolução de Custo Total";
 
   const processedEvolucaoChartDataFicha = useMemo(() => {
     return rawChartDataEntriesFicha.map(entry => {
@@ -317,333 +274,15 @@ export default function FichaPessoalPage() {
       return { month, value: parseCurrency(valueString) };
     });
   }, []);
-  const evolucaoCardTitle = "Evolução de Custo Total";
 
+  // 📋 Dados de tabela processados (removendo lógica de padding)
   const processedTableData = useMemo(() => {
-    // Remover toda a lógica de padding - usar apenas dados reais da API
     return {
       contratos: contratosData,
     };
   }, [contratosData]);
 
-  useEffect(() => {
-    if (selectedEmpresa && dados) {
-      const empresaSelecionada = dados.find(
-        (emp) => emp.nome_empresa.trim() === selectedEmpresa
-      );
-
-      if (empresaSelecionada && empresaSelecionada.funcionarios) {
-        const todosContratosDaEmpresa: Contrato[] = [];
-        
-        // Filtrar funcionários se um colaborador específico estiver selecionado
-        const funcionariosFiltrados = selectedColaborador 
-          ? empresaSelecionada.funcionarios.filter(func => func.nome === selectedColaborador)
-          : empresaSelecionada.funcionarios;
-
-        funcionariosFiltrados.forEach((funcionario, index) => {
-          const contrato: Contrato = {
-            id: `${funcionario.id_empregado}`,
-            empresa: empresaSelecionada.nome_empresa,
-            colaborador: funcionario.nome,
-            dataAdmissao: formatDateToBR(funcionario.admissao),
-            dataRescisao: funcionario.demissao ? formatDateToBR(funcionario.demissao) : "",
-            salarioBase: formatCurrencyValue(funcionario.salario),
-          };
-          todosContratosDaEmpresa.push(contrato);
-        });
-        
-        // Ordenar contratos: 1º por nome, 2º por data de admissão (mais recente primeiro)
-        todosContratosDaEmpresa.sort((a, b) => {
-          // 1º critério: Nome do funcionário (alfabética)
-          const nomeComparison = a.colaborador.localeCompare(b.colaborador);
-          if (nomeComparison !== 0) return nomeComparison;
-          
-          // 2º critério: Status do contrato (ativos primeiro)
-          const aAtivo = a.dataRescisao === "" ? 1 : 0;
-          const bAtivo = b.dataRescisao === "" ? 1 : 0;
-          if (aAtivo !== bAtivo) return bAtivo - aAtivo;
-
-          // 3º critério: Data de admissão (mais recente primeiro)
-          try {
-            const dataA = new Date(a.dataAdmissao.split('/').reverse().join('-'));
-            const dataB = new Date(b.dataAdmissao.split('/').reverse().join('-'));
-            return dataB.getTime() - dataA.getTime();
-          } catch (e) {
-            return 0;
-          }
-        });
-        
-        setContratosData(todosContratosDaEmpresa);
-      } else {
-        setContratosData([]);
-      }
-    } else {
-      setContratosData([]);
-    }
-  }, [selectedEmpresa, dados, selectedColaborador]);
-
-  useEffect(() => {
-    if (selectedEmpresa && dados) {
-      const empresaSelecionada = dados.find(
-        (emp) => emp.nome_empresa.trim() === selectedEmpresa
-      );
-
-      if (empresaSelecionada && empresaSelecionada.funcionarios) {
-        const todosExamesDaEmpresa: Exame[] = [];
-        
-        // Filtrar funcionários se um colaborador específico estiver selecionado
-        const funcionariosFiltrados = selectedColaborador 
-          ? empresaSelecionada.funcionarios.filter(func => func.nome === selectedColaborador)
-          : empresaSelecionada.funcionarios;
-
-        funcionariosFiltrados.forEach((funcionario) => {
-          if (funcionario.exames && funcionario.exames.length > 0) {
-            const examesDoFuncionario = funcionario.exames.map(
-              (e) => ({
-                vencimento: formatDateToBR(e.data_vencimento),
-                dataExame: formatDateToBR(e.data_exame),
-                resultado: e.resultado,
-                tipo: e.tipo,
-                nomeColaborador: funcionario.nome,
-              })
-            );
-            todosExamesDaEmpresa.push(...examesDoFuncionario);
-          }
-        });
-        
-        // Aplicar ordenação multi-critério para Histórico de Exames
-        // 1º critério: Nome do funcionário (alfabética A–Z)
-        // 2º critério: Data de vencimento mais urgente (mais próxima de hoje)
-        // 3º critério: Data do exame (mais recente primeiro)
-        todosExamesDaEmpresa.sort((a, b) => {
-          // 1º critério: Nome do funcionário (alfabética)
-          const nomeComparison = a.nomeColaborador.localeCompare(b.nomeColaborador);
-          if (nomeComparison !== 0) return nomeComparison;
-          
-          // 2º critério: Data de vencimento mais urgente (mais próxima de hoje)
-          try {
-            const now = Date.now();
-            const vencA = new Date(a.vencimento.split('/').reverse().join('-')).getTime();
-            const vencB = new Date(b.vencimento.split('/').reverse().join('-')).getTime();
-            const diffA = Math.abs(vencA - now);
-            const diffB = Math.abs(vencB - now);
-            if (diffA !== diffB) return diffA - diffB;
-          } catch (e) {
-            // falha na conversão da data, ignora e segue
-          }
-
-          // 3º critério: Data do exame (mais recente primeiro)
-          try {
-            const dataExameA = new Date(a.dataExame.split('/').reverse().join('-')).getTime();
-            const dataExameB = new Date(b.dataExame.split('/').reverse().join('-')).getTime();
-            return dataExameB - dataExameA;
-          } catch (e) {
-            return 0;
-          }
-        });
-        
-        setExamesData(todosExamesDaEmpresa);
-      } else {
-        setExamesData([]);
-      }
-    } else {
-      setExamesData([]);
-    }
-  }, [selectedEmpresa, dados, selectedColaborador]); // Adicionar selectedColaborador na dependência
-
-  useEffect(() => {
-    if (selectedEmpresa && dados) {
-      const emp = dados.find(e => e.nome_empresa.trim() === selectedEmpresa);
-      const rec = emp && feriasRaw.find(f => f.id_empresa === emp.id_empresa);
-      if (rec) {
-        // Filtrar férias por funcionário selecionado se houver
-        const feriasFiltradas = selectedColaborador 
-          ? rec.ferias.filter(f => f.nome === selectedColaborador)
-          : rec.ferias;
-
-        const feriasFormatadas = feriasFiltradas.map(f => ({
-          nomeColaborador: f.nome,
-          inicioPeriodoAquisitivo: formatDateToBR(f.inicio_aquisitivo),
-          fimPeriodoAquisitivo: formatDateToBR(f.fim_aquisitivo),
-          inicioPeriodoGozo: formatDateToBR(f.inicio_gozo),
-          fimPeriodoGozo: formatDateToBR(f.fim_gozo),
-          limiteParaGozo: formatDateToBR(f.fim_aquisitivo),
-          diasDeDireito: diffDays(f.inicio_aquisitivo, f.fim_aquisitivo),
-          diasGozados: diffDays(f.inicio_gozo, f.fim_gozo),
-          diasDeSaldo: diffDays(f.inicio_aquisitivo, f.fim_aquisitivo)
-            - diffDays(f.inicio_gozo, f.fim_gozo),
-          // Manter as datas originais para ordenação
-          _dataVencimento: f.fim_aquisitivo,
-          _dataInicioAquisitivo: f.inicio_aquisitivo,
-        }));
-
-        // Aplicar ordenação multi-critério para Detalhes de Férias
-        // 1º critério: Nome do funcionário (alfabética A–Z)
-        // 2º critério: Data de vencimento mais urgente (mais próxima de hoje)
-        // 3º critério: Data de início do período aquisitivo (mais antiga primeiro)
-        feriasFormatadas.sort((a, b) => {
-          // 1º critério: Nome do funcionário (alfabética)
-          const nomeComparison = a.nomeColaborador.localeCompare(b.nomeColaborador);
-          if (nomeComparison !== 0) return nomeComparison;
-
-          // 2º critério: Data de vencimento mais urgente (mais próxima de hoje)
-          try {
-            const now = Date.now();
-            const vencA = new Date(a._dataVencimento).getTime();
-            const vencB = new Date(b._dataVencimento).getTime();
-            const diffA = Math.abs(vencA - now);
-            const diffB = Math.abs(vencB - now);
-            if (diffA !== diffB) return diffA - diffB;
-          } catch (e) {
-            // falha na conversão da data, ignora e segue
-          }
-
-          // 3º critério: Data de início do período aquisitivo (mais antigo primeiro)
-          try {
-            const inicioA = new Date(a._dataInicioAquisitivo).getTime();
-            const inicioB = new Date(b._dataInicioAquisitivo).getTime();
-            return inicioA - inicioB;
-          } catch (e) {
-            return 0;
-          }
-        });
-
-        // Remover as propriedades auxiliares antes de definir o estado
-        const feriasLimpas = feriasFormatadas.map(({ _dataVencimento, _dataInicioAquisitivo, ...ferias }) => ferias);
-        setFeriasData(feriasLimpas);
-      } else {
-        setFeriasData([]);
-      }
-    } else {
-      setFeriasData([]);
-    }
-  }, [selectedEmpresa, dados, feriasRaw, selectedColaborador]); // Adicionar selectedColaborador na dependência
-
-  useEffect(() => {
-    if (selectedEmpresa && dados) {
-      const emp = dados.find(e => e.nome_empresa.trim() === selectedEmpresa);
-      const rec = emp && alteracoesRaw.find(a => a.id_empresa === emp.id_empresa);
-      if (rec) {
-        // Filtrar alterações por funcionário selecionado se houver
-        const alteracoesFiltradas = selectedColaborador 
-          ? rec.alteracoes.filter(a => a.nome === selectedColaborador)
-          : rec.alteracoes;
-
-        const alteracoesFormatadas = alteracoesFiltradas.map(a => {
-          const anterior = a.salario_anterior ? parseFloat(a.salario_anterior) : null;
-          const novo = parseFloat(a.novo_salario);
-          const perc = anterior
-            ? `${(((novo - anterior) / anterior) * 100).toFixed(1)}%`
-            : "";
-          return {
-            nomeColaborador: a.nome,
-            competencia: formatDateToBR(a.competencia),
-            salarioAnterior: anterior,
-            salarioNovo: novo,
-            motivo: a.motivo === 0 ? "Primeira Contratação" : "Ajuste",
-            percentual: perc,
-            // Manter a data original para ordenação
-            _dataCompetencia: a.competencia,
-          };
-        });
-
-        // Aplicar ordenação multi-critério para Detalhes de Alterações Salariais
-        // 1º critério: Nome do funcionário (alfabética A–Z)
-        // 2º critério: Data da competência (mais recente primeiro)
-        // 3º critério: Valor do salário novo (maior para menor)
-        alteracoesFormatadas.sort((a, b) => {
-          // 1º critério: Nome do funcionário (alfabética)
-          const nomeComparison = a.nomeColaborador.localeCompare(b.nomeColaborador);
-          if (nomeComparison !== 0) return nomeComparison;
-
-          // 2º critério: Data da competência (mais recente primeiro)
-          try {
-            const dataCompetenciaA = new Date(a._dataCompetencia);
-            const dataCompetenciaB = new Date(b._dataCompetencia);
-            const competenciaComparison = dataCompetenciaB.getTime() - dataCompetenciaA.getTime();
-            if (competenciaComparison !== 0) return competenciaComparison;
-          } catch (e) {
-            // Em caso de erro na conversão de data, continua para o próximo critério
-          }
-
-          // 3º critério: Valor do salário novo (maior para menor)
-          return b.salarioNovo - a.salarioNovo;
-        });
-
-        // Remover a propriedade auxiliar antes de definir o estado
-        const alteracoesLimpas = alteracoesFormatadas.map(({ _dataCompetencia, ...alteracao }) => alteracao);
-        setAlteracoesData(alteracoesLimpas);
-      } else {
-        setAlteracoesData([]);
-      }
-    } else {
-      setAlteracoesData([]);
-    }
-  }, [selectedEmpresa, dados, alteracoesRaw, selectedColaborador]); // Adicionar selectedColaborador na dependência
-
-  useEffect(() => {
-    if (selectedEmpresa && dados) {
-      const empresaSelecionada = dados.find(
-        (emp) => emp.nome_empresa.trim() === selectedEmpresa
-      );
-
-      if (empresaSelecionada && empresaSelecionada.funcionarios) {
-        const todosAfastamentosDaEmpresa: Afastamento[] = [];
-        
-        // Filtrar funcionários se um colaborador específico estiver selecionado
-        const funcionariosFiltrados = selectedColaborador 
-          ? empresaSelecionada.funcionarios.filter(func => func.nome === selectedColaborador)
-          : empresaSelecionada.funcionarios;
-
-        funcionariosFiltrados.forEach((funcionario) => {
-          if (funcionario.afastamentos && funcionario.afastamentos.length > 0) {
-            const afastamentosDoFuncionario = funcionario.afastamentos.map(
-              (a) => ({
-                inicio: formatDateToBR(a.data_inicial),
-                termino: a.data_final ? formatDateToBR(a.data_final) : "N/A",
-                diasAfastados: parseFloat(a.num_dias).toString(),
-                tipo: a.tipo,
-                nomeColaborador: funcionario.nome,
-              })
-            );
-            todosAfastamentosDaEmpresa.push(...afastamentosDoFuncionario);
-          }
-        });
-        
-        // Aplicar ordenação multi-critério para Histórico de Afastamentos
-        // 1º critério: Nome do funcionário (alfabética A–Z)
-        // 2º critério: Status do afastamento (ativos primeiro - termino = "N/A")
-        // 3º critério: Data de início (mais recente primeiro)
-        todosAfastamentosDaEmpresa.sort((a, b) => {
-          // 1º critério: Nome do funcionário (alfabética)
-          const nomeComparison = a.nomeColaborador.localeCompare(b.nomeColaborador);
-          if (nomeComparison !== 0) return nomeComparison;
-
-          // 2º critério: Status do afastamento (ativos primeiro)
-          const aAtivo = a.termino === "N/A" ? 1 : 0;
-          const bAtivo = b.termino === "N/A" ? 1 : 0;
-          if (aAtivo !== bAtivo) return bAtivo - aAtivo;
-
-          // 3º critério: Data de início (mais recente primeiro)
-          try {
-            const dataInicioA = new Date(a.inicio.split('/').reverse().join('-')).getTime();
-            const dataInicioB = new Date(b.inicio.split('/').reverse().join('-')).getTime();
-            return dataInicioB - dataInicioA;
-          } catch (e) {
-            return 0;
-          }
-        });
-        
-        setAfastamentosData(todosAfastamentosDaEmpresa);
-      } else {
-        setAfastamentosData([]);
-      }
-    } else {
-      setAfastamentosData([]);
-    }
-  }, [selectedEmpresa, dados, selectedColaborador]); // Adicionar selectedColaborador na dependência
-
-  // Se estiver carregando, mostrar o componente Loading
+  // 🔄 Loading state
   if (loading) {
     return <Loading />;
   }
@@ -1095,7 +734,7 @@ export default function FichaPessoalPage() {
              ${selectedColaborador
                ? 'max-h-[800px] opacity-100 translate-y-0'
                : 'max-h-0 opacity-0 -translate-y-4'}`}>
-          <KpiCardsGrid cardsData={currentKpiCardData} />
+          <KpiCardsGrid cardsData={kpiCardData} />
         </div>
 
         {/* Evolução & Valor por Grupo */}
