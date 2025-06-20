@@ -14,10 +14,28 @@ interface ContratosModalTableProps {
   contratosData: ContratoEntry[];
   cairoClassName: string;
   onSortedDataChange?: (sortedData: ContratoEntry[]) => void; // Callback para expor dados ordenados
+  onSortInfoChange?: (sortInfo: string) => void; // Callback para expor info de ordenação como texto formatado
 }
 
 type SortKeyContrato = keyof ContratoEntry | null;
 type SortDirectionContrato = 'ascending' | 'descending';
+
+// Helper para converter informações de sort em texto legível para PDF
+const getSortDisplayText = (sortKey: SortKeyContrato, sortDirection: SortDirectionContrato): string => {
+  if (!sortKey) return 'Padrão (sem ordenação específica)';
+  
+  const columnNames: Record<string, string> = {
+    colaborador: 'Nome do Funcionário',
+    dataAdmissao: 'Data de Admissão',
+    dataRescisao: 'Data de Rescisão',
+    salarioBase: 'Salário Base'
+  };
+  
+  const directionText = sortDirection === 'ascending' ? 'Crescente' : 'Decrescente';
+  const columnText = columnNames[sortKey] || sortKey;
+  
+  return `Por ${columnText} (${directionText})`;
+};
 
 // Helper function to parse DD/MM/YYYY strings to Date objects
 const parseDateString = (dateStr: string): Date | null => {
@@ -50,7 +68,7 @@ const parseCurrencyString = (currencyStr: string): number | null => {
 };
 
 
-const ContratosModalTable: React.FC<ContratosModalTableProps> = ({ contratosData, cairoClassName, onSortedDataChange }) => {
+const ContratosModalTable: React.FC<ContratosModalTableProps> = ({ contratosData, cairoClassName, onSortedDataChange, onSortInfoChange }) => {
   const [sortKey, setSortKey] = useState<SortKeyContrato>(null);
   const [sortDirection, setSortDirection] = useState<SortDirectionContrato>('ascending');
 
@@ -122,13 +140,19 @@ const ContratosModalTable: React.FC<ContratosModalTableProps> = ({ contratosData
     }
     return sortableItems;
   }, [contratosData, sortKey, sortDirection]);
-
   // Effect para notificar mudanças nos dados ordenados
   useEffect(() => {
     if (onSortedDataChange) {
       onSortedDataChange(sortedData);
     }
   }, [sortedData, onSortedDataChange]);
+  // Effect para notificar mudanças na informação de ordenação
+  useEffect(() => {
+    if (onSortInfoChange) {
+      const sortDisplayText = getSortDisplayText(sortKey, sortDirection);
+      onSortInfoChange(sortDisplayText);
+    }
+  }, [sortKey, sortDirection, onSortInfoChange]);
 
   const requestSort = (key: SortKeyContrato) => {
     let direction: SortDirectionContrato = 'ascending';

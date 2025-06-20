@@ -16,10 +16,30 @@ interface AlteracoesSalariaisModalTableProps {
   alteracoesData: AlteracaoSalarialEntryModal[];
   cairoClassName: string;
   onSortedDataChange?: (sortedData: AlteracaoSalarialEntryModal[]) => void; // Callback para expor dados ordenados
+  onSortInfoChange?: (sortInfo: string) => void; // Callback para expor info de ordenação como texto formatado
 }
 
 type SortKeyAlteracao = keyof AlteracaoSalarialEntryModal | null;
 type SortDirectionAlteracao = 'ascending' | 'descending';
+
+// Helper para converter informações de sort em texto legível para PDF
+const getSortDisplayText = (sortKey: SortKeyAlteracao, sortDirection: SortDirectionAlteracao): string => {
+  if (!sortKey) return 'Padrão (sem ordenação específica)';
+  
+  const columnNames: Record<string, string> = {
+    nomeColaborador: 'Nome do Funcionário',
+    competencia: 'Competência',
+    motivo: 'Motivo',
+    salarioAnterior: 'Salário Anterior',
+    salarioNovo: 'Salário Novo',
+    percentual: 'Percentual'
+  };
+  
+  const directionText = sortDirection === 'ascending' ? 'Crescente' : 'Decrescente';
+  const columnText = columnNames[sortKey] || sortKey;
+  
+  return `Por ${columnText} (${directionText})`;
+};
 
 // Helper function to parse DD/MM/YYYY strings to Date objects
 const parseDateString = (dateStr: string): Date | null => {
@@ -56,7 +76,7 @@ const formatCurrencyForTable = (value: number | null) =>
     ? value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
     : "N/A";
 
-const AlteracoesSalariaisModalTable: React.FC<AlteracoesSalariaisModalTableProps> = ({ alteracoesData, cairoClassName, onSortedDataChange }) => {
+const AlteracoesSalariaisModalTable: React.FC<AlteracoesSalariaisModalTableProps> = ({ alteracoesData, cairoClassName, onSortedDataChange, onSortInfoChange }) => {
   const [sortKey, setSortKey] = useState<SortKeyAlteracao>(null);
   const [sortDirection, setSortDirection] = useState<SortDirectionAlteracao>('ascending');
 
@@ -150,13 +170,19 @@ const AlteracoesSalariaisModalTable: React.FC<AlteracoesSalariaisModalTableProps
     }
     return sortableItems;
   }, [alteracoesData, sortKey, sortDirection]);
-
   // Effect para notificar mudanças nos dados ordenados
   useEffect(() => {
     if (onSortedDataChange) {
       onSortedDataChange(sortedData);
     }
   }, [sortedData, onSortedDataChange]);
+  // Effect para notificar mudanças na informação de ordenação
+  useEffect(() => {
+    if (onSortInfoChange) {
+      const sortDisplayText = getSortDisplayText(sortKey, sortDirection);
+      onSortInfoChange(sortDisplayText);
+    }
+  }, [sortKey, sortDirection, onSortInfoChange]);
 
   const requestSort = (key: SortKeyAlteracao) => {
     let direction: SortDirectionAlteracao = 'ascending';

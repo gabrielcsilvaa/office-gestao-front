@@ -6,8 +6,8 @@ import Modal from "../../organizacional/components/Modal";
 
 // 📋 Configuração de exportação para cada tipo de modal
 export interface ExportConfig {
-  pdfHandler: (data: any[], reportName: string) => void;
-  excelHandler: (data: any[], fileName: string) => void;
+  pdfHandler: (data: any[], reportName: string, sortInfo?: string) => void;
+  excelHandler: (data: any[], fileName: string, sortInfo?: string) => void;
   reportName: string;
 }
 
@@ -21,6 +21,7 @@ interface DetalhesModalProps {
   children: React.ReactNode;
   cairoClassName: string;
   sortedData?: any[]; // Dados ordenados para exportação
+  sortInfo?: string; // Informação da ordenação atual
 }
 
 const DetalhesModal: React.FC<DetalhesModalProps> = ({
@@ -33,6 +34,7 @@ const DetalhesModal: React.FC<DetalhesModalProps> = ({
   children,
   cairoClassName,
   sortedData,
+  sortInfo,
 }) => {
   if (!isOpen) return null;
 
@@ -61,10 +63,9 @@ const DetalhesModal: React.FC<DetalhesModalProps> = ({
                   ? "border-gray-300 hover:bg-green-100 text-gray-700 cursor-pointer"
                   : "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
               }`}
-              style={{ width: 36, height: 36 }}
-              onClick={() => {
+              style={{ width: 36, height: 36 }}              onClick={() => {
                 if (data && data.length > 0) {
-                  exportConfig.pdfHandler(dataToExport, exportConfig.reportName);
+                  exportConfig.pdfHandler(dataToExport, exportConfig.reportName, sortInfo);
                 }
               }}
               disabled={!data || data.length === 0}
@@ -90,10 +91,9 @@ const DetalhesModal: React.FC<DetalhesModalProps> = ({
                   ? "border-gray-300 hover:bg-green-100 text-gray-700 cursor-pointer"
                   : "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
               }`}
-              style={{ width: 36, height: 36 }}
-              onClick={() => {
+              style={{ width: 36, height: 36 }}              onClick={() => {
                 if (data && data.length > 0) {
-                  exportConfig.excelHandler(dataToExport, exportConfig.reportName);
+                  exportConfig.excelHandler(dataToExport, exportConfig.reportName, sortInfo);
                 }
               }}
               disabled={!data || data.length === 0}

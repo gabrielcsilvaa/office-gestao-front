@@ -96,7 +96,8 @@ const addHeaderToPDF = (
   reportTitle: string,
   empresaFilter: string,
   startDateFilter: string | null,
-  endDateFilter: string | null
+  endDateFilter: string | null,
+  sortInfo?: string
 ): number => {
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 10; // Page margin for header content
@@ -126,6 +127,15 @@ const addHeaderToPDF = (
   if (startDateFilter && endDateFilter) {
     doc.text(`Período: ${formatDateToBR(startDateFilter)} - ${formatDateToBR(endDateFilter)}`, margin, currentY);
   }
+  currentY += 6; // Space for next line
+  // Line 3: Ordenação (se fornecida)
+  if (sortInfo) {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.text(`Ordenação Aplicada: ${sortInfo}`, margin, currentY);
+    doc.setFont('helvetica', 'normal'); // Reset font
+    currentY += 6; // Extra space after sorting info
+  }
   currentY += 8; // Space before table starts
 
   return currentY; // Return the Y position for the autoTable to start
@@ -152,13 +162,18 @@ export default function FichaPessoalPage() {
   const [empresaOptions, setEmpresaOptions] = useState<string[]>([]);
   const [feriasRaw, setFeriasRaw] = useState<FeriasPorEmpresa[]>([]);
   const [alteracoesRaw, setAlteracoesRaw] = useState<AlteracoesPorEmpresa[]>([]);
-
   // 📊 Estados para dados ordenados das tabelas (para exportação consistente)
   const [sortedExamesData, setSortedExamesData] = useState<any[]>([]);
   const [sortedAfastamentosData, setSortedAfastamentosData] = useState<any[]>([]);
   const [sortedContratosData, setSortedContratosData] = useState<any[]>([]);
-  const [sortedFeriasData, setSortedFeriasData] = useState<any[]>([]);
-  const [sortedAlteracoesData, setSortedAlteracoesData] = useState<any[]>([]);
+  const [sortedFeriasData, setSortedFeriasData] = useState<any[]>([]);  const [sortedAlteracoesData, setSortedAlteracoesData] = useState<any[]>([]);
+
+  // 📋 Estados para informações de ordenação (para contextualizar PDFs)
+  const [examesSortInfo, setExamesSortInfo] = useState<string>('Padrão (sem ordenação específica)');
+  const [afastamentosSortInfo, setAfastamentosSortInfo] = useState<string>('Padrão (sem ordenação específica)');
+  const [contratosSortInfo, setContratosSortInfo] = useState<string>('Padrão (sem ordenação específica)');
+  const [feriasSortInfo, setFeriasSortInfo] = useState<string>('Padrão (sem ordenação específica)');
+  const [alteracoesSortInfo, setAlteracoesSortInfo] = useState<string>('Padrão (sem ordenação específica)');
 
   // 🧠 Hook customizado - Cérebro de dados processados
   const {
@@ -295,11 +310,10 @@ export default function FichaPessoalPage() {
   if (loading) {
     return <Loading />;
   }
-
   // Função para exportar exames para PDF no padrão dos modais da carteira
-  const exportExamesToPDF = (data: Exame[], reportName: string) => {
+  const exportExamesToPDF = (data: Exame[], reportName: string, sortInfo?: string) => {
     const doc = new jsPDF(); // Default is portrait
-    const tableStartY = addHeaderToPDF(doc, reportName, selectedEmpresa, startDate, endDate);
+    const tableStartY = addHeaderToPDF(doc, reportName, selectedEmpresa, startDate, endDate, sortInfo);
 
     const tableData = data.map((e) => [
       e.nomeColaborador,
@@ -356,30 +370,46 @@ export default function FichaPessoalPage() {
 
     doc.save(`${reportName.replace(/ /g, "_")}.pdf`);
   };
-
   // Função para exportar exames para Excel (usando XLSX, igual ao padrão do carteira)
-  const exportExamesToExcel = (data: Exame[], fileName: string) => {
+  const exportExamesToExcel = (data: Exame[], fileName: string, sortInfo?: string) => {
     // Importação dinâmica para evitar erro em ambiente SSR
     import("xlsx").then(XLSX => {
-      const ws = XLSX.utils.json_to_sheet(
-        data.map(e => ({
-          "Nome do Funcionário": e.nomeColaborador,
-          "Tipo": e.tipo,
-          "Data do Exame": e.dataExame,
-          "Data de Vencimento": e.vencimento,
-          "Resultado": e.resultado,
-        }))
-      );
+      const exportData = data.map(e => ({
+        "Nome do Funcionário": e.nomeColaborador,
+        "Tipo": e.tipo,
+        "Data do Exame": e.dataExame,
+        "Data de Vencimento": e.vencimento,
+        "Resultado": e.resultado,
+      }));
+
+      // Adiciona informação de ordenação se disponível
+      if (sortInfo) {
+        exportData.unshift({
+          "Nome do Funcionário": `Ordenação: ${sortInfo}`,
+          "Tipo": "",
+          "Data do Exame": "",
+          "Data de Vencimento": "",
+          "Resultado": "",
+        } as any);
+        exportData.unshift({
+          "Nome do Funcionário": "",
+          "Tipo": "",
+          "Data do Exame": "",
+          "Data de Vencimento": "",
+          "Resultado": "",
+        } as any);
+      }
+
+      const ws = XLSX.utils.json_to_sheet(exportData);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Exames");
       XLSX.writeFile(wb, `${fileName}.xlsx`);
     });
   };
-
   // Função para exportar afastamentos para PDF (padrão carteira)
-  const exportAfastamentosToPDF = (data: Afastamento[], reportName: string) => {
+  const exportAfastamentosToPDF = (data: Afastamento[], reportName: string, sortInfo?: string) => {
     const doc = new jsPDF(); // Default is portrait
-    const tableStartY = addHeaderToPDF(doc, reportName, selectedEmpresa, startDate, endDate);
+    const tableStartY = addHeaderToPDF(doc, reportName, selectedEmpresa, startDate, endDate, sortInfo);
 
     const tableData = data.map((a) => [
       a.nomeColaborador,
@@ -436,29 +466,45 @@ export default function FichaPessoalPage() {
 
     doc.save(`${reportName.replace(/ /g, "_")}.pdf`);
   };
-
   // Função para exportar afastamentos para Excel (padrão carteira)
-  const exportAfastamentosToExcel = (data: Afastamento[], fileName: string) => {
+  const exportAfastamentosToExcel = (data: Afastamento[], fileName: string, sortInfo?: string) => {
     import("xlsx").then(XLSX => {
-      const ws = XLSX.utils.json_to_sheet(
-        data.map(a => ({
-          "Nome do Funcionário": a.nomeColaborador,
-          "Tipo": a.tipo,
-          "Data de Início": a.inicio,
-          "Data de Término": a.termino,
-          "Dias Afastados": a.diasAfastados,
-        }))
-      );
+      const exportData = data.map(a => ({
+        "Nome do Funcionário": a.nomeColaborador,
+        "Tipo": a.tipo,
+        "Data de Início": a.inicio,
+        "Data de Término": a.termino,
+        "Dias Afastados": a.diasAfastados,
+      }));
+
+      // Adiciona informação de ordenação se disponível
+      if (sortInfo) {
+        exportData.unshift({
+          "Nome do Funcionário": `Ordenação: ${sortInfo}`,
+          "Tipo": "",
+          "Data de Início": "",
+          "Data de Término": "",
+          "Dias Afastados": "",
+        } as any);
+        exportData.unshift({
+          "Nome do Funcionário": "",
+          "Tipo": "",
+          "Data de Início": "",
+          "Data de Término": "",
+          "Dias Afastados": "",
+        } as any);
+      }
+
+      const ws = XLSX.utils.json_to_sheet(exportData);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Afastamentos");
       XLSX.writeFile(wb, `${fileName}.xlsx`);
     });
   };
-
   // Função para exportar contratos para PDF (padrão carteira)
-  const exportContratosToPDF = (data: Contrato[], reportName: string) => {
+  const exportContratosToPDF = (data: Contrato[], reportName: string, sortInfo?: string) => {
     const doc = new jsPDF(); // Default is portrait
-    const tableStartY = addHeaderToPDF(doc, reportName, selectedEmpresa, startDate, endDate);
+    const tableStartY = addHeaderToPDF(doc, reportName, selectedEmpresa, startDate, endDate, sortInfo);
 
     const tableData = data.map((c) => [
       c.colaborador,
@@ -512,28 +558,42 @@ export default function FichaPessoalPage() {
 
     doc.save(`${reportName.replace(/ /g, "_")}.pdf`);
   };
-
   // Função para exportar contratos para Excel (padrão carteira)
-  const exportContratosToExcel = (data: Contrato[], fileName: string) => {
+  const exportContratosToExcel = (data: Contrato[], fileName: string, sortInfo?: string) => {
     import("xlsx").then(XLSX => {
-      const ws = XLSX.utils.json_to_sheet(
-        data.map(c => ({
-          "Nome do Funcionário": c.colaborador,
-          "Data de Admissão": c.dataAdmissao,
-          "Data de Rescisão": c.dataRescisao,
-          "Salário Base": c.salarioBase,
-        }))
-      );
+      const exportData = data.map(c => ({
+        "Nome do Funcionário": c.colaborador,
+        "Data de Admissão": c.dataAdmissao,
+        "Data de Rescisão": c.dataRescisao,
+        "Salário Base": c.salarioBase,
+      }));
+
+      // Adiciona informação de ordenação se disponível
+      if (sortInfo) {
+        exportData.unshift({
+          "Nome do Funcionário": `Ordenação: ${sortInfo}`,
+          "Data de Admissão": "",
+          "Data de Rescisão": "",
+          "Salário Base": "",
+        } as any);
+        exportData.unshift({
+          "Nome do Funcionário": "",
+          "Data de Admissão": "",
+          "Data de Rescisão": "",
+          "Salário Base": "",
+        } as any);
+      }
+
+      const ws = XLSX.utils.json_to_sheet(exportData);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Contratos");
       XLSX.writeFile(wb, `${fileName}.xlsx`);
     });
   };
-
   // Função para exportar férias para PDF (padrão carteira, colunas mais compactas)
-  const exportFeriasToPDF = (data: FormattedFerias[], reportName: string) => {
+  const exportFeriasToPDF = (data: FormattedFerias[], reportName: string, sortInfo?: string) => {
     const doc = new jsPDF({ orientation: "landscape" }); 
-    const tableStartY = addHeaderToPDF(doc, reportName, selectedEmpresa, startDate, endDate);
+    const tableStartY = addHeaderToPDF(doc, reportName, selectedEmpresa, startDate, endDate, sortInfo);
 
     const tableData = data.map((f) => [
       f.nomeColaborador,
@@ -602,33 +662,57 @@ export default function FichaPessoalPage() {
 
     doc.save(`${reportName.replace(/ /g, "_")}.pdf`);
   };
-
   // Função para exportar férias para Excel (padrão carteira)
-  const exportFeriasToExcel = (data: FormattedFerias[], fileName: string) => {
+  const exportFeriasToExcel = (data: FormattedFerias[], fileName: string, sortInfo?: string) => {
     import("xlsx").then(XLSX => {
-      const ws = XLSX.utils.json_to_sheet(
-        data.map(f => ({
-          "Nome do Funcionário": f.nomeColaborador,
-          "Início Período Aquisitivo": f.inicioPeriodoAquisitivo,
-          "Fim Período Aquisitivo": f.fimPeriodoAquisitivo,
-          "Início Gozo": f.inicioPeriodoGozo,
-          "Fim Gozo": f.fimPeriodoGozo,
-          "Limite para Gozo": f.limiteParaGozo,
-          "Dias de Direito": f.diasDeDireito,
-          "Dias Gozados": f.diasGozados,
-          "Dias de Saldo": f.diasDeSaldo,
-        }))
-      );
+      const exportData = data.map(f => ({
+        "Nome do Funcionário": f.nomeColaborador,
+        "Início Período Aquisitivo": f.inicioPeriodoAquisitivo,
+        "Fim Período Aquisitivo": f.fimPeriodoAquisitivo,
+        "Início Gozo": f.inicioPeriodoGozo,
+        "Fim Gozo": f.fimPeriodoGozo,
+        "Limite para Gozo": f.limiteParaGozo,
+        "Dias de Direito": f.diasDeDireito,
+        "Dias Gozados": f.diasGozados,
+        "Dias de Saldo": f.diasDeSaldo,
+      }));
+
+      // Adiciona informação de ordenação se disponível
+      if (sortInfo) {
+        exportData.unshift({
+          "Nome do Funcionário": `Ordenação: ${sortInfo}`,
+          "Início Período Aquisitivo": "",
+          "Fim Período Aquisitivo": "",
+          "Início Gozo": "",
+          "Fim Gozo": "",
+          "Limite para Gozo": "",
+          "Dias de Direito": "",
+          "Dias Gozados": "",
+          "Dias de Saldo": "",
+        } as any);
+        exportData.unshift({
+          "Nome do Funcionário": "",
+          "Início Período Aquisitivo": "",
+          "Fim Período Aquisitivo": "",
+          "Início Gozo": "",
+          "Fim Gozo": "",
+          "Limite para Gozo": "",
+          "Dias de Direito": "",
+          "Dias Gozados": "",
+          "Dias de Saldo": "",
+        } as any);
+      }
+
+      const ws = XLSX.utils.json_to_sheet(exportData);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Férias");
       XLSX.writeFile(wb, `${fileName}.xlsx`);
     });
   };
-
   // Função para exportar alterações salariais para PDF (padrão carteira)
-  const exportAlteracoesToPDF = (data: FormattedAlteracao[], reportName: string) => {
+  const exportAlteracoesToPDF = (data: FormattedAlteracao[], reportName: string, sortInfo?: string) => {
     const doc = new jsPDF(); // Default is portrait
-    const tableStartY = addHeaderToPDF(doc, reportName, selectedEmpresa, startDate, endDate);
+    const tableStartY = addHeaderToPDF(doc, reportName, selectedEmpresa, startDate, endDate, sortInfo);
 
     const tableData = data.map((a) => [
       a.nomeColaborador,
@@ -688,22 +772,42 @@ export default function FichaPessoalPage() {
 
     doc.save(`${reportName.replace(/ /g, "_")}.pdf`);
   };
-
   // Função para exportar alterações salariais para Excel (padrão carteira)
-  const exportAlteracoesToExcel = (data: FormattedAlteracao[], fileName: string) => {
+  const exportAlteracoesToExcel = (data: FormattedAlteracao[], fileName: string, sortInfo?: string) => {
     import("xlsx").then(XLSX => {
-      const ws = XLSX.utils.json_to_sheet(
-        data.map(a => ({
-          "Nome do Funcionário": a.nomeColaborador,
-          "Competência": a.competencia,
-          "Salário Anterior": a.salarioAnterior !== null ? a.salarioAnterior.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "N/A",
-          "Salário Novo": a.salarioNovo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-          "Motivo": a.motivo,
-          "Variação (%)": a.percentual,
-        }))
-      );
+      const exportData = data.map(a => ({
+        "Nome do Funcionário": a.nomeColaborador,
+        "Competência": a.competencia,
+        "Salário Anterior": a.salarioAnterior !== null ? a.salarioAnterior.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "N/A",
+        "Salário Novo": a.salarioNovo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+        "Motivo": a.motivo,
+        "Variação (%)": a.percentual,
+      }));
+
+      // Adiciona informação de ordenação se disponível
+      if (sortInfo) {
+        exportData.unshift({
+          "Nome do Funcionário": `Ordenação: ${sortInfo}`,
+          "Competência": "",
+          "Salário Anterior": "",
+          "Salário Novo": "",
+          "Motivo": "",
+          "Variação (%)": "",
+        } as any);
+        exportData.unshift({
+          "Nome do Funcionário": "",
+          "Competência": "",
+          "Salário Anterior": "",
+          "Salário Novo": "",
+          "Motivo": "",
+          "Variação (%)": "",
+        } as any);
+      }
+
+      const ws = XLSX.utils.json_to_sheet(exportData);
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Alterações");      XLSX.writeFile(wb, `${fileName}.xlsx`);
+      XLSX.utils.book_append_sheet(wb, ws, "Alterações");
+      XLSX.writeFile(wb, `${fileName}.xlsx`);
     });
   };
 
@@ -882,11 +986,11 @@ export default function FichaPessoalPage() {
       {modalAberto && (
         <DetalhesModal
           isOpen={modalAberto !== null}
-          onClose={handleCloseModal}
-          title={getModalConfig(modalAberto).title}
+          onClose={handleCloseModal}          title={getModalConfig(modalAberto).title}
           subtitle={getModalConfig(modalAberto).subtitle}
           data={getModalConfig(modalAberto).data}
           sortedData={getModalConfig(modalAberto).sortedData}
+          sortInfo={getModalConfig(modalAberto).sortInfo}
           exportConfig={getModalConfig(modalAberto).exportConfig}
           cairoClassName={cairo.className}
         >
@@ -899,66 +1003,71 @@ export default function FichaPessoalPage() {
   function getModalConfig(tipo: ModalType) {
     switch (tipo) {
       case 'exames':
-        return {
-          title: "Histórico de Exames Detalhado",
+        return {          title: "Histórico de Exames Detalhado",
           subtitle: "Visualização completa dos exames por funcionário",
           data: examesData,
           sortedData: sortedExamesData,
+          sortInfo: examesSortInfo,
           exportConfig: exportConfigs.exames,
           component: <AtestadosModalTable 
             atestadosData={examesData} 
             cairoClassName={cairo.className} 
             onSortedDataChange={setSortedExamesData}
+            onSortInfoChange={setExamesSortInfo}
           />
         };
       case 'afastamentos':
-        return {
-          title: "Histórico de Afastamentos Detalhado",
+        return {          title: "Histórico de Afastamentos Detalhado",
           subtitle: "Visualização completa dos afastamentos por funcionário",
           data: afastamentosData,
           sortedData: sortedAfastamentosData,
+          sortInfo: afastamentosSortInfo,
           exportConfig: exportConfigs.afastamentos,
           component: <AfastamentosModalTable 
             afastamentosData={afastamentosData} 
             cairoClassName={cairo.className}
             onSortedDataChange={setSortedAfastamentosData}
+            onSortInfoChange={setAfastamentosSortInfo}
           />
         };
       case 'contratos':
-        return {
-          title: "Histórico de Contratos Detalhado",
+        return {          title: "Histórico de Contratos Detalhado",
           subtitle: "Visualização completa dos contratos por funcionário",
           data: contratosData,
           sortedData: sortedContratosData,
+          sortInfo: contratosSortInfo,
           exportConfig: exportConfigs.contratos,
           component: <ContratosModalTable 
             contratosData={contratosData} 
             cairoClassName={cairo.className}
             onSortedDataChange={setSortedContratosData}
+            onSortInfoChange={setContratosSortInfo}
           />
         };      case 'ferias':
-        return {
-          title: "Detalhes de Férias",
+        return {          title: "Detalhes de Férias",
           subtitle: "Visualização completa das férias por funcionário",
           data: feriasData,
           sortedData: sortedFeriasData,
+          sortInfo: feriasSortInfo,
           exportConfig: exportConfigs.ferias,
           component: <FeriasModalTable 
             feriasData={feriasData} 
             cairoClassName={cairo.className}
             onSortedDataChange={setSortedFeriasData}
-          />        };
+            onSortInfoChange={setFeriasSortInfo}
+          />};
       case 'alteracoes':
-        return {
-          title: "Detalhes de Alterações Salariais",
+        return {          title: "Detalhes de Alterações Salariais",
           subtitle: "Visualização completa das alterações salariais por funcionário",
           data: alteracoesData,
           sortedData: sortedAlteracoesData,
+          sortInfo: alteracoesSortInfo,
           exportConfig: exportConfigs.alteracoes,
           component: <AlteracoesSalariaisModalTable 
             alteracoesData={alteracoesData} 
             cairoClassName={cairo.className}
             onSortedDataChange={setSortedAlteracoesData}
+            onSortInfoChange={setAlteracoesSortInfo}
           />
         };
       default:

@@ -15,10 +15,29 @@ interface AtestadosModalTableProps {
   atestadosData: ExameEntry[];
   cairoClassName: string;
   onSortedDataChange?: (sortedData: ExameEntry[]) => void; // Callback para expor dados ordenados
+  onSortInfoChange?: (sortInfo: string) => void; // Callback para expor info de ordenação como texto formatado
 }
 
 type SortKey = keyof ExameEntry | null;
 type SortDirection = 'ascending' | 'descending';
+
+// Helper para converter informações de sort em texto legível para PDF
+const getSortDisplayText = (sortKey: SortKey, sortDirection: SortDirection): string => {
+  if (!sortKey) return 'Padrão (sem ordenação específica)';
+  
+  const columnNames: Record<string, string> = {
+    nomeColaborador: 'Nome do Funcionário',
+    dataExame: 'Data do Exame',
+    vencimento: 'Vencimento',
+    tipo: 'Tipo',
+    resultado: 'Resultado'
+  };
+  
+  const directionText = sortDirection === 'ascending' ? 'Crescente' : 'Decrescente';
+  const columnText = columnNames[sortKey] || sortKey;
+  
+  return `Por ${columnText} (${directionText})`;
+};
 
 const parseDateString = (dateStr: string): Date | null => {
   if (!dateStr || typeof dateStr !== 'string' || dateStr.toLowerCase() === 'n/a') {
@@ -40,7 +59,7 @@ const parseDateString = (dateStr: string): Date | null => {
   return null; // Invalid date format or value
 };
 
-const AtestadosModalTable: React.FC<AtestadosModalTableProps> = ({ atestadosData, cairoClassName, onSortedDataChange }) => {
+const AtestadosModalTable: React.FC<AtestadosModalTableProps> = ({ atestadosData, cairoClassName, onSortedDataChange, onSortInfoChange }) => {
   const [sortKey, setSortKey] = useState<SortKey>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>('ascending');
   
@@ -93,13 +112,19 @@ const AtestadosModalTable: React.FC<AtestadosModalTableProps> = ({ atestadosData
       });
     }    return sortableItems;
   }, [atestadosData, sortKey, sortDirection]);
-
   // Effect para notificar mudanças nos dados ordenados
   useEffect(() => {
     if (onSortedDataChange) {
       onSortedDataChange(sortedData);
     }
   }, [sortedData, onSortedDataChange]);
+  // Effect para notificar mudanças na informação de ordenação
+  useEffect(() => {
+    if (onSortInfoChange) {
+      const sortDisplayText = getSortDisplayText(sortKey, sortDirection);
+      onSortInfoChange(sortDisplayText);
+    }
+  }, [sortKey, sortDirection, onSortInfoChange]);
 
   const requestSort = (key: SortKey) => {
     let direction: SortDirection = 'ascending';

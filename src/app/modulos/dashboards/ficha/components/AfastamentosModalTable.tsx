@@ -15,10 +15,29 @@ interface AfastamentosModalTableProps {
   afastamentosData: AfastamentoEntry[];
   cairoClassName: string;
   onSortedDataChange?: (sortedData: AfastamentoEntry[]) => void; // Callback para expor dados ordenados
+  onSortInfoChange?: (sortInfo: string) => void; // Callback para expor info de ordenação como texto formatado
 }
 
 type SortKeyAfastamento = keyof AfastamentoEntry | null;
 type SortDirectionAfastamento = 'ascending' | 'descending';
+
+// Helper para converter informações de sort em texto legível para PDF
+const getSortDisplayText = (sortKey: SortKeyAfastamento, sortDirection: SortDirectionAfastamento): string => {
+  if (!sortKey) return 'Padrão (sem ordenação específica)';
+  
+  const columnNames: Record<string, string> = {
+    nomeColaborador: 'Nome do Funcionário',
+    inicio: 'Data de Início',
+    termino: 'Data de Término',
+    tipo: 'Tipo',
+    diasAfastados: 'Dias Afastados'
+  };
+  
+  const directionText = sortDirection === 'ascending' ? 'Crescente' : 'Decrescente';
+  const columnText = columnNames[sortKey] || sortKey;
+  
+  return `Por ${columnText} (${directionText})`;
+};
 
 const parseDateString = (dateStr: string): Date | null => {
   if (!dateStr || typeof dateStr !== 'string' || dateStr.toLowerCase() === 'n/a') {
@@ -39,7 +58,7 @@ const parseDateString = (dateStr: string): Date | null => {
   return null;
 };
 
-const AfastamentosModalTable: React.FC<AfastamentosModalTableProps> = ({ afastamentosData, cairoClassName, onSortedDataChange }) => {
+const AfastamentosModalTable: React.FC<AfastamentosModalTableProps> = ({ afastamentosData, cairoClassName, onSortedDataChange, onSortInfoChange }) => {
   const [sortKey, setSortKey] = useState<SortKeyAfastamento>(null);
   const [sortDirection, setSortDirection] = useState<SortDirectionAfastamento>('ascending');
 
@@ -108,13 +127,19 @@ const AfastamentosModalTable: React.FC<AfastamentosModalTableProps> = ({ afastam
     }
     return sortableItems;
   }, [afastamentosData, sortKey, sortDirection]);
-
   // Effect para notificar mudanças nos dados ordenados
   useEffect(() => {
     if (onSortedDataChange) {
       onSortedDataChange(sortedData);
     }
   }, [sortedData, onSortedDataChange]);
+  // Effect para notificar mudanças na informação de ordenação
+  useEffect(() => {
+    if (onSortInfoChange) {
+      const sortDisplayText = getSortDisplayText(sortKey, sortDirection);
+      onSortInfoChange(sortDisplayText);
+    }
+  }, [sortKey, sortDirection, onSortInfoChange]);
 
   const requestSort = (key: SortKeyAfastamento) => {
     let direction: SortDirectionAfastamento = 'ascending';

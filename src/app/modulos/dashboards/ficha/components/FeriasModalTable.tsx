@@ -19,10 +19,33 @@ interface FeriasModalTableProps {
   feriasData: FeriasEntryModal[];
   cairoClassName: string;
   onSortedDataChange?: (sortedData: FeriasEntryModal[]) => void; // Callback para expor dados ordenados
+  onSortInfoChange?: (sortInfo: string) => void; // Callback para expor info de ordenação como texto formatado
 }
 
 type SortKeyFerias = keyof FeriasEntryModal | null;
 type SortDirectionFerias = 'ascending' | 'descending';
+
+// Helper para converter informações de sort em texto legível para PDF
+const getSortDisplayText = (sortKey: SortKeyFerias, sortDirection: SortDirectionFerias): string => {
+  if (!sortKey) return 'Padrão (sem ordenação específica)';
+  
+  const columnNames: Record<string, string> = {
+    nomeColaborador: 'Nome do Funcionário',
+    inicioPeriodoAquisitivo: 'Início Período Aquisitivo',
+    fimPeriodoAquisitivo: 'Fim Período Aquisitivo',
+    inicioPeriodoGozo: 'Início Período Gozo',
+    fimPeriodoGozo: 'Fim Período Gozo',
+    limiteParaGozo: 'Limite para Gozo',
+    diasDeDireito: 'Dias de Direito',
+    diasGozados: 'Dias Gozados',
+    diasDeSaldo: 'Dias de Saldo'
+  };
+  
+  const directionText = sortDirection === 'ascending' ? 'Crescente' : 'Decrescente';
+  const columnText = columnNames[sortKey] || sortKey;
+  
+  return `Por ${columnText} (${directionText})`;
+};
 
 // Helper function to parse DD/MM/YYYY strings to Date objects
 const parseDateString = (dateStr: string): Date | null => {
@@ -44,7 +67,7 @@ const parseDateString = (dateStr: string): Date | null => {
   return null;
 };
 
-const FeriasModalTable: React.FC<FeriasModalTableProps> = ({ feriasData, cairoClassName, onSortedDataChange }) => {
+const FeriasModalTable: React.FC<FeriasModalTableProps> = ({ feriasData, cairoClassName, onSortedDataChange, onSortInfoChange }) => {
   const [sortKey, setSortKey] = useState<SortKeyFerias>(null);
   const [sortDirection, setSortDirection] = useState<SortDirectionFerias>('ascending');
 
@@ -91,13 +114,19 @@ const FeriasModalTable: React.FC<FeriasModalTableProps> = ({ feriasData, cairoCl
     }
     return sortableItems;
   }, [feriasData, sortKey, sortDirection]);
-
   // Effect para notificar mudanças nos dados ordenados
   useEffect(() => {
     if (onSortedDataChange) {
       onSortedDataChange(sortedData);
     }
   }, [sortedData, onSortedDataChange]);
+  // Effect para notificar mudanças na informação de ordenação
+  useEffect(() => {
+    if (onSortInfoChange) {
+      const sortDisplayText = getSortDisplayText(sortKey, sortDirection);
+      onSortInfoChange(sortDisplayText);
+    }
+  }, [sortKey, sortDirection, onSortInfoChange]);
 
   const requestSort = (key: SortKeyFerias) => {
     let direction: SortDirectionFerias = 'ascending';
