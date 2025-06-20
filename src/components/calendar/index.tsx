@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import DatePicker from "react-datepicker";
 
 import { registerLocale } from "react-datepicker";
@@ -85,10 +85,12 @@ export default function Calendar({
   );
   const [startInput, setStartInput] = useState("");
   const [endInput, setEndInput] = useState("");
-
   // REINTRODUZIR estados para controlar abertura do picker
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
+  // Refs para controlar foco nos inputs
+  const startPickerRef = useRef<DatePicker>(null);
+  const endPickerRef = useRef<DatePicker>(null);
 
   // quando props mudam, atualiza input interno
   useEffect(() => {
@@ -146,36 +148,80 @@ export default function Calendar({
     } else {
       setEndDate(null);
     }
-  };
-
-  const handleStartChange = (date: Date | null) => {
+  };  const handleStartChange = (date: Date | null) => {
     setStartDate(date);
     setStartInput(formatDateToInput(date));
+    
+    // Quando selecionar data inicial, focar automaticamente na data final
+    if (date) {
+      setShowStartPicker(false);
+      setTimeout(() => {
+        if (endPickerRef.current?.input) {
+          endPickerRef.current.input.focus();
+          setShowEndPicker(true);
+        }
+      }, 100);
+    }
   };
 
   const handleEndChange = (date: Date | null) => {
     setEndDate(date);
     setEndInput(formatDateToInput(date));
   };
-
   const handleSearch = () => {
     if (startDate && endDate) {
       onStartDateChange(formatDateISO(startDate));
       onEndDateChange(formatDateISO(endDate));
     }
   };
+  // Função para lidar com navegação por teclado
+  const handleKeyDown = (
+    event: React.KeyboardEvent<HTMLElement>,
+    isStartInput: boolean
+  ) => {
+    // TAB ou ENTER: navegar para próximo campo
+    if (event.key === 'Tab' || event.key === 'Enter') {
+      if (isStartInput) {
+        // Se está no input inicial e há uma data válida
+        if (startDate) {
+          event.preventDefault();
+          setShowStartPicker(false);
+          setTimeout(() => {
+            if (endPickerRef.current?.input) {
+              endPickerRef.current.input.focus();
+              setShowEndPicker(true);
+            }
+          }, 100);
+        }
+      } else {
+        // Se está no input final e há uma data válida
+        if (endDate && event.key === 'Enter') {
+          event.preventDefault();
+          setShowEndPicker(false);
+          handleSearch(); // Executar pesquisa
+        }
+      }
+    }
+    
+    // ESC: fechar calendários
+    if (event.key === 'Escape') {
+      setShowStartPicker(false);
+      setShowEndPicker(false);
+    }
+  };
 
   return (
-    <div className="flex gap-2">
-      {/* Campo Data Inicial */}
+    <div className="flex gap-2">      {/* Campo Data Inicial */}
       <div className="relative">
         <DatePicker
+          ref={startPickerRef}
           selected={startDate}
           onChange={handleStartChange}
           onChangeRaw={handleStartChangeRaw}
           value={startInput}
           onClickOutside={() => setShowStartPicker(false)}
           onSelect={() => setShowStartPicker(false)}
+          onKeyDown={(e) => handleKeyDown(e, true)}
           dateFormat="dd/MM/yyyy"
           placeholderText="Data inicial"
           className={`${cairo.className} p-2 rounded-lg border border-gray-400 bg-white shadow-lg transition w-30 text-sm ${
@@ -194,17 +240,17 @@ export default function Calendar({
           dropdownMode="select"
           locale="pt-BR"
         />
-      </div>
-
-      {/* Campo Data Final */}
+      </div>      {/* Campo Data Final */}
       <div className="relative">
         <DatePicker
+          ref={endPickerRef}
           selected={endDate}
           onChange={handleEndChange}
           onChangeRaw={handleEndChangeRaw}
           value={endInput}
           onClickOutside={() => setShowEndPicker(false)}
           onSelect={() => setShowEndPicker(false)}
+          onKeyDown={(e) => handleKeyDown(e, false)}
           dateFormat="dd/MM/yyyy"
           placeholderText="Data final"
           className={`${cairo.className} p-2 rounded-lg border border-gray-400 bg-white shadow-lg transition w-30 text-sm ${
