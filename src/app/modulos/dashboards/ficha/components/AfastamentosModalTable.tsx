@@ -159,7 +159,7 @@ const AfastamentosModalTable: React.FC<AfastamentosModalTableProps> = ({ afastam
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {sortedData.map((afastamento, index) => (
-              <tr key={afastamento.id || `afastamento-${index}`} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50 hover:bg-gray-100'}>
+              <tr key={afastamento.id || `afastamento-${index}`} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{afastamento.nomeColaborador}</td>
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{afastamento.inicio}</td>
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{afastamento.termino}</td>

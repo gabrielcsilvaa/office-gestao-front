@@ -170,7 +170,7 @@ const ContratosModalTable: React.FC<ContratosModalTableProps> = ({ contratosData
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {sortedData.map((contrato, index) => (
-              <tr key={contrato.id || `contrato-${index}`} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50 hover:bg-gray-100'}>
+              <tr key={contrato.id || `contrato-${index}`} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{contrato.colaborador}</td>
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{contrato.dataAdmissao}</td>
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{contrato.dataRescisao || "Ativo"}</td>

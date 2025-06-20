@@ -149,7 +149,7 @@ const AtestadosModalTable: React.FC<AtestadosModalTableProps> = ({ atestadosData
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {sortedData.map((exame, index) => (
-              <tr key={exame.id || `exame-${index}`} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50 hover:bg-gray-100'}>
+              <tr key={exame.id || `exame-${index}`} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{exame.nomeColaborador}</td>
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{exame.dataExame}</td>
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{exame.vencimento}</td>

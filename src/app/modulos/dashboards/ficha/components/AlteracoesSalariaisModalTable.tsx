@@ -205,7 +205,7 @@ const AlteracoesSalariaisModalTable: React.FC<AlteracoesSalariaisModalTableProps
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {sortedData.map((alteracao, index) => (
-              <tr key={alteracao.id || `alteracao-${index}`} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50 hover:bg-gray-100'}>
+              <tr key={alteracao.id || `alteracao-${index}`} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{alteracao.nomeColaborador}</td>
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{alteracao.competencia}</td>
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-700">{alteracao.motivo}</td>

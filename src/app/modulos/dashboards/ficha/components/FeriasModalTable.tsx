@@ -154,7 +154,7 @@ const FeriasModalTable: React.FC<FeriasModalTableProps> = ({ feriasData, cairoCl
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {sortedData.map((ferias, index) => (
-              <tr key={ferias.id || `ferias-${index}`} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50 hover:bg-gray-100'}>
+              <tr key={ferias.id || `ferias-${index}`} className={index % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
                 <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-700">{ferias.nomeColaborador}</td>
                 <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-700">{ferias.inicioPeriodoAquisitivo}</td>
                 <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-700">{ferias.fimPeriodoAquisitivo}</td>

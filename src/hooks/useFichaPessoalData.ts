@@ -82,7 +82,7 @@ export const useFichaPessoalData = ({
       .sort((a, b) => a.nome_empresa.localeCompare(b.nome_empresa));
   }, [dados]);
 
-  // 🎯 Funcionários filtrados (baseado na seleção do colaborador)
+  // 🎯 Funcionários filtrados (baseado na seleção do funcionário)
   const funcionariosFiltrados = useMemo(() => {
     if (!empresaSelecionada?.funcionarios) return [];
     
@@ -91,14 +91,14 @@ export const useFichaPessoalData = ({
       : empresaSelecionada.funcionarios;
   }, [empresaSelecionada, selectedColaborador]);
 
-  // 📊 Dados dos KPIs - Informações do colaborador selecionado
+  // 📊 Dados dos KPIs - Informações do funcionário selecionado
   const kpiCardData = useMemo(() => {
     const initialKpiCardData = [
-      { title: "Data de Admissão", value: "N/A", tooltipText: "Data de início do colaborador na empresa." },
-      { title: "Salário Base", value: "N/A", tooltipText: "Salário bruto mensal do colaborador." },
-      { title: "Cargo", value: "N/A", tooltipText: "Cargo atual do colaborador." },
-      { title: "Escolaridade", value: "N/A", tooltipText: "Nível de escolaridade do colaborador." },
-      { title: "Idade", value: "N/A", tooltipText: "Idade atual do colaborador." },
+      { title: "Data de Admissão", value: "N/A", tooltipText: "Data de início do funcionário na empresa." },
+      { title: "Salário Base", value: "N/A", tooltipText: "Salário bruto mensal do funcionário." },
+      { title: "Cargo", value: "N/A", tooltipText: "Cargo atual do funcionário." },
+      { title: "Escolaridade", value: "N/A", tooltipText: "Nível de escolaridade do funcionário." },
+      { title: "Idade", value: "N/A", tooltipText: "Idade atual do funcionário." },
     ];
 
     if (!selectedColaborador || colaboradorOptions.length === 0) {
@@ -115,27 +115,27 @@ export const useFichaPessoalData = ({
       { 
         title: "Data de Admissão", 
         value: formatDateToBR(funcionarioSelecionado.admissao), 
-        tooltipText: "Data de início do colaborador na empresa." 
+        tooltipText: "Data de início do funcionário na empresa." 
       },
       { 
         title: "Salário Base", 
         value: formatCurrencyValue(funcionarioSelecionado.salario), 
-        tooltipText: "Salário bruto mensal do colaborador." 
+        tooltipText: "Salário bruto mensal do funcionário." 
       },
       { 
         title: "Cargo", 
         value: capitalizeWords(funcionarioSelecionado.cargo), 
-        tooltipText: "Cargo atual do colaborador." 
+        tooltipText: "Cargo atual do funcionário." 
       },
       { 
         title: "Escolaridade", 
         value: capitalizeWords(funcionarioSelecionado.escolaridade), 
-        tooltipText: "Nível de escolaridade do colaborador." 
+        tooltipText: "Nível de escolaridade do funcionário." 
       },
       { 
         title: "Idade", 
         value: calculateAge(funcionarioSelecionado.data_nascimento), 
-        tooltipText: "Idade atual do colaborador." 
+        tooltipText: "Idade atual do funcionário." 
       },
     ];
   }, [selectedColaborador, colaboradorOptions]);
