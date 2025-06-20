@@ -47,17 +47,28 @@ const DetalhesModal: React.FC<DetalhesModalProps> = ({
               {subtitle}
             </p>
           )}
-        </div>
-
-        {/* 📤 Botões de Exportação */}
+        </div>        {/* 📤 Botões de Exportação */}
         {exportConfig && (
           <div className="flex gap-4 mb-4 justify-end">
             {/* Botão PDF */}
             <button
-              className="p-1 rounded border border-gray-300 hover:bg-green-100 transition-colors"
+              className={`p-1 rounded border transition-colors ${
+                data && data.length > 0
+                  ? "border-gray-300 hover:bg-green-100 text-gray-700 cursor-pointer"
+                  : "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
+              }`}
               style={{ width: 36, height: 36 }}
-              onClick={() => exportConfig.pdfHandler(data, exportConfig.reportName)}
-              title="Exportar para PDF"
+              onClick={() => {
+                if (data && data.length > 0) {
+                  exportConfig.pdfHandler(data, exportConfig.reportName);
+                }
+              }}
+              disabled={!data || data.length === 0}
+              title={
+                data && data.length > 0
+                  ? "Exportar para PDF"
+                  : "Não há dados para exportar"
+              }
             >
               <img
                 src="/assets/icons/pdf.svg"
@@ -65,15 +76,29 @@ const DetalhesModal: React.FC<DetalhesModalProps> = ({
                 width={24}
                 height={24}
                 draggable={false}
+                className={data && data.length > 0 ? "" : "opacity-50"}
               />
             </button>
 
             {/* Botão Excel */}
             <button
-              className="p-1 rounded border border-gray-300 hover:bg-green-100 transition-colors"
+              className={`p-1 rounded border transition-colors ${
+                data && data.length > 0
+                  ? "border-gray-300 hover:bg-green-100 text-gray-700 cursor-pointer"
+                  : "border-gray-200 bg-gray-50 text-gray-400 cursor-not-allowed"
+              }`}
               style={{ width: 36, height: 36 }}
-              onClick={() => exportConfig.excelHandler(data, exportConfig.reportName)}
-              title="Exportar para Excel"
+              onClick={() => {
+                if (data && data.length > 0) {
+                  exportConfig.excelHandler(data, exportConfig.reportName);
+                }
+              }}
+              disabled={!data || data.length === 0}
+              title={
+                data && data.length > 0
+                  ? "Exportar para Excel"
+                  : "Não há dados para exportar"
+              }
             >
               <img
                 src="/assets/icons/excel.svg"
@@ -81,6 +106,7 @@ const DetalhesModal: React.FC<DetalhesModalProps> = ({
                 width={24}
                 height={24}
                 draggable={false}
+                className={data && data.length > 0 ? "" : "opacity-50"}
               />
             </button>
           </div>
