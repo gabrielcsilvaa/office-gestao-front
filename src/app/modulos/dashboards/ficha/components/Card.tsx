@@ -44,7 +44,7 @@ export default function Card({ title, value, tooltipText, onClick }: CardProps) 
         >
           {title}
         </span>
-        <span className="text-lg __className_50a8b1 block">{value}</span>
+        <span className={`text-lg ${cairo.className} block`}>{value}</span>
       </div>
     </div>
   );
