@@ -14,6 +14,7 @@ interface ExameEntry {
 interface AtestadosModalTableProps {
   atestadosData: ExameEntry[];
   cairoClassName: string;
+  onSortedDataChange?: (sortedData: ExameEntry[]) => void; // Callback para expor dados ordenados
 }
 
 type SortKey = keyof ExameEntry | null;
@@ -39,7 +40,7 @@ const parseDateString = (dateStr: string): Date | null => {
   return null; // Invalid date format or value
 };
 
-const AtestadosModalTable: React.FC<AtestadosModalTableProps> = ({ atestadosData, cairoClassName }) => {
+const AtestadosModalTable: React.FC<AtestadosModalTableProps> = ({ atestadosData, cairoClassName, onSortedDataChange }) => {
   const [sortKey, setSortKey] = useState<SortKey>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>('ascending');
   
@@ -90,9 +91,15 @@ const AtestadosModalTable: React.FC<AtestadosModalTableProps> = ({ atestadosData
         
         return sortDirection === 'ascending' ? comparisonResult : -comparisonResult;
       });
-    }
-    return sortableItems;
+    }    return sortableItems;
   }, [atestadosData, sortKey, sortDirection]);
+
+  // Effect para notificar mudanças nos dados ordenados
+  useEffect(() => {
+    if (onSortedDataChange) {
+      onSortedDataChange(sortedData);
+    }
+  }, [sortedData, onSortedDataChange]);
 
   const requestSort = (key: SortKey) => {
     let direction: SortDirection = 'ascending';

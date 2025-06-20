@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 
 // Interface for afastamento entries, matching 'Afastamento' from page.tsx
 interface AfastamentoEntry {
@@ -14,6 +14,7 @@ interface AfastamentoEntry {
 interface AfastamentosModalTableProps {
   afastamentosData: AfastamentoEntry[];
   cairoClassName: string;
+  onSortedDataChange?: (sortedData: AfastamentoEntry[]) => void; // Callback para expor dados ordenados
 }
 
 type SortKeyAfastamento = keyof AfastamentoEntry | null;
@@ -38,7 +39,7 @@ const parseDateString = (dateStr: string): Date | null => {
   return null;
 };
 
-const AfastamentosModalTable: React.FC<AfastamentosModalTableProps> = ({ afastamentosData, cairoClassName }) => {
+const AfastamentosModalTable: React.FC<AfastamentosModalTableProps> = ({ afastamentosData, cairoClassName, onSortedDataChange }) => {
   const [sortKey, setSortKey] = useState<SortKeyAfastamento>(null);
   const [sortDirection, setSortDirection] = useState<SortDirectionAfastamento>('ascending');
 
@@ -107,6 +108,13 @@ const AfastamentosModalTable: React.FC<AfastamentosModalTableProps> = ({ afastam
     }
     return sortableItems;
   }, [afastamentosData, sortKey, sortDirection]);
+
+  // Effect para notificar mudanças nos dados ordenados
+  useEffect(() => {
+    if (onSortedDataChange) {
+      onSortedDataChange(sortedData);
+    }
+  }, [sortedData, onSortedDataChange]);
 
   const requestSort = (key: SortKeyAfastamento) => {
     let direction: SortDirectionAfastamento = 'ascending';

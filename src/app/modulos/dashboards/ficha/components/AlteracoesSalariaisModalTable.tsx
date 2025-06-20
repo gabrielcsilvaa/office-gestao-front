@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 
 // Interface for alteracao salarial entries, matching 'FormattedAlteracao' from page.tsx
 interface AlteracaoSalarialEntryModal {
@@ -15,6 +15,7 @@ interface AlteracaoSalarialEntryModal {
 interface AlteracoesSalariaisModalTableProps {
   alteracoesData: AlteracaoSalarialEntryModal[];
   cairoClassName: string;
+  onSortedDataChange?: (sortedData: AlteracaoSalarialEntryModal[]) => void; // Callback para expor dados ordenados
 }
 
 type SortKeyAlteracao = keyof AlteracaoSalarialEntryModal | null;
@@ -55,7 +56,7 @@ const formatCurrencyForTable = (value: number | null) =>
     ? value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
     : "N/A";
 
-const AlteracoesSalariaisModalTable: React.FC<AlteracoesSalariaisModalTableProps> = ({ alteracoesData, cairoClassName }) => {
+const AlteracoesSalariaisModalTable: React.FC<AlteracoesSalariaisModalTableProps> = ({ alteracoesData, cairoClassName, onSortedDataChange }) => {
   const [sortKey, setSortKey] = useState<SortKeyAlteracao>(null);
   const [sortDirection, setSortDirection] = useState<SortDirectionAlteracao>('ascending');
 
@@ -149,6 +150,13 @@ const AlteracoesSalariaisModalTable: React.FC<AlteracoesSalariaisModalTableProps
     }
     return sortableItems;
   }, [alteracoesData, sortKey, sortDirection]);
+
+  // Effect para notificar mudanças nos dados ordenados
+  useEffect(() => {
+    if (onSortedDataChange) {
+      onSortedDataChange(sortedData);
+    }
+  }, [sortedData, onSortedDataChange]);
 
   const requestSort = (key: SortKeyAlteracao) => {
     let direction: SortDirectionAlteracao = 'ascending';

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 
 // Interface for contract entries, matching 'Contrato' from page.tsx
 interface ContratoEntry {
@@ -13,6 +13,7 @@ interface ContratoEntry {
 interface ContratosModalTableProps {
   contratosData: ContratoEntry[];
   cairoClassName: string;
+  onSortedDataChange?: (sortedData: ContratoEntry[]) => void; // Callback para expor dados ordenados
 }
 
 type SortKeyContrato = keyof ContratoEntry | null;
@@ -49,7 +50,7 @@ const parseCurrencyString = (currencyStr: string): number | null => {
 };
 
 
-const ContratosModalTable: React.FC<ContratosModalTableProps> = ({ contratosData, cairoClassName }) => {
+const ContratosModalTable: React.FC<ContratosModalTableProps> = ({ contratosData, cairoClassName, onSortedDataChange }) => {
   const [sortKey, setSortKey] = useState<SortKeyContrato>(null);
   const [sortDirection, setSortDirection] = useState<SortDirectionContrato>('ascending');
 
@@ -121,6 +122,13 @@ const ContratosModalTable: React.FC<ContratosModalTableProps> = ({ contratosData
     }
     return sortableItems;
   }, [contratosData, sortKey, sortDirection]);
+
+  // Effect para notificar mudanças nos dados ordenados
+  useEffect(() => {
+    if (onSortedDataChange) {
+      onSortedDataChange(sortedData);
+    }
+  }, [sortedData, onSortedDataChange]);
 
   const requestSort = (key: SortKeyContrato) => {
     let direction: SortDirectionContrato = 'ascending';

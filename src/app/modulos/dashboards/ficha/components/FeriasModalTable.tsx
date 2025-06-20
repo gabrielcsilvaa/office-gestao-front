@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 
 // Interface for ferias entries, matching 'FormattedFerias' from page.tsx
 interface FeriasEntryModal {
@@ -18,6 +18,7 @@ interface FeriasEntryModal {
 interface FeriasModalTableProps {
   feriasData: FeriasEntryModal[];
   cairoClassName: string;
+  onSortedDataChange?: (sortedData: FeriasEntryModal[]) => void; // Callback para expor dados ordenados
 }
 
 type SortKeyFerias = keyof FeriasEntryModal | null;
@@ -43,7 +44,7 @@ const parseDateString = (dateStr: string): Date | null => {
   return null;
 };
 
-const FeriasModalTable: React.FC<FeriasModalTableProps> = ({ feriasData, cairoClassName }) => {
+const FeriasModalTable: React.FC<FeriasModalTableProps> = ({ feriasData, cairoClassName, onSortedDataChange }) => {
   const [sortKey, setSortKey] = useState<SortKeyFerias>(null);
   const [sortDirection, setSortDirection] = useState<SortDirectionFerias>('ascending');
 
@@ -90,6 +91,13 @@ const FeriasModalTable: React.FC<FeriasModalTableProps> = ({ feriasData, cairoCl
     }
     return sortableItems;
   }, [feriasData, sortKey, sortDirection]);
+
+  // Effect para notificar mudanças nos dados ordenados
+  useEffect(() => {
+    if (onSortedDataChange) {
+      onSortedDataChange(sortedData);
+    }
+  }, [sortedData, onSortedDataChange]);
 
   const requestSort = (key: SortKeyFerias) => {
     let direction: SortDirectionFerias = 'ascending';

@@ -20,6 +20,7 @@ interface DetalhesModalProps {
   exportConfig?: ExportConfig;
   children: React.ReactNode;
   cairoClassName: string;
+  sortedData?: any[]; // Dados ordenados para exportação
 }
 
 const DetalhesModal: React.FC<DetalhesModalProps> = ({
@@ -31,8 +32,12 @@ const DetalhesModal: React.FC<DetalhesModalProps> = ({
   exportConfig,
   children,
   cairoClassName,
+  sortedData,
 }) => {
   if (!isOpen) return null;
+
+  // Usar dados ordenados se disponíveis, senão usar dados originais
+  const dataToExport = sortedData || data;
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
@@ -50,8 +55,7 @@ const DetalhesModal: React.FC<DetalhesModalProps> = ({
         </div>        {/* 📤 Botões de Exportação */}
         {exportConfig && (
           <div className="flex gap-4 mb-4 justify-end">
-            {/* Botão PDF */}
-            <button
+            {/* Botão PDF */}            <button
               className={`p-1 rounded border transition-colors ${
                 data && data.length > 0
                   ? "border-gray-300 hover:bg-green-100 text-gray-700 cursor-pointer"
@@ -60,7 +64,7 @@ const DetalhesModal: React.FC<DetalhesModalProps> = ({
               style={{ width: 36, height: 36 }}
               onClick={() => {
                 if (data && data.length > 0) {
-                  exportConfig.pdfHandler(data, exportConfig.reportName);
+                  exportConfig.pdfHandler(dataToExport, exportConfig.reportName);
                 }
               }}
               disabled={!data || data.length === 0}
@@ -80,8 +84,7 @@ const DetalhesModal: React.FC<DetalhesModalProps> = ({
               />
             </button>
 
-            {/* Botão Excel */}
-            <button
+            {/* Botão Excel */}            <button
               className={`p-1 rounded border transition-colors ${
                 data && data.length > 0
                   ? "border-gray-300 hover:bg-green-100 text-gray-700 cursor-pointer"
@@ -90,7 +93,7 @@ const DetalhesModal: React.FC<DetalhesModalProps> = ({
               style={{ width: 36, height: 36 }}
               onClick={() => {
                 if (data && data.length > 0) {
-                  exportConfig.excelHandler(data, exportConfig.reportName);
+                  exportConfig.excelHandler(dataToExport, exportConfig.reportName);
                 }
               }}
               disabled={!data || data.length === 0}

@@ -141,18 +141,24 @@ export default function FichaPessoalPage() {
   type ModalType = 'exames' | 'afastamentos' | 'contratos' | 'ferias' | 'alteracoes' | 'evolucao' | 'valorPorGrupo' | null;
   const [modalAberto, setModalAberto] = useState<ModalType>(null);
   const handleCloseModal = () => setModalAberto(null);
-
   // 📅 Estados de data
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
   
-  // 📊 Estados de dados brutos da API
+  // 📊 Estados de dados brutos da API  
   const [dados, setDados] = useState<EmpresaFicha[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [empresaOptions, setEmpresaOptions] = useState<string[]>([]);
   const [feriasRaw, setFeriasRaw] = useState<FeriasPorEmpresa[]>([]);
   const [alteracoesRaw, setAlteracoesRaw] = useState<AlteracoesPorEmpresa[]>([]);
+
+  // 📊 Estados para dados ordenados das tabelas (para exportação consistente)
+  const [sortedExamesData, setSortedExamesData] = useState<any[]>([]);
+  const [sortedAfastamentosData, setSortedAfastamentosData] = useState<any[]>([]);
+  const [sortedContratosData, setSortedContratosData] = useState<any[]>([]);
+  const [sortedFeriasData, setSortedFeriasData] = useState<any[]>([]);
+  const [sortedAlteracoesData, setSortedAlteracoesData] = useState<any[]>([]);
 
   // 🧠 Hook customizado - Cérebro de dados processados
   const {
@@ -880,6 +886,7 @@ export default function FichaPessoalPage() {
           title={getModalConfig(modalAberto).title}
           subtitle={getModalConfig(modalAberto).subtitle}
           data={getModalConfig(modalAberto).data}
+          sortedData={getModalConfig(modalAberto).sortedData}
           exportConfig={getModalConfig(modalAberto).exportConfig}
           cairoClassName={cairo.className}
         >
@@ -888,7 +895,6 @@ export default function FichaPessoalPage() {
       )}
     </div>
   );
-
   // 🎛️ Função helper para configurar cada modal
   function getModalConfig(tipo: ModalType) {
     switch (tipo) {
@@ -897,40 +903,63 @@ export default function FichaPessoalPage() {
           title: "Histórico de Exames Detalhado",
           subtitle: "Visualização completa dos exames por funcionário",
           data: examesData,
+          sortedData: sortedExamesData,
           exportConfig: exportConfigs.exames,
-          component: <AtestadosModalTable atestadosData={examesData} cairoClassName={cairo.className} />
+          component: <AtestadosModalTable 
+            atestadosData={examesData} 
+            cairoClassName={cairo.className} 
+            onSortedDataChange={setSortedExamesData}
+          />
         };
       case 'afastamentos':
         return {
           title: "Histórico de Afastamentos Detalhado",
           subtitle: "Visualização completa dos afastamentos por funcionário",
           data: afastamentosData,
+          sortedData: sortedAfastamentosData,
           exportConfig: exportConfigs.afastamentos,
-          component: <AfastamentosModalTable afastamentosData={afastamentosData} cairoClassName={cairo.className} />
+          component: <AfastamentosModalTable 
+            afastamentosData={afastamentosData} 
+            cairoClassName={cairo.className}
+            onSortedDataChange={setSortedAfastamentosData}
+          />
         };
       case 'contratos':
         return {
           title: "Histórico de Contratos Detalhado",
           subtitle: "Visualização completa dos contratos por funcionário",
           data: contratosData,
+          sortedData: sortedContratosData,
           exportConfig: exportConfigs.contratos,
-          component: <ContratosModalTable contratosData={contratosData} cairoClassName={cairo.className} />
-        };
-      case 'ferias':
+          component: <ContratosModalTable 
+            contratosData={contratosData} 
+            cairoClassName={cairo.className}
+            onSortedDataChange={setSortedContratosData}
+          />
+        };      case 'ferias':
         return {
           title: "Detalhes de Férias",
           subtitle: "Visualização completa das férias por funcionário",
           data: feriasData,
+          sortedData: sortedFeriasData,
           exportConfig: exportConfigs.ferias,
-          component: <FeriasModalTable feriasData={feriasData} cairoClassName={cairo.className} />
-        };
+          component: <FeriasModalTable 
+            feriasData={feriasData} 
+            cairoClassName={cairo.className}
+            onSortedDataChange={setSortedFeriasData}
+          />        };
       case 'alteracoes':
         return {
           title: "Detalhes de Alterações Salariais",
           subtitle: "Visualização completa das alterações salariais por funcionário",
           data: alteracoesData,
+          sortedData: sortedAlteracoesData,
           exportConfig: exportConfigs.alteracoes,
-          component: <AlteracoesSalariaisModalTable alteracoesData={alteracoesData} cairoClassName={cairo.className} />
+          component: <AlteracoesSalariaisModalTable 
+            alteracoesData={alteracoesData} 
+            cairoClassName={cairo.className}
+            onSortedDataChange={setSortedAlteracoesData}
+          />
         };
       default:
         return {
