@@ -17,6 +17,8 @@ import Calendar from "@/components/calendar";
 import Loading from "@/app/loading";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
+import { Funcionario, EmpresaFicha, FeriasPorEmpresa, FormattedFerias, AlteracoesPorEmpresa, FormattedAlteracao, Afastamento, Exame, Contrato, FeriasEntry, AlteracaoEntry, AfastamentoEntryRaw, ExameEntryRaw } from "@/types/fichaPessoal.types";
+import { formatDate, formatDateToBR, formatCurrencyValue, capitalizeWords, calculateAge, parseCurrency, diffDays } from "@/utils/formatters";
 
 // Importe os novos componentes de tabela para o modal
 import FeriasModalTable from "./components/FeriasModalTable";
@@ -30,209 +32,6 @@ const cairo = Cairo({
   subsets: ["latin"],
   variable: "--font-cairo",
 });
-
-interface Funcionario {
-  id_empregado: number;
-  nome: string;
-  data_nascimento?: string;
-  cargo?: string;
-  escolaridade?: string;
-  admissao?: string;
-  demissao?: string; // Adicionar propriedade demissao
-  salario?: string;
-  afastamentos?: AfastamentoEntryRaw[];
-  exames?: ExameEntryRaw[];
-}
-
-interface EmpresaFicha {
-  id_empresa: number;
-  nome_empresa: string;
-  funcionarios?: Funcionario[];
-}
-
-interface FeriasEntry {
-  id_empregado: number;
-  nome: string;
-  inicio_aquisitivo: string;
-  fim_aquisitivo: string;
-  inicio_gozo: string;
-  fim_gozo: string;
-}
-
-interface FeriasPorEmpresa {
-  id_empresa: number;
-  ferias: FeriasEntry[];
-}
-
-interface FormattedFerias {
-  nomeColaborador: string;
-  inicioPeriodoAquisitivo: string;
-  fimPeriodoAquisitivo: string;
-  inicioPeriodoGozo: string;         // adicionado
-  fimPeriodoGozo: string;            // adicionado
-  limiteParaGozo: string;
-  diasDeDireito: number;
-  diasGozados: number;
-  diasDeSaldo: number;
-}
-
-interface AlteracaoEntry {
-  id_empregado: number;
-  nome: string;
-  competencia: string;
-  novo_salario: string;
-  salario_anterior: string | null;
-  motivo: number;
-}
-interface AlteracoesPorEmpresa {
-  id_empresa: number;
-  alteracoes: AlteracaoEntry[];
-}
-interface FormattedAlteracao {
-  nomeColaborador: string;
-  competencia: string;
-  salarioAnterior: number | null;
-  salarioNovo: number;
-  motivo: string;
-  percentual: string;
-}
-
-interface AfastamentoEntryRaw {
-  data_inicial: string;
-  data_final: string | null;
-  num_dias: string;
-  tipo: string;
-}
-
-interface Afastamento {
-  inicio: string;
-  termino: string;
-  diasAfastados: string;
-  tipo: string;
-  nomeColaborador: string;
-}
-
-interface ExameEntryRaw {
-  data_exame: string;
-  data_vencimento: string;
-  resultado: string;
-  tipo: string;
-}
-
-interface Exame {
-  vencimento: string;
-  dataExame: string;
-  resultado: string;
-  tipo: string;
-  nomeColaborador: string;
-}
-
-interface Contrato {
-  id: string;
-  empresa: string;
-  colaborador: string;
-  dataAdmissao: string;
-  dataRescisao: string;
-  salarioBase: string;
-}
-
-export const formatDate = (date: Date | null) => {
-  if (date) {
-    return date.toISOString().split("T")[0];
-  }
-  return null;
-};
-
-const formatDateToBR = (dateString: string | null | undefined): string => {
-  if (!dateString) return "N/A";
-  try {
-    const [year, month, day] = dateString.split("-");
-    if (year && month && day) {
-      return `${day}/${month}/${year}`;
-    }
-    return "N/A";
-  } catch (e) {
-    return "N/A";
-  }
-};
-
-const formatCurrencyValue = (value: string | number | null | undefined): string => {
-  if (value === null || value === undefined || value === "") return "N/A";
-  const num = parseFloat(String(value));
-  if (isNaN(num)) return "N/A";
-  return `R$ ${num.toLocaleString("pt-BR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
-};
-
-// Helper function to capitalize words
-const capitalizeWords = (text: string | null | undefined): string => {
-  if (!text) return "N/A";
-  
-  const romanNumeralPattern = /^(M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3}))$/i;
-
-  return text
-    .toLowerCase()
-    .split(" ")
-    .map((word) => {
-      if (word.toLowerCase().startsWith("(o)") || word.toLowerCase().startsWith("(a)")) {
-        // Specific handling for (o) or (a) if needed, e.g. Costureira(o)
-        // This part can be tricky if the (o) or (a) is part of a larger word.
-        // For "COSTUREIRA(O)", the current logic might produce "Costureira(o)"
-        // If you want "Costureira(O)", more specific logic is needed.
-        // The provided example "Costureira(o) Em Geral" seems to be the target.
-        // Let's refine the (o)/(a) handling slightly for common cases.
-        if (word.match(/\([oa]\)/i)) {
-            const parts = word.split(/(\([oa]\))/i); // Split by (o) or (a)
-            return parts.map((part, index) => {
-                if (index === 0 && part.length > 0) { // Part before (o)/(a)
-                    return part.charAt(0).toUpperCase() + part.slice(1);
-                }
-                return part; // (o)/(a) or part after
-            }).join('');
-        }
-      }
-      // Check if the word is a Roman numeral
-      if (romanNumeralPattern.test(word)) {
-        return word.toUpperCase();
-      }
-      if (word.length > 0) {
-        return word.charAt(0).toUpperCase() + word.slice(1);
-      }
-      return "";
-    })
-    .join(" ");
-};
-
-// Helper function to calculate age
-const calculateAge = (birthDateString: string | null | undefined): string => {
-  if (!birthDateString) return "N/A";
-  try {
-    const birthDate = new Date(birthDateString);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    return age >= 0 ? `${age} anos` : "N/A";
-  } catch (e) {
-    return "N/A";
-  }
-};
-
-
-const parseCurrency = (currencyString: string): number => {
-  if (!currencyString) return 0;
-  return parseFloat(
-    currencyString
-      .replace("R$", "")
-      .replace(/\./g, "")
-      .replace(",", ".")
-      .trim()
-  );
-};
 
 const rawChartDataEntriesFicha = [
   "Jan/2024: R$ 1.896,58",
@@ -288,9 +87,6 @@ const valorPorGrupoDataFicha = [
   { name: "Faltas e Atrasos (Desconto)", value: -120.00 },
   { name: "Empréstimo Consignado (Desconto)", value: -400.00 },
 ];
-
-const diffDays = (start: string, end: string): number =>
-  Math.ceil((new Date(end).getTime() - new Date(start).getTime()) / (1000*60*60*24));
 
 // Helper function to add a common header to PDF documents
 const addHeaderToPDF = (
