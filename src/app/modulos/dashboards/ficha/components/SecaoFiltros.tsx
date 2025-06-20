@@ -42,6 +42,14 @@ export default function SecaoFiltros({
 	const [isColaboradorOpen, setIsColaboradorOpen] = useState(false);
 	const colaboradorRef = useRef<HTMLDivElement>(null);
 
+	// Refs para controlar scroll dos dropdowns
+	const empresaListRef = useRef<HTMLDivElement>(null);
+	const colaboradorListRef = useRef<HTMLDivElement>(null);
+
+	// States para salvar posição do scroll
+	const [empresaScrollPosition, setEmpresaScrollPosition] = useState(0);
+	const [colaboradorScrollPosition, setColaboradorScrollPosition] = useState(0);
+
 	const [empresaSearch, setEmpresaSearch] = useState<string>("");           
 	const filteredEmpresas = empresaOptionsData.filter(empresa => {
 		const searchLower = empresaSearch.toLowerCase();
@@ -61,7 +69,6 @@ export default function SecaoFiltros({
 	// Refs para os inputs de pesquisa
 	const empresaSearchInputRef = useRef<HTMLInputElement>(null);
 	const colaboradorSearchInputRef = useRef<HTMLInputElement>(null);
-
 	// Focar no input de pesquisa quando abrir dropdowns
 	useEffect(() => {
 		if (isEmpresaOpen && empresaSearchInputRef.current) {
@@ -80,14 +87,80 @@ export default function SecaoFiltros({
 			}, 10);
 		}
 	}, [isColaboradorOpen]);
+	// Effect para restaurar posição do scroll quando abrir dropdown de empresa
+	useEffect(() => {
+		if (isEmpresaOpen && empresaListRef.current) {
+			setTimeout(() => {
+				if (empresaListRef.current) {
+					// Se há um item selecionado, fazer scroll para ele
+					if (selectedEmpresa) {
+						const selectedElement = empresaListRef.current.querySelector(`[data-empresa="${selectedEmpresa}"]`);
+						if (selectedElement) {
+							// Posicionar o item selecionado próximo ao topo, deixando espaço para ver os itens abaixo
+							selectedElement.scrollIntoView({ block: 'start', behavior: 'auto' });
+							
+							// Ajuste fino: scroll um pouco para cima para mostrar contexto
+							const currentScroll = empresaListRef.current.scrollTop;
+							const itemHeight = 52; // altura aproximada de cada item (py-3 = 12px top + 12px bottom + texto)
+							empresaListRef.current.scrollTop = Math.max(0, currentScroll - itemHeight);
+						}
+					} else {
+						// Caso contrário, restaurar posição salva
+						empresaListRef.current.scrollTop = empresaScrollPosition;
+					}
+				}
+			}, 50);
+		}
+	}, [isEmpresaOpen, selectedEmpresa, empresaScrollPosition]);
 
+	// Effect para restaurar posição do scroll quando abrir dropdown de colaborador
+	useEffect(() => {
+		if (isColaboradorOpen && colaboradorListRef.current) {
+			setTimeout(() => {
+				if (colaboradorListRef.current) {
+					// Se há um item selecionado, fazer scroll para ele
+					if (selectedColaborador) {
+						const selectedElement = colaboradorListRef.current.querySelector(`[data-colaborador="${selectedColaborador}"]`);
+						if (selectedElement) {
+							// Posicionar o item selecionado próximo ao topo, deixando espaço para ver os itens abaixo
+							selectedElement.scrollIntoView({ block: 'start', behavior: 'auto' });
+							
+							// Ajuste fino: scroll um pouco para cima para mostrar contexto
+							const currentScroll = colaboradorListRef.current.scrollTop;
+							const itemHeight = 52; // altura aproximada de cada item
+							colaboradorListRef.current.scrollTop = Math.max(0, currentScroll - itemHeight);
+						}
+					} else {
+						// Caso contrário, restaurar posição salva
+						colaboradorListRef.current.scrollTop = colaboradorScrollPosition;
+					}
+				}
+			}, 50);
+		}
+	}, [isColaboradorOpen, selectedColaborador, colaboradorScrollPosition]);
+
+	// Função para salvar posição do scroll antes de fechar dropdown empresa
+	const handleCloseEmpresaDropdown = () => {
+		if (empresaListRef.current) {
+			setEmpresaScrollPosition(empresaListRef.current.scrollTop);
+		}
+		setIsEmpresaOpen(false);
+	};
+
+	// Função para salvar posição do scroll antes de fechar dropdown colaborador
+	const handleCloseColaboradorDropdown = () => {
+		if (colaboradorListRef.current) {
+			setColaboradorScrollPosition(colaboradorListRef.current.scrollTop);
+		}
+		setIsColaboradorOpen(false);
+	};
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
 			if (empresaRef.current && !empresaRef.current.contains(event.target as Node)) {
-				setIsEmpresaOpen(false);
+				handleCloseEmpresaDropdown();
 			}
 			if (colaboradorRef.current && !colaboradorRef.current.contains(event.target as Node)) {
-				setIsColaboradorOpen(false);
+				handleCloseColaboradorDropdown();
 			}
 		};
 		document.addEventListener("mousedown", handleClickOutside);
@@ -148,11 +221,10 @@ export default function SecaoFiltros({
 											</svg>
 										</button>
 									)}
-								</div>
-							</div>
+								</div>							</div>
 
 							{/* Lista de opções aprimorada */}
-							<div className="max-h-48 overflow-y-auto">
+							<div ref={empresaListRef} className="max-h-48 overflow-y-auto">
 								{ !areDatesSelected ? (
 									<div className="px-4 py-8 text-center">
 										<svg className="mx-auto w-8 h-8 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -192,11 +264,11 @@ export default function SecaoFiltros({
 													{filteredEmpresas.length} resultado{filteredEmpresas.length !== 1 ? 's' : ''} encontrado{filteredEmpresas.length !== 1 ? 's' : ''}
 												</p>
 											</div>
-										)}
-										{filteredEmpresas.map((empresa, index) => (
+										)}										{filteredEmpresas.map((empresa, index) => (
 											<div
 												key={empresa.id_empresa}
-												onClick={() => { onChangeEmpresa(empresa.nome_empresa); setIsEmpresaOpen(false); setEmpresaSearch(""); }}
+												data-empresa={empresa.nome_empresa}
+												onClick={() => { onChangeEmpresa(empresa.nome_empresa); handleCloseEmpresaDropdown(); setEmpresaSearch(""); }}
 												className={`px-4 py-3 text-sm hover:bg-blue-50 cursor-pointer transition-colors flex items-center justify-between group ${
 													selectedEmpresa === empresa.nome_empresa ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:text-blue-600'
 												}`}
@@ -265,10 +337,8 @@ export default function SecaoFiltros({
 										</button>
 									)}
 								</div>
-							</div>
-
-							{/* Lista de opções aprimorada */}
-							<div className="max-h-48 overflow-y-auto">
+							</div>							{/* Lista de opções aprimorada */}
+							<div ref={colaboradorListRef} className="max-h-48 overflow-y-auto">
 								{ !isEmpresaSelected ? (
 									<div className="px-4 py-8 text-center">
 										<svg className="mx-auto w-8 h-8 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -308,15 +378,15 @@ export default function SecaoFiltros({
 													{filteredColabs.length} resultado{filteredColabs.length !== 1 ? 's' : ''} encontrado{filteredColabs.length !== 1 ? 's' : ''}
 												</p>
 											</div>
-										)}
-										{filteredColabs.map((opt, index) => (
+										)}										{filteredColabs.map((opt, index) => (
 											<div
 												key={opt.id_empregado}
+												data-colaborador={opt.nome}
 												onClick={() => { 
 													// Implementar toggle: se já está selecionado, desseleciona
 													const novoColaborador = selectedColaborador === opt.nome ? "" : opt.nome;
 													onChangeColaborador(novoColaborador); 
-													setIsColaboradorOpen(false); 
+													handleCloseColaboradorDropdown(); 
 													setColSearch(""); 
 												}}
 												className={`px-4 py-3 text-sm hover:bg-blue-50 cursor-pointer transition-colors flex items-center justify-between group ${
