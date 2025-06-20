@@ -11,6 +11,7 @@ import ContratosTable from "./components/ContratosTable";
 import FeriasDetalheCard from "./components/FeriasDetalheCard";
 import AlteracoesSalariaisDetalheCard from "./components/AlteracoesSalariaisDetalheCard";
 import Modal from "../organizacional/components/Modal";
+import DetalhesModal, { ExportConfig } from "./components/DetalhesModal";
 import EvolucaoChart from "./components/EvolucaoChart";
 import ValorPorGrupoChart from "./components/ValorPorGrupoChart";
 import Calendar from "@/components/calendar";
@@ -135,8 +136,11 @@ export default function FichaPessoalPage() {
   // 🎛️ Estados de filtros e controle da UI
   const [selectedEmpresa, setSelectedEmpresa] = useState<string>("");
   const [selectedColaborador, setSelectedColaborador] = useState<string>("");
-  const [modalContent, setModalContent] = useState<React.ReactNode | null>(null);
-  const handleCloseModal = () => setModalContent(null);
+  
+  // 🔄 Sistema de modais tipado
+  type ModalType = 'exames' | 'afastamentos' | 'contratos' | 'ferias' | 'alteracoes' | 'evolucao' | 'valorPorGrupo' | null;
+  const [modalAberto, setModalAberto] = useState<ModalType>(null);
+  const handleCloseModal = () => setModalAberto(null);
 
   // 📅 Estados de data
   const [startDate, setStartDate] = useState<string | null>(null);
@@ -281,7 +285,6 @@ export default function FichaPessoalPage() {
       contratos: contratosData,
     };
   }, [contratosData]);
-
   // 🔄 Loading state
   if (loading) {
     return <Loading />;
@@ -694,9 +697,37 @@ export default function FichaPessoalPage() {
         }))
       );
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Alterações");
-      XLSX.writeFile(wb, `${fileName}.xlsx`);
+      XLSX.utils.book_append_sheet(wb, ws, "Alterações");      XLSX.writeFile(wb, `${fileName}.xlsx`);
     });
+  };
+
+  // 📤 Configurações de exportação para cada tipo de modal
+  const exportConfigs: Record<string, ExportConfig> = {
+    exames: {
+      pdfHandler: exportExamesToPDF,
+      excelHandler: exportExamesToExcel,
+      reportName: "Histórico de Exames"
+    },
+    afastamentos: {
+      pdfHandler: exportAfastamentosToPDF,
+      excelHandler: exportAfastamentosToExcel,
+      reportName: "Histórico de Afastamentos"
+    },
+    contratos: {
+      pdfHandler: exportContratosToPDF,
+      excelHandler: exportContratosToExcel,
+      reportName: "Detalhes de Contratos"
+    },
+    ferias: {
+      pdfHandler: exportFeriasToPDF,
+      excelHandler: exportFeriasToExcel,
+      reportName: "Detalhes de Férias"
+    },
+    alteracoes: {
+      pdfHandler: exportAlteracoesToPDF,
+      excelHandler: exportAlteracoesToExcel,
+      reportName: "Detalhes de Alterações Salariais"
+    }
   };
 
   return (
@@ -793,62 +824,12 @@ export default function FichaPessoalPage() {
 
         {/* Tabelas */}
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6 h-[450px]"> 
-          <div className="lg:col-span-1 h-full shadow-md overflow-auto min-h-0 rounded-lg">
-            <AtestadosTable 
+          <div className="lg:col-span-1 h-full shadow-md overflow-auto min-h-0 rounded-lg">            <AtestadosTable 
               atestadosData={examesData} 
               cairoClassName={cairo.className} 
               headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")}
               title="Histórico de Exames"
-              onMaximize={() =>
-                setModalContent(
-                  <div className="flex flex-col w-full h-full max-h-[calc(80vh-4rem)]">
-                    <h2 className={`text-2xl font-bold mb-4 ${cairo.className}`}>
-                      Histórico de Exames Detalhado
-                    </h2>
-                    {/* Botões de exportação estilo painel fixo */}
-                    <div className="flex gap-4 mb-4 justify-end">
-                      <button
-                        className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
-                        style={{ width: 36, height: 36 }}
-                        onClick={() => {
-                          // Exportar PDF (padrão carteira)
-                          exportExamesToPDF(examesData, "Histórico de Exames");
-                        }}
-                      >
-                        <img
-                          src="/assets/icons/pdf.svg"
-                          alt="Exportar PDF"
-                          width={24}
-                          height={24}
-                          draggable={false}
-                        />
-                      </button>
-                      <button
-                        className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
-                        style={{ width: 36, height: 36 }}
-                        onClick={() => {
-                          // Exportar Excel (padrão carteira, editável e sem erro de extensão)
-                          exportExamesToExcel(examesData, "Histórico de Exames");
-                        }}
-                      >
-                        <img
-                          src="/assets/icons/excel.svg"
-                          alt="Exportar Excel"
-                          width={24}
-                          height={24}
-                          draggable={false}
-                        />
-                      </button>
-                    </div>
-                    <div className="flex-1 overflow-auto">
-                      <AtestadosModalTable
-                        atestadosData={examesData}
-                        cairoClassName={cairo.className}
-                      />
-                    </div>
-                  </div>
-                )
-              }
+              onMaximize={() => setModalAberto('exames')}
             />
           </div>
 
@@ -857,54 +838,7 @@ export default function FichaPessoalPage() {
               afastamentosData={afastamentosData}
               cairoClassName={cairo.className} 
               headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")}
-              onMaximize={() =>
-                setModalContent(
-                  <div className="flex flex-col w-full h-full max-h-[calc(80vh-4rem)]">
-                    <h2 className={`text-2xl font-bold mb-4 ${cairo.className}`}>
-                      Histórico de Afastamentos Detalhado
-                    </h2>
-                    {/* Botões de exportação estilo painel fixo */}
-                    <div className="flex gap-4 mb-4 justify-end">
-                      <button
-                        className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
-                        style={{ width: 36, height: 36 }}
-                        onClick={() => {
-                          exportAfastamentosToPDF(afastamentosData, "Histórico de Afastamentos");
-                        }}
-                      >
-                        <img
-                          src="/assets/icons/pdf.svg"
-                          alt="Exportar PDF"
-                          width={24}
-                          height={24}
-                          draggable={false}
-                        />
-                      </button>
-                      <button
-                        className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
-                        style={{ width: 36, height: 36 }}
-                        onClick={() => {
-                          exportAfastamentosToExcel(afastamentosData, "Histórico de Afastamentos");
-                        }}
-                      >
-                        <img
-                          src="/assets/icons/excel.svg"
-                          alt="Exportar Excel"
-                          width={24}
-                          height={24}
-                          draggable={false}
-                        />
-                      </button>
-                    </div>
-                    <div className="flex-1 overflow-auto">
-                      <AfastamentosModalTable
-                        afastamentosData={afastamentosData}
-                        cairoClassName={cairo.className}
-                      />
-                    </div>
-                  </div>
-                )
-              }
+              onMaximize={() => setModalAberto('afastamentos')}
             />
           </div>
 
@@ -913,54 +847,7 @@ export default function FichaPessoalPage() {
               contratosData={contratosData}
               cairoClassName={cairo.className}
               headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")}
-              onMaximize={() =>
-                setModalContent(
-                  <div className="flex flex-col w-full h-full max-h-[calc(80vh-4rem)]">
-                    <h2 className={`text-2xl font-bold mb-4 ${cairo.className}`}>
-                      Histórico de Contratos Detalhado
-                    </h2>
-                    {/* Botões de exportação estilo painel fixo */}
-                    <div className="flex gap-4 mb-4 justify-end">
-                      <button
-                        className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
-                        style={{ width: 36, height: 36 }}
-                        onClick={() => {
-                          exportContratosToPDF(contratosData, "Detalhes de Contratos");
-                        }}
-                      >
-                        <img
-                          src="/assets/icons/pdf.svg"
-                          alt="Exportar PDF"
-                          width={24}
-                          height={24}
-                          draggable={false}
-                        />
-                      </button>
-                      <button
-                        className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
-                        style={{ width: 36, height: 36 }}
-                        onClick={() => {
-                          exportContratosToExcel(contratosData, "Detalhes de Contratos");
-                        }}
-                      >
-                        <img
-                          src="/assets/icons/excel.svg"
-                          alt="Exportar Excel"
-                          width={24}
-                          height={24}
-                          draggable={false}
-                        />
-                      </button>
-                    </div>
-                    <div className="flex-1 overflow-auto">
-                      <ContratosModalTable
-                        contratosData={contratosData}
-                        cairoClassName={cairo.className}
-                      />
-                    </div>
-                  </div>
-                )
-              }
+              onMaximize={() => setModalAberto('contratos')}
             />
           </div>
         </div>
@@ -972,55 +859,7 @@ export default function FichaPessoalPage() {
               feriasData={feriasData}
               cairoClassName={cairo.className}
               headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")}
-              title="Detalhes de Férias"
-              onMaximize={() =>
-                setModalContent(
-                  <div className="flex flex-col w-full h-full max-h-[calc(80vh-4rem)]">
-                    <h2 className={`text-2xl font-bold mb-4 ${cairo.className}`}>
-                      Detalhes de Férias
-                    </h2>
-                    {/* Botões de exportação estilo painel fixo */}
-                    <div className="flex gap-4 mb-4 justify-end">
-                      <button
-                        className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
-                        style={{ width: 36, height: 36 }}
-                        onClick={() => {
-                          exportFeriasToPDF(feriasData, "Detalhes de Férias");
-                        }}
-                      >
-                        <img
-                          src="/assets/icons/pdf.svg"
-                          alt="Exportar PDF"
-                          width={24}
-                          height={24}
-                          draggable={false}
-                        />
-                      </button>
-                      <button
-                        className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
-                        style={{ width: 36, height: 36 }}
-                        onClick={() => {
-                          exportFeriasToExcel(feriasData, "Detalhes de Férias");
-                        }}
-                      >
-                        <img
-                          src="/assets/icons/excel.svg"
-                          alt="Exportar Excel"
-                          width={24}
-                          height={24}
-                          draggable={false}
-                        />
-                      </button>
-                    </div>
-                    <div className="flex-1 overflow-auto">
-                      <FeriasModalTable
-                        feriasData={feriasData}
-                        cairoClassName={cairo.className}
-                      />
-                    </div>
-                  </div>
-                )
-              }
+              title="Detalhes de Férias"              onMaximize={() => setModalAberto('ferias')}
             />
           </div>
           <div className="h-full shadow-md overflow-auto min-h-0 rounded-lg">
@@ -1028,66 +867,79 @@ export default function FichaPessoalPage() {
               alteracoesData={alteracoesData}
               cairoClassName={cairo.className}
               headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")}
-              title="Detalhes de Alterações Salariais"
-              onMaximize={() =>
-                setModalContent(
-                  <div className="flex flex-col w-full h-full max-h-[calc(80vh-4rem)]">
-                    <h2 className={`text-2xl font-bold mb-4 ${cairo.className}`}>
-                      Detalhes de Alterações Salariais
-                    </h2>
-                    {/* Botões de exportação estilo painel fixo */}
-                    <div className="flex gap-4 mb-4 justify-end">
-                      <button
-                        className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
-                        style={{ width: 36, height: 36 }}
-                        onClick={() => {
-                          exportAlteracoesToPDF(alteracoesData, "Detalhes de Alterações Salariais");
-                        }}
-                      >
-                        <img
-                          src="/assets/icons/pdf.svg"
-                          alt="Exportar PDF"
-                          width={24}
-                          height={24}
-                          draggable={false}
-                        />
-                      </button>
-                      <button
-                        className="p-1 rounded border border-gray-300 hover:bg-green-100 mt-auto"
-                        style={{ width: 36, height: 36 }}
-                        onClick={() => {
-                          exportAlteracoesToExcel(alteracoesData, "Detalhes de Alterações Salariais");
-                        }}
-                      >
-                        <img
-                          src="/assets/icons/excel.svg"
-                          alt="Exportar Excel"
-                          width={24}
-                          height={24}
-                          draggable={false}
-                        />
-                      </button>
-                    </div>
-                    <div className="flex-1 overflow-auto">
-                      <AlteracoesSalariaisModalTable
-                        alteracoesData={alteracoesData}
-                        cairoClassName={cairo.className}
-                      />
-                    </div>
-                  </div>
-                )
-              }
+              title="Detalhes de Alterações Salariais"              onMaximize={() => setModalAberto('alteracoes')}
             />
           </div>
         </div>
         <p className="mt-4"></p>
-      </div>
-
-      {modalContent && (
-        <Modal isOpen={true} onClose={handleCloseModal}>
-          {modalContent}
-        </Modal>
+      </div>      {/* 🔄 Sistema de Modais Unificado */}
+      {modalAberto && (
+        <DetalhesModal
+          isOpen={modalAberto !== null}
+          onClose={handleCloseModal}
+          title={getModalConfig(modalAberto).title}
+          subtitle={getModalConfig(modalAberto).subtitle}
+          data={getModalConfig(modalAberto).data}
+          exportConfig={getModalConfig(modalAberto).exportConfig}
+          cairoClassName={cairo.className}
+        >
+          {getModalConfig(modalAberto).component}
+        </DetalhesModal>
       )}
     </div>
   );
+
+  // 🎛️ Função helper para configurar cada modal
+  function getModalConfig(tipo: ModalType) {
+    switch (tipo) {
+      case 'exames':
+        return {
+          title: "Histórico de Exames Detalhado",
+          subtitle: "Visualização completa dos exames por funcionário",
+          data: examesData,
+          exportConfig: exportConfigs.exames,
+          component: <AtestadosModalTable atestadosData={examesData} cairoClassName={cairo.className} />
+        };
+      case 'afastamentos':
+        return {
+          title: "Histórico de Afastamentos Detalhado",
+          subtitle: "Visualização completa dos afastamentos por funcionário",
+          data: afastamentosData,
+          exportConfig: exportConfigs.afastamentos,
+          component: <AfastamentosModalTable afastamentosData={afastamentosData} cairoClassName={cairo.className} />
+        };
+      case 'contratos':
+        return {
+          title: "Histórico de Contratos Detalhado",
+          subtitle: "Visualização completa dos contratos por funcionário",
+          data: contratosData,
+          exportConfig: exportConfigs.contratos,
+          component: <ContratosModalTable contratosData={contratosData} cairoClassName={cairo.className} />
+        };
+      case 'ferias':
+        return {
+          title: "Detalhes de Férias",
+          subtitle: "Visualização completa das férias por funcionário",
+          data: feriasData,
+          exportConfig: exportConfigs.ferias,
+          component: <FeriasModalTable feriasData={feriasData} cairoClassName={cairo.className} />
+        };
+      case 'alteracoes':
+        return {
+          title: "Detalhes de Alterações Salariais",
+          subtitle: "Visualização completa das alterações salariais por funcionário",
+          data: alteracoesData,
+          exportConfig: exportConfigs.alteracoes,
+          component: <AlteracoesSalariaisModalTable alteracoesData={alteracoesData} cairoClassName={cairo.className} />
+        };
+      default:
+        return {
+          title: "",
+          subtitle: "",
+          data: [],
+          exportConfig: undefined,
+          component: null
+        };
+    }
+  }
 }
