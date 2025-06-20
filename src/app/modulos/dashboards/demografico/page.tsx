@@ -7,8 +7,11 @@ import GraficoCategoria from "./components/grafico_categoria";
 import GraficoEscolaridade from "./components/grafico_escolaridade";
 import GraficoCargo from "./components/grafico_cargo";
 import TabelaColaboradores from "./components/tabela_colaboradores";
-import { RotateCcw } from "lucide-react";
+import Menu from "./components/menu";
+import { useCallback
 
+
+ } from "react";
 export default function Demografico() {
   const [botaoSelecionado, setBotaoSelecionado] = useState("");
   const [filtros, setFiltros] = useState({
@@ -17,6 +20,7 @@ export default function Demografico() {
     tipoColaborador: "",
     servico: "",
   });
+
 
   const resetarFiltros = () => {
     setBotaoSelecionado("");
@@ -27,6 +31,11 @@ export default function Demografico() {
       servico: "",
     });
   };
+
+  const handleSelecionarBotao = useCallback((nome: string) => {
+  setBotaoSelecionado(nome);
+}, []);
+
 
   const [dadosDemograficos, setDadosDemograficos] = useState([]);
   const [dadosFaixaEtaria, setDadosFaixaEtaria] = useState([]);
@@ -228,90 +237,91 @@ export default function Demografico() {
         setDadosFaixaEtaria(dadosFaixa);
 
         // Gráfico linha mensal (Ativos, Contratações e Demissões)
+        // Inicializa os dados mensais
         const monthlyDataMap = new Map<
           string,
           { Ativos: number; Contratações: number; Demissões: number }
         >();
 
+        const formatMonthKey = (date: Date): string =>
+          `${date.toLocaleString("pt-BR", { month: "short" }).replace(".", "")}/${date
+            .getFullYear()
+            .toString()
+            .slice(-2)}`;
+
+        // Gerar os meses em ordem
         const monthsInOrder: string[] = [];
+        const monthDates: Date[] = [];
+
         for (
           let d = new Date(startDate);
           d <= endDate;
           d.setMonth(d.getMonth() + 1)
         ) {
-          if (
-            d.getMonth() > today.getMonth() &&
-            d.getFullYear() === today.getFullYear()
-          )
-            break;
-
-          const monthKey = `${d.toLocaleString("pt-BR", { month: "short" }).replace(".", "")}/${d.getFullYear().toString().slice(-2)}`;
+          const newDate = new Date(d); // Evita mutação de referência
+          const monthKey = formatMonthKey(newDate);
+          monthsInOrder.push(monthKey);
+          monthDates.push(new Date(newDate)); // Salva o Date original
           monthlyDataMap.set(monthKey, {
             Ativos: 0,
             Contratações: 0,
             Demissões: 0,
           });
-          monthsInOrder.push(monthKey);
         }
 
+        // Contar contratações e demissões
         for (const funcionario of funcionarios) {
-          if (funcionario.admissao) {
-            const admissaoDate = new Date(funcionario.admissao);
-            if (admissaoDate >= startDate && admissaoDate <= endDate) {
-              const monthKey = `${admissaoDate.toLocaleString("pt-BR", { month: "short" }).replace(".", "")}/${admissaoDate.getFullYear().toString().slice(-2)}`;
-              const data = monthlyDataMap.get(monthKey);
-              if (data) data.Contratações++;
-            }
-          }
+          const admissaoDate = new Date(funcionario.admissao);
+          const demissaoDate = funcionario.demissao
+            ? new Date(funcionario.demissao)
+            : null;
 
-          if (funcionario.demissao) {
-            const demissaoDate = new Date(funcionario.demissao);
-            if (demissaoDate >= startDate && demissaoDate <= endDate) {
-              const monthKey = `${demissaoDate.toLocaleString("pt-BR", { month: "short" }).replace(".", "")}/${demissaoDate.getFullYear().toString().slice(-2)}`;
-              const data = monthlyDataMap.get(monthKey);
-              if (data) data.Demissões++;
+          for (let i = 0; i < monthDates.length; i++) {
+            const monthEnd = new Date(
+              monthDates[i].getFullYear(),
+              monthDates[i].getMonth() + 1,
+              0,
+              23,
+              59,
+              59,
+              999
+            );
+            const monthKey = monthsInOrder[i];
+
+            // Contratação naquele mês
+            if (
+              admissaoDate.getFullYear() === monthDates[i].getFullYear() &&
+              admissaoDate.getMonth() === monthDates[i].getMonth()
+            ) {
+              monthlyDataMap.get(monthKey)!.Contratações++;
+            }
+
+            // Demissão naquele mês
+            if (
+              demissaoDate &&
+              demissaoDate.getFullYear() === monthDates[i].getFullYear() &&
+              demissaoDate.getMonth() === monthDates[i].getMonth()
+            ) {
+              monthlyDataMap.get(monthKey)!.Demissões++;
+            }
+
+            // Verifica se funcionário estava ativo naquele mês
+            const ativoNesseMes =
+              admissaoDate <= monthEnd &&
+              (!demissaoDate || demissaoDate > monthEnd);
+
+            if (ativoNesseMes) {
+              monthlyDataMap.get(monthKey)!.Ativos++;
             }
           }
         }
 
-        for (const monthKey of monthsInOrder) {
-          const [mesAbreviado, anoAbreviado] = monthKey.split("/");
-          const anoCompleto = parseInt(`20${anoAbreviado}`);
-          const mesIndex = new Date(`${mesAbreviado} 1, 2000`).getMonth();
-
-          const endOfMonthDate = new Date(
-            anoCompleto,
-            mesIndex + 1,
-            0,
-            23,
-            59,
-            59,
-            999
-          );
-          let activeForThisMonth = 0;
-
-          for (const funcionario of funcionarios) {
-            const admissaoDate = new Date(funcionario.admissao);
-            const demissaoDate = funcionario.demissao
-              ? new Date(funcionario.demissao)
-              : null;
-
-            const wasAdmitted = admissaoDate <= endOfMonthDate;
-            const notTerminated =
-              !demissaoDate || demissaoDate > endOfMonthDate;
-
-            if (wasAdmitted && notTerminated) activeForThisMonth++;
-          }
-
-          const data = monthlyDataMap.get(monthKey);
-          if (data) data.Ativos = activeForThisMonth;
-        }
-
+        // Converte para array para o gráfico
         const dadosParaGraficoLinha = monthsInOrder.map((monthKey) => ({
           month: monthKey,
-          Ativos: monthlyDataMap.get(monthKey)?.Ativos || 0,
-          Contratações: monthlyDataMap.get(monthKey)?.Contratações || 0,
-          Demissões: monthlyDataMap.get(monthKey)?.Demissões || 0,
+          Ativos: monthlyDataMap.get(monthKey)!.Ativos,
+          Contratações: monthlyDataMap.get(monthKey)!.Contratações,
+          Demissões: monthlyDataMap.get(monthKey)!.Demissões,
         }));
 
         setDadosEmpresas(dadosParaGraficoLinha);
@@ -325,8 +335,20 @@ export default function Demografico() {
 
   return (
     <div className="bg-gray-100 h-full p-4 overflow-y-auto">
+
+
+<Menu
+  filtros={filtros}
+  setFiltros={setFiltros}
+  botaoSelecionado={botaoSelecionado}
+  setBotaoSelecionado={handleSelecionarBotao}
+  resetarFiltros={resetarFiltros}
+/>
+
+
+
       {/* Cabeçalho e Filtros */}
-      <div className="bg-gray-100 py-2 mb-6">
+      {/* <div className="bg-gray-100 py-2 mb-6">
         <div className="px-6">
           <div className="flex flex-col md:flex-row md:items-center flex-wrap gap-4 mb-6">
             <h1 className="text-2xl font-bold whitespace-nowrap">
@@ -365,7 +387,7 @@ export default function Demografico() {
           </div>
 
           {/* Filtros */}
-          <div className="flex flex-col md:flex-row md:items-center flex-wrap gap-4">
+          {/* <div className="flex flex-col md:flex-row md:items-center flex-wrap gap-4">
             <select
               className="w-full md:w-[232px] p-2 border rounded text-black-700 bg-white"
               value={filtros.centroCusto}
@@ -429,7 +451,8 @@ export default function Demografico() {
             </select>
           </div>
         </div>
-      </div>
+      </div> */} 
+
 
       <div className="h-px bg-gray-300 my-6"></div>
 
