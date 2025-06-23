@@ -124,10 +124,10 @@ export default function DashboardOrganizacional() {
             onEndDateChange={handleEndDateChange}
           />
         </div>
-      </div>
-      <div className="flex-1 p-4 overflow-y-auto">
+      </div>      <div className="flex-1 p-4 overflow-y-auto">
         <KpiCardsGrid cardsData={cardsData} />
 
+        {/* 📊 GRÁFICOS TEMPORARIAMENTE COMENTADOS - Aguardando integração com API
         <div className="mt-6 flex flex-row gap-6">
           <EvolucaoCard
             kpiSelecionado={kpiSelecionado}
@@ -174,6 +174,7 @@ export default function DashboardOrganizacional() {
             }
           />
         </div>
+        */}
 
         <div className="mt-6 flex flex-row gap-6">
           <DissidioCard
