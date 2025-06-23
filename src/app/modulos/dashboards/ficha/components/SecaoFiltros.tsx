@@ -45,10 +45,13 @@ export default function SecaoFiltros({
 	// Refs para controlar scroll dos dropdowns
 	const empresaListRef = useRef<HTMLDivElement>(null);
 	const colaboradorListRef = useRef<HTMLDivElement>(null);
-
 	// States para salvar posição do scroll
 	const [empresaScrollPosition, setEmpresaScrollPosition] = useState(0);
 	const [colaboradorScrollPosition, setColaboradorScrollPosition] = useState(0);
+
+	// States para navegação por teclado
+	const [empresaHighlightedIndex, setEmpresaHighlightedIndex] = useState(-1);
+	const [colaboradorHighlightedIndex, setColaboradorHighlightedIndex] = useState(-1);
 
 	const [empresaSearch, setEmpresaSearch] = useState<string>("");           
 	const filteredEmpresas = empresaOptionsData.filter(empresa => {
@@ -65,10 +68,77 @@ export default function SecaoFiltros({
 		const idMatch = c.id_empregado.toString().includes(searchLower);
 		return nomeMatch || idMatch;
 	});
-
 	// Refs para os inputs de pesquisa
 	const empresaSearchInputRef = useRef<HTMLInputElement>(null);
 	const colaboradorSearchInputRef = useRef<HTMLInputElement>(null);
+
+	// Reset highlighted index quando a lista filtrada muda
+	useEffect(() => {
+		setEmpresaHighlightedIndex(-1);
+	}, [empresaSearch]);
+
+	useEffect(() => {
+		setColaboradorHighlightedIndex(-1);
+	}, [colSearch]);
+
+	// Função para navegar na lista com teclado
+	const handleKeyNavigation = (
+		e: React.KeyboardEvent,
+		isEmpresaDropdown: boolean,
+		filteredItems: any[],
+		currentHighlightedIndex: number,
+		setHighlightedIndex: (index: number) => void,
+		onSelect: (item: any) => void,
+		onClose: () => void
+	) => {
+		switch (e.key) {
+			case 'ArrowDown':
+				e.preventDefault();
+				const nextIndex = currentHighlightedIndex < filteredItems.length - 1 
+					? currentHighlightedIndex + 1 
+					: 0;
+				setHighlightedIndex(nextIndex);
+				scrollToHighlightedItem(nextIndex, isEmpresaDropdown);
+				break;
+			
+			case 'ArrowUp':
+				e.preventDefault();
+				const prevIndex = currentHighlightedIndex > 0 
+					? currentHighlightedIndex - 1 
+					: filteredItems.length - 1;
+				setHighlightedIndex(prevIndex);
+				scrollToHighlightedItem(prevIndex, isEmpresaDropdown);
+				break;
+			
+			case 'Enter':
+				e.preventDefault();
+				if (currentHighlightedIndex >= 0 && filteredItems[currentHighlightedIndex]) {
+					onSelect(filteredItems[currentHighlightedIndex]);
+					onClose();
+				}
+				break;
+			
+			case 'Escape':
+				e.preventDefault();
+				onClose();
+				break;
+		}
+	};
+
+	// Função para fazer scroll automático do item destacado
+	const scrollToHighlightedItem = (index: number, isEmpresaDropdown: boolean) => {
+		const listRef = isEmpresaDropdown ? empresaListRef : colaboradorListRef;
+		if (listRef.current) {
+			const items = listRef.current.querySelectorAll('[data-option-index]');
+			const targetItem = items[index] as HTMLElement;
+			if (targetItem) {
+				targetItem.scrollIntoView({
+					block: 'nearest',
+					behavior: 'smooth'
+				});
+			}
+		}
+	};
 	// Focar no input de pesquisa quando abrir dropdowns
 	useEffect(() => {
 		if (isEmpresaOpen && empresaSearchInputRef.current) {
@@ -138,13 +208,14 @@ export default function SecaoFiltros({
 			}, 50);
 		}
 	}, [isColaboradorOpen, selectedColaborador, colaboradorScrollPosition]);
-
 	// Função para salvar posição do scroll antes de fechar dropdown empresa
 	const handleCloseEmpresaDropdown = () => {
 		if (empresaListRef.current) {
 			setEmpresaScrollPosition(empresaListRef.current.scrollTop);
 		}
 		setIsEmpresaOpen(false);
+		setEmpresaHighlightedIndex(-1);
+		setEmpresaSearch("");
 	};
 
 	// Função para salvar posição do scroll antes de fechar dropdown colaborador
@@ -153,6 +224,8 @@ export default function SecaoFiltros({
 			setColaboradorScrollPosition(colaboradorListRef.current.scrollTop);
 		}
 		setIsColaboradorOpen(false);
+		setColaboradorHighlightedIndex(-1);
+		setColSearch("");
 	};
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
@@ -200,12 +273,23 @@ export default function SecaoFiltros({
 										viewBox="0 0 24 24"
 									>
 										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-									</svg>
-									<input
+									</svg>									<input
 										ref={empresaSearchInputRef}
 										type="text"
 										value={empresaSearch}
 										onChange={e => setEmpresaSearch(e.target.value)}
+										onKeyDown={e => handleKeyNavigation(
+											e,
+											true,
+											filteredEmpresas,
+											empresaHighlightedIndex,
+											setEmpresaHighlightedIndex,
+											(empresa) => {
+												onChangeEmpresa(empresa.nome_empresa);
+												setEmpresaSearch("");
+											},
+											handleCloseEmpresaDropdown
+										)}
 										placeholder="Buscar empresa..."
 										className="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
 									/>
@@ -266,9 +350,14 @@ export default function SecaoFiltros({
 											<div
 												key={empresa.id_empresa}
 												data-empresa={empresa.nome_empresa}
+												data-option-index={index}
 												onClick={() => { onChangeEmpresa(empresa.nome_empresa); handleCloseEmpresaDropdown(); setEmpresaSearch(""); }}
 												className={`px-4 py-3 text-sm hover:bg-blue-50 cursor-pointer transition-colors flex items-center justify-between group ${
-													selectedEmpresa === empresa.nome_empresa ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:text-blue-600'
+													selectedEmpresa === empresa.nome_empresa 
+														? 'bg-blue-50 text-blue-700' 
+														: empresaHighlightedIndex === index
+															? 'bg-gray-100 text-gray-900'
+															: 'text-gray-700 hover:text-blue-600'
 												}`}
 											>
 												<span className="truncate">{empresa.nome_empresa}</span>
@@ -315,12 +404,24 @@ export default function SecaoFiltros({
 										viewBox="0 0 24 24"
 									>
 										<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-									</svg>
-									<input
+									</svg>									<input
 										ref={colaboradorSearchInputRef}
 										type="text"
 										value={colSearch}
 										onChange={e => setColSearch(e.target.value)}
+										onKeyDown={e => handleKeyNavigation(
+											e,
+											false,
+											filteredColabs,
+											colaboradorHighlightedIndex,
+											setColaboradorHighlightedIndex,
+											(colaborador) => {
+												const novoColaborador = selectedColaborador === colaborador.nome ? "" : colaborador.nome;
+												onChangeColaborador(novoColaborador);
+												setColSearch("");
+											},
+											handleCloseColaboradorDropdown
+										)}
 										placeholder="Buscar funcionário..."
 										className="w-full pl-10 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
 									/>
@@ -380,6 +481,7 @@ export default function SecaoFiltros({
 											<div
 												key={opt.id_empregado}
 												data-colaborador={opt.nome}
+												data-option-index={index}
 												onClick={() => { 
 													// Implementar toggle: se já está selecionado, desseleciona
 													const novoColaborador = selectedColaborador === opt.nome ? "" : opt.nome;
@@ -388,7 +490,11 @@ export default function SecaoFiltros({
 													setColSearch(""); 
 												}}
 												className={`px-4 py-3 text-sm hover:bg-blue-50 cursor-pointer transition-colors flex items-center justify-between group ${
-													selectedColaborador === opt.nome ? 'bg-blue-50 text-blue-700' : 'text-gray-700 hover:text-blue-600'
+													selectedColaborador === opt.nome 
+														? 'bg-blue-50 text-blue-700' 
+														: colaboradorHighlightedIndex === index
+															? 'bg-gray-100 text-gray-900'
+															: 'text-gray-700 hover:text-blue-600'
 												}`}
 											>
 												<span className="truncate">{opt.nome}</span>
