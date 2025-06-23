@@ -18,7 +18,7 @@ const filtrarFuncionarios = (
 ) => {
   if (!filtro || filtro === "") return funcionarios;
 
-  return funcionarios.filter((func: any) => {
+  return funcionarios.filter((func: any ) => {
     const admissao = new Date(func.admissao);
     const demissao = func.demissao ? new Date(func.demissao) : null;
 
