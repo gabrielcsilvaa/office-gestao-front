@@ -1,13 +1,17 @@
 "use client";
 import { Cairo } from "next/font/google";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
 
 const cairo = Cairo({
 	weight: ["500", "600", "700"],
 	subsets: ["latin"],
 });
 
-export default function SecaoFiltros() {
+export interface SecaoFiltrosRef {
+	resetAllFilters: () => void;
+}
+
+const SecaoFiltros = forwardRef<SecaoFiltrosRef>((props, ref) => {
 	// 1. Empresa/Organização (nível mais alto)
 	const [isEmpresaOpen, setIsEmpresaOpen] = useState(false);
 	const [selectedEmpresaOptions, setSelectedEmpresaOptions] = useState<string[]>([]);
@@ -44,14 +48,30 @@ export default function SecaoFiltros() {
 			}
 			if (servicoRef.current && !servicoRef.current.contains(event.target as Node)) {
 				setIsServicoOpen(false);
-			}
-		};
+			}		};
 		document.addEventListener("mousedown", handleClickOutside);
 		return () => {
 			document.removeEventListener("mousedown", handleClickOutside);
 		};
 	}, []);
 
+	// Função para resetar todos os filtros
+	const resetAllFilters = () => {
+		setSelectedEmpresaOptions([]);
+		setSelectedCentroCustoOptions([]);
+		setSelectedDepartamentoOptions([]);
+		setSelectedServicoOptions([]);
+		// Fecha todos os dropdowns
+		setIsEmpresaOpen(false);
+		setIsCentroCustoOpen(false);
+		setIsDepartamentoOpen(false);
+		setIsServicoOpen(false);
+	};
+
+	// Expõe a função para o componente pai
+	useImperativeHandle(ref, () => ({
+		resetAllFilters,
+	}));
 
 	const handleEmpresaSelection = (option: string) => {
 		// Seleção única para empresa
@@ -242,11 +262,14 @@ export default function SecaoFiltros() {
 										</svg>
 									)}
 								</div>
-							))}
-						</div>
+							))}						</div>
 					)}
 				</div>
 			</div>
 		</div>
 	);
-}
+});
+
+SecaoFiltros.displayName = 'SecaoFiltros';
+
+export default SecaoFiltros;

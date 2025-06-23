@@ -18,11 +18,13 @@ const indicadores = [
 interface SelecaoIndicadoresProps {
 	indicadorSelecionado: string;
 	onSelecaoIndicador: (indicador: string) => void;
+	onResetFiltros?: () => void;
 }
 
 export default function SelecaoIndicadores({
 	indicadorSelecionado,
 	onSelecaoIndicador,
+	onResetFiltros,
 }: SelecaoIndicadoresProps) {
 	const handleSelecaoIndicador = (indicador: string) => {
 		onSelecaoIndicador(indicador);
@@ -31,13 +33,14 @@ export default function SelecaoIndicadores({
 		<div className="flex items-center gap-8">
 			<h1 className={`text-[32px] leading-8 font-700 text-black ${cairo.className}`}>
 				Dashboard Organizacional
-			</h1>
-			<Image
+			</h1>			<Image
 				src="/assets/icons/icon-reset-kpi.svg"
 				alt="Reset KPI Icon"
 				width={20}
 				height={20}
-				className="cursor-pointer"
+				className="cursor-pointer hover:opacity-75 transition-opacity"
+				onClick={onResetFiltros}
+				title="Resetar todos os filtros"
 			/>
 			<div className="w-[1px] h-[30px] bg-[#373A40]" />
 			<div className="flex items-center gap-4">

@@ -1,8 +1,8 @@
 "use client"; 
 import { Cairo } from "next/font/google";
 import SelecaoIndicadores from "./components/SelecaoIndicadores";
-import SecaoFiltros from "./components/SecaoFiltros";
-import { useState, useMemo } from "react";
+import SecaoFiltros, { SecaoFiltrosRef } from "./components/SecaoFiltros";
+import { useState, useMemo, useRef } from "react";
 import Modal from "./components/Modal";
 import EvolucaoChart from "./components/EvolucaoChart";
 import ValorPorGrupoChart from "./components/ValorPorGrupoChart";
@@ -67,13 +67,25 @@ export default function DashboardOrganizacional() {
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
 
-  // 📅 Handlers para mudanças de data
+  // � Ref para os filtros
+  const secaoFiltrosRef = useRef<SecaoFiltrosRef>(null);
+
+  // �📅 Handlers para mudanças de data
   const handleStartDateChange = (date: string | null) => {
     setStartDate(date);
   };
 
   const handleEndDateChange = (date: string | null) => {
     setEndDate(date);
+  };
+
+  // 🔄 Handler para reset completo
+  const handleResetAllFilters = () => {
+    // Reseta os filtros
+    secaoFiltrosRef.current?.resetAllFilters();
+    // Reseta as datas
+    setStartDate(null);
+    setEndDate(null);
   };
 
   const handleKpiChange = (kpi: string) => {
@@ -108,15 +120,15 @@ export default function DashboardOrganizacional() {
   }, []);   return (
     <div className="bg-[#f7f7f8] fixed inset-0 flex flex-col overflow-hidden">
       <Header2 />
-      <div className="flex flex-col items-start p-4 gap-4 border-b border-black/10 bg-gray-100">
-        {/* Primeira linha: Apenas KPIs (mais espaço para respirar) */}
+      <div className="flex flex-col items-start p-4 gap-4 border-b border-black/10 bg-gray-100">        {/* Primeira linha: Apenas KPIs (mais espaço para respirar) */}
         <SelecaoIndicadores 
           indicadorSelecionado={kpiSelecionado}
           onSelecaoIndicador={handleKpiChange}
+          onResetFiltros={handleResetAllFilters}
         />
         {/* Segunda linha: Filtros + Calendário */}
         <div className="flex flex-row items-center justify-between w-full">
-          <SecaoFiltros />
+          <SecaoFiltros ref={secaoFiltrosRef} />
           <Calendar
             initialStartDate={startDate}
             initialEndDate={endDate}
