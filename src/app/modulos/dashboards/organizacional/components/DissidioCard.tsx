@@ -64,24 +64,26 @@ const DissidioCard: React.FC<DissidioCardProps> = ({
 
   return (
     <div className="flex-1 bg-white rounded-lg h-[489px] relative overflow-hidden shadow-md">
-      <div className="w-6 h-0 left-[10px] top-[17px] absolute origin-top-left rotate-90 bg-zinc-300 outline-1 outline-offset-[-0.50px] outline-neutral-700"></div>
-      <div className="flex justify-between items-center pt-[14px] px-5">
-        <div
-          title="Dissídio"
-          className={`flex-grow overflow-hidden mr-3 text-black text-xl font-semibold leading-normal ${cairoClassName} whitespace-nowrap text-ellipsis`}
-        >
-          Dissídio
+      <div className="w-6 h-0 left-[10px] top-[17px] absolute origin-top-left rotate-90 bg-zinc-300 outline-1 outline-offset-[-0.50px] outline-neutral-700"></div>      <div className="flex justify-between items-start pt-[14px] px-5 mb-3 flex-shrink-0">
+        <div className="flex-grow overflow-hidden mr-3">
+          <div
+            title="Dissídio"
+            className={`text-black text-xl font-semibold leading-normal ${cairoClassName} whitespace-nowrap overflow-hidden text-ellipsis`}
+          >
+            Dissídio
+          </div>
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center space-x-2 flex-shrink-0">
           {sectionIcons.map((icon, index) => (
-            <Image
-              key={index}
-              src={icon.src}
-              alt={icon.alt}
-              width={icon.adjustSize ? 14 : 16}
-              height={icon.adjustSize ? (icon.src.includes("lay") ? 16 : 14) : 16}
-              className="cursor-pointer opacity-60 hover:opacity-100"
-            />
+            <div key={index} className="cursor-pointer p-1">
+              <Image
+                src={icon.src}
+                alt={icon.alt}
+                width={16}
+                height={16}
+                className="opacity-60 hover:opacity-100"
+              />
+            </div>
           ))}
         </div>
       </div>
