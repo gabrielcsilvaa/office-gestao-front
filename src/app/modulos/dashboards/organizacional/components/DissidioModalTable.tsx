@@ -67,9 +67,9 @@ const DissidioModalTable: React.FC<DissidioModalTableProps> = ({ data, cairoClas
   };
 
   return (
-    <div className="flex flex-col flex-1 min-h-[350px]">
-      <div className="overflow-x-auto">
-        <table className={`min-w-full divide-y divide-gray-200 ${cairoClassName}`}>  
+    <div className="flex flex-col flex-1 min-h-[350px] w-full">  
+      <div className="overflow-x-auto w-full">
+        <table className={`min-w-full w-full divide-y divide-gray-200 ${cairoClassName}`}>  
           <thead className="bg-gray-50">
             <tr>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100" onClick={() => requestSort('sindicato')}>

@@ -18,6 +18,7 @@ import DissidioModalTable from "./components/DissidioModalTable";
 import { dissidioTableData } from "./components/DissidioCard";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
+import { formatDateToBR } from "@/utils/formatters";
 import DetalhesModal, { ExportConfig } from "../ficha/components/DetalhesModal";
 
 const cairo = Cairo({
@@ -63,6 +64,43 @@ const valorPorGrupoData = [
   { name: "Dependente IR Férias", value: -77500 },
   { name: "Dependente IR Mensal", value: -533900 },
 ];
+
+// Helper to add common header like Ficha
+const addHeaderToPDF = (
+  doc: jsPDF,
+  reportTitle: string,
+  empresaFilter: string,
+  startDateFilter: string | null,
+  endDateFilter: string | null,
+  sortInfo?: string
+): number => {
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const margin = 10;
+  let currentY = 15;
+  doc.setFontSize(16);
+  doc.setFont('helvetica', 'bold');
+  doc.text(reportTitle, pageWidth / 2, currentY, { align: 'center' });
+  currentY += 8;
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  if (empresaFilter) doc.text(`Empresa: ${empresaFilter}`, margin, currentY);
+  const now = new Date();
+  const generatedAt = `Gerado em: ${now.toLocaleDateString('pt-BR')} ${now.toLocaleTimeString('pt-BR')}`;
+  const genWidth = doc.getTextWidth(generatedAt);
+  doc.text(generatedAt, pageWidth - margin - genWidth, currentY);
+  currentY += 6;
+  if (startDateFilter && endDateFilter) {
+    doc.text(`Período: ${formatDateToBR(startDateFilter)} - ${formatDateToBR(endDateFilter)}`, margin, currentY);
+    currentY += 6;
+  }
+  if (sortInfo) {
+    doc.setFontSize(9);
+    doc.text(`Ordenação Aplicada: ${sortInfo}`, margin, currentY);
+    currentY += 6;
+  }
+  currentY += 8;
+  return currentY;
+};
 
 export default function DashboardOrganizacional() {
   const [kpiSelecionado, setKpiSelecionado] = useState<string>("Informativos");
@@ -143,17 +181,54 @@ export default function DashboardOrganizacional() {
   }, []);   // State and handlers for Dissídio modal
    const [sortedDissidioData, setSortedDissidioData] = useState<typeof dissidioTableData>([]);
    const [dissidioSortInfo, setDissidioSortInfo] = useState<string>("Padrão (sem ordenação específica)");
-   const exportDissidioToPDF = (data: typeof dissidioTableData, reportName: string) => {
-    const doc = new jsPDF();
-    doc.setFontSize(16);
-    doc.text(reportName, doc.internal.pageSize.getWidth() / 2, 15, { align: 'center' });
-    autoTable(doc, {
-      startY: 25,
-      head: [['Sindicato', 'Mês Base']],
-      body: data.map(d => [d.sindicato, d.mesBase]),
-    });
-    doc.save(`${reportName}.pdf`);
-  };
+   const exportDissidioToPDF = (
+     data: typeof dissidioTableData,
+     reportName: string,
+     sortInfo?: string
+   ) => {
+     const doc = new jsPDF();
+     const empresaStr = selectedEmpresa.join(', ');
+     const start = startDate;
+     const end = endDate;
+     const tableY = addHeaderToPDF(doc, reportName, empresaStr, start, end, sortInfo);
+     autoTable(doc, {
+       startY: tableY,
+       head: [['Sindicato', 'Mês Base']],
+       body: data.map(d => [d.sindicato, d.mesBase]),
+       theme: 'grid',
+       styles: {
+         font: 'helvetica',
+         fontSize: 8,
+         cellPadding: 1,
+         lineColor: [200, 200, 200],
+         lineWidth: 0.1,
+         textColor: [50, 50, 50],
+         overflow: 'linebreak'
+       },
+       headStyles: {
+         fillColor: [41, 128, 185],
+         textColor: [255, 255, 255],
+         fontSize: 9,
+         fontStyle: 'bold',
+         halign: 'center'
+       },
+       columnStyles: {
+         0: { cellWidth: 100, fontStyle: 'bold' },
+         1: { cellWidth: 40, halign: 'right' }
+       },
+       alternateRowStyles: { fillColor: [245, 245, 245] },
+       margin: { left: 4, right: 2 },
+       didDrawPage: (dataArg) => {
+         doc.setFontSize(8);
+         doc.text(
+           'Página ' + dataArg.pageNumber,
+           dataArg.settings.margin.left,
+           doc.internal.pageSize.getHeight() - 10
+         );
+       }
+     });
+     doc.save(`${reportName}.pdf`);
+   };
   const exportDissidioToExcel = (data: typeof dissidioTableData, fileName: string) => {
     const rows = data.map(d => [d.sindicato, d.mesBase]);
     const csv = ['Sindicato,Mês Base', ...rows.map(r => r.join(','))].join('\n');
