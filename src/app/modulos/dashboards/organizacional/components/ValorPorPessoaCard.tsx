@@ -1,14 +1,18 @@
 import Image from "next/image";
-import React, { Fragment, useMemo } from "react";
-import NameList from "./NameList";
-import { processNameBarDataUtil, RawNameBarDataItem, ColorParams } from "../utils/chartUtils"; 
+import React, { useMemo } from "react";
+import ModernBarChart from "./ModernBarChart";
+
+interface RawDataItem {
+  name: string;
+  value: string;
+}
 
 interface ValorPorPessoaCardProps {
   sectionIcons: Array<{ src: string; alt: string; adjustSize?: boolean }>;
   cairoClassName: string;
 }
 
-const rawNameBarData: RawNameBarDataItem[] = [ 
+const rawNameBarData: RawDataItem[] = [
   { name: "RITA MARIA RODRIGUES DE OLIVEIRA", value: "R$ 1.600,00" },
   { name: "ISABEL CRISTINA BARBOSA RODRIGUES", value: "R$ 1.400,00" },
   { name: "MARIA GERLIANE DE ARAUJO MATIAS", value: "R$ 1.200,00" },
@@ -35,16 +39,27 @@ const ValorPorPessoaCard: React.FC<ValorPorPessoaCardProps> = ({
   sectionIcons,
   cairoClassName,
 }) => {
-  const processedNameBarData = useMemo(() => {
-    const maxBarPixelWidth = 240; 
-    const colorParams: ColorParams = {
-      hue: 145, 
-      minSaturation: 30, 
-      maxSaturation: 70, 
-      minLightness: 75,  
-      maxLightness: 45,  
-    };
-    return processNameBarDataUtil(rawNameBarData, maxBarPixelWidth, colorParams);
+  const processedData = useMemo(() => {
+    // Converter valores de string para números para cálculos
+    const dataWithNumbers = rawNameBarData.map(item => ({
+      ...item,
+      numericValue: parseFloat(item.value.replace("R$", "").replace(/\./g, "").replace(",", ".").trim())
+    }));
+
+    // Ordenar por valor (maior para menor)
+    const sortedData = dataWithNumbers.sort((a, b) => b.numericValue - a.numericValue);
+    
+    // Calcular o valor total para percentuais
+    const totalValue = sortedData.reduce((sum, item) => sum + item.numericValue, 0);
+    
+    // Mapear para o formato esperado pelo ModernBarChart
+    return sortedData.map((item, index) => ({
+      name: item.name,
+      value: item.value,
+      numericValue: item.numericValue,
+      percentage: totalValue > 0 ? (item.numericValue / totalValue) * 100 : 0,
+      rank: index + 1
+    }));
   }, []);
 
   return (
@@ -71,9 +86,12 @@ const ValorPorPessoaCard: React.FC<ValorPorPessoaCardProps> = ({
             </div>
           ))}
         </div>
-      </div>
-      <div className="w-full h-[calc(489px-50px)] px-4 pt-2 pb-4 left-0 top-[50px] absolute bg-white overflow-y-auto">
-        <NameList items={processedNameBarData} cairoClassName={cairoClassName} />
+      </div>      <div className="w-full h-[calc(489px-50px)] px-4 pt-2 pb-4 left-0 top-[50px] absolute bg-white overflow-y-auto">
+        <ModernBarChart 
+          items={processedData} 
+          cairoClassName={cairoClassName}
+          colorScheme="green"
+        />
       </div>
     </div>
   );
