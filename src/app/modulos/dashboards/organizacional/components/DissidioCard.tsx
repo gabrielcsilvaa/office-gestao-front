@@ -10,9 +10,10 @@ interface Icon {
 interface DissidioCardProps {
   sectionIcons: Icon[];
   cairoClassName: string;
+  onMaximize?: () => void;
 }
 
-const dissidioTableData = [
+export const dissidioTableData = [
   {
     sindicato:
       "SINDICATO DOS TRABALHADORES NO COMERCIO HOTELEIRO, BARES, RESTAURANTES E SIMILARES, TURISMO DA REGIAO DO CARIRI CE",
@@ -50,6 +51,7 @@ const dissidioTableData = [
 const DissidioCard: React.FC<DissidioCardProps> = ({
   sectionIcons,
   cairoClassName,
+  onMaximize,
 }) => {
   const [visibleCount, setVisibleCount] = useState(10);
   const [hasScrollbar, setHasScrollbar] = useState(false);
@@ -96,7 +98,11 @@ const DissidioCard: React.FC<DissidioCardProps> = ({
         </div>
         <div className="flex items-center space-x-2 flex-shrink-0">
           {sectionIcons.map((icon, index) => (
-            <div key={index} className="cursor-pointer p-1">
+            <div
+              key={index}
+              className="cursor-pointer p-1"
+              onClick={() => icon.alt === "Maximize" && onMaximize?.()}
+            >
               <Image
                 src={icon.src}
                 alt={icon.alt}

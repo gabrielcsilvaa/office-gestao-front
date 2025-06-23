@@ -14,6 +14,11 @@ import ValorPorCalculoCard from "./components/ValorPorCalculoCard";
 import KpiCardsGrid from "./components/KpiCardsGrid"; 
 import { Header2 } from "../../../../components/header";
 import Calendar from "@/components/calendar";
+import DissidioModalTable from "./components/DissidioModalTable";
+import { dissidioTableData } from "./components/DissidioCard";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
+import DetalhesModal, { ExportConfig } from "../ficha/components/DetalhesModal";
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
@@ -62,6 +67,8 @@ const valorPorGrupoData = [
 export default function DashboardOrganizacional() {
   const [kpiSelecionado, setKpiSelecionado] = useState<string>("Informativos");
   const [modalContent, setModalContent] = useState<React.ReactNode | null>(null);
+  type ModalType = 'dissidio';
+  const [modalAberto, setModalAberto] = useState<ModalType | null>(null);
 
   // 📅 Estados de data
   const [startDate, setStartDate] = useState<string | null>(null);
@@ -133,7 +140,32 @@ export default function DashboardOrganizacional() {
       const [month, valueString] = entry.split(": ");
       return { month, value: parseCurrency(valueString) };
     });
-  }, []);   return (
+  }, []);   // State and handlers for Dissídio modal
+   const [sortedDissidioData, setSortedDissidioData] = useState<typeof dissidioTableData>([]);
+   const [dissidioSortInfo, setDissidioSortInfo] = useState<string>("Padrão (sem ordenação específica)");
+   const exportDissidioToPDF = (data: typeof dissidioTableData, reportName: string) => {
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text(reportName, doc.internal.pageSize.getWidth() / 2, 15, { align: 'center' });
+    autoTable(doc, {
+      startY: 25,
+      head: [['Sindicato', 'Mês Base']],
+      body: data.map(d => [d.sindicato, d.mesBase]),
+    });
+    doc.save(`${reportName}.pdf`);
+  };
+  const exportDissidioToExcel = (data: typeof dissidioTableData, fileName: string) => {
+    const rows = data.map(d => [d.sindicato, d.mesBase]);
+    const csv = ['Sindicato,Mês Base', ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${fileName}.csv`;
+    link.click();
+  };
+  const exportConfigs: Record<ModalType, ExportConfig> = {
+    dissidio: { pdfHandler: exportDissidioToPDF, excelHandler: exportDissidioToExcel, reportName: 'Dissídio' }
+  }; return (
     <div className="bg-[#f7f7f8] fixed inset-0 flex flex-col overflow-hidden">
       <Header2 />
       <div className="flex flex-col items-start p-4 gap-4 border-b border-black/10 bg-gray-100">        {/* Primeira linha: Apenas KPIs (mais espaço para respirar) */}
@@ -223,6 +255,7 @@ export default function DashboardOrganizacional() {
           <DissidioCard
             sectionIcons={sectionIcons.filter(icon => icon.alt === "Maximize")}
             cairoClassName={cairo.className}
+            onMaximize={() => setModalAberto('dissidio')}
           />
           <ValorPorPessoaCard
             sectionIcons={sectionIcons.filter(icon => icon.alt === "Maximize")}
@@ -235,10 +268,25 @@ export default function DashboardOrganizacional() {
         </div>
       </div>
 
-      {modalContent && (
-        <Modal isOpen onClose={handleCloseModal}>
-          {modalContent}
-        </Modal>
+      {modalAberto && (
+        <DetalhesModal
+          isOpen={modalAberto !== null}
+          onClose={() => setModalAberto(null)}
+          title="Dissídio"
+          subtitle="Visualização completa dos dissídios"
+          data={dissidioTableData}
+          sortedData={sortedDissidioData}
+          sortInfo={dissidioSortInfo}
+          exportConfig={exportConfigs.dissidio}
+          cairoClassName={cairo.className}
+        >
+          <DissidioModalTable
+            data={dissidioTableData}
+            cairoClassName={cairo.className}
+            onSortedDataChange={setSortedDissidioData}
+            onSortInfoChange={setDissidioSortInfo}
+          />
+        </DetalhesModal>
       )}
     </div>
   );
