@@ -84,8 +84,15 @@ export default function SecaoFiltros() {
 				newSelectedOptions = newSelectedOptions.filter(item => item !== "Todos");
 				return newSelectedOptions;
 			}
-		});
-	};	const getDisplayText = (selected: string[], defaultLabel: string): string => {
+		});	};
+
+	const getDisplayText = (selected: string[], defaultLabel: string): string => {
+		if (defaultLabel === "Empresa") {
+			// Para empresa, sempre mostrar seleção única ou placeholder
+			if (selected.length === 0) return defaultLabel;
+			return selected[0];
+		}
+		// Para outros campos, manter lógica de "Todos"
 		if (selected.includes("Todos")) return "Todos";
 		if (selected.length === 0) return defaultLabel;
 		if (selected.length === 1) return selected[0];
@@ -95,15 +102,14 @@ export default function SecaoFiltros() {
 		<div className="flex flex-row items-center gap-8">
 			<div className="flex items-center gap-4">
 				{/* 1. Empresa/Organização (nível mais alto) */}
-				<div className="relative" ref={empresaRef}>
-					<div
+				<div className="relative" ref={empresaRef}>					<div
 						role="combobox"
 						aria-haspopup="listbox"
 						tabIndex={0}
 						aria-expanded={isEmpresaOpen}
 						aria-label="Empresa"
 						onClick={() => setIsEmpresaOpen(!isEmpresaOpen)}
-						className={`w-60 px-4 h-[44px] flex items-center justify-between bg-white rounded-md border border-neutral-700 text-gray-500 text-sm font-semibold leading-tight ${cairo.className} hover:bg-[var(--color-neutral-700)] hover:text-white cursor-pointer`}
+						className={`w-52 px-4 h-[44px] flex items-center justify-between bg-white rounded-md border border-neutral-700 text-gray-500 text-sm font-semibold leading-tight ${cairo.className} hover:bg-[var(--color-neutral-700)] hover:text-white cursor-pointer`}
 					>
 						<span className="flex-grow whitespace-nowrap overflow-hidden text-ellipsis">
 							{getDisplayText(selectedEmpresaOptions, "Empresa")}
@@ -111,9 +117,8 @@ export default function SecaoFiltros() {
 						<svg className="w-5 h-5 ml-2 flex-shrink-0 fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
 							<path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
 						</svg>
-					</div>
-					{isEmpresaOpen && (
-						<div className="absolute z-50 mt-1 w-60 bg-white border border-gray-300 rounded-lg shadow-xl overflow-hidden max-h-60 overflow-y-auto">
+					</div>					{isEmpresaOpen && (
+						<div className="absolute z-50 mt-1 w-52 bg-white border border-gray-300 rounded-lg shadow-xl overflow-hidden max-h-60 overflow-y-auto">
 							{empresaOptions.map((option) => (								<div
 									key={option}
 									onClick={() => handleEmpresaSelection(option)}
@@ -139,8 +144,7 @@ export default function SecaoFiltros() {
 						tabIndex={0}
 						aria-expanded={isCentroCustoOpen}
 						aria-label="Centro de Custo"
-						onClick={() => setIsCentroCustoOpen(!isCentroCustoOpen)}
-						className={`w-60 px-4 h-[44px] flex items-center justify-between bg-white rounded-md border border-neutral-700 text-gray-500 text-sm font-semibold leading-tight ${cairo.className} hover:bg-[var(--color-neutral-700)] hover:text-white cursor-pointer`}
+						onClick={() => setIsCentroCustoOpen(!isCentroCustoOpen)}						className={`w-52 px-4 h-[44px] flex items-center justify-between bg-white rounded-md border border-neutral-700 text-gray-500 text-sm font-semibold leading-tight ${cairo.className} hover:bg-[var(--color-neutral-700)] hover:text-white cursor-pointer`}
 					>
 						<span className="flex-grow whitespace-nowrap overflow-hidden text-ellipsis">
 							{getDisplayText(selectedCentroCustoOptions, "Centro de Custo")}
@@ -150,7 +154,7 @@ export default function SecaoFiltros() {
 						</svg>
 					</div>
 					{isCentroCustoOpen && (
-						<div className="absolute z-50 mt-1 w-60 bg-white border border-gray-300 rounded-lg shadow-xl overflow-hidden max-h-60 overflow-y-auto">
+						<div className="absolute z-50 mt-1 w-52 bg-white border border-gray-300 rounded-lg shadow-xl overflow-hidden max-h-60 overflow-y-auto">
 							{centroCustoOptions.map((option) => (
 								<div
 									key={option}
@@ -176,9 +180,8 @@ export default function SecaoFiltros() {
 						aria-haspopup="listbox"
 						tabIndex={0}
 						aria-expanded={isDepartamentoOpen}
-						aria-label="Departamento"
-						onClick={() => setIsDepartamentoOpen(!isDepartamentoOpen)}
-						className={`w-60 px-4 h-[44px] flex items-center justify-between bg-white rounded-md border border-neutral-700 text-gray-500 text-sm font-semibold leading-tight ${cairo.className} hover:bg-[var(--color-neutral-700)] hover:text-white cursor-pointer`}
+						aria-label="Departamento"						onClick={() => setIsDepartamentoOpen(!isDepartamentoOpen)}
+						className={`w-52 px-4 h-[44px] flex items-center justify-between bg-white rounded-md border border-neutral-700 text-gray-500 text-sm font-semibold leading-tight ${cairo.className} hover:bg-[var(--color-neutral-700)] hover:text-white cursor-pointer`}
 					>
 						<span className="flex-grow whitespace-nowrap overflow-hidden text-ellipsis">
 							{getDisplayText(selectedDepartamentoOptions, "Departamento")}
@@ -188,7 +191,7 @@ export default function SecaoFiltros() {
 						</svg>
 					</div>
 					{isDepartamentoOpen && (
-						<div className="absolute z-50 mt-1 w-60 bg-white border border-gray-300 rounded-lg shadow-xl overflow-hidden max-h-60 overflow-y-auto">
+						<div className="absolute z-50 mt-1 w-52 bg-white border border-gray-300 rounded-lg shadow-xl overflow-hidden max-h-60 overflow-y-auto">
 							{departamentoOptions.map((option) => (
 								<div
 									key={option}
@@ -214,9 +217,8 @@ export default function SecaoFiltros() {
 						aria-haspopup="listbox"
 						tabIndex={0}
 						aria-expanded={isServicoOpen}
-						aria-label="Serviço"
-						onClick={() => setIsServicoOpen(!isServicoOpen)}
-						className={`w-60 px-4 h-[44px] flex items-center justify-between bg-white rounded-md border border-neutral-700 text-gray-500 text-sm font-semibold leading-tight ${cairo.className} hover:bg-[var(--color-neutral-700)] hover:text-white cursor-pointer`}
+						aria-label="Serviço"						onClick={() => setIsServicoOpen(!isServicoOpen)}
+						className={`w-52 px-4 h-[44px] flex items-center justify-between bg-white rounded-md border border-neutral-700 text-gray-500 text-sm font-semibold leading-tight ${cairo.className} hover:bg-[var(--color-neutral-700)] hover:text-white cursor-pointer`}
 					>
 						<span className="flex-grow whitespace-nowrap overflow-hidden text-ellipsis">
 							{getDisplayText(selectedServicoOptions, "Serviço")}
@@ -226,7 +228,7 @@ export default function SecaoFiltros() {
 						</svg>
 					</div>
 					{isServicoOpen && (
-						<div className="absolute z-50 mt-1 w-60 bg-white border border-gray-300 rounded-lg shadow-xl overflow-hidden max-h-60 overflow-y-auto">
+						<div className="absolute z-50 mt-1 w-52 bg-white border border-gray-300 rounded-lg shadow-xl overflow-hidden max-h-60 overflow-y-auto">
 							{servicoOptions.map((option) => (
 								<div
 									key={option}

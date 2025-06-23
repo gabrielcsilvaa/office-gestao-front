@@ -13,6 +13,7 @@ import ValorPorPessoaCard from "./components/ValorPorPessoaCard";
 import ValorPorCalculoCard from "./components/ValorPorCalculoCard";
 import KpiCardsGrid from "./components/KpiCardsGrid"; 
 import { Header2 } from "../../../../components/header";
+import Calendar from "@/components/calendar";
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
@@ -62,6 +63,19 @@ export default function DashboardOrganizacional() {
   const [kpiSelecionado, setKpiSelecionado] = useState<string>("Proventos"); 
   const [modalContent, setModalContent] = useState<React.ReactNode | null>(null);
 
+  // 📅 Estados de data
+  const [startDate, setStartDate] = useState<string | null>(null);
+  const [endDate, setEndDate] = useState<string | null>(null);
+
+  // 📅 Handlers para mudanças de data
+  const handleStartDateChange = (date: string | null) => {
+    setStartDate(date);
+  };
+
+  const handleEndDateChange = (date: string | null) => {
+    setEndDate(date);
+  };
+
   const handleKpiChange = (kpi: string) => {
     setKpiSelecionado(kpi);
   };
@@ -91,17 +105,25 @@ export default function DashboardOrganizacional() {
       const [month, valueString] = entry.split(": ");
       return { month, value: parseCurrency(valueString) };
     });
-  }, []); 
-
-  return (
+  }, []);   return (
     <div className="bg-[#f7f7f8] fixed inset-0 flex flex-col overflow-hidden">
       <Header2 />
       <div className="flex flex-col items-start p-4 gap-4 border-b border-black/10 bg-gray-100">
+        {/* Primeira linha: Apenas KPIs (mais espaço para respirar) */}
         <SelecaoIndicadores 
           indicadorSelecionado={kpiSelecionado}
           onSelecaoIndicador={handleKpiChange}
         />
-        <SecaoFiltros />
+        {/* Segunda linha: Filtros + Calendário */}
+        <div className="flex flex-row items-center justify-between w-full">
+          <SecaoFiltros />
+          <Calendar
+            initialStartDate={startDate}
+            initialEndDate={endDate}
+            onStartDateChange={handleStartDateChange}
+            onEndDateChange={handleEndDateChange}
+          />
+        </div>
       </div>
       <div className="flex-1 p-4 overflow-y-auto">
         <KpiCardsGrid cardsData={cardsData} />
