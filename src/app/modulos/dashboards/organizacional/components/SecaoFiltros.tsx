@@ -378,28 +378,25 @@ const SecaoFiltros = forwardRef<SecaoFiltrosRef, SecaoFiltrosProps>(({
 			}
 		});
 	};
-
 	const handleEmpresaSelection = (option: string) => {
 		// Seleção única para empresa
 		setSelectedEmpresaOptions([option]);
 		
-		// Reset automático dos outros filtros para "Todos"
-		setSelectedCentroCustoOptions(["Todos"]);
-		setSelectedDepartamentoOptions(["Todos"]);
-		setSelectedServicoOptions(["Todos"]);
+		// Reset automático dos outros filtros (limpar seleções)
+		setSelectedCentroCustoOptions([]);
+		setSelectedDepartamentoOptions([]);
+		setSelectedServicoOptions([]);
 	};
-
 	const handleCentroCustoSelection = (option: string) => {
 		handleMultiSelectOption(option, setSelectedCentroCustoOptions);
-		// Reset automático dos filtros dependentes
-		setSelectedDepartamentoOptions(["Todos"]);
-		setSelectedServicoOptions(["Todos"]);
+		// Reset automático dos filtros dependentes (limpar seleções)
+		setSelectedDepartamentoOptions([]);
+		setSelectedServicoOptions([]);
 	};
-
 	const handleDepartamentoSelection = (option: string) => {
 		handleMultiSelectOption(option, setSelectedDepartamentoOptions);
-		// Reset automático do serviço quando departamento muda
-		setSelectedServicoOptions(["Todos"]);
+		// Reset automático do serviço quando departamento muda (limpar seleção)
+		setSelectedServicoOptions([]);
 	};
 
 	// Função para resetar todos os filtros
@@ -424,14 +421,41 @@ const SecaoFiltros = forwardRef<SecaoFiltrosRef, SecaoFiltrosProps>(({
 	useImperativeHandle(ref, () => ({
 		resetAllFilters,
 	}));
-
 	const getDisplayText = (selected: string[], defaultLabel: string): string => {
 		if (defaultLabel === "Empresa") {
 			// Para empresa, sempre mostrar seleção única ou placeholder
 			if (selected.length === 0) return defaultLabel;
 			return selected[0];
 		}
-		// Para outros campos, manter lógica de "Todos"
+		
+		// Para centro de custo, verificar se empresa está selecionada
+		if (defaultLabel === "Centro de Custo") {
+			if (selectedEmpresaOptions.length === 0) return defaultLabel;
+			if (selected.length === 0) return defaultLabel;
+			if (selected.includes("Todos")) return "Todos";
+			if (selected.length === 1) return selected[0];
+			return `${selected.length} selecionados`;
+		}
+		
+		// Para departamento, verificar se centro de custo está selecionado
+		if (defaultLabel === "Departamento") {
+			if (selectedCentroCustoOptions.length === 0) return defaultLabel;
+			if (selected.length === 0) return defaultLabel;
+			if (selected.includes("Todos")) return "Todos";
+			if (selected.length === 1) return selected[0];
+			return `${selected.length} selecionados`;
+		}
+		
+		// Para serviço, verificar se departamento está selecionado
+		if (defaultLabel === "Serviço") {
+			if (selectedDepartamentoOptions.length === 0) return defaultLabel;
+			if (selected.length === 0) return defaultLabel;
+			if (selected.includes("Todos")) return "Todos";
+			if (selected.length === 1) return selected[0];
+			return `${selected.length} selecionados`;
+		}
+		
+		// Fallback para outros casos
 		if (selected.includes("Todos")) return "Todos";
 		if (selected.length === 0) return defaultLabel;
 		if (selected.length === 1) return selected[0];
@@ -556,17 +580,20 @@ const SecaoFiltros = forwardRef<SecaoFiltrosRef, SecaoFiltrosProps>(({
 							</div>
 						</div>
 					)}
-				</div>
-
-				{/* 2. Centro de Custo (estrutura organizacional) */}
+				</div>				{/* 2. Centro de Custo (estrutura organizacional) */}
 				<div className="relative" ref={centroCustoRef}>
 					<div
 						role="combobox"
 						aria-haspopup="listbox"
-						tabIndex={0}
+						tabIndex={selectedEmpresaOptions.length > 0 ? 0 : -1}
 						aria-expanded={isCentroCustoOpen}
 						aria-label="Centro de Custo"
-						onClick={() => setIsCentroCustoOpen(!isCentroCustoOpen)}						className={`w-52 px-4 h-[44px] flex items-center justify-between bg-white rounded-md border border-neutral-700 text-gray-500 text-sm font-semibold leading-tight ${cairo.className} hover:bg-[var(--color-neutral-700)] hover:text-white cursor-pointer`}
+						onClick={() => selectedEmpresaOptions.length > 0 && setIsCentroCustoOpen(!isCentroCustoOpen)}
+						className={`w-52 px-4 h-[44px] flex items-center justify-between bg-white rounded-md border border-neutral-700 text-sm font-semibold leading-tight ${cairo.className} ${
+							selectedEmpresaOptions.length > 0 
+								? 'text-gray-500 hover:bg-[var(--color-neutral-700)] hover:text-white cursor-pointer' 
+								: 'text-gray-400 cursor-not-allowed opacity-60'
+						}`}
 					>
 						<span className="flex-grow whitespace-nowrap overflow-hidden text-ellipsis">
 							{getDisplayText(selectedCentroCustoOptions, "Centro de Custo")}
@@ -685,14 +712,17 @@ const SecaoFiltros = forwardRef<SecaoFiltrosRef, SecaoFiltrosProps>(({
 				</div>
 
 				{/* 3. Departamento (subdivisão) */}
-				<div className="relative" ref={departamentoRef}>
-					<div
+				<div className="relative" ref={departamentoRef}>					<div
 						role="combobox"
 						aria-haspopup="listbox"
-						tabIndex={0}
+						tabIndex={selectedCentroCustoOptions.length > 0 ? 0 : -1}
 						aria-expanded={isDepartamentoOpen}
-						aria-label="Departamento"						onClick={() => setIsDepartamentoOpen(!isDepartamentoOpen)}
-						className={`w-52 px-4 h-[44px] flex items-center justify-between bg-white rounded-md border border-neutral-700 text-gray-500 text-sm font-semibold leading-tight ${cairo.className} hover:bg-[var(--color-neutral-700)] hover:text-white cursor-pointer`}
+						aria-label="Departamento"						onClick={() => selectedCentroCustoOptions.length > 0 && setIsDepartamentoOpen(!isDepartamentoOpen)}
+						className={`w-52 px-4 h-[44px] flex items-center justify-between bg-white rounded-md border border-neutral-700 text-sm font-semibold leading-tight ${cairo.className} ${
+							selectedCentroCustoOptions.length > 0 
+								? 'text-gray-500 hover:bg-[var(--color-neutral-700)] hover:text-white cursor-pointer' 
+								: 'text-gray-400 cursor-not-allowed opacity-60'
+						}`}
 					>
 						<span className="flex-grow whitespace-nowrap overflow-hidden text-ellipsis">
 							{getDisplayText(selectedDepartamentoOptions, "Departamento")}
@@ -743,8 +773,7 @@ const SecaoFiltros = forwardRef<SecaoFiltrosRef, SecaoFiltrosProps>(({
 							</div>
 
 							{/* Lista de opções aprimorada */}							<div ref={departamentoListRef} className="max-h-48 overflow-y-auto">
-								{(selectedCentroCustoOptions.length === 0 || 
-								  (selectedCentroCustoOptions.length === 1 && selectedCentroCustoOptions[0] === "Todos")) ? (
+								{selectedCentroCustoOptions.length === 0 ? (
 									<div className="px-4 py-8 text-center">
 										<svg className="mx-auto w-8 h-8 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -809,15 +838,18 @@ const SecaoFiltros = forwardRef<SecaoFiltrosRef, SecaoFiltrosProps>(({
 						</div>
 					)}
 				</div>				{/* 4. Serviço (atividade específica) */}
-				<div className="relative" ref={servicoRef}>
-					<div
+				<div className="relative" ref={servicoRef}>					<div
 						role="combobox"
 						aria-haspopup="listbox"
-						tabIndex={0}
+						tabIndex={selectedDepartamentoOptions.length > 0 ? 0 : -1}
 						aria-expanded={isServicoOpen}
 						aria-label="Serviço"
-						onClick={() => setIsServicoOpen(!isServicoOpen)}
-						className={`w-52 px-4 h-[44px] flex items-center justify-between bg-white rounded-md border border-neutral-700 text-gray-500 text-sm font-semibold leading-tight ${cairo.className} hover:bg-[var(--color-neutral-700)] hover:text-white cursor-pointer`}
+						onClick={() => selectedDepartamentoOptions.length > 0 && setIsServicoOpen(!isServicoOpen)}
+						className={`w-52 px-4 h-[44px] flex items-center justify-between bg-white rounded-md border border-neutral-700 text-sm font-semibold leading-tight ${cairo.className} ${
+							selectedDepartamentoOptions.length > 0 
+								? 'text-gray-500 hover:bg-[var(--color-neutral-700)] hover:text-white cursor-pointer' 
+								: 'text-gray-400 cursor-not-allowed opacity-60'
+						}`}
 					>
 						<span className="flex-grow whitespace-nowrap overflow-hidden text-ellipsis">
 							{getDisplayText(selectedServicoOptions, "Serviço")}
@@ -869,8 +901,7 @@ const SecaoFiltros = forwardRef<SecaoFiltrosRef, SecaoFiltrosProps>(({
 							</div>
 
 							{/* Lista de opções aprimorada */}							<div ref={servicoListRef} className="max-h-48 overflow-y-auto">
-								{(selectedDepartamentoOptions.length === 0 || 
-								  (selectedDepartamentoOptions.length === 1 && selectedDepartamentoOptions[0] === "Todos")) ? (
+								{selectedDepartamentoOptions.length === 0 ? (
 									<div className="px-4 py-8 text-center">
 										<svg className="mx-auto w-8 h-8 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V9a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
