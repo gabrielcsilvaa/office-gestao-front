@@ -1,6 +1,5 @@
 "use client";
 import { Cairo } from "next/font/google";
-import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
 
 const cairo = Cairo({
@@ -12,7 +11,7 @@ export default function SecaoFiltros() {
 	// 1. Empresa/Organização (nível mais alto)
 	const [isEmpresaOpen, setIsEmpresaOpen] = useState(false);
 	const [selectedEmpresaOptions, setSelectedEmpresaOptions] = useState<string[]>([]);
-	const empresaOptions = ["Todas", "Matriz", "Filial São Paulo", "Filial Rio de Janeiro", "Filial Belo Horizonte"];
+	const empresaOptions = ["Matriz", "Filial São Paulo", "Filial Rio de Janeiro", "Filial Belo Horizonte"];
 	const empresaRef = useRef<HTMLDivElement>(null);
 
 	// 2. Centro de Custo (estrutura organizacional)
@@ -54,6 +53,16 @@ export default function SecaoFiltros() {
 	}, []);
 
 
+	const handleEmpresaSelection = (option: string) => {
+		// Seleção única para empresa
+		setSelectedEmpresaOptions([option]);
+		
+		// Reset automático dos outros filtros para "Todos"
+		setSelectedCentroCustoOptions(["Todos"]);
+		setSelectedDepartamentoOptions(["Todos"]);
+		setSelectedServicoOptions(["Todos"]);
+	};
+
 	const handleMultiSelectOption = (
 		option: string,
 		setSelectedOptions: React.Dispatch<React.SetStateAction<string[]>>
@@ -76,24 +85,14 @@ export default function SecaoFiltros() {
 				return newSelectedOptions;
 			}
 		});
-	};
-
-	const getDisplayText = (selected: string[], defaultLabel: string): string => {
+	};	const getDisplayText = (selected: string[], defaultLabel: string): string => {
 		if (selected.includes("Todos")) return "Todos";
 		if (selected.length === 0) return defaultLabel;
 		if (selected.length === 1) return selected[0];
 		return `${selected.length} selecionados`;
 	};
-
 	return (
 		<div className="flex flex-row items-center gap-8">
-			<Image
-				src="/assets/icons/icon-filter.svg"
-				alt="Filter Icon"
-				width={20}
-				height={20}
-				className="cursor-pointer"			/>
-			<div className="w-[1px] h-[30px] bg-[#373A40]" />
 			<div className="flex items-center gap-4">
 				{/* 1. Empresa/Organização (nível mais alto) */}
 				<div className="relative" ref={empresaRef}>
@@ -115,10 +114,9 @@ export default function SecaoFiltros() {
 					</div>
 					{isEmpresaOpen && (
 						<div className="absolute z-50 mt-1 w-60 bg-white border border-gray-300 rounded-lg shadow-xl overflow-hidden max-h-60 overflow-y-auto">
-							{empresaOptions.map((option) => (
-								<div
+							{empresaOptions.map((option) => (								<div
 									key={option}
-									onClick={() => handleMultiSelectOption(option, setSelectedEmpresaOptions)}
+									onClick={() => handleEmpresaSelection(option)}
 									className={`px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer flex items-center justify-between ${selectedEmpresaOptions.includes(option) ? 'bg-blue-50' : ''}`}
 								>
 									{option}

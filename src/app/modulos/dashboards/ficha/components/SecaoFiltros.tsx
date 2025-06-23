@@ -168,10 +168,8 @@ export default function SecaoFiltros({
 			document.removeEventListener("mousedown", handleClickOutside);
 		};
 	}, []);
-
 	return (
 		<div className="flex flex-row items-center gap-8">
-			<div className="w-[1px] h-[30px] bg-[#373A40]" />
 			<div className="flex items-center gap-4">
 				<div className="relative" ref={empresaRef}>
 					<div
