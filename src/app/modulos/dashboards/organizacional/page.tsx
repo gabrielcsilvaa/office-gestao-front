@@ -60,7 +60,7 @@ const valorPorGrupoData = [
 ];
 
 export default function DashboardOrganizacional() {
-  const [kpiSelecionado, setKpiSelecionado] = useState<string>("Proventos"); 
+  const [kpiSelecionado, setKpiSelecionado] = useState<string>("Informativos");
   const [modalContent, setModalContent] = useState<React.ReactNode | null>(null);
 
   // 📅 Estados de data
@@ -78,9 +78,10 @@ export default function DashboardOrganizacional() {
   const handleEndDateChange = (date: string | null) => {
     setEndDate(date);
   };
-
   // 🔄 Handler para reset completo
   const handleResetAllFilters = () => {
+    // Reseta o KPI selecionado para o padrão
+    setKpiSelecionado("Informativos");
     // Reseta os filtros
     secaoFiltrosRef.current?.resetAllFilters();
     // Reseta as datas

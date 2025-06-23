@@ -91,20 +91,28 @@ export default function Calendar({
   // Refs para controlar foco nos inputs
   const startPickerRef = useRef<DatePicker>(null);
   const endPickerRef = useRef<DatePicker>(null);
-
   // quando props mudam, atualiza input interno
   useEffect(() => {
     if (initialStartDate) {
       const d = parseISODate(initialStartDate);
       setStartDate(d);
       setStartInput(formatDateToInput(d));
+    } else {
+      // Reset quando initialStartDate é null
+      setStartDate(null);
+      setStartInput("");
     }
   }, [initialStartDate]);
+  
   useEffect(() => {
     if (initialEndDate) {
       const d = parseISODate(initialEndDate);
       setEndDate(d);
       setEndInput(formatDateToInput(d));
+    } else {
+      // Reset quando initialEndDate é null
+      setEndDate(null);
+      setEndInput("");
     }
   }, [initialEndDate]);
 
