@@ -11,7 +11,19 @@ export interface SecaoFiltrosRef {
 	resetAllFilters: () => void;
 }
 
-const SecaoFiltros = forwardRef<SecaoFiltrosRef>((props, ref) => {
+interface SecaoFiltrosProps {
+	onEmpresaChange?: (empresa: string[]) => void;
+	onCentroCustoChange?: (centroCusto: string[]) => void;
+	onDepartamentoChange?: (departamento: string[]) => void;
+	onServicoChange?: (servico: string[]) => void;
+}
+
+const SecaoFiltros = forwardRef<SecaoFiltrosRef, SecaoFiltrosProps>(({ 
+	onEmpresaChange,
+	onCentroCustoChange,
+	onDepartamentoChange,
+	onServicoChange 
+}, ref) => {
 	// 1. Empresa/Organização (nível mais alto)
 	const [isEmpresaOpen, setIsEmpresaOpen] = useState(false);
 	const [selectedEmpresaOptions, setSelectedEmpresaOptions] = useState<string[]>([]);
@@ -75,6 +87,23 @@ const SecaoFiltros = forwardRef<SecaoFiltrosRef>((props, ref) => {
 	const filteredServicos = servicoOptions.filter(servico =>
 		servico.toLowerCase().includes(servicoSearch.toLowerCase())
 	);
+
+	// === NOTIFICAÇÃO DE MUDANÇAS PARA O COMPONENTE PAI ===
+	useEffect(() => {
+		onEmpresaChange?.(selectedEmpresaOptions);
+	}, [selectedEmpresaOptions, onEmpresaChange]);
+
+	useEffect(() => {
+		onCentroCustoChange?.(selectedCentroCustoOptions);
+	}, [selectedCentroCustoOptions, onCentroCustoChange]);
+
+	useEffect(() => {
+		onDepartamentoChange?.(selectedDepartamentoOptions);
+	}, [selectedDepartamentoOptions, onDepartamentoChange]);
+
+	useEffect(() => {
+		onServicoChange?.(selectedServicoOptions);
+	}, [selectedServicoOptions, onServicoChange]);
 
 	// === FASE 1: useEffects para foco automático nos inputs de pesquisa ===
 	useEffect(() => {
@@ -267,17 +296,16 @@ const SecaoFiltros = forwardRef<SecaoFiltrosRef>((props, ref) => {
 		setSelectedCentroCustoOptions(["Todos"]);
 		setSelectedDepartamentoOptions(["Todos"]);
 		setSelectedServicoOptions(["Todos"]);
-	};
-	const handleDepartamentoSelection = (option: string) => {
-		handleMultiSelectOption(option, setSelectedDepartamentoOptions);
-		// Reset automático do serviço quando departamento muda
-		setSelectedServicoOptions(["Todos"]);
-	};
-
-	const handleCentroCustoSelection = (option: string) => {
+	};	const handleCentroCustoSelection = (option: string) => {
 		handleMultiSelectOption(option, setSelectedCentroCustoOptions);
 		// Reset automático dos filtros dependentes
 		setSelectedDepartamentoOptions(["Todos"]);
+		setSelectedServicoOptions(["Todos"]);
+	};
+
+	const handleDepartamentoSelection = (option: string) => {
+		handleMultiSelectOption(option, setSelectedDepartamentoOptions);
+		// Reset automático do serviço quando departamento muda
 		setSelectedServicoOptions(["Todos"]);
 	};
 
@@ -588,9 +616,9 @@ const SecaoFiltros = forwardRef<SecaoFiltrosRef>((props, ref) => {
 								</div>
 							</div>
 
-							{/* Lista de opções aprimorada */}
-							<div ref={departamentoListRef} className="max-h-48 overflow-y-auto">
-								{selectedCentroCustoOptions.length === 0 ? (
+							{/* Lista de opções aprimorada */}							<div ref={departamentoListRef} className="max-h-48 overflow-y-auto">
+								{(selectedCentroCustoOptions.length === 0 || 
+								  (selectedCentroCustoOptions.length === 1 && selectedCentroCustoOptions[0] === "Todos")) ? (
 									<div className="px-4 py-8 text-center">
 										<svg className="mx-auto w-8 h-8 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
@@ -640,7 +668,7 @@ const SecaoFiltros = forwardRef<SecaoFiltrosRef>((props, ref) => {
 												{selectedDepartamentoOptions.includes(option) && (
 													<svg className="w-4 h-4 text-blue-600 flex-shrink-0 ml-2" fill="currentColor" viewBox="0 0 20 20">
 														<path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-													</svg>
+												</svg>
 												)}
 											</div>
 										))}
@@ -701,9 +729,9 @@ const SecaoFiltros = forwardRef<SecaoFiltrosRef>((props, ref) => {
 								</div>
 							</div>
 
-							{/* Lista de opções aprimorada */}
-							<div ref={servicoListRef} className="max-h-48 overflow-y-auto">
-								{selectedDepartamentoOptions.length === 0 ? (
+							{/* Lista de opções aprimorada */}							<div ref={servicoListRef} className="max-h-48 overflow-y-auto">
+								{(selectedDepartamentoOptions.length === 0 || 
+								  (selectedDepartamentoOptions.length === 1 && selectedDepartamentoOptions[0] === "Todos")) ? (
 									<div className="px-4 py-8 text-center">
 										<svg className="mx-auto w-8 h-8 text-gray-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V9a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />

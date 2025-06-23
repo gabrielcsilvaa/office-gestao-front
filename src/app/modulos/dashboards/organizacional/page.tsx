@@ -67,6 +67,12 @@ export default function DashboardOrganizacional() {
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
 
+  // 🏢 Estados dos filtros para controlar exibição dos KPIs
+  const [selectedEmpresa, setSelectedEmpresa] = useState<string[]>([]);
+  const [selectedCentroCusto, setSelectedCentroCusto] = useState<string[]>([]);
+  const [selectedDepartamento, setSelectedDepartamento] = useState<string[]>([]);
+  const [selectedServico, setSelectedServico] = useState<string[]>([]);
+
   // � Ref para os filtros
   const secaoFiltrosRef = useRef<SecaoFiltrosRef>(null);
 
@@ -77,13 +83,17 @@ export default function DashboardOrganizacional() {
 
   const handleEndDateChange = (date: string | null) => {
     setEndDate(date);
-  };
-  // 🔄 Handler para reset completo
+  };  // 🔄 Handler para reset completo
   const handleResetAllFilters = () => {
     // Reseta o KPI selecionado para o padrão
     setKpiSelecionado("Informativos");
     // Reseta os filtros
     secaoFiltrosRef.current?.resetAllFilters();
+    // Reseta os states dos filtros
+    setSelectedEmpresa([]);
+    setSelectedCentroCusto([]);
+    setSelectedDepartamento([]);
+    setSelectedServico([]);
     // Reseta as datas
     setStartDate(null);
     setEndDate(null);
@@ -92,16 +102,21 @@ export default function DashboardOrganizacional() {
   const handleKpiChange = (kpi: string) => {
     setKpiSelecionado(kpi);
   };
+  // 📊 Função para determinar se deve exibir os KPIs
+  const shouldShowKPIs = () => {
+    // KPIs só aparecem quando pelo menos a empresa estiver selecionada (e não for o placeholder)
+    return selectedEmpresa.length > 0 && 
+           !selectedEmpresa.includes("Empresa") && 
+           selectedEmpresa.some(empresa => empresa !== "Todos" && empresa.length > 0);
+  };
 
-  const handleCloseModal = () => setModalContent(null);
-
-  const cardsData = [
-    { title: "Proventos", value: "R$ 5.811.200,00", tooltipText: "Total de proventos recebidos no período." },
-    { title: "Descontos", value: "-R$ 1.470.700,00", tooltipText: "Total de descontos aplicados no período." },
-    { title: "Líquido", value: "R$ 4.340.600,00", tooltipText: "Valor líquido após proventos e descontos." },
-    { title: "Custo Total Estimado", value: "R$ 6.452.500,00", tooltipText: "Estimativa do custo total da folha." },
-    { title: "Custo Médio Mensal", value: "R$ 2.300,00", tooltipText: "Custo médio mensal por colaborador." },
-    { title: "Receita Média Mensal", value: "R$ 14.000,00", tooltipText: "Receita média mensal gerada." },
+  const handleCloseModal = () => setModalContent(null);  const cardsData = [
+    { title: "Proventos", value: "R$ 5.811.200,00", tooltipText: "Soma de todos os valores pagos aos funcionários." },
+    { title: "Descontos", value: "-R$ 1.470.700,00", tooltipText: "Total de descontos realizados (INSS, IRRF, etc)." },
+    { title: "Líquido", value: "R$ 4.340.600,00", tooltipText: "Valor final recebido pelos funcionários." },
+    { title: "Custo Total Estimado", value: "R$ 6.452.500,00", tooltipText: "Custo completo incluindo encargos sociais." },
+    { title: "Custo Médio Mensal", value: "R$ 2.300,00", tooltipText: "Custo médio por funcionário no mês." },
+    { title: "Receita Média Mensal", value: "R$ 14.000,00", tooltipText: "Receita média gerada por funcionário." },
   ];
 
   const sectionIcons = [
@@ -126,10 +141,15 @@ export default function DashboardOrganizacional() {
           indicadorSelecionado={kpiSelecionado}
           onSelecaoIndicador={handleKpiChange}
           onResetFiltros={handleResetAllFilters}
-        />
-        {/* Segunda linha: Filtros + Calendário */}
+        />        {/* Segunda linha: Filtros + Calendário */}
         <div className="flex flex-row items-center justify-between w-full">
-          <SecaoFiltros ref={secaoFiltrosRef} />
+          <SecaoFiltros 
+            ref={secaoFiltrosRef}
+            onEmpresaChange={setSelectedEmpresa}
+            onCentroCustoChange={setSelectedCentroCusto}
+            onDepartamentoChange={setSelectedDepartamento}
+            onServicoChange={setSelectedServico}
+          />
           <Calendar
             initialStartDate={startDate}
             initialEndDate={endDate}
@@ -137,8 +157,18 @@ export default function DashboardOrganizacional() {
             onEndDateChange={handleEndDateChange}
           />
         </div>
-      </div>      <div className="flex-1 p-4 overflow-y-auto">
-        <KpiCardsGrid cardsData={cardsData} />
+      </div>      <div className="flex-1 p-4 overflow-y-auto min-h-0">
+        {/* KPIs: animação de slide down/up */}
+        {/* This div with `transform` creates a stacking context. Its children (tooltips z-50) will be stacked relative to it. */}
+        {/* This container itself needs to be effectively above the header's z-[40]. */}
+        <div className="mt-6"> {/* Gap superior maior para evitar corte de tooltips */}
+          <div className={`transition-all duration-200 ease-in-out transform origin-top
+              ${shouldShowKPIs()
+                ? 'max-h-[800px] opacity-100 translate-y-0'
+                : 'max-h-0 opacity-0 -translate-y-4'}`}>
+            <KpiCardsGrid cardsData={cardsData} />
+          </div>
+        </div>
 
         {/* 📊 GRÁFICOS TEMPORARIAMENTE COMENTADOS - Aguardando integração com API
         <div className="mt-6 flex flex-row gap-6">
