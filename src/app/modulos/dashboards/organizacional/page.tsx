@@ -273,7 +273,7 @@ export default function DashboardOrganizacional() {
           isOpen={modalAberto !== null}
           onClose={() => setModalAberto(null)}
           title="Dissídio"
-          subtitle="Visualização completa dos dissídios"
+          subtitle="Visualização completa dos dissídios da empresa"
           data={dissidioTableData}
           sortedData={sortedDissidioData}
           sortInfo={dissidioSortInfo}

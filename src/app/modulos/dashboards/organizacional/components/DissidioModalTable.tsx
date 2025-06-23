@@ -25,18 +25,31 @@ const getSortDisplayText = (sortKey: SortKey, sortDirection: SortDirection): str
 };
 
 const DissidioModalTable: React.FC<DissidioModalTableProps> = ({ data, cairoClassName, onSortedDataChange, onSortInfoChange }) => {
+  const monthMap: Record<string, number> = {
+    janeiro: 1, fevereiro: 2, março: 3, abril: 4, maio: 5, junho: 6,
+    julho: 7, agosto: 8, setembro: 9, outubro: 10, novembro: 11, dezembro: 12
+  };
+
   const [sortKey, setSortKey] = useState<SortKey>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>('ascending');
-
+  
   const sortedData = useMemo(() => {
     const items = [...data];
     if (sortKey) {
       items.sort((a,b) => {
-        const aVal = a[sortKey];
-        const bVal = b[sortKey];
+        const aVal = a[sortKey!];
+        const bVal = b[sortKey!];
         let cmp = 0;
-        if (aVal < bVal) cmp = -1;
-        else if (aVal > bVal) cmp = 1;
+
+        if (sortKey === 'mesBase') {
+          const aNum = monthMap[String(aVal).toLowerCase()] || 0;
+          const bNum = monthMap[String(bVal).toLowerCase()] || 0;
+          cmp = aNum - bNum;
+        } else {
+          if (aVal < bVal) cmp = -1;
+          else if (aVal > bVal) cmp = 1;
+        }
+
         return sortDirection === 'ascending' ? cmp : -cmp;
       });
     }
