@@ -21,6 +21,13 @@ interface MenuProps {
   botaoSelecionado: string;
   setBotaoSelecionado: (botao: string) => void;
   resetarFiltros: () => void;
+  cardsData: {
+    ativos: number;
+    contratacoes: number;
+    demissoes: number;
+    afastamentos: number;
+    turnover: string;
+  };
 }
 
 const Menu: React.FC<MenuProps> = ({
@@ -29,8 +36,10 @@ const Menu: React.FC<MenuProps> = ({
   botaoSelecionado,
   setBotaoSelecionado,
   resetarFiltros,
+
 }) => {
-    console.log("Menu renderizou");
+  console.log("Menu renderizou");
+
   return (
     <div className="bg-gray-100 py-2 mb-6">
       <div className="px-6">
@@ -64,6 +73,29 @@ const Menu: React.FC<MenuProps> = ({
                 )
               )}
             </div>
+            {/* Dados exibidos abaixo dos botões */}
+            {/* <div className="mt-4">
+              {botaoSelecionado === "Ativos" && (
+                <span className="text-xl font-semibold">
+                  Ativos: {cardsData.ativos}
+                </span>
+              )}
+              {botaoSelecionado === "Contratações" && (
+                <span className="text-xl font-semibold">
+                  Contratações: {cardsData.contratacoes}
+                </span>
+              )}
+              {botaoSelecionado === "Demissões" && (
+                <span className="text-xl font-semibold">
+                  Demissões: {cardsData.demissoes}
+                </span>
+              )}
+              {botaoSelecionado === "Más Contratações" && (
+                <span className="text-xl font-semibold">
+                  Turnover: {cardsData.turnover}
+                </span>
+              )}
+            </div> */}
           </div>
         </div>
 
@@ -142,4 +174,3 @@ const Menu: React.FC<MenuProps> = ({
 };
 
 export default React.memo(Menu);
-
