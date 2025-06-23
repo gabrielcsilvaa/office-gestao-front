@@ -191,10 +191,13 @@ export default function DashboardOrganizacional() {
      const start = startDate;
      const end = endDate;
      const tableY = addHeaderToPDF(doc, reportName, empresaStr, start, end, sortInfo);
+     const pageWidth = doc.internal.pageSize.getWidth();
+     const usableWidth = pageWidth - 4 - 2; // match margins
      autoTable(doc, {
        startY: tableY,
        head: [['Sindicato', 'Mês Base']],
        body: data.map(d => [d.sindicato, d.mesBase]),
+       tableWidth: usableWidth,
        theme: 'grid',
        styles: {
          font: 'helvetica',
@@ -213,8 +216,8 @@ export default function DashboardOrganizacional() {
          halign: 'center'
        },
        columnStyles: {
-         0: { cellWidth: 100, fontStyle: 'bold' },
-         1: { cellWidth: 40, halign: 'right' }
+         0: { cellWidth: usableWidth * 0.75, fontStyle: 'bold' },
+         1: { cellWidth: usableWidth * 0.25, halign: 'right' }
        },
        alternateRowStyles: { fillColor: [245, 245, 245] },
        margin: { left: 4, right: 2 },
