@@ -1,6 +1,6 @@
 "use client";
 import { Cairo } from "next/font/google";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
@@ -33,9 +33,9 @@ export const Dropdown: React.FC<DropdownProps> = ({
   const listRef = useRef<HTMLDivElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const filteredOptions = options.filter(option =>
+  const filteredOptions = useMemo(() => options.filter(option =>
     option.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ), [options, searchTerm]);
 
   const handleSelect = (value: string) => {
     onValueChange(value);
@@ -44,7 +44,8 @@ export const Dropdown: React.FC<DropdownProps> = ({
 
   const scrollToHighlightedItem = (index: number) => {
     if (listRef.current) {
-      const listItem = listRef.current.children[index] as HTMLElement;
+      const listItems = listRef.current.querySelectorAll('[data-value]');
+      const listItem = listItems[index] as HTMLElement;
       if (listItem) {
         listItem.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
       }
@@ -80,12 +81,29 @@ export const Dropdown: React.FC<DropdownProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      setTimeout(() => searchInputRef.current?.focus(), 50);
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+        if (selectedValue && !searchTerm) {
+          const selectedIndex = filteredOptions.findIndex(
+            (option) => option === selectedValue
+          );
+          if (selectedIndex !== -1) {
+            setHighlightedIndex(selectedIndex);
+            if (listRef.current) {
+                const listItems = listRef.current.querySelectorAll('[data-value]');
+                const selectedElement = listItems[selectedIndex] as HTMLElement;
+                if (selectedElement) {
+                    selectedElement.scrollIntoView({ block: 'center', behavior: 'auto' });
+                }
+            }
+          }
+        }
+      }, 50);
     } else {
-        setSearchTerm("");
-        setHighlightedIndex(-1);
+      setSearchTerm("");
+      setHighlightedIndex(-1);
     }
-  }, [isOpen]);
+  }, [isOpen, selectedValue, searchTerm, filteredOptions]);
 
   useEffect(() => {
     setHighlightedIndex(-1);
