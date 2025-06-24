@@ -18,34 +18,23 @@ const ValorPorGrupoCard: React.FC<ValorPorGrupoCardProps> = ({
   return (
     <div className="w-1/2 bg-white rounded-lg h-[427px] relative overflow-hidden shadow-md"> 
       <div className="w-6 h-0 left-[10px] top-[17px] absolute origin-top-left rotate-90 bg-zinc-300 outline-1 outline-offset-[-0.50px] outline-neutral-700"></div>
-      
-      <div className="flex justify-between items-center pt-[14px] px-5">
-        <div title="Valor Por Grupo e Evento" className={`flex-grow overflow-hidden mr-3 text-black text-xl font-semibold leading-normal ${cairoClassName} whitespace-nowrap text-ellipsis`}>Valor Por Grupo e Evento</div>
-        <div className="flex items-center gap-2 flex-shrink-0"> 
-          {sectionIcons.map((icon, index) => {
-            let iconWidth = 16; 
-            let iconHeight = 16; 
-            if (icon.adjustSize) {
-              iconWidth = 14; 
-              iconHeight = icon.src.includes("lay") ? 16 : 14; 
-            }
-            return (
-              <Fragment key={`right-icon-fragment-${index}`}>
-                <Image
-                  key={`right-${index}`}
-                  src={icon.src}
-                  alt={icon.alt}
-                  width={iconWidth}
-                  height={iconHeight}
-                  className="cursor-pointer opacity-60 hover:opacity-100"
-                  onClick={onMaximize}
-                />
-                {icon.src === "/assets/icons/icon-hierarchy.svg" && (
-                  <div className="w-px h-5 bg-neutral-300"></div> 
-                )}
-              </Fragment>
-            );
-          })}
+        <div className="flex justify-between items-start pt-[14px] px-5 mb-3 flex-shrink-0">
+        <div className="flex-grow overflow-hidden mr-3">
+          <div title="Valor Por Grupo e Evento" className={`text-black text-xl font-semibold leading-normal ${cairoClassName} whitespace-nowrap overflow-hidden text-ellipsis`}>Valor Por Grupo e Evento</div>
+        </div>
+        <div className="flex items-center space-x-2 flex-shrink-0">
+          {sectionIcons.map((icon, index) => (
+            <div key={index} className="cursor-pointer p-1">
+              <Image
+                src={icon.src}
+                alt={icon.alt}
+                width={16}
+                height={16}
+                className="opacity-60 hover:opacity-100"
+                onClick={onMaximize}
+              />
+            </div>
+          ))}
         </div>
       </div>
 

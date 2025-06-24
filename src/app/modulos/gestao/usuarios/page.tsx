@@ -175,6 +175,8 @@ export default function Usuarios() {
           <div className="flex items-center gap-2 ml-4 relative">
             <div className="ml-5">
               <Calendar
+                initialStartDate={startDate}
+                initialEndDate={endDate}
                 onStartDateChange={handleStartDateChange}
                 onEndDateChange={handleEndDateChange}
               />

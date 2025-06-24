@@ -652,6 +652,8 @@ export default function Clientes() {
             />
             {/* SELEÇÃO DE DATAS  */}
             <Calendar
+              initialStartDate={startDate}
+              initialEndDate={endDate}
               onStartDateChange={handleStartDateChange}
               onEndDateChange={handleEndDateChange}
             />
