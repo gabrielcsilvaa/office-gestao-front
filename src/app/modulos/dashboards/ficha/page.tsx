@@ -21,6 +21,7 @@ import autoTable from "jspdf-autotable";
 import { EmpresaFicha, FeriasPorEmpresa, AlteracoesPorEmpresa, FormattedFerias, FormattedAlteracao, Afastamento, Exame, Contrato } from "@/types/fichaPessoal.types";
 import { formatDate, formatDateToBR, parseCurrency } from "@/utils/formatters";
 import { useFichaPessoalData } from "@/hooks/useFichaPessoalData";
+import * as XLSX from 'xlsx';
 
 // Importe os novos componentes de tabela para o modal
 import FeriasModalTable from "./components/FeriasModalTable";
@@ -366,45 +367,37 @@ export default function FichaPessoalPage() {
         doc.setFontSize(8);
         doc.text('Página ' + data.pageNumber, data.settings.margin.left, doc.internal.pageSize.height - 10);
       }
-    });
-
-    doc.save(`${reportName.replace(/ /g, "_")}.pdf`);
+    });    doc.save(`${reportName.replace(/ /g, "_")}.pdf`);
   };
+
   // Função para exportar exames para Excel (usando XLSX, igual ao padrão do carteira)
   const exportExamesToExcel = (data: Exame[], fileName: string, sortInfo?: string) => {
-    // Importação dinâmica para evitar erro em ambiente SSR
-    import("xlsx").then(XLSX => {
-      const exportData = data.map(e => ({
-        "Nome do Funcionário": e.nomeColaborador,
-        "Tipo": e.tipo,
-        "Data do Exame": e.dataExame,
-        "Data de Vencimento": e.vencimento,
-        "Resultado": e.resultado,
-      }));
+    const excelData = data.map(e => ({
+      "Nome do Funcionário": e.nomeColaborador,
+      "Tipo": e.tipo,
+      "Data do Exame": e.dataExame,
+      "Data de Vencimento": e.vencimento,
+      "Resultado": e.resultado,
+    }));
 
-      // Adiciona informação de ordenação se disponível
-      if (sortInfo) {
-        exportData.unshift({
-          "Nome do Funcionário": `Ordenação: ${sortInfo}`,
-          "Tipo": "",
-          "Data do Exame": "",
-          "Data de Vencimento": "",
-          "Resultado": "",
-        } as any);
-        exportData.unshift({
-          "Nome do Funcionário": "",
-          "Tipo": "",
-          "Data do Exame": "",
-          "Data de Vencimento": "",
-          "Resultado": "",
-        } as any);
-      }
-
-      const ws = XLSX.utils.json_to_sheet(exportData);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Exames");
-      XLSX.writeFile(wb, `${fileName}.xlsx`);
-    });
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(excelData);
+    
+    // Set column widths
+    ws['!cols'] = [
+      { width: 30 }, // Nome do Funcionário
+      { width: 20 }, // Tipo
+      { width: 15 }, // Data do Exame
+      { width: 18 }, // Data de Vencimento
+      { width: 15 }  // Resultado
+    ];
+    
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, 'Exames');
+    
+    // Save file
+    XLSX.writeFile(wb, `${fileName}.xlsx`);
   };
   // Função para exportar afastamentos para PDF (padrão carteira)
   const exportAfastamentosToPDF = (data: Afastamento[], reportName: string, sortInfo?: string) => {
@@ -464,42 +457,34 @@ export default function FichaPessoalPage() {
       }
     });
 
-    doc.save(`${reportName.replace(/ /g, "_")}.pdf`);
-  };
-  // Função para exportar afastamentos para Excel (padrão carteira)
+    doc.save(`${reportName.replace(/ /g, "_")}.pdf`);  };  // Função para exportar afastamentos para Excel (padrão carteira)
   const exportAfastamentosToExcel = (data: Afastamento[], fileName: string, sortInfo?: string) => {
-    import("xlsx").then(XLSX => {
-      const exportData = data.map(a => ({
-        "Nome do Funcionário": a.nomeColaborador,
-        "Tipo": a.tipo,
-        "Data de Início": a.inicio,
-        "Data de Término": a.termino,
-        "Dias Afastados": a.diasAfastados,
-      }));
+    const leavesData = data.map(a => ({
+      "Nome do Funcionário": a.nomeColaborador,
+      "Tipo": a.tipo,
+      "Data de Início": a.inicio,
+      "Data de Término": a.termino,
+      "Dias Afastados": a.diasAfastados,
+    }));
 
-      // Adiciona informação de ordenação se disponível
-      if (sortInfo) {
-        exportData.unshift({
-          "Nome do Funcionário": `Ordenação: ${sortInfo}`,
-          "Tipo": "",
-          "Data de Início": "",
-          "Data de Término": "",
-          "Dias Afastados": "",
-        } as any);
-        exportData.unshift({
-          "Nome do Funcionário": "",
-          "Tipo": "",
-          "Data de Início": "",
-          "Data de Término": "",
-          "Dias Afastados": "",
-        } as any);
-      }
-
-      const ws = XLSX.utils.json_to_sheet(exportData);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Afastamentos");
-      XLSX.writeFile(wb, `${fileName}.xlsx`);
-    });
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(leavesData);
+    
+    // Set column widths
+    ws['!cols'] = [
+      { width: 30 }, // Nome do Funcionário
+      { width: 20 }, // Tipo
+      { width: 15 }, // Data de Início
+      { width: 15 }, // Data de Término
+      { width: 15 }  // Dias Afastados
+    ];
+    
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, 'Afastamentos');
+    
+    // Save file
+    XLSX.writeFile(wb, `${fileName}.xlsx`);
   };
   // Função para exportar contratos para PDF (padrão carteira)
   const exportContratosToPDF = (data: Contrato[], reportName: string, sortInfo?: string) => {
@@ -557,38 +542,32 @@ export default function FichaPessoalPage() {
     });
 
     doc.save(`${reportName.replace(/ /g, "_")}.pdf`);
-  };
-  // Função para exportar contratos para Excel (padrão carteira)
+  };  // Função para exportar contratos para Excel (padrão carteira)
   const exportContratosToExcel = (data: Contrato[], fileName: string, sortInfo?: string) => {
-    import("xlsx").then(XLSX => {
-      const exportData = data.map(c => ({
-        "Nome do Funcionário": c.colaborador,
-        "Data de Admissão": c.dataAdmissao,
-        "Data de Rescisão": c.dataRescisao,
-        "Salário Base": c.salarioBase,
-      }));
+    const contractsData = data.map(c => ({
+      "Nome do Funcionário": c.colaborador,
+      "Data de Admissão": c.dataAdmissao,
+      "Data de Rescisão": c.dataRescisao,
+      "Salário Base": c.salarioBase,
+    }));
 
-      // Adiciona informação de ordenação se disponível
-      if (sortInfo) {
-        exportData.unshift({
-          "Nome do Funcionário": `Ordenação: ${sortInfo}`,
-          "Data de Admissão": "",
-          "Data de Rescisão": "",
-          "Salário Base": "",
-        } as any);
-        exportData.unshift({
-          "Nome do Funcionário": "",
-          "Data de Admissão": "",
-          "Data de Rescisão": "",
-          "Salário Base": "",
-        } as any);
-      }
-
-      const ws = XLSX.utils.json_to_sheet(exportData);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Contratos");
-      XLSX.writeFile(wb, `${fileName}.xlsx`);
-    });
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(contractsData);
+    
+    // Set column widths
+    ws['!cols'] = [
+      { width: 30 }, // Nome do Funcionário
+      { width: 18 }, // Data de Admissão
+      { width: 18 }, // Data de Rescisão
+      { width: 15 }  // Salário Base
+    ];
+    
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, 'Contratos');
+    
+    // Save file
+    XLSX.writeFile(wb, `${fileName}.xlsx`);
   };
   // Função para exportar férias para PDF (padrão carteira, colunas mais compactas)
   const exportFeriasToPDF = (data: FormattedFerias[], reportName: string, sortInfo?: string) => {
@@ -661,53 +640,42 @@ export default function FichaPessoalPage() {
     });
 
     doc.save(`${reportName.replace(/ /g, "_")}.pdf`);
-  };
-  // Função para exportar férias para Excel (padrão carteira)
+  };  // Função para exportar férias para Excel (padrão carteira)
   const exportFeriasToExcel = (data: FormattedFerias[], fileName: string, sortInfo?: string) => {
-    import("xlsx").then(XLSX => {
-      const exportData = data.map(f => ({
-        "Nome do Funcionário": f.nomeColaborador,
-        "Início Período Aquisitivo": f.inicioPeriodoAquisitivo,
-        "Fim Período Aquisitivo": f.fimPeriodoAquisitivo,
-        "Início Gozo": f.inicioPeriodoGozo,
-        "Fim Gozo": f.fimPeriodoGozo,
-        "Limite para Gozo": f.limiteParaGozo,
-        "Dias de Direito": f.diasDeDireito,
-        "Dias Gozados": f.diasGozados,
-        "Dias de Saldo": f.diasDeSaldo,
-      }));
+    const vacationsData = data.map(f => ({
+      "Nome do Funcionário": f.nomeColaborador,
+      "Início Período Aquisitivo": f.inicioPeriodoAquisitivo,
+      "Fim Período Aquisitivo": f.fimPeriodoAquisitivo,
+      "Início Gozo": f.inicioPeriodoGozo,
+      "Fim Gozo": f.fimPeriodoGozo,
+      "Limite para Gozo": f.limiteParaGozo,
+      "Dias de Direito": f.diasDeDireito,
+      "Dias Gozados": f.diasGozados,
+      "Dias de Saldo": f.diasDeSaldo,
+    }));
 
-      // Adiciona informação de ordenação se disponível
-      if (sortInfo) {
-        exportData.unshift({
-          "Nome do Funcionário": `Ordenação: ${sortInfo}`,
-          "Início Período Aquisitivo": "",
-          "Fim Período Aquisitivo": "",
-          "Início Gozo": "",
-          "Fim Gozo": "",
-          "Limite para Gozo": "",
-          "Dias de Direito": "",
-          "Dias Gozados": "",
-          "Dias de Saldo": "",
-        } as any);
-        exportData.unshift({
-          "Nome do Funcionário": "",
-          "Início Período Aquisitivo": "",
-          "Fim Período Aquisitivo": "",
-          "Início Gozo": "",
-          "Fim Gozo": "",
-          "Limite para Gozo": "",
-          "Dias de Direito": "",
-          "Dias Gozados": "",
-          "Dias de Saldo": "",
-        } as any);
-      }
-
-      const ws = XLSX.utils.json_to_sheet(exportData);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Férias");
-      XLSX.writeFile(wb, `${fileName}.xlsx`);
-    });
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(vacationsData);
+    
+    // Set column widths for landscape orientation
+    ws['!cols'] = [
+      { width: 25 }, // Nome do Funcionário
+      { width: 18 }, // Início Período Aquisitivo
+      { width: 18 }, // Fim Período Aquisitivo
+      { width: 15 }, // Início Gozo
+      { width: 15 }, // Fim Gozo
+      { width: 15 }, // Limite para Gozo
+      { width: 12 }, // Dias de Direito
+      { width: 12 }, // Dias Gozados
+      { width: 12 }  // Dias de Saldo
+    ];
+    
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, 'Férias');
+    
+    // Save file
+    XLSX.writeFile(wb, `${fileName}.xlsx`);
   };
   // Função para exportar alterações salariais para PDF (padrão carteira)
   const exportAlteracoesToPDF = (data: FormattedAlteracao[], reportName: string, sortInfo?: string) => {
@@ -771,44 +739,36 @@ export default function FichaPessoalPage() {
     });
 
     doc.save(`${reportName.replace(/ /g, "_")}.pdf`);
-  };
-  // Função para exportar alterações salariais para Excel (padrão carteira)
+  };  // Função para exportar alterações salariais para Excel (padrão carteira)
   const exportAlteracoesToExcel = (data: FormattedAlteracao[], fileName: string, sortInfo?: string) => {
-    import("xlsx").then(XLSX => {
-      const exportData = data.map(a => ({
-        "Nome do Funcionário": a.nomeColaborador,
-        "Competência": a.competencia,
-        "Salário Anterior": a.salarioAnterior !== null ? a.salarioAnterior.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "N/A",
-        "Salário Novo": a.salarioNovo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-        "Motivo": a.motivo,
-        "Variação (%)": a.percentual,
-      }));
+    const changesData = data.map(a => ({
+      "Nome do Funcionário": a.nomeColaborador,
+      "Competência": a.competencia,
+      "Salário Anterior": a.salarioAnterior !== null ? a.salarioAnterior.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "N/A",
+      "Salário Novo": a.salarioNovo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+      "Motivo": a.motivo,
+      "Variação (%)": a.percentual,
+    }));
 
-      // Adiciona informação de ordenação se disponível
-      if (sortInfo) {
-        exportData.unshift({
-          "Nome do Funcionário": `Ordenação: ${sortInfo}`,
-          "Competência": "",
-          "Salário Anterior": "",
-          "Salário Novo": "",
-          "Motivo": "",
-          "Variação (%)": "",
-        } as any);
-        exportData.unshift({
-          "Nome do Funcionário": "",
-          "Competência": "",
-          "Salário Anterior": "",
-          "Salário Novo": "",
-          "Motivo": "",
-          "Variação (%)": "",
-        } as any);
-      }
-
-      const ws = XLSX.utils.json_to_sheet(exportData);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Alterações");
-      XLSX.writeFile(wb, `${fileName}.xlsx`);
-    });
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(changesData);
+    
+    // Set column widths
+    ws['!cols'] = [
+      { width: 25 }, // Nome do Funcionário
+      { width: 15 }, // Competência
+      { width: 18 }, // Salário Anterior
+      { width: 18 }, // Salário Novo
+      { width: 20 }, // Motivo
+      { width: 15 }  // Variação (%)
+    ];
+    
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, 'Alterações');
+    
+    // Save file
+    XLSX.writeFile(wb, `${fileName}.xlsx`);
   };
 
   // 📤 Configurações de exportação para cada tipo de modal
