@@ -356,8 +356,7 @@ export default function FichaPessoalPage() {
         0: { cellWidth: 60, fontStyle: 'bold' }, // Nome do Funcionário
         1: { cellWidth: 35, halign: 'left' },    // Tipo (text, so left align)
         2: { cellWidth: 35, halign: 'right' },   // Data do Exame
-        3: { cellWidth: 35, halign: 'right' },   // Data de Vencimento
-        4: { cellWidth: 35, halign: 'left' },    // Resultado (text, so left align)
+        3: { cellWidth: 35, halign: 'right' },   // Data de Vencimento        4: { cellWidth: 35, halign: 'left' },    // Resultado (text, so left align)
       },
       alternateRowStyles: {
         fillColor: [245, 245, 245],
@@ -367,7 +366,9 @@ export default function FichaPessoalPage() {
         doc.setFontSize(8);
         doc.text('Página ' + data.pageNumber, data.settings.margin.left, doc.internal.pageSize.height - 10);
       }
-    });    doc.save(`${reportName.replace(/ /g, "_")}.pdf`);
+    });
+
+    doc.save(`${reportName.replace(/ /g, "_")}.pdf`);
   };
 
   // Função para exportar exames para Excel (usando XLSX, igual ao padrão do carteira)
@@ -530,8 +531,7 @@ export default function FichaPessoalPage() {
         1: { cellWidth: 40, halign: 'right' },   // Data de Admissão
         2: { cellWidth: 40, halign: 'right' },   // Data de Rescisão
         3: { cellWidth: 50, halign: 'right' },   // Salário Base
-      },
-      alternateRowStyles: {
+      },      alternateRowStyles: {
         fillColor: [245, 245, 245],
       },
       margin: { left: 4, right: 2 },
@@ -542,12 +542,14 @@ export default function FichaPessoalPage() {
     });
 
     doc.save(`${reportName.replace(/ /g, "_")}.pdf`);
-  };  // Função para exportar contratos para Excel (padrão carteira)
+  };
+
+  // Função para exportar contratos para Excel (padrão carteira)
   const exportContratosToExcel = (data: Contrato[], fileName: string, sortInfo?: string) => {
     const contractsData = data.map(c => ({
       "Nome do Funcionário": c.colaborador,
       "Data de Admissão": c.dataAdmissao,
-      "Data de Rescisão": c.dataRescisao,
+      "Data de Rescisão": c.dataRescisao === "" ? "Ativo" : c.dataRescisao,
       "Salário Base": c.salarioBase,
     }));
 
@@ -725,8 +727,7 @@ export default function FichaPessoalPage() {
         1: { cellWidth: 32, halign: 'right' },   // Competência
         2: { cellWidth: 32, halign: 'right' },   // Salário Anterior
         3: { cellWidth: 32, halign: 'right' },   // Salário Novo
-        4: { cellWidth: 32, halign: 'left' },    // Motivo (text, so left align)
-        5: { cellWidth: 24, halign: 'right' },   // Variação (%)
+        4: { cellWidth: 32, halign: 'left' },    // Motivo (text, so left align)        5: { cellWidth: 24, halign: 'right' },   // Variação (%)
       },
       alternateRowStyles: {
         fillColor: [245, 245, 245],
@@ -739,7 +740,9 @@ export default function FichaPessoalPage() {
     });
 
     doc.save(`${reportName.replace(/ /g, "_")}.pdf`);
-  };  // Função para exportar alterações salariais para Excel (padrão carteira)
+  };
+
+  // Função para exportar alterações salariais para Excel (padrão carteira)
   const exportAlteracoesToExcel = (data: FormattedAlteracao[], fileName: string, sortInfo?: string) => {
     const changesData = data.map(a => ({
       "Nome do Funcionário": a.nomeColaborador,
@@ -747,7 +750,7 @@ export default function FichaPessoalPage() {
       "Salário Anterior": a.salarioAnterior !== null ? a.salarioAnterior.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "N/A",
       "Salário Novo": a.salarioNovo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
       "Motivo": a.motivo,
-      "Variação (%)": a.percentual,
+      "Variação (%)": a.percentual === "" ? "-" : a.percentual,
     }));
 
     // Create workbook and worksheet
@@ -797,8 +800,96 @@ export default function FichaPessoalPage() {
       pdfHandler: exportAlteracoesToPDF,
       excelHandler: exportAlteracoesToExcel,
       reportName: "Detalhes de Alterações Salariais"
+    }  };
+
+  // 🎛️ Função helper para configurar cada modal
+  function getModalConfig(tipo: ModalType) {
+    switch (tipo) {
+      case 'exames':
+        return {
+          title: "Histórico de Exames Detalhado",
+          subtitle: "Visualização completa dos exames por funcionário",
+          data: examesData,
+          sortedData: sortedExamesData,
+          sortInfo: examesSortInfo,
+          exportConfig: exportConfigs.exames,
+          component: <AtestadosModalTable 
+            atestadosData={examesData} 
+            cairoClassName={cairo.className} 
+            onSortedDataChange={setSortedExamesData}
+            onSortInfoChange={setExamesSortInfo}
+          />
+        };
+      case 'afastamentos':
+        return {
+          title: "Histórico de Afastamentos Detalhado",
+          subtitle: "Visualização completa dos afastamentos por funcionário",
+          data: afastamentosData,
+          sortedData: sortedAfastamentosData,
+          sortInfo: afastamentosSortInfo,
+          exportConfig: exportConfigs.afastamentos,
+          component: <AfastamentosModalTable 
+            afastamentosData={afastamentosData} 
+            cairoClassName={cairo.className}
+            onSortedDataChange={setSortedAfastamentosData}
+            onSortInfoChange={setAfastamentosSortInfo}
+          />
+        };
+      case 'contratos':
+        return {
+          title: "Histórico de Contratos Detalhado",
+          subtitle: "Visualização completa dos contratos por funcionário",
+          data: contratosData,
+          sortedData: sortedContratosData,
+          sortInfo: contratosSortInfo,
+          exportConfig: exportConfigs.contratos,
+          component: <ContratosModalTable 
+            contratosData={contratosData} 
+            cairoClassName={cairo.className}
+            onSortedDataChange={setSortedContratosData}
+            onSortInfoChange={setContratosSortInfo}
+          />
+        };
+      case 'ferias':
+        return {
+          title: "Detalhes de Férias",
+          subtitle: "Visualização completa das férias por funcionário",
+          data: feriasData,
+          sortedData: sortedFeriasData,
+          sortInfo: feriasSortInfo,
+          exportConfig: exportConfigs.ferias,
+          component: <FeriasModalTable 
+            feriasData={feriasData} 
+            cairoClassName={cairo.className}
+            onSortedDataChange={setSortedFeriasData}
+            onSortInfoChange={setFeriasSortInfo}
+          />
+        };
+      case 'alteracoes':
+        return {
+          title: "Detalhes de Alterações Salariais",
+          subtitle: "Visualização completa das alterações salariais por funcionário",
+          data: alteracoesData,
+          sortedData: sortedAlteracoesData,
+          sortInfo: alteracoesSortInfo,
+          exportConfig: exportConfigs.alteracoes,
+          component: <AlteracoesSalariaisModalTable 
+            alteracoesData={alteracoesData} 
+            cairoClassName={cairo.className}
+            onSortedDataChange={setSortedAlteracoesData}
+            onSortInfoChange={setAlteracoesSortInfo}
+          />
+        };
+      default:
+        return {
+          title: "",
+          subtitle: "",
+          data: [],
+          exportConfig: undefined,
+          component: null
+        };
     }
-  };
+  }
 
   return (
     <div className="bg-[#f7f7f8] flex flex-col flex-1 h-full min-h-0">
@@ -956,88 +1047,6 @@ export default function FichaPessoalPage() {
         >
           {getModalConfig(modalAberto).component}
         </DetalhesModal>
-      )}
-    </div>
+      )}    </div>
   );
-  // 🎛️ Função helper para configurar cada modal
-  function getModalConfig(tipo: ModalType) {
-    switch (tipo) {
-      case 'exames':
-        return {          title: "Histórico de Exames Detalhado",
-          subtitle: "Visualização completa dos exames por funcionário",
-          data: examesData,
-          sortedData: sortedExamesData,
-          sortInfo: examesSortInfo,
-          exportConfig: exportConfigs.exames,
-          component: <AtestadosModalTable 
-            atestadosData={examesData} 
-            cairoClassName={cairo.className} 
-            onSortedDataChange={setSortedExamesData}
-            onSortInfoChange={setExamesSortInfo}
-          />
-        };
-      case 'afastamentos':
-        return {          title: "Histórico de Afastamentos Detalhado",
-          subtitle: "Visualização completa dos afastamentos por funcionário",
-          data: afastamentosData,
-          sortedData: sortedAfastamentosData,
-          sortInfo: afastamentosSortInfo,
-          exportConfig: exportConfigs.afastamentos,
-          component: <AfastamentosModalTable 
-            afastamentosData={afastamentosData} 
-            cairoClassName={cairo.className}
-            onSortedDataChange={setSortedAfastamentosData}
-            onSortInfoChange={setAfastamentosSortInfo}
-          />
-        };
-      case 'contratos':
-        return {          title: "Histórico de Contratos Detalhado",
-          subtitle: "Visualização completa dos contratos por funcionário",
-          data: contratosData,
-          sortedData: sortedContratosData,
-          sortInfo: contratosSortInfo,
-          exportConfig: exportConfigs.contratos,
-          component: <ContratosModalTable 
-            contratosData={contratosData} 
-            cairoClassName={cairo.className}
-            onSortedDataChange={setSortedContratosData}
-            onSortInfoChange={setContratosSortInfo}
-          />
-        };      case 'ferias':
-        return {          title: "Detalhes de Férias",
-          subtitle: "Visualização completa das férias por funcionário",
-          data: feriasData,
-          sortedData: sortedFeriasData,
-          sortInfo: feriasSortInfo,
-          exportConfig: exportConfigs.ferias,
-          component: <FeriasModalTable 
-            feriasData={feriasData} 
-            cairoClassName={cairo.className}
-            onSortedDataChange={setSortedFeriasData}
-            onSortInfoChange={setFeriasSortInfo}
-          />};
-      case 'alteracoes':
-        return {          title: "Detalhes de Alterações Salariais",
-          subtitle: "Visualização completa das alterações salariais por funcionário",
-          data: alteracoesData,
-          sortedData: sortedAlteracoesData,
-          sortInfo: alteracoesSortInfo,
-          exportConfig: exportConfigs.alteracoes,
-          component: <AlteracoesSalariaisModalTable 
-            alteracoesData={alteracoesData} 
-            cairoClassName={cairo.className}
-            onSortedDataChange={setSortedAlteracoesData}
-            onSortInfoChange={setAlteracoesSortInfo}
-          />
-        };
-      default:
-        return {
-          title: "",
-          subtitle: "",
-          data: [],
-          exportConfig: undefined,
-          component: null
-        };
-    }
-  }
 }
