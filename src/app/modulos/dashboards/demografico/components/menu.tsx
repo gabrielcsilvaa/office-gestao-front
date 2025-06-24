@@ -73,29 +73,7 @@ const Menu: React.FC<MenuProps> = ({
                 )
               )}
             </div>
-            {/* Dados exibidos abaixo dos botões */}
-            {/* <div className="mt-4">
-              {botaoSelecionado === "Ativos" && (
-                <span className="text-xl font-semibold">
-                  Ativos: {cardsData.ativos}
-                </span>
-              )}
-              {botaoSelecionado === "Contratações" && (
-                <span className="text-xl font-semibold">
-                  Contratações: {cardsData.contratacoes}
-                </span>
-              )}
-              {botaoSelecionado === "Demissões" && (
-                <span className="text-xl font-semibold">
-                  Demissões: {cardsData.demissoes}
-                </span>
-              )}
-              {botaoSelecionado === "Más Contratações" && (
-                <span className="text-xl font-semibold">
-                  Turnover: {cardsData.turnover}
-                </span>
-              )}
-            </div> */}
+          É o brian , exqueceeeeeeeeeeeeeeee
           </div>
         </div>
 

@@ -9,8 +9,11 @@ import GraficoCargo from "./components/grafico_cargo";
 import TabelaColaboradores from "./components/tabela_colaboradores";
 import Menu from "./components/menu";
 import React from "react";
+import Calendar from "@/components/calendar";
+import { gerarMesesEntreDatas } from "@/utils/formatadores";
 
 const filtrarFuncionarios = (
+
   funcionarios: any[],
   filtro: string,
   startDate: Date,
@@ -89,17 +92,35 @@ export default function Demografico() {
 
   const [colaboradores, setColaboradores] = useState([]);
 
+    //Estados de data
+  const [startDate, setStartDate] = useState<string | null>(null);
+  const [endDate, setEndDate] = useState<string | null>(null);
+
+    const handleStartDateChange = (date: string | null) => {
+    setStartDate(date);
+
+  };
+
+  const handleEndDateChange = (date: string | null) => {
+    setEndDate(date);
+
+  };
+  useEffect(() => {
+    if (startDate && endDate) {
+    console.log(startDate)
+    console.log(endDate)// Ajusta a data final se for menor que a inicial
+    const datas = gerarMesesEntreDatas(startDate, endDate);
+    console.log("Meses entre datas:", datas);
+    }
+  }, [startDate, endDate]);
+
  useEffect(() => {
   const fetchDados = async () => {
     try {
-      const today = new Date();
-      const currentYear = today.getFullYear();
-      const startDate = new Date(currentYear, 0, 1);
-      const endDate = today;
 
       const formatApiDate = (date: Date) => date.toISOString().split("T")[0];
-      const apiStartDate = formatApiDate(startDate);
-      const apiEndDate = formatApiDate(endDate);
+      const apiStartDate = startDate
+      const apiEndDate = endDate
 
       const response = await fetch("/api/dashboards-demografico", {
         method: "POST",
@@ -207,6 +228,8 @@ export default function Demografico() {
       );
       setDadosCargo(dadosCargo);
 
+
+      
       // Faixa etária
       const getFaixaEtaria = (idade: number) => {
         if (idade <= 25) return "00 a 25";
@@ -312,10 +335,11 @@ export default function Demografico() {
   };
 
   fetchDados();
-}, [botaoSelecionado]);
+}, [botaoSelecionado,startDate, endDate]);
 
   return (
     <div className="bg-gray-100 h-full p-4 overflow-y-auto">
+      <div>
       <Menu
         filtros={filtros}
         setFiltros={setFiltros}
@@ -324,7 +348,11 @@ export default function Demografico() {
         resetarFiltros={resetarFiltros}
         cardsData={cardsData}
       />
-
+                  <Calendar
+              onStartDateChange={handleStartDateChange}
+              onEndDateChange={handleEndDateChange}
+            />
+</div>
     
       <div className="h-px bg-gray-300 my-6"></div>
 
