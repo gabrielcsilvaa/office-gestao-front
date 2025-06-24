@@ -106,6 +106,11 @@ const addHeaderToPDF = (
 };
 
 export default function DashboardOrganizacional() {
+  // 🔧 Utility function to format currency
+  const formatCurrency = (value: number) => {
+    return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  };
+
   const [kpiSelecionado, setKpiSelecionado] = useState<string>("Informativos");
   const [modalContent, setModalContent] = useState<React.ReactNode | null>(null);
   type ModalType = 'dissidio' | 'valorPorPessoa' | 'valorPorCalculo';
@@ -215,17 +220,12 @@ export default function DashboardOrganizacional() {
        percentage: total > 0 ? (i.numericValue / total) * 100 : 0,
        rank: idx + 1
      }));
-   }, []);
-
-   // State and handlers for Dissídio modal
+   }, []);   // State and handlers for Dissídio modal
    const [sortedDissidioData, setSortedDissidioData] = useState<typeof dissidioTableData>([]);
    const [dissidioSortInfo, setDissidioSortInfo] = useState<string>("Padrão (sem ordenação específica)");
-   // State and handlers for ValorPorPessoa modal
-   const [sortedValorPorPessoaData, setSortedValorPorPessoaData] = useState<typeof processedValorPorPessoaData>([]);
-   const [valorPorPessoaSortInfo, setValorPorPessoaSortInfo] = useState<string>("Padrão (sem ordenação específica)");
-   // State and handlers for ValorPorCalculo modal
-   const [sortedValorPorCalculoData, setSortedValorPorCalculoData] = useState<typeof processedValorPorCalculoData>([]);
-   const [valorPorCalculoSortInfo, setValorPorCalculoSortInfo] = useState<string>("Padrão (sem ordenação específica)");
+   // Sort info for bar chart modals (no sorting functionality, but used for export info)
+   const [valorPorPessoaSortInfo, setValorPorPessoaSortInfo] = useState<string>("Por valor (maior para menor)");
+   const [valorPorCalculoSortInfo, setValorPorCalculoSortInfo] = useState<string>("Por valor (maior para menor)");
 
    const exportDissidioToPDF = (
      data: typeof dissidioTableData,
@@ -286,44 +286,174 @@ export default function DashboardOrganizacional() {
      link.href = URL.createObjectURL(blob);
      link.download = `${fileName}.csv`;
      link.click();
-   };
-   const exportValorPorPessoaToPDF = (data: typeof processedValorPorPessoaData, reportName: string) => {
+   };   const exportValorPorPessoaToPDF = (data: typeof processedValorPorPessoaData, reportName: string) => {
      const doc = new jsPDF();
      const empresaStr = selectedEmpresa.join(', ');
+     const pageWidth = doc.internal.pageSize.getWidth();
+     const usableWidth = pageWidth - 6; // margins
+     
      const tableY = addHeaderToPDF(doc, reportName, empresaStr, startDate, endDate);
-     autoTable(doc, {
+     
+     // Calculate total for summary
+     const total = data.reduce((sum, item) => sum + item.numericValue, 0);
+     const totalFormatted = formatCurrency(total);
+       autoTable(doc, {
        startY: tableY,
-       head: [['Pessoa', 'Valor']].concat(),
-       body: data.map(d => [d.name, d.value]),
-       theme: 'grid'
+       head: [['Posição', 'Tipo de Pessoa', 'Valor', 'Percentual']],
+       body: data.map(d => [
+         d.rank.toString(),
+         d.name, 
+         d.value,
+         `${d.percentage.toFixed(1)}%`
+       ]),
+       foot: [['', 'TOTAL', totalFormatted, '100,0%']],
+       theme: 'grid',
+       styles: {
+         fontSize: 8,
+         cellPadding: 1,
+         lineColor: [200, 200, 200],
+         lineWidth: 0.1,
+         textColor: [50, 50, 50],
+         overflow: 'linebreak'
+       },
+       headStyles: {
+         fillColor: [41, 128, 185],
+         textColor: [255, 255, 255],
+         fontSize: 9,
+         fontStyle: 'bold',
+         halign: 'center'
+       },
+       footStyles: {
+         fillColor: [220, 220, 220],
+         textColor: [50, 50, 50],
+         fontSize: 9,
+         fontStyle: 'bold',
+         halign: 'center'
+       },
+       columnStyles: {
+         0: { cellWidth: usableWidth * 0.10, halign: 'center' }, // Posição
+         1: { cellWidth: usableWidth * 0.50, fontStyle: 'normal' }, // Nome
+         2: { cellWidth: usableWidth * 0.25, halign: 'right' }, // Valor
+         3: { cellWidth: usableWidth * 0.15, halign: 'center' } // Percentual
+       },
+       alternateRowStyles: { fillColor: [245, 245, 245] },
+       margin: { left: 3, right: 3 },
+       didDrawPage: (dataArg) => {
+         doc.setFontSize(8);
+         doc.text(
+           'Página ' + dataArg.pageNumber,
+           dataArg.settings.margin.left,
+           doc.internal.pageSize.getHeight() - 10
+         );
+       }
      });
+     
      doc.save(`${reportName}.pdf`);
-   };
-   const exportValorPorPessoaToExcel = (data: typeof processedValorPorPessoaData, fileName: string) => {
-     const rows = data.map(d => [d.name, d.value]);
-     const csv = ['Pessoa,Valor', ...rows.map(r => r.join(','))].join('\n');
-     const blob = new Blob([csv], { type: 'text/csv' });
+   };   const exportValorPorPessoaToExcel = (data: typeof processedValorPorPessoaData, fileName: string) => {
+     const total = data.reduce((sum, item) => sum + item.numericValue, 0);
+     const totalFormatted = formatCurrency(total);
+       const headers = ['Posição', 'Tipo de Pessoa', 'Valor', 'Percentual'];
+     const rows = data.map(d => [
+       d.rank.toString(),
+       d.name, 
+       d.value,
+       `${d.percentage.toFixed(1)}%`
+     ]);
+     const footerRow = ['', 'TOTAL', totalFormatted, '100,0%'];
+     
+     const csvContent = [
+       headers.join(','),
+       ...rows.map(r => r.join(',')),
+       footerRow.join(',')
+     ].join('\n');
+     
+     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
      const link = document.createElement('a');
      link.href = URL.createObjectURL(blob);
      link.download = `${fileName}.csv`;
      link.click();
-   };
-   const exportValorPorCalculoToPDF = (data: typeof processedValorPorCalculoData, reportName: string) => {
+   };   const exportValorPorCalculoToPDF = (data: typeof processedValorPorCalculoData, reportName: string) => {
      const doc = new jsPDF();
      const empresaStr = selectedEmpresa.join(', ');
+     const pageWidth = doc.internal.pageSize.getWidth();
+     const usableWidth = pageWidth - 6; // margins
+     
      const tableY = addHeaderToPDF(doc, reportName, empresaStr, startDate, endDate);
-     autoTable(doc, {
+     
+     // Calculate total for summary
+     const total = data.reduce((sum, item) => sum + item.numericValue, 0);
+     const totalFormatted = formatCurrency(total);
+       autoTable(doc, {
        startY: tableY,
-       head: [['Cálculo', 'Valor']].concat(),
-       body: data.map(d => [d.name, d.value]),
-       theme: 'grid'
+       head: [['Posição', 'Tipo de Cálculo', 'Valor', 'Percentual']],
+       body: data.map(d => [
+         d.rank.toString(),
+         d.name, 
+         d.value,
+         `${d.percentage.toFixed(1)}%`
+       ]),
+       foot: [['', 'TOTAL', totalFormatted, '100,0%']],
+       theme: 'grid',
+       styles: {
+         fontSize: 8,
+         cellPadding: 1,
+         lineColor: [200, 200, 200],
+         lineWidth: 0.1,
+         textColor: [50, 50, 50],
+         overflow: 'linebreak'
+       },
+       headStyles: {
+         fillColor: [41, 128, 185],
+         textColor: [255, 255, 255],
+         fontSize: 9,
+         fontStyle: 'bold',
+         halign: 'center'
+       },
+       footStyles: {
+         fillColor: [220, 220, 220],
+         textColor: [50, 50, 50],
+         fontSize: 9,
+         fontStyle: 'bold',
+         halign: 'center'
+       },
+       columnStyles: {
+         0: { cellWidth: usableWidth * 0.10, halign: 'center' }, // Posição
+         1: { cellWidth: usableWidth * 0.50, fontStyle: 'normal' }, // Nome
+         2: { cellWidth: usableWidth * 0.25, halign: 'right' }, // Valor
+         3: { cellWidth: usableWidth * 0.15, halign: 'center' } // Percentual
+       },
+       alternateRowStyles: { fillColor: [245, 245, 245] },
+       margin: { left: 3, right: 3 },
+       didDrawPage: (dataArg) => {
+         doc.setFontSize(8);
+         doc.text(
+           'Página ' + dataArg.pageNumber,
+           dataArg.settings.margin.left,
+           doc.internal.pageSize.getHeight() - 10
+         );
+       }
      });
+     
      doc.save(`${reportName}.pdf`);
-   };
-   const exportValorPorCalculoToExcel = (data: typeof processedValorPorCalculoData, fileName: string) => {
-     const rows = data.map(d => [d.name, d.value]);
-     const csv = ['Cálculo,Valor', ...rows.map(r => r.join(','))].join('\n');
-     const blob = new Blob([csv], { type: 'text/csv' });
+   };   const exportValorPorCalculoToExcel = (data: typeof processedValorPorCalculoData, fileName: string) => {
+     const total = data.reduce((sum, item) => sum + item.numericValue, 0);
+     const totalFormatted = formatCurrency(total);
+       const headers = ['Posição', 'Tipo de Cálculo', 'Valor', 'Percentual'];
+     const rows = data.map(d => [
+       d.rank.toString(),
+       d.name, 
+       d.value,
+       `${d.percentage.toFixed(1)}%`
+     ]);
+     const footerRow = ['', 'TOTAL', totalFormatted, '100,0%'];
+     
+     const csvContent = [
+       headers.join(','),
+       ...rows.map(r => r.join(',')),
+       footerRow.join(',')
+     ].join('\n');
+     
+     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
      const link = document.createElement('a');
      link.href = URL.createObjectURL(blob);
      link.download = `${fileName}.csv`;
@@ -459,18 +589,16 @@ export default function DashboardOrganizacional() {
              onSortInfoChange={setDissidioSortInfo}
            />
          </DetalhesModal>
-       )}
-       {modalAberto === 'valorPorPessoa' && (
+       )}       {modalAberto === 'valorPorPessoa' && (
          <DetalhesModal
            isOpen
            onClose={() => setModalAberto(null)}
            title="Valor Por Tipo de Pessoa e Vínculo"
            subtitle="Distribuição de valores por pessoa e vínculo"
            data={processedValorPorPessoaData}
-           sortedData={sortedValorPorPessoaData}
+           sortedData={processedValorPorPessoaData}
            sortInfo={valorPorPessoaSortInfo}
-           exportConfig={exportConfigs.valorPorPessoa}
-           cairoClassName={cairo.className}
+           exportConfig={exportConfigs.valorPorPessoa}           cairoClassName={cairo.className}
          >
            <ModernBarChart
              items={processedValorPorPessoaData}
@@ -478,18 +606,17 @@ export default function DashboardOrganizacional() {
              colorScheme="green"
            />
          </DetalhesModal>
-       )}
-       {modalAberto === 'valorPorCalculo' && (
+       )}       {modalAberto === 'valorPorCalculo' && (
          <DetalhesModal
            isOpen
            onClose={() => setModalAberto(null)}
            title="Valor Por Tipo de Cálculo e Evento"
            subtitle="Distribuição de valores por cálculo e evento"
            data={processedValorPorCalculoData}
-           sortedData={sortedValorPorCalculoData}
+           sortedData={processedValorPorCalculoData}
            sortInfo={valorPorCalculoSortInfo}
-           exportConfig={exportConfigs.valorPorCalculo}
-           cairoClassName={cairo.className}         >
+           exportConfig={exportConfigs.valorPorCalculo}           cairoClassName={cairo.className}
+         >
            <ModernBarChart
              items={processedValorPorCalculoData}
              cairoClassName={cairo.className}
