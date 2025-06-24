@@ -301,11 +301,14 @@ export default function DashboardFiscal() {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
-  return (<div className={`min-h-screen bg-gray-50 ${cairo.className}`}>
-      {/* Header de Filtros */}      <div className="relative z-10 flex flex-row items-center justify-start gap-8 p-4 border-b border-black/10 bg-gray-100">
+  return (
+    <div className="bg-[#f7f7f8] flex flex-col flex-1 h-full min-h-0">
+      {/* Header de Filtros - Fixo */}
+      <div className="relative z-10 flex flex-row items-center justify-start gap-8 p-4 border-b border-black/10 bg-gray-100">
         <h1 className={`text-[32px] leading-8 font-700 text-black ${cairo.className}`}>Dashboard Fiscal</h1>
-          {/* Filtros principais */}        <div className="flex items-center gap-4">          {/* Dropdown 1: Cliente / Fornecedor */}
+        
+        {/* Filtros principais */}
+        <div className="flex items-center gap-4">{/* Dropdown 1: Cliente / Fornecedor */}
           <div className="relative" ref={clienteRef}>
             <div 
               role="combobox"
@@ -650,12 +653,9 @@ export default function DashboardFiscal() {
                 </div>
               </div>
             )}
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="p-6">
+          </div>        </div>
+      </div>      {/* Conteúdo rolável */}
+      <div className="flex-1 p-4 overflow-y-auto min-h-0">
         {/* Conteúdo será adicionado aqui */}
         <div className="text-center text-gray-500 mt-20">
           <p>Dashboard Fiscal em desenvolvimento...</p>
