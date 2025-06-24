@@ -20,15 +20,17 @@ interface IconProps {
 interface AtestadosTableProps {
   atestadosData: Exame[];
   cairoClassName: string;
-  headerIcons?: IconProps[];
+  headerIcons: IconProps[];
   title?: string;
+  onMaximize?: () => void; // Adicionado onMaximize
 }
 
 const AtestadosTable: React.FC<AtestadosTableProps> = ({
   atestadosData,
   cairoClassName,
   headerIcons,
-  title = "Histórico de Exames"
+  title = "Histórico de Exames",
+  onMaximize, // Recebendo onMaximize
 }) => {
   const [visibleCount, setVisibleCount] = useState(10);
   const [hasScrollbar, setHasScrollbar] = useState(false);
@@ -81,6 +83,7 @@ const AtestadosTable: React.FC<AtestadosTableProps> = ({
                   width={16} // Standard size for these icons
                   height={16}
                   className="opacity-60 hover:opacity-100" // Added hover effect
+                  onClick={icon.alt === "Maximize" ? onMaximize : undefined} // Adicionado onClick para maximizar
                 />
               </div>
             ))}

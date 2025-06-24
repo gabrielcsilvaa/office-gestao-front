@@ -21,10 +21,11 @@ interface IconProps {
 interface ContratosTableProps {
   contratosData: Contrato[];
   cairoClassName: string;
-  headerIcons?: IconProps[];
+  headerIcons: IconProps[];
+  onMaximize?: () => void;
 }
 
-const ContratosTable: React.FC<ContratosTableProps> = ({ contratosData, cairoClassName, headerIcons }) => {
+const ContratosTable: React.FC<ContratosTableProps> = ({ contratosData, cairoClassName, headerIcons, onMaximize }) => {
   const [visibleCount, setVisibleCount] = useState(10);
   const [hasScrollbar, setHasScrollbar] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -73,6 +74,7 @@ const ContratosTable: React.FC<ContratosTableProps> = ({ contratosData, cairoCla
                   width={16}
                   height={16}
                   className="opacity-60 hover:opacity-100"
+                  onClick={() => icon.alt === "Maximize" ? onMaximize?.() : undefined}
                 />
               </div>
             ))}

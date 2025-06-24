@@ -23,15 +23,17 @@ interface IconProps {
 interface FeriasDetalheCardProps {
   feriasData: FeriasDetalheEntry[];
   cairoClassName: string;
-  headerIcons?: IconProps[];
-  title?: string;
+  headerIcons: IconProps[];
+  title: string;
+  onMaximize?: () => void;
 }
 
 const FeriasDetalheCard: React.FC<FeriasDetalheCardProps> = ({
   feriasData,
   cairoClassName,
   headerIcons,
-  title = "Histórico de Férias"
+  title = "Histórico de Férias",
+  onMaximize,
 }) => {
   const [visibleCount, setVisibleCount] = useState(10);
   const [hasScrollbar, setHasScrollbar] = useState(false);
@@ -72,17 +74,33 @@ const FeriasDetalheCard: React.FC<FeriasDetalheCardProps> = ({
         </div>
         {headerIcons && headerIcons.length > 0 && (
           <div className="flex items-center space-x-2 flex-shrink-0">
-            {headerIcons.map((icon, index) => (
-              <div key={index} className="cursor-pointer p-1">
-                <Image
-                  src={icon.src}
-                  alt={icon.alt}
-                  width={16}
-                  height={16}
-                  className="opacity-60 hover:opacity-100"
-                />
-              </div>
-            ))}
+            {headerIcons.map((icon, index) =>
+              icon.alt === "Maximize" ? (
+                <div
+                  key="maximize"
+                  className="cursor-pointer p-1"
+                  onClick={onMaximize}
+                >
+                  <Image
+                    src={icon.src}
+                    alt={icon.alt}
+                    width={16}
+                    height={16}
+                    className="opacity-60 hover:opacity-100"
+                  />
+                </div>
+              ) : (
+                <div key={index} className="cursor-pointer p-1">
+                  <Image
+                    src={icon.src}
+                    alt={icon.alt}
+                    width={16}
+                    height={16}
+                    className="opacity-60 hover:opacity-100"
+                  />
+                </div>
+              )
+            )}
           </div>
         )}
       </div>

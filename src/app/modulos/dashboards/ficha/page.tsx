@@ -1,6 +1,6 @@
 "use client";
 import { Cairo } from "next/font/google";
-import { useMemo, useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import SecaoFiltros from "./components/SecaoFiltros";
 import KpiCardsGrid from "./components/KpiCardsGrid";
 import EvolucaoCard from "./components/EvolucaoCard";
@@ -11,219 +11,30 @@ import ContratosTable from "./components/ContratosTable";
 import FeriasDetalheCard from "./components/FeriasDetalheCard";
 import AlteracoesSalariaisDetalheCard from "./components/AlteracoesSalariaisDetalheCard";
 import Modal from "../organizacional/components/Modal";
+import DetalhesModal, { ExportConfig } from "./components/DetalhesModal";
 import EvolucaoChart from "./components/EvolucaoChart";
 import ValorPorGrupoChart from "./components/ValorPorGrupoChart";
 import Calendar from "@/components/calendar";
 import Loading from "@/app/loading";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
+import { EmpresaFicha, FeriasPorEmpresa, AlteracoesPorEmpresa, FormattedFerias, FormattedAlteracao, Afastamento, Exame, Contrato } from "@/types/fichaPessoal.types";
+import { formatDate, formatDateToBR, parseCurrency } from "@/utils/formatters";
+import { useFichaPessoalData } from "@/hooks/useFichaPessoalData";
+import * as XLSX from 'xlsx';
+
+// Importe os novos componentes de tabela para o modal
+import FeriasModalTable from "./components/FeriasModalTable";
+import AtestadosModalTable from "./components/AtestadosModalTable";
+import AfastamentosModalTable from "./components/AfastamentosModalTable";
+import ContratosModalTable from "./components/ContratosModalTable";
+import AlteracoesSalariaisModalTable from "./components/AlteracoesSalariaisModalTable";
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
   subsets: ["latin"],
   variable: "--font-cairo",
 });
-
-interface Funcionario {
-  id_empregado: number;
-  nome: string;
-  data_nascimento?: string;
-  cargo?: string;
-  escolaridade?: string;
-  admissao?: string;
-  demissao?: string; // Adicionar propriedade demissao
-  salario?: string;
-  afastamentos?: AfastamentoEntryRaw[];
-  exames?: ExameEntryRaw[];
-}
-
-interface EmpresaFicha {
-  id_empresa: number;
-  nome_empresa: string;
-  funcionarios?: Funcionario[];
-}
-
-interface FeriasEntry {
-  id_empregado: number;
-  nome: string;
-  inicio_aquisitivo: string;
-  fim_aquisitivo: string;
-  inicio_gozo: string;
-  fim_gozo: string;
-}
-
-interface FeriasPorEmpresa {
-  id_empresa: number;
-  ferias: FeriasEntry[];
-}
-
-interface FormattedFerias {
-  nomeColaborador: string;
-  inicioPeriodoAquisitivo: string;
-  fimPeriodoAquisitivo: string;
-  inicioPeriodoGozo: string;         // adicionado
-  fimPeriodoGozo: string;            // adicionado
-  limiteParaGozo: string;
-  diasDeDireito: number;
-  diasGozados: number;
-  diasDeSaldo: number;
-}
-
-interface AlteracaoEntry {
-  id_empregado: number;
-  nome: string;
-  competencia: string;
-  novo_salario: string;
-  salario_anterior: string | null;
-  motivo: number;
-}
-interface AlteracoesPorEmpresa {
-  id_empresa: number;
-  alteracoes: AlteracaoEntry[];
-}
-interface FormattedAlteracao {
-  nomeColaborador: string;
-  competencia: string;
-  salarioAnterior: number | null;
-  salarioNovo: number;
-  motivo: string;
-  percentual: string;
-}
-
-interface AfastamentoEntryRaw {
-  data_inicial: string;
-  data_final: string | null;
-  num_dias: string;
-  tipo: string;
-}
-
-interface Afastamento {
-  inicio: string;
-  termino: string;
-  diasAfastados: string;
-  tipo: string;
-  nomeColaborador: string;
-}
-
-interface ExameEntryRaw {
-  data_exame: string;
-  data_vencimento: string;
-  resultado: string;
-  tipo: string;
-}
-
-interface Exame {
-  vencimento: string;
-  dataExame: string;
-  resultado: string;
-  tipo: string;
-  nomeColaborador: string;
-}
-
-interface Contrato {
-  id: string;
-  empresa: string;
-  colaborador: string;
-  dataAdmissao: string;
-  dataRescisao: string;
-  salarioBase: string;
-}
-
-export const formatDate = (date: Date | null) => {
-  if (date) {
-    return date.toISOString().split("T")[0];
-  }
-  return null;
-};
-
-const formatDateToBR = (dateString: string | null | undefined): string => {
-  if (!dateString) return "N/A";
-  try {
-    const [year, month, day] = dateString.split("-");
-    if (year && month && day) {
-      return `${day}/${month}/${year}`;
-    }
-    return "N/A";
-  } catch (e) {
-    return "N/A";
-  }
-};
-
-const formatCurrencyValue = (value: string | number | null | undefined): string => {
-  if (value === null || value === undefined || value === "") return "N/A";
-  const num = parseFloat(String(value));
-  if (isNaN(num)) return "N/A";
-  return `R$ ${num.toLocaleString("pt-BR", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })}`;
-};
-
-// Helper function to capitalize words
-const capitalizeWords = (text: string | null | undefined): string => {
-  if (!text) return "N/A";
-  
-  const romanNumeralPattern = /^(M{0,4}(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3}))$/i;
-
-  return text
-    .toLowerCase()
-    .split(" ")
-    .map((word) => {
-      if (word.toLowerCase().startsWith("(o)") || word.toLowerCase().startsWith("(a)")) {
-        // Specific handling for (o) or (a) if needed, e.g. Costureira(o)
-        // This part can be tricky if the (o) or (a) is part of a larger word.
-        // For "COSTUREIRA(O)", the current logic might produce "Costureira(o)"
-        // If you want "Costureira(O)", more specific logic is needed.
-        // The provided example "Costureira(o) Em Geral" seems to be the target.
-        // Let's refine the (o)/(a) handling slightly for common cases.
-        if (word.match(/\([oa]\)/i)) {
-            const parts = word.split(/(\([oa]\))/i); // Split by (o) or (a)
-            return parts.map((part, index) => {
-                if (index === 0 && part.length > 0) { // Part before (o)/(a)
-                    return part.charAt(0).toUpperCase() + part.slice(1);
-                }
-                return part; // (o)/(a) or part after
-            }).join('');
-        }
-      }
-      // Check if the word is a Roman numeral
-      if (romanNumeralPattern.test(word)) {
-        return word.toUpperCase();
-      }
-      if (word.length > 0) {
-        return word.charAt(0).toUpperCase() + word.slice(1);
-      }
-      return "";
-    })
-    .join(" ");
-};
-
-// Helper function to calculate age
-const calculateAge = (birthDateString: string | null | undefined): string => {
-  if (!birthDateString) return "N/A";
-  try {
-    const birthDate = new Date(birthDateString);
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    return age >= 0 ? `${age} anos` : "N/A";
-  } catch (e) {
-    return "N/A";
-  }
-};
-
-
-const parseCurrency = (currencyString: string): number => {
-  if (!currencyString) return 0;
-  return parseFloat(
-    currencyString
-      .replace("R$", "")
-      .replace(/\./g, "")
-      .replace(",", ".")
-      .trim()
-  );
-};
 
 const rawChartDataEntriesFicha = [
   "Jan/2024: R$ 1.896,58",
@@ -280,41 +91,110 @@ const valorPorGrupoDataFicha = [
   { name: "Empréstimo Consignado (Desconto)", value: -400.00 },
 ];
 
-const diffDays = (start: string, end: string): number =>
-  Math.ceil((new Date(end).getTime() - new Date(start).getTime()) / (1000*60*60*24));
+// Helper function to add a common header to PDF documents
+const addHeaderToPDF = (
+  doc: jsPDF,
+  reportTitle: string,
+  empresaFilter: string,
+  startDateFilter: string | null,
+  endDateFilter: string | null,
+  sortInfo?: string
+): number => {
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const margin = 10; // Page margin for header content
+  let currentY = 15; // Initial Y position for the header
+
+  // Report Title
+  doc.setFontSize(16);
+  doc.setFont('helvetica', 'bold');
+  doc.text(reportTitle, pageWidth / 2, currentY, { align: 'center' });
+  currentY += 8; // Space after title
+
+  // Filter Info & Generation Date
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+
+  // Line 1: Empresa (left) and Generated At (right)
+  if (empresaFilter) {
+    doc.text(`Empresa: ${empresaFilter}`, margin, currentY);
+  }
+  const now = new Date();
+  const generatedAt = `Gerado em: ${now.toLocaleDateString('pt-BR')} ${now.toLocaleTimeString('pt-BR')}`;
+  const generatedAtWidth = doc.getTextWidth(generatedAt);
+  doc.text(generatedAt, pageWidth - margin - generatedAtWidth, currentY);
+  currentY += 6; // Space for next line
+
+  // Line 2: Período (left)
+  if (startDateFilter && endDateFilter) {
+    doc.text(`Período: ${formatDateToBR(startDateFilter)} - ${formatDateToBR(endDateFilter)}`, margin, currentY);
+  }
+  currentY += 6; // Space for next line
+  // Line 3: Ordenação (se fornecida)
+  if (sortInfo) {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.text(`Ordenação Aplicada: ${sortInfo}`, margin, currentY);
+    doc.setFont('helvetica', 'normal'); // Reset font
+    currentY += 6; // Extra space after sorting info
+  }
+  currentY += 8; // Space before table starts
+
+  return currentY; // Return the Y position for the autoTable to start
+};
+
 
 export default function FichaPessoalPage() {
+  // 🎛️ Estados de filtros e controle da UI
   const [selectedEmpresa, setSelectedEmpresa] = useState<string>("");
   const [selectedColaborador, setSelectedColaborador] = useState<string>("");
-  const [modalContent, setModalContent] = useState<React.ReactNode | null>(null);
-  const handleCloseModal = () => setModalContent(null);
-
-    //Estados de data
+  
+  // 🔄 Sistema de modais tipado
+  type ModalType = 'exames' | 'afastamentos' | 'contratos' | 'ferias' | 'alteracoes' | 'evolucao' | 'valorPorGrupo' | null;
+  const [modalAberto, setModalAberto] = useState<ModalType>(null);
+  const handleCloseModal = () => setModalAberto(null);
+  // 📅 Estados de data
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
+  
+  // 📊 Estados de dados brutos da API  
   const [dados, setDados] = useState<EmpresaFicha[] | null>(null);
-  const [loading, setLoading] = useState(true); // Inicializar como true
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [empresaOptions, setEmpresaOptions] = useState<string[]>([]);
-  const [colaboradorOptions, setColaboradorOptions] = useState<Funcionario[]>([]); 
   const [feriasRaw, setFeriasRaw] = useState<FeriasPorEmpresa[]>([]);
-  const [feriasData, setFeriasData] = useState<FormattedFerias[]>([]);
   const [alteracoesRaw, setAlteracoesRaw] = useState<AlteracoesPorEmpresa[]>([]);
-  const [alteracoesData, setAlteracoesData] = useState<FormattedAlteracao[]>([]);
-  const [afastamentosData, setAfastamentosData] = useState<Afastamento[]>([]);
-  const [examesData, setExamesData] = useState<Exame[]>([]);
-  const [contratosData, setContratosData] = useState<Contrato[]>([]);
+  // 📊 Estados para dados ordenados das tabelas (para exportação consistente)
+  const [sortedExamesData, setSortedExamesData] = useState<any[]>([]);
+  const [sortedAfastamentosData, setSortedAfastamentosData] = useState<any[]>([]);
+  const [sortedContratosData, setSortedContratosData] = useState<any[]>([]);
+  const [sortedFeriasData, setSortedFeriasData] = useState<any[]>([]);  const [sortedAlteracoesData, setSortedAlteracoesData] = useState<any[]>([]);
 
-  const initialKpiCardData = [
-    { title: "Data de Admissão", value: "N/A", tooltipText: "Data de início do colaborador na empresa." },
-    { title: "Salário Base", value: "N/A", tooltipText: "Salário bruto mensal do colaborador." },
-    { title: "Cargo", value: "N/A", tooltipText: "Cargo atual do colaborador." },
-    { title: "Escolaridade", value: "N/A", tooltipText: "Nível de escolaridade do colaborador." },
-    { title: "Idade", value: "N/A", tooltipText: "Idade atual do colaborador." },
-  ];
-  const [currentKpiCardData, setCurrentKpiCardData] = useState(initialKpiCardData);
+  // 📋 Estados para informações de ordenação (para contextualizar PDFs)
+  const [examesSortInfo, setExamesSortInfo] = useState<string>('Padrão (sem ordenação específica)');
+  const [afastamentosSortInfo, setAfastamentosSortInfo] = useState<string>('Padrão (sem ordenação específica)');
+  const [contratosSortInfo, setContratosSortInfo] = useState<string>('Padrão (sem ordenação específica)');
+  const [feriasSortInfo, setFeriasSortInfo] = useState<string>('Padrão (sem ordenação específica)');
+  const [alteracoesSortInfo, setAlteracoesSortInfo] = useState<string>('Padrão (sem ordenação específica)');
 
+  // 🧠 Hook customizado - Cérebro de dados processados
+  const {
+    kpiCardData,
+    contratosData,
+    examesData,
+    afastamentosData,
+    feriasData,
+    alteracoesData,
+    colaboradorOptions,
+    empresaOptionsData,
+  } = useFichaPessoalData({
+    dados,
+    feriasRaw,
+    alteracoesRaw,
+    selectedEmpresa,
+    selectedColaborador,
+  });
 
+  // 📅 Handlers para mudanças de data
   const handleStartDateChange = (date: string | null) => {
     setStartDate(date);
   };
@@ -323,13 +203,13 @@ export default function FichaPessoalPage() {
     setEndDate(date);
   };
 
+  // 🌐 useEffect para buscar dados da API
   useEffect(() => {
     const fetchClientData = async () => {
       try {
         setLoading(true);
         setError(null);
         setEmpresaOptions([]);
-        setColaboradorOptions([]);
         setSelectedColaborador("");
 
         if (!startDate || !endDate) {
@@ -360,9 +240,9 @@ export default function FichaPessoalPage() {
           ferias?: FeriasPorEmpresa[];
         };
 
-        console.log("Dados recebidos:", result);  // exibe { dados, alteracao_salario, ferias }
+        console.log("Dados recebidos:", result);
 
-        // rawDados tipado como EmpresaFicha[]
+        // Dados brutos da API
         const rawDados: EmpresaFicha[] = Array.isArray(result.dados) ? result.dados : [];
         setDados(rawDados);
 
@@ -381,8 +261,8 @@ export default function FichaPessoalPage() {
           }
         }
 
+        // Lista de empresas para o select
         if (rawDados.length > 0) {
-          // agora item é do tipo EmpresaFicha e uniqueEmpresas é string[]
           const uniqueEmpresas: string[] = Array.from(
             new Set(rawDados.map((item) => item.nome_empresa.trim()))
           ).sort();
@@ -391,12 +271,13 @@ export default function FichaPessoalPage() {
           setEmpresaOptions([]);
         }
 
+        // Dados de férias e alterações salariais
         setFeriasRaw(Array.isArray(result.ferias) ? result.ferias : []);
         setAlteracoesRaw(Array.isArray(result.alteracao_salario) ? result.alteracao_salario : []);
       } catch (err) {
         console.error("Erro ao buscar dados:", err);
         setError(err instanceof Error ? err.message : "Erro desconhecido");
-        setDados(null); // Clear data on error
+        setDados(null);
         setEmpresaOptions([]);
       } finally {
         setLoading(false);
@@ -405,55 +286,13 @@ export default function FichaPessoalPage() {
 
     fetchClientData();
   }, [startDate, endDate]); 
-
+  // 🔄 Reset colaborador quando empresa muda
   useEffect(() => {
-    if (selectedEmpresa && dados) {
-      const empresaSelecionada = dados.find(
-        (emp) => emp.nome_empresa.trim() === selectedEmpresa // Trim emp.nome_empresa here
-      );
-      if (empresaSelecionada && empresaSelecionada.funcionarios) {
-        const sortedFuncionarios = [...empresaSelecionada.funcionarios].sort((a, b) =>
-          a.nome.localeCompare(b.nome)
-        );
-        setColaboradorOptions(sortedFuncionarios);
-      } else {
-        setColaboradorOptions([]);
-      }
-    } else {
-      setColaboradorOptions([]);
-    }
     setSelectedColaborador("");
-  }, [selectedEmpresa, dados]);
-  
-  useEffect(() => {
-    if (selectedColaborador && colaboradorOptions.length > 0) {
-      const funcionarioSelecionado = colaboradorOptions.find(
-        (func) => func.nome === selectedColaborador
-      );
+  }, [selectedEmpresa]);
 
-      if (funcionarioSelecionado) {
-        setCurrentKpiCardData([
-          { title: "Data de Admissão", value: formatDateToBR(funcionarioSelecionado.admissao), tooltipText: "Data de início do colaborador na empresa." },
-          { title: "Salário Base", value: formatCurrencyValue(funcionarioSelecionado.salario), tooltipText: "Salário bruto mensal do colaborador." },
-          { title: "Cargo", value: capitalizeWords(funcionarioSelecionado.cargo), tooltipText: "Cargo atual do colaborador." },
-          { title: "Escolaridade", value: capitalizeWords(funcionarioSelecionado.escolaridade), tooltipText: "Nível de escolaridade do colaborador." },
-          { title: "Idade", value: calculateAge(funcionarioSelecionado.data_nascimento), tooltipText: "Idade atual do colaborador." },
-        ]);
-      } else {
-        setCurrentKpiCardData(initialKpiCardData);
-      }
-    } else {
-      setCurrentKpiCardData(initialKpiCardData);
-    }
-  }, [selectedColaborador, colaboradorOptions]);
-        
-  const kpiCardData = [
-    { title: "Data de Admissão", value: "01/01/2020", tooltipText: "Data de início do colaborador na empresa." },
-    { title: "Salário Base", value: "R$ 5.000,00", tooltipText: "Salário bruto mensal do colaborador." },
-    { title: "Cargo", value: "Desenvolvedor", tooltipText: "Cargo atual do colaborador." },
-    { title: "Escolaridade", value: "Superior Completo", tooltipText: "Nível de escolaridade do colaborador." },
-    { title: "Idade", value: "30 anos", tooltipText: "Idade atual do colaborador." },
-  ];
+  // 📊 Título da evolução e dados processados para gráficos
+  const evolucaoCardTitle = "Evolução de Custo Total";
 
   const processedEvolucaoChartDataFicha = useMemo(() => {
     return rawChartDataEntriesFicha.map(entry => {
@@ -461,279 +300,595 @@ export default function FichaPessoalPage() {
       return { month, value: parseCurrency(valueString) };
     });
   }, []);
-  const evolucaoCardTitle = "Evolução de Custo Total";
 
+  // 📋 Dados de tabela processados (removendo lógica de padding)
   const processedTableData = useMemo(() => {
-    // Remover toda a lógica de padding - usar apenas dados reais da API
     return {
       contratos: contratosData,
     };
   }, [contratosData]);
-
-  useEffect(() => {
-    if (selectedEmpresa && dados) {
-      const empresaSelecionada = dados.find(
-        (emp) => emp.nome_empresa.trim() === selectedEmpresa
-      );
-
-      if (empresaSelecionada && empresaSelecionada.funcionarios) {
-        const todosContratosDaEmpresa: Contrato[] = [];
-        
-        // Filtrar funcionários se um colaborador específico estiver selecionado
-        const funcionariosFiltrados = selectedColaborador 
-          ? empresaSelecionada.funcionarios.filter(func => func.nome === selectedColaborador)
-          : empresaSelecionada.funcionarios;
-
-        funcionariosFiltrados.forEach((funcionario, index) => {
-          const contrato: Contrato = {
-            id: `${funcionario.id_empregado}`,
-            empresa: empresaSelecionada.nome_empresa,
-            colaborador: funcionario.nome,
-            dataAdmissao: formatDateToBR(funcionario.admissao),
-            dataRescisao: funcionario.demissao ? formatDateToBR(funcionario.demissao) : "",
-            salarioBase: formatCurrencyValue(funcionario.salario),
-          };
-          todosContratosDaEmpresa.push(contrato);
-        });
-        
-        // Ordenar contratos: 1º por nome, 2º por data de admissão (mais recente primeiro)
-        todosContratosDaEmpresa.sort((a, b) => {
-          const nomeComparison = a.colaborador.localeCompare(b.colaborador);
-          if (nomeComparison !== 0) return nomeComparison;
-          
-          try {
-            const dataA = new Date(a.dataAdmissao.split('/').reverse().join('-'));
-            const dataB = new Date(b.dataAdmissao.split('/').reverse().join('-'));
-            return dataB.getTime() - dataA.getTime();
-          } catch (e) {
-            return 0;
-          }
-        });
-        
-        setContratosData(todosContratosDaEmpresa);
-      } else {
-        setContratosData([]);
-      }
-    } else {
-      setContratosData([]);
-    }
-  }, [selectedEmpresa, dados, selectedColaborador]);
-
-  useEffect(() => {
-    if (selectedEmpresa && dados) {
-      const empresaSelecionada = dados.find(
-        (emp) => emp.nome_empresa.trim() === selectedEmpresa
-      );
-
-      if (empresaSelecionada && empresaSelecionada.funcionarios) {
-        const todosExamesDaEmpresa: Exame[] = [];
-        
-        // Filtrar funcionários se um colaborador específico estiver selecionado
-        const funcionariosFiltrados = selectedColaborador 
-          ? empresaSelecionada.funcionarios.filter(func => func.nome === selectedColaborador)
-          : empresaSelecionada.funcionarios;
-
-        funcionariosFiltrados.forEach((funcionario) => {
-          if (funcionario.exames && funcionario.exames.length > 0) {
-            const examesDoFuncionario = funcionario.exames.map(
-              (e) => ({
-                vencimento: formatDateToBR(e.data_vencimento),
-                dataExame: formatDateToBR(e.data_exame),
-                resultado: e.resultado,
-                tipo: e.tipo,
-                nomeColaborador: funcionario.nome,
-              })
-            );
-            todosExamesDaEmpresa.push(...examesDoFuncionario);
-          }
-        });
-        
-        // Ordenar exames: 1º por nome, 2º por data de vencimento (mais urgente primeiro)
-        todosExamesDaEmpresa.sort((a, b) => {
-          const nomeComparison = a.nomeColaborador.localeCompare(b.nomeColaborador);
-          if (nomeComparison !== 0) return nomeComparison;
-          
-          try {
-            const dataA = new Date(a.vencimento.split('/').reverse().join('-'));
-            const dataB = new Date(b.vencimento.split('/').reverse().join('-'));
-            return dataA.getTime() - dataB.getTime();
-          } catch (e) {
-            return 0;
-          }
-        });
-        
-        setExamesData(todosExamesDaEmpresa);
-      } else {
-        setExamesData([]);
-      }
-    } else {
-      setExamesData([]);
-    }
-  }, [selectedEmpresa, dados, selectedColaborador]); // Adicionar selectedColaborador na dependência
-
-  useEffect(() => {
-    if (selectedEmpresa && dados) {
-      const emp = dados.find(e => e.nome_empresa.trim() === selectedEmpresa);
-      const rec = emp && feriasRaw.find(f => f.id_empresa === emp.id_empresa);
-      if (rec) {
-        // Filtrar férias por funcionário selecionado se houver
-        const feriasFiltradas = selectedColaborador 
-          ? rec.ferias.filter(f => f.nome === selectedColaborador)
-          : rec.ferias;
-
-        const feriasFormatadas = feriasFiltradas.map(f => ({
-          nomeColaborador: f.nome,
-          inicioPeriodoAquisitivo: formatDateToBR(f.inicio_aquisitivo),
-          fimPeriodoAquisitivo: formatDateToBR(f.fim_aquisitivo),
-          inicioPeriodoGozo: formatDateToBR(f.inicio_gozo),
-          fimPeriodoGozo: formatDateToBR(f.fim_gozo),
-          limiteParaGozo: formatDateToBR(f.fim_aquisitivo),
-          diasDeDireito: diffDays(f.inicio_aquisitivo, f.fim_aquisitivo),
-          diasGozados: diffDays(f.inicio_gozo, f.fim_gozo),
-          diasDeSaldo: diffDays(f.inicio_aquisitivo, f.fim_aquisitivo)
-            - diffDays(f.inicio_gozo, f.fim_gozo),
-          // Manter as datas originais para ordenação
-          _dataVencimento: f.fim_aquisitivo,
-          _dataInicioAquisitivo: f.inicio_aquisitivo,
-        }));
-
-        // Aplicar ordenação multi-critério
-        feriasFormatadas.sort((a, b) => {
-          // 1º critério: Nome do funcionário (alfabética)
-          const nomeComparison = a.nomeColaborador.localeCompare(b.nomeColaborador);
-          if (nomeComparison !== 0) return nomeComparison;
-
-          // 2º critério: Data de vencimento (mais urgente primeiro)
-          try {
-            const dataVencimentoA = new Date(a._dataVencimento);
-            const dataVencimentoB = new Date(b._dataVencimento);
-            const vencimentoComparison = dataVencimentoA.getTime() - dataVencimentoB.getTime();
-            if (vencimentoComparison !== 0) return vencimentoComparison;
-          } catch (e) {
-            // Em caso de erro na conversão de data, continua para o próximo critério
-          }
-
-          // 3º critério: Data de início do período aquisitivo (mais antigo primeiro)
-          try {
-            const dataInicioA = new Date(a._dataInicioAquisitivo);
-            const dataInicioB = new Date(b._dataInicioAquisitivo);
-            return dataInicioA.getTime() - dataInicioB.getTime();
-          } catch (e) {
-            return 0;
-          }
-        });
-
-        // Remover as propriedades auxiliares antes de definir o estado
-        const feriasLimpas = feriasFormatadas.map(({ _dataVencimento, _dataInicioAquisitivo, ...ferias }) => ferias);
-        setFeriasData(feriasLimpas);
-      } else {
-        setFeriasData([]);
-      }
-    } else {
-      setFeriasData([]);
-    }
-  }, [selectedEmpresa, dados, feriasRaw, selectedColaborador]); // Adicionar selectedColaborador na dependência
-
-  useEffect(() => {
-    if (selectedEmpresa && dados) {
-      const emp = dados.find(e => e.nome_empresa.trim() === selectedEmpresa);
-      const rec = emp && alteracoesRaw.find(a => a.id_empresa === emp.id_empresa);
-      if (rec) {
-        // Filtrar alterações por funcionário selecionado se houver
-        const alteracoesFiltradas = selectedColaborador 
-          ? rec.alteracoes.filter(a => a.nome === selectedColaborador)
-          : rec.alteracoes;
-
-        const alteracoesFormatadas = alteracoesFiltradas.map(a => {
-          const anterior = a.salario_anterior ? parseFloat(a.salario_anterior) : null;
-          const novo = parseFloat(a.novo_salario);
-          const perc = anterior
-            ? `${(((novo - anterior) / anterior) * 100).toFixed(1)}%`
-            : "";
-          return {
-            nomeColaborador: a.nome,
-            competencia: formatDateToBR(a.competencia),
-            salarioAnterior: anterior,
-            salarioNovo: novo,
-            motivo: a.motivo === 0 ? "Primeira Contratação" : "Ajuste",
-            percentual: perc,
-            // Manter a data original para ordenação
-            _dataCompetencia: a.competencia,
-          };
-        });
-
-        // Aplicar ordenação multi-critério
-        alteracoesFormatadas.sort((a, b) => {
-          // 1º critério: Nome do funcionário (alfabética)
-          const nomeComparison = a.nomeColaborador.localeCompare(b.nomeColaborador);
-          if (nomeComparison !== 0) return nomeComparison;
-
-          // 2º critério: Data da competência (mais recente primeiro)
-          try {
-            const dataCompetenciaA = new Date(a._dataCompetencia);
-            const dataCompetenciaB = new Date(b._dataCompetencia);
-            const competenciaComparison = dataCompetenciaB.getTime() - dataCompetenciaA.getTime();
-            if (competenciaComparison !== 0) return competenciaComparison;
-          } catch (e) {
-            // Em caso de erro na conversão de data, continua para o próximo critério
-          }
-
-          // 3º critério: Valor do salário novo (maior para menor)
-          return b.salarioNovo - a.salarioNovo;
-        });
-
-        // Remover a propriedade auxiliar antes de definir o estado
-        const alteracoesLimpas = alteracoesFormatadas.map(({ _dataCompetencia, ...alteracao }) => alteracao);
-        setAlteracoesData(alteracoesLimpas);
-      } else {
-        setAlteracoesData([]);
-      }
-    } else {
-      setAlteracoesData([]);
-    }
-  }, [selectedEmpresa, dados, alteracoesRaw, selectedColaborador]); // Adicionar selectedColaborador na dependência
-
-  useEffect(() => {
-    if (selectedEmpresa && dados) {
-      const empresaSelecionada = dados.find(
-        (emp) => emp.nome_empresa.trim() === selectedEmpresa
-      );
-
-      if (empresaSelecionada && empresaSelecionada.funcionarios) {
-        const todosAfastamentosDaEmpresa: Afastamento[] = [];
-        
-        // Filtrar funcionários se um colaborador específico estiver selecionado
-        const funcionariosFiltrados = selectedColaborador 
-          ? empresaSelecionada.funcionarios.filter(func => func.nome === selectedColaborador)
-          : empresaSelecionada.funcionarios;
-
-        funcionariosFiltrados.forEach((funcionario) => {
-          if (funcionario.afastamentos && funcionario.afastamentos.length > 0) {
-            const afastamentosDoFuncionario = funcionario.afastamentos.map(
-              (a) => ({
-                inicio: formatDateToBR(a.data_inicial),
-                termino: a.data_final ? formatDateToBR(a.data_final) : "N/A",
-                diasAfastados: parseFloat(a.num_dias).toString(),
-                tipo: a.tipo,
-                nomeColaborador: funcionario.nome,
-              })
-            );
-            todosAfastamentosDaEmpresa.push(...afastamentosDoFuncionario);
-          }
-        });
-        
-        setAfastamentosData(todosAfastamentosDaEmpresa);
-      } else {
-        setAfastamentosData([]);
-      }
-    } else {
-      setAfastamentosData([]);
-    }
-  }, [selectedEmpresa, dados, selectedColaborador]); // Adicionar selectedColaborador na dependência
-
-  // Se estiver carregando, mostrar o componente Loading
+  // 🔄 Loading state
   if (loading) {
     return <Loading />;
+  }
+  // Função para exportar exames para PDF no padrão dos modais da carteira
+  const exportExamesToPDF = (data: Exame[], reportName: string, sortInfo?: string) => {
+    const doc = new jsPDF(); // Default is portrait
+    const tableStartY = addHeaderToPDF(doc, reportName, selectedEmpresa, startDate, endDate, sortInfo);
+
+    const tableData = data.map((e) => [
+      e.nomeColaborador,
+      e.tipo,
+      e.dataExame,
+      e.vencimento,
+      e.resultado,
+    ]);
+    const tableHeaders = [
+      "Nome do Funcionário",
+      "Tipo",
+      "Data do Exame",
+      "Data de Vencimento",
+      "Resultado",
+    ];
+
+    autoTable(doc, {
+      startY: tableStartY, 
+      head: [tableHeaders],
+      body: tableData,
+      theme: 'grid',
+      styles: {
+        font: 'helvetica',
+        fontSize: 8,
+        cellPadding: 1,
+        lineColor: [200, 200, 200],
+        lineWidth: 0.1,
+        textColor: [50, 50, 50],
+        overflow: 'linebreak'
+      },
+      headStyles: {
+        fillColor: [41, 128, 185],
+        textColor: [255, 255, 255],
+        fontSize: 9,
+        fontStyle: 'bold',
+        halign: 'center',
+      },
+      columnStyles: {
+        0: { cellWidth: 60, fontStyle: 'bold' }, // Nome do Funcionário
+        1: { cellWidth: 35, halign: 'left' },    // Tipo (text, so left align)
+        2: { cellWidth: 35, halign: 'right' },   // Data do Exame
+        3: { cellWidth: 35, halign: 'right' },   // Data de Vencimento        4: { cellWidth: 35, halign: 'left' },    // Resultado (text, so left align)
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245],
+      },
+      margin: { left: 4, right: 2 },
+      didDrawPage: function (data) {
+        doc.setFontSize(8);
+        doc.text('Página ' + data.pageNumber, data.settings.margin.left, doc.internal.pageSize.height - 10);
+      }
+    });
+
+    doc.save(`${reportName.replace(/ /g, "_")}.pdf`);
+  };
+
+  // Função para exportar exames para Excel (usando XLSX, igual ao padrão do carteira)
+  const exportExamesToExcel = (data: Exame[], fileName: string, sortInfo?: string) => {
+    const excelData = data.map(e => ({
+      "Nome do Funcionário": e.nomeColaborador,
+      "Tipo": e.tipo,
+      "Data do Exame": e.dataExame,
+      "Data de Vencimento": e.vencimento,
+      "Resultado": e.resultado,
+    }));
+
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(excelData);
+    
+    // Set column widths
+    ws['!cols'] = [
+      { width: 30 }, // Nome do Funcionário
+      { width: 20 }, // Tipo
+      { width: 15 }, // Data do Exame
+      { width: 18 }, // Data de Vencimento
+      { width: 15 }  // Resultado
+    ];
+    
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, 'Exames');
+    
+    // Save file
+    XLSX.writeFile(wb, `${fileName}.xlsx`);
+  };
+  // Função para exportar afastamentos para PDF (padrão carteira)
+  const exportAfastamentosToPDF = (data: Afastamento[], reportName: string, sortInfo?: string) => {
+    const doc = new jsPDF(); // Default is portrait
+    const tableStartY = addHeaderToPDF(doc, reportName, selectedEmpresa, startDate, endDate, sortInfo);
+
+    const tableData = data.map((a) => [
+      a.nomeColaborador,
+      a.tipo,
+      a.inicio,
+      a.termino,
+      a.diasAfastados,
+    ]);
+    const tableHeaders = [
+      "Nome do Funcionário",
+      "Tipo",
+      "Data de Início",
+      "Data de Término",
+      "Dias Afastados",
+    ];
+
+    autoTable(doc, {
+      startY: tableStartY, 
+      head: [tableHeaders],
+      body: tableData,
+      theme: 'grid',
+      styles: {
+        font: 'helvetica',
+        fontSize: 8,
+        cellPadding: 1,
+        lineColor: [200, 200, 200],
+        lineWidth: 0.1,
+        textColor: [50, 50, 50],
+        overflow: 'linebreak'
+      },
+      headStyles: {
+        fillColor: [41, 128, 185],
+        textColor: [255, 255, 255],
+        fontSize: 9,
+        fontStyle: 'bold',
+        halign: 'center',
+      },
+      columnStyles: {
+        0: { cellWidth: 60, fontStyle: 'bold' }, // Nome do Funcionário
+        1: { cellWidth: 35, halign: 'left' },    // Tipo (text, so left align)
+        2: { cellWidth: 35, halign: 'right' },   // Data de Início
+        3: { cellWidth: 35, halign: 'right' },   // Data de Término
+        4: { cellWidth: 35, halign: 'right' },   // Dias Afastados
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245],
+      },
+      margin: { left: 4, right: 2 },
+      didDrawPage: function (data) {
+        doc.setFontSize(8);
+        doc.text('Página ' + data.pageNumber, data.settings.margin.left, doc.internal.pageSize.height - 10);
+      }
+    });
+
+    doc.save(`${reportName.replace(/ /g, "_")}.pdf`);  };  // Função para exportar afastamentos para Excel (padrão carteira)
+  const exportAfastamentosToExcel = (data: Afastamento[], fileName: string, sortInfo?: string) => {
+    const leavesData = data.map(a => ({
+      "Nome do Funcionário": a.nomeColaborador,
+      "Tipo": a.tipo,
+      "Data de Início": a.inicio,
+      "Data de Término": a.termino,
+      "Dias Afastados": a.diasAfastados,
+    }));
+
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(leavesData);
+    
+    // Set column widths
+    ws['!cols'] = [
+      { width: 30 }, // Nome do Funcionário
+      { width: 20 }, // Tipo
+      { width: 15 }, // Data de Início
+      { width: 15 }, // Data de Término
+      { width: 15 }  // Dias Afastados
+    ];
+    
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, 'Afastamentos');
+    
+    // Save file
+    XLSX.writeFile(wb, `${fileName}.xlsx`);
+  };
+  // Função para exportar contratos para PDF (padrão carteira)
+  const exportContratosToPDF = (data: Contrato[], reportName: string, sortInfo?: string) => {
+    const doc = new jsPDF(); // Default is portrait
+    const tableStartY = addHeaderToPDF(doc, reportName, selectedEmpresa, startDate, endDate, sortInfo);
+
+    const tableData = data.map((c) => [
+      c.colaborador,
+      c.dataAdmissao,
+      c.dataRescisao === "" ? "Ativo" : c.dataRescisao,
+      c.salarioBase,
+    ]);
+    const tableHeaders = [
+      "Nome do Funcionário",
+      "Data de Admissão",
+      "Data de Rescisão",
+      "Salário Base",
+    ];
+
+    autoTable(doc, {
+      startY: tableStartY, 
+      head: [tableHeaders],
+      body: tableData,
+      theme: 'grid',
+      styles: {
+        font: 'helvetica',
+        fontSize: 8,
+        cellPadding: 1,
+        lineColor: [200, 200, 200],
+        lineWidth: 0.1,
+        textColor: [50, 50, 50],
+        overflow: 'linebreak'
+      },
+      headStyles: {
+        fillColor: [41, 128, 185],
+        textColor: [255, 255, 255],
+        fontSize: 9,
+        fontStyle: 'bold',
+        halign: 'center',
+      },
+      columnStyles: {
+        0: { cellWidth: 70, fontStyle: 'bold' }, // Nome do Funcionário
+        1: { cellWidth: 40, halign: 'right' },   // Data de Admissão
+        2: { cellWidth: 40, halign: 'right' },   // Data de Rescisão
+        3: { cellWidth: 50, halign: 'right' },   // Salário Base
+      },      alternateRowStyles: {
+        fillColor: [245, 245, 245],
+      },
+      margin: { left: 4, right: 2 },
+      didDrawPage: function (data) {
+        doc.setFontSize(8);
+        doc.text('Página ' + data.pageNumber, data.settings.margin.left, doc.internal.pageSize.height - 10);
+      }
+    });
+
+    doc.save(`${reportName.replace(/ /g, "_")}.pdf`);
+  };
+
+  // Função para exportar contratos para Excel (padrão carteira)
+  const exportContratosToExcel = (data: Contrato[], fileName: string, sortInfo?: string) => {
+    const contractsData = data.map(c => ({
+      "Nome do Funcionário": c.colaborador,
+      "Data de Admissão": c.dataAdmissao,
+      "Data de Rescisão": c.dataRescisao === "" ? "Ativo" : c.dataRescisao,
+      "Salário Base": c.salarioBase,
+    }));
+
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(contractsData);
+    
+    // Set column widths
+    ws['!cols'] = [
+      { width: 30 }, // Nome do Funcionário
+      { width: 18 }, // Data de Admissão
+      { width: 18 }, // Data de Rescisão
+      { width: 15 }  // Salário Base
+    ];
+    
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, 'Contratos');
+    
+    // Save file
+    XLSX.writeFile(wb, `${fileName}.xlsx`);
+  };
+  // Função para exportar férias para PDF (padrão carteira, colunas mais compactas)
+  const exportFeriasToPDF = (data: FormattedFerias[], reportName: string, sortInfo?: string) => {
+    const doc = new jsPDF({ orientation: "landscape" }); 
+    const tableStartY = addHeaderToPDF(doc, reportName, selectedEmpresa, startDate, endDate, sortInfo);
+
+    const tableData = data.map((f) => [
+      f.nomeColaborador,
+      f.inicioPeriodoAquisitivo,
+      f.fimPeriodoAquisitivo,
+      f.inicioPeriodoGozo,
+      f.fimPeriodoGozo,
+      f.limiteParaGozo,
+      f.diasDeDireito,
+      f.diasGozados,
+      f.diasDeSaldo,
+    ]);
+    const tableHeaders = [
+      "Nome do Funcionário",
+      "Início Período Aquisitivo",
+      "Fim Período Aquisitivo",
+      "Início Gozo",
+      "Fim Gozo",
+      "Limite para Gozo",
+      "Dias de Direito",
+      "Dias Gozados",
+      "Dias de Saldo",
+    ];
+
+    autoTable(doc, {
+      startY: tableStartY,
+      head: [tableHeaders],
+      body: tableData,
+      theme: 'grid',
+      styles: {
+        font: 'helvetica',
+        fontSize: 8,
+        cellPadding: 1,
+        lineColor: [200, 200, 200],
+        lineWidth: 0.1,
+        textColor: [50, 50, 50],
+        overflow: 'linebreak'
+      },
+      headStyles: {
+        fillColor: [41, 128, 185],
+        textColor: [255, 255, 255],
+        fontSize: 9,
+        fontStyle: 'bold',
+        halign: 'center',
+      },
+      columnStyles: {
+        0: { cellWidth: 50, fontStyle: 'bold' }, // Nome do Funcionário
+        1: { cellWidth: 32, halign: 'right' },   // Início Período Aquisitivo
+        2: { cellWidth: 32, halign: 'right' },   // Fim Período Aquisitivo
+        3: { cellWidth: 30, halign: 'right' },   // Início Gozo
+        4: { cellWidth: 30, halign: 'right' },   // Fim Gozo
+        5: { cellWidth: 32, halign: 'right' },   // Limite para Gozo
+        6: { cellWidth: 25, halign: 'right' },   // Dias de Direito
+        7: { cellWidth: 25, halign: 'right' },   // Dias Gozados
+        8: { cellWidth: 25, halign: 'right' },   // Dias de Saldo
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245],
+      },
+      margin: { left: 4, right: 2 },
+      didDrawPage: function (data) {
+        doc.setFontSize(8);
+        doc.text('Página ' + data.pageNumber, data.settings.margin.left, doc.internal.pageSize.height - 10);
+      }
+    });
+
+    doc.save(`${reportName.replace(/ /g, "_")}.pdf`);
+  };  // Função para exportar férias para Excel (padrão carteira)
+  const exportFeriasToExcel = (data: FormattedFerias[], fileName: string, sortInfo?: string) => {
+    const vacationsData = data.map(f => ({
+      "Nome do Funcionário": f.nomeColaborador,
+      "Início Período Aquisitivo": f.inicioPeriodoAquisitivo,
+      "Fim Período Aquisitivo": f.fimPeriodoAquisitivo,
+      "Início Gozo": f.inicioPeriodoGozo,
+      "Fim Gozo": f.fimPeriodoGozo,
+      "Limite para Gozo": f.limiteParaGozo,
+      "Dias de Direito": f.diasDeDireito,
+      "Dias Gozados": f.diasGozados,
+      "Dias de Saldo": f.diasDeSaldo,
+    }));
+
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(vacationsData);
+    
+    // Set column widths for landscape orientation
+    ws['!cols'] = [
+      { width: 25 }, // Nome do Funcionário
+      { width: 18 }, // Início Período Aquisitivo
+      { width: 18 }, // Fim Período Aquisitivo
+      { width: 15 }, // Início Gozo
+      { width: 15 }, // Fim Gozo
+      { width: 15 }, // Limite para Gozo
+      { width: 12 }, // Dias de Direito
+      { width: 12 }, // Dias Gozados
+      { width: 12 }  // Dias de Saldo
+    ];
+    
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, 'Férias');
+    
+    // Save file
+    XLSX.writeFile(wb, `${fileName}.xlsx`);
+  };
+  // Função para exportar alterações salariais para PDF (padrão carteira)
+  const exportAlteracoesToPDF = (data: FormattedAlteracao[], reportName: string, sortInfo?: string) => {
+    const doc = new jsPDF(); // Default is portrait
+    const tableStartY = addHeaderToPDF(doc, reportName, selectedEmpresa, startDate, endDate, sortInfo);
+
+    const tableData = data.map((a) => [
+      a.nomeColaborador,
+      a.competencia,
+      a.salarioAnterior !== null ? a.salarioAnterior.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "N/A",
+      a.salarioNovo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+      a.motivo,
+      a.percentual === "" ? "-" : a.percentual, // Modified line
+    ]);
+    const tableHeaders = [
+      "Nome do Funcionário",
+      "Competência",
+      "Salário Anterior",
+      "Salário Novo",
+      "Motivo",
+      "Variação (%)",
+    ];
+
+    autoTable(doc, {
+      startY: tableStartY, 
+      head: [tableHeaders],
+      body: tableData,
+      theme: 'grid',
+      styles: {
+        font: 'helvetica',
+        fontSize: 8,
+        cellPadding: 1,
+        lineColor: [200, 200, 200],
+        lineWidth: 0.1,
+        textColor: [50, 50, 50],
+        overflow: 'linebreak'
+      },
+      headStyles: {
+        fillColor: [41, 128, 185],
+        textColor: [255, 255, 255],
+        fontSize: 9,
+        fontStyle: 'bold',
+        halign: 'center',
+      },
+      columnStyles: {
+        0: { cellWidth: 52, fontStyle: 'bold' }, // Nome do Funcionário
+        1: { cellWidth: 32, halign: 'right' },   // Competência
+        2: { cellWidth: 32, halign: 'right' },   // Salário Anterior
+        3: { cellWidth: 32, halign: 'right' },   // Salário Novo
+        4: { cellWidth: 32, halign: 'left' },    // Motivo (text, so left align)        5: { cellWidth: 24, halign: 'right' },   // Variação (%)
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245],
+      },
+      margin: { left: 4, right: 2 },
+      didDrawPage: function (data) {
+        doc.setFontSize(8);
+        doc.text('Página ' + data.pageNumber, data.settings.margin.left, doc.internal.pageSize.height - 10);
+      }
+    });
+
+    doc.save(`${reportName.replace(/ /g, "_")}.pdf`);
+  };
+
+  // Função para exportar alterações salariais para Excel (padrão carteira)
+  const exportAlteracoesToExcel = (data: FormattedAlteracao[], fileName: string, sortInfo?: string) => {
+    const changesData = data.map(a => ({
+      "Nome do Funcionário": a.nomeColaborador,
+      "Competência": a.competencia,
+      "Salário Anterior": a.salarioAnterior !== null ? a.salarioAnterior.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "N/A",
+      "Salário Novo": a.salarioNovo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+      "Motivo": a.motivo,
+      "Variação (%)": a.percentual === "" ? "-" : a.percentual,
+    }));
+
+    // Create workbook and worksheet
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.json_to_sheet(changesData);
+    
+    // Set column widths
+    ws['!cols'] = [
+      { width: 25 }, // Nome do Funcionário
+      { width: 15 }, // Competência
+      { width: 18 }, // Salário Anterior
+      { width: 18 }, // Salário Novo
+      { width: 20 }, // Motivo
+      { width: 15 }  // Variação (%)
+    ];
+    
+    // Add worksheet to workbook
+    XLSX.utils.book_append_sheet(wb, ws, 'Alterações');
+    
+    // Save file
+    XLSX.writeFile(wb, `${fileName}.xlsx`);
+  };
+
+  // 📤 Configurações de exportação para cada tipo de modal
+  const exportConfigs: Record<string, ExportConfig> = {
+    exames: {
+      pdfHandler: exportExamesToPDF,
+      excelHandler: exportExamesToExcel,
+      reportName: "Histórico de Exames"
+    },
+    afastamentos: {
+      pdfHandler: exportAfastamentosToPDF,
+      excelHandler: exportAfastamentosToExcel,
+      reportName: "Histórico de Afastamentos"
+    },
+    contratos: {
+      pdfHandler: exportContratosToPDF,
+      excelHandler: exportContratosToExcel,
+      reportName: "Detalhes de Contratos"
+    },
+    ferias: {
+      pdfHandler: exportFeriasToPDF,
+      excelHandler: exportFeriasToExcel,
+      reportName: "Detalhes de Férias"
+    },
+    alteracoes: {
+      pdfHandler: exportAlteracoesToPDF,
+      excelHandler: exportAlteracoesToExcel,
+      reportName: "Detalhes de Alterações Salariais"
+    }  };
+
+  // 🎛️ Função helper para configurar cada modal
+  function getModalConfig(tipo: ModalType) {
+    switch (tipo) {
+      case 'exames':
+        return {
+          title: "Histórico de Exames Detalhado",
+          subtitle: "Visualização completa dos exames por funcionário",
+          data: examesData,
+          sortedData: sortedExamesData,
+          sortInfo: examesSortInfo,
+          exportConfig: exportConfigs.exames,
+          component: <AtestadosModalTable 
+            atestadosData={examesData} 
+            cairoClassName={cairo.className} 
+            onSortedDataChange={setSortedExamesData}
+            onSortInfoChange={setExamesSortInfo}
+          />
+        };
+      case 'afastamentos':
+        return {
+          title: "Histórico de Afastamentos Detalhado",
+          subtitle: "Visualização completa dos afastamentos por funcionário",
+          data: afastamentosData,
+          sortedData: sortedAfastamentosData,
+          sortInfo: afastamentosSortInfo,
+          exportConfig: exportConfigs.afastamentos,
+          component: <AfastamentosModalTable 
+            afastamentosData={afastamentosData} 
+            cairoClassName={cairo.className}
+            onSortedDataChange={setSortedAfastamentosData}
+            onSortInfoChange={setAfastamentosSortInfo}
+          />
+        };
+      case 'contratos':
+        return {
+          title: "Histórico de Contratos Detalhado",
+          subtitle: "Visualização completa dos contratos por funcionário",
+          data: contratosData,
+          sortedData: sortedContratosData,
+          sortInfo: contratosSortInfo,
+          exportConfig: exportConfigs.contratos,
+          component: <ContratosModalTable 
+            contratosData={contratosData} 
+            cairoClassName={cairo.className}
+            onSortedDataChange={setSortedContratosData}
+            onSortInfoChange={setContratosSortInfo}
+          />
+        };
+      case 'ferias':
+        return {
+          title: "Detalhes de Férias",
+          subtitle: "Visualização completa das férias por funcionário",
+          data: feriasData,
+          sortedData: sortedFeriasData,
+          sortInfo: feriasSortInfo,
+          exportConfig: exportConfigs.ferias,
+          component: <FeriasModalTable 
+            feriasData={feriasData} 
+            cairoClassName={cairo.className}
+            onSortedDataChange={setSortedFeriasData}
+            onSortInfoChange={setFeriasSortInfo}
+          />
+        };
+      case 'alteracoes':
+        return {
+          title: "Detalhes de Alterações Salariais",
+          subtitle: "Visualização completa das alterações salariais por funcionário",
+          data: alteracoesData,
+          sortedData: sortedAlteracoesData,
+          sortInfo: alteracoesSortInfo,
+          exportConfig: exportConfigs.alteracoes,
+          component: <AlteracoesSalariaisModalTable 
+            alteracoesData={alteracoesData} 
+            cairoClassName={cairo.className}
+            onSortedDataChange={setSortedAlteracoesData}
+            onSortInfoChange={setAlteracoesSortInfo}
+          />
+        };
+      default:
+        return {
+          title: "",
+          subtitle: "",
+          data: [],
+          exportConfig: undefined,
+          component: null
+        };
+    }
   }
 
   return (
@@ -749,11 +904,14 @@ export default function FichaPessoalPage() {
           selectedColaborador={selectedColaborador}
           onChangeColaborador={setSelectedColaborador}
           empresaOptionsList={empresaOptions}
+          empresaOptionsData={empresaOptionsData}
           areDatesSelected={!!(startDate && endDate)}
           colaboradorOptionsList={colaboradorOptions}
           isEmpresaSelected={!!selectedEmpresa}
         />
         <Calendar
+          initialStartDate={startDate}
+          initialEndDate={endDate}
           onStartDateChange={handleStartDateChange}
           onEndDateChange={handleEndDateChange}
         />
@@ -764,11 +922,11 @@ export default function FichaPessoalPage() {
          {/* KPIs: animação de slide down/up */}
          {/* This div with `transform` creates a stacking context. Its children (tooltips z-50) will be stacked relative to it. */}
          {/* This container itself needs to be effectively above the header's z-[40]. */}
-         <div className={`transition-all duration-500 ease-in-out transform origin-top
+         <div className={`transition-all duration-200 ease-in-out transform origin-top
              ${selectedColaborador
                ? 'max-h-[800px] opacity-100 translate-y-0'
                : 'max-h-0 opacity-0 -translate-y-4'}`}>
-          <KpiCardsGrid cardsData={currentKpiCardData} />
+          <KpiCardsGrid cardsData={kpiCardData} />
         </div>
 
         {/* Evolução & Valor por Grupo */}
@@ -827,12 +985,12 @@ export default function FichaPessoalPage() {
 
         {/* Tabelas */}
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6 h-[450px]"> 
-          <div className="lg:col-span-1 h-full shadow-md overflow-auto min-h-0 rounded-lg">
-            <AtestadosTable 
+          <div className="lg:col-span-1 h-full shadow-md overflow-auto min-h-0 rounded-lg">            <AtestadosTable 
               atestadosData={examesData} 
               cairoClassName={cairo.className} 
               headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")}
               title="Histórico de Exames"
+              onMaximize={() => setModalAberto('exames')}
             />
           </div>
 
@@ -841,6 +999,7 @@ export default function FichaPessoalPage() {
               afastamentosData={afastamentosData}
               cairoClassName={cairo.className} 
               headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")}
+              onMaximize={() => setModalAberto('afastamentos')}
             />
           </div>
 
@@ -849,10 +1008,11 @@ export default function FichaPessoalPage() {
               contratosData={contratosData}
               cairoClassName={cairo.className}
               headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")}
+              onMaximize={() => setModalAberto('contratos')}
             />
           </div>
         </div>
-        
+
         {/* Férias & Alterações */}
         <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 h-[450px]">
           <div className="h-full shadow-md overflow-auto min-h-0 rounded-lg">
@@ -860,7 +1020,7 @@ export default function FichaPessoalPage() {
               feriasData={feriasData}
               cairoClassName={cairo.className}
               headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")}
-              title="Detalhes de Férias"
+              title="Detalhes de Férias"              onMaximize={() => setModalAberto('ferias')}
             />
           </div>
           <div className="h-full shadow-md overflow-auto min-h-0 rounded-lg">
@@ -868,18 +1028,25 @@ export default function FichaPessoalPage() {
               alteracoesData={alteracoesData}
               cairoClassName={cairo.className}
               headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")}
-              title="Detalhes de Alterações Salariais"
+              title="Detalhes de Alterações Salariais"              onMaximize={() => setModalAberto('alteracoes')}
             />
           </div>
         </div>
         <p className="mt-4"></p>
-      </div>
-
-      {modalContent && (
-        <Modal isOpen={true} onClose={handleCloseModal}>
-          {modalContent}
-        </Modal>
-      )}
-    </div>
+      </div>      {/* 🔄 Sistema de Modais Unificado */}
+      {modalAberto && (
+        <DetalhesModal
+          isOpen={modalAberto !== null}
+          onClose={handleCloseModal}          title={getModalConfig(modalAberto).title}
+          subtitle={getModalConfig(modalAberto).subtitle}
+          data={getModalConfig(modalAberto).data}
+          sortedData={getModalConfig(modalAberto).sortedData}
+          sortInfo={getModalConfig(modalAberto).sortInfo}
+          exportConfig={getModalConfig(modalAberto).exportConfig}
+          cairoClassName={cairo.className}
+        >
+          {getModalConfig(modalAberto).component}
+        </DetalhesModal>
+      )}    </div>
   );
 }

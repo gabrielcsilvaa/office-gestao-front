@@ -20,10 +20,11 @@ interface IconProps {
 interface AfastamentosTableProps {
   afastamentosData: Afastamento[];
   cairoClassName: string;
-  headerIcons?: IconProps[]; // Add headerIcons prop
+  headerIcons: IconProps[];
+  onMaximize?: () => void;
 }
 
-const AfastamentosTable: React.FC<AfastamentosTableProps> = ({ afastamentosData, cairoClassName, headerIcons }) => {
+const AfastamentosTable: React.FC<AfastamentosTableProps> = ({ afastamentosData, cairoClassName, headerIcons, onMaximize }) => {
   const [visibleCount, setVisibleCount] = useState(10);
   const [hasScrollbar, setHasScrollbar] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -75,6 +76,7 @@ const AfastamentosTable: React.FC<AfastamentosTableProps> = ({ afastamentosData,
                   width={16}
                   height={16}
                   className="opacity-60 hover:opacity-100"
+                  onClick={icon.alt === "Maximize" ? () => onMaximize?.() : undefined} // Add onClick handler for Maximize icon
                 />
               </div>
             ))}
