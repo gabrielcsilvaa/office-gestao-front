@@ -23,6 +23,7 @@ import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { formatDateToBR } from "@/utils/formatters";
 import DetalhesModal, { ExportConfig } from "../ficha/components/DetalhesModal";
+import * as XLSX from 'xlsx';
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
@@ -277,16 +278,29 @@ export default function DashboardOrganizacional() {
        }
      });
      doc.save(`${reportName}.pdf`);
-   };
-   const exportDissidioToExcel = (data: typeof dissidioTableData, fileName: string) => {
-     const rows = data.map(d => [d.sindicato, d.mesBase]);
-     const csv = ['Sindicato,Mês Base', ...rows.map(r => r.join(','))].join('\n');
-     const blob = new Blob([csv], { type: 'text/csv' });
-     const link = document.createElement('a');
-     link.href = URL.createObjectURL(blob);
-     link.download = `${fileName}.csv`;
-     link.click();
-   };   const exportValorPorPessoaToPDF = (data: typeof processedValorPorPessoaData, reportName: string) => {
+   };   const exportDissidioToExcel = (data: typeof dissidioTableData, fileName: string) => {
+     // Prepare data for Excel
+     const worksheetData = [
+       ['Sindicato', 'Mês Base'], // Header
+       ...data.map(d => [d.sindicato, d.mesBase])
+     ];
+     
+     // Create workbook and worksheet
+     const workbook = XLSX.utils.book_new();
+     const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+     
+     // Set column widths
+     worksheet['!cols'] = [
+       { width: 50 },  // Sindicato (nome longo)
+       { width: 15 }   // Mês Base
+     ];
+     
+     // Add worksheet to workbook
+     XLSX.utils.book_append_sheet(workbook, worksheet, 'Dissídio');
+     
+     // Save file
+     XLSX.writeFile(workbook, `${fileName}.xlsx`);
+   };const exportValorPorPessoaToPDF = (data: typeof processedValorPorPessoaData, reportName: string) => {
      const doc = new jsPDF();
      const empresaStr = selectedEmpresa.join(', ');
      const pageWidth = doc.internal.pageSize.getWidth();
@@ -352,27 +366,37 @@ export default function DashboardOrganizacional() {
    };   const exportValorPorPessoaToExcel = (data: typeof processedValorPorPessoaData, fileName: string) => {
      const total = data.reduce((sum, item) => sum + item.numericValue, 0);
      const totalFormatted = formatCurrency(total);
-       const headers = ['Posição', 'Tipo de Pessoa', 'Valor', 'Percentual'];
-     const rows = data.map(d => [
-       d.rank.toString(),
-       d.name, 
-       d.value,
-       `${d.percentage.toFixed(1)}%`
-     ]);
-     const footerRow = ['', 'TOTAL', totalFormatted, '100,0%'];
      
-     const csvContent = [
-       headers.join(','),
-       ...rows.map(r => r.join(',')),
-       footerRow.join(',')
-     ].join('\n');
+     // Prepare data for Excel
+     const worksheetData = [
+       ['Posição', 'Tipo de Pessoa', 'Valor', 'Percentual'], // Header
+       ...data.map(d => [
+         d.rank,
+         d.name,
+         d.value,
+         `${d.percentage.toFixed(1)}%`
+       ]),
+       ['', 'TOTAL', totalFormatted, '100,0%'] // Footer
+     ];
      
-     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-     const link = document.createElement('a');
-     link.href = URL.createObjectURL(blob);
-     link.download = `${fileName}.csv`;
-     link.click();
-   };   const exportValorPorCalculoToPDF = (data: typeof processedValorPorCalculoData, reportName: string) => {
+     // Create workbook and worksheet
+     const workbook = XLSX.utils.book_new();
+     const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+     
+     // Set column widths
+     worksheet['!cols'] = [
+       { width: 10 },  // Posição
+       { width: 35 },  // Tipo de Pessoa
+       { width: 15 },  // Valor
+       { width: 12 }   // Percentual
+     ];
+     
+     // Add worksheet to workbook
+     XLSX.utils.book_append_sheet(workbook, worksheet, 'Valor por Pessoa');
+     
+     // Save file
+     XLSX.writeFile(workbook, `${fileName}.xlsx`);
+   };const exportValorPorCalculoToPDF = (data: typeof processedValorPorCalculoData, reportName: string) => {
      const doc = new jsPDF();
      const empresaStr = selectedEmpresa.join(', ');
      const pageWidth = doc.internal.pageSize.getWidth();
@@ -438,26 +462,36 @@ export default function DashboardOrganizacional() {
    };   const exportValorPorCalculoToExcel = (data: typeof processedValorPorCalculoData, fileName: string) => {
      const total = data.reduce((sum, item) => sum + item.numericValue, 0);
      const totalFormatted = formatCurrency(total);
-       const headers = ['Posição', 'Tipo de Cálculo', 'Valor', 'Percentual'];
-     const rows = data.map(d => [
-       d.rank.toString(),
-       d.name, 
-       d.value,
-       `${d.percentage.toFixed(1)}%`
-     ]);
-     const footerRow = ['', 'TOTAL', totalFormatted, '100,0%'];
      
-     const csvContent = [
-       headers.join(','),
-       ...rows.map(r => r.join(',')),
-       footerRow.join(',')
-     ].join('\n');
+     // Prepare data for Excel
+     const worksheetData = [
+       ['Posição', 'Tipo de Cálculo', 'Valor', 'Percentual'], // Header
+       ...data.map(d => [
+         d.rank,
+         d.name,
+         d.value,
+         `${d.percentage.toFixed(1)}%`
+       ]),
+       ['', 'TOTAL', totalFormatted, '100,0%'] // Footer
+     ];
      
-     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-     const link = document.createElement('a');
-     link.href = URL.createObjectURL(blob);
-     link.download = `${fileName}.csv`;
-     link.click();
+     // Create workbook and worksheet
+     const workbook = XLSX.utils.book_new();
+     const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+     
+     // Set column widths
+     worksheet['!cols'] = [
+       { width: 10 },  // Posição
+       { width: 25 },  // Tipo de Cálculo
+       { width: 15 },  // Valor
+       { width: 12 }   // Percentual
+     ];
+     
+     // Add worksheet to workbook
+     XLSX.utils.book_append_sheet(workbook, worksheet, 'Valor por Cálculo');
+     
+     // Save file
+     XLSX.writeFile(workbook, `${fileName}.xlsx`);
    };
    const exportConfigs: Record<ModalType, ExportConfig> = {
      dissidio: { pdfHandler: exportDissidioToPDF, excelHandler: exportDissidioToExcel, reportName: 'Dissídio' },
