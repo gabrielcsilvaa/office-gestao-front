@@ -16,6 +16,9 @@ import { Header2 } from "../../../../components/header";
 import Calendar from "@/components/calendar";
 import DissidioModalTable from "./components/DissidioModalTable";
 import { dissidioTableData } from "./components/DissidioCard";
+import ModernBarChart from "./components/ModernBarChart";
+import { rawNameBarData } from "./components/ValorPorPessoaCard";
+import { rawCalculoEventoData } from "./components/ValorPorCalculoCard";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { formatDateToBR } from "@/utils/formatters";
@@ -105,7 +108,7 @@ const addHeaderToPDF = (
 export default function DashboardOrganizacional() {
   const [kpiSelecionado, setKpiSelecionado] = useState<string>("Informativos");
   const [modalContent, setModalContent] = useState<React.ReactNode | null>(null);
-  type ModalType = 'dissidio';
+  type ModalType = 'dissidio' | 'valorPorPessoa' | 'valorPorCalculo';
   const [modalAberto, setModalAberto] = useState<ModalType | null>(null);
 
   // 📅 Estados de data
@@ -178,9 +181,52 @@ export default function DashboardOrganizacional() {
       const [month, valueString] = entry.split(": ");
       return { month, value: parseCurrency(valueString) };
     });
-  }, []);   // State and handlers for Dissídio modal
+  }, []);   // Process data for ValorPorPessoa modal (with rank)
+   const processedValorPorPessoaData = useMemo(() => {
+     const items = rawNameBarData.map(item => {
+      const numeric = parseFloat(item.value.replace('R$', '').replace(/\./g, '').replace(',', '.').trim());
+      return { ...item, numericValue: numeric };
+     });
+     items.sort((a, b) => b.numericValue - a.numericValue);
+     const total = items.reduce((sum, i) => sum + i.numericValue, 0);
+     return items.map((i, idx) => ({
+       ...i,
+       percentage: total > 0 ? (i.numericValue / total) * 100 : 0,
+       rank: idx + 1
+     }));
+   }, []);
+
+   // Process data for ValorPorCalculo modal
+   const processedValorPorCalculoData = useMemo(() => {
+     const items = rawCalculoEventoData.map(item => {
+       const numeric = parseFloat(
+         item.value
+           .replace('R$', '')
+           .replace(/\./g, '')
+           .replace(',', '.')
+           .trim()
+       );
+       return { ...item, numericValue: numeric };
+     });
+     items.sort((a, b) => b.numericValue - a.numericValue);
+     const total = items.reduce((sum, i) => sum + i.numericValue, 0);
+     return items.map((i, idx) => ({
+       ...i,
+       percentage: total > 0 ? (i.numericValue / total) * 100 : 0,
+       rank: idx + 1
+     }));
+   }, []);
+
+   // State and handlers for Dissídio modal
    const [sortedDissidioData, setSortedDissidioData] = useState<typeof dissidioTableData>([]);
    const [dissidioSortInfo, setDissidioSortInfo] = useState<string>("Padrão (sem ordenação específica)");
+   // State and handlers for ValorPorPessoa modal
+   const [sortedValorPorPessoaData, setSortedValorPorPessoaData] = useState<typeof processedValorPorPessoaData>([]);
+   const [valorPorPessoaSortInfo, setValorPorPessoaSortInfo] = useState<string>("Padrão (sem ordenação específica)");
+   // State and handlers for ValorPorCalculo modal
+   const [sortedValorPorCalculoData, setSortedValorPorCalculoData] = useState<typeof processedValorPorCalculoData>([]);
+   const [valorPorCalculoSortInfo, setValorPorCalculoSortInfo] = useState<string>("Padrão (sem ordenação específica)");
+
    const exportDissidioToPDF = (
      data: typeof dissidioTableData,
      reportName: string,
@@ -232,140 +278,225 @@ export default function DashboardOrganizacional() {
      });
      doc.save(`${reportName}.pdf`);
    };
-  const exportDissidioToExcel = (data: typeof dissidioTableData, fileName: string) => {
-    const rows = data.map(d => [d.sindicato, d.mesBase]);
-    const csv = ['Sindicato,Mês Base', ...rows.map(r => r.join(','))].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = `${fileName}.csv`;
-    link.click();
-  };
-  const exportConfigs: Record<ModalType, ExportConfig> = {
-    dissidio: { pdfHandler: exportDissidioToPDF, excelHandler: exportDissidioToExcel, reportName: 'Dissídio' }
-  }; return (
-    <div className="bg-[#f7f7f8] fixed inset-0 flex flex-col overflow-hidden">
-      <Header2 />
-      <div className="flex flex-col items-start p-4 gap-4 border-b border-black/10 bg-gray-100">        {/* Primeira linha: Apenas KPIs (mais espaço para respirar) */}
-        <SelecaoIndicadores 
-          indicadorSelecionado={kpiSelecionado}
-          onSelecaoIndicador={handleKpiChange}
-          onResetFiltros={handleResetAllFilters}
-        />        {/* Segunda linha: Filtros + Calendário */}
-        <div className="flex flex-row items-center justify-between w-full">
-          <SecaoFiltros 
-            ref={secaoFiltrosRef}
-            onEmpresaChange={setSelectedEmpresa}
-            onCentroCustoChange={setSelectedCentroCusto}
-            onDepartamentoChange={setSelectedDepartamento}
-            onServicoChange={setSelectedServico}
-          />
-          <Calendar
-            initialStartDate={startDate}
-            initialEndDate={endDate}
-            onStartDateChange={handleStartDateChange}
-            onEndDateChange={handleEndDateChange}
-          />
-        </div>
-      </div>      <div className="flex-1 p-4 overflow-y-auto min-h-0">
-        {/* KPIs: animação de slide down/up */}
-        {/* This div with `transform` creates a stacking context. Its children (tooltips z-50) will be stacked relative to it. */}
-        {/* This container itself needs to be effectively above the header's z-[40]. */}
-        <div className="mt-6"> {/* Gap superior maior para evitar corte de tooltips */}
-          <div className={`transition-all duration-200 ease-in-out transform origin-top
-              ${shouldShowKPIs()
-                ? 'max-h-[800px] opacity-100 translate-y-0'
-                : 'max-h-0 opacity-0 -translate-y-4'}`}>
-            <KpiCardsGrid cardsData={cardsData} />
-          </div>
-        </div>
+   const exportDissidioToExcel = (data: typeof dissidioTableData, fileName: string) => {
+     const rows = data.map(d => [d.sindicato, d.mesBase]);
+     const csv = ['Sindicato,Mês Base', ...rows.map(r => r.join(','))].join('\n');
+     const blob = new Blob([csv], { type: 'text/csv' });
+     const link = document.createElement('a');
+     link.href = URL.createObjectURL(blob);
+     link.download = `${fileName}.csv`;
+     link.click();
+   };
+   const exportValorPorPessoaToPDF = (data: typeof processedValorPorPessoaData, reportName: string) => {
+     const doc = new jsPDF();
+     const empresaStr = selectedEmpresa.join(', ');
+     const tableY = addHeaderToPDF(doc, reportName, empresaStr, startDate, endDate);
+     autoTable(doc, {
+       startY: tableY,
+       head: [['Pessoa', 'Valor']].concat(),
+       body: data.map(d => [d.name, d.value]),
+       theme: 'grid'
+     });
+     doc.save(`${reportName}.pdf`);
+   };
+   const exportValorPorPessoaToExcel = (data: typeof processedValorPorPessoaData, fileName: string) => {
+     const rows = data.map(d => [d.name, d.value]);
+     const csv = ['Pessoa,Valor', ...rows.map(r => r.join(','))].join('\n');
+     const blob = new Blob([csv], { type: 'text/csv' });
+     const link = document.createElement('a');
+     link.href = URL.createObjectURL(blob);
+     link.download = `${fileName}.csv`;
+     link.click();
+   };
+   const exportValorPorCalculoToPDF = (data: typeof processedValorPorCalculoData, reportName: string) => {
+     const doc = new jsPDF();
+     const empresaStr = selectedEmpresa.join(', ');
+     const tableY = addHeaderToPDF(doc, reportName, empresaStr, startDate, endDate);
+     autoTable(doc, {
+       startY: tableY,
+       head: [['Cálculo', 'Valor']].concat(),
+       body: data.map(d => [d.name, d.value]),
+       theme: 'grid'
+     });
+     doc.save(`${reportName}.pdf`);
+   };
+   const exportValorPorCalculoToExcel = (data: typeof processedValorPorCalculoData, fileName: string) => {
+     const rows = data.map(d => [d.name, d.value]);
+     const csv = ['Cálculo,Valor', ...rows.map(r => r.join(','))].join('\n');
+     const blob = new Blob([csv], { type: 'text/csv' });
+     const link = document.createElement('a');
+     link.href = URL.createObjectURL(blob);
+     link.download = `${fileName}.csv`;
+     link.click();
+   };
+   const exportConfigs: Record<ModalType, ExportConfig> = {
+     dissidio: { pdfHandler: exportDissidioToPDF, excelHandler: exportDissidioToExcel, reportName: 'Dissídio' },
+     valorPorPessoa: { pdfHandler: exportValorPorPessoaToPDF, excelHandler: exportValorPorPessoaToExcel, reportName: 'Valor Por Tipo de Pessoa e Vínculo' },
+     valorPorCalculo: { pdfHandler: exportValorPorCalculoToPDF, excelHandler: exportValorPorCalculoToExcel, reportName: 'Valor Por Tipo de Cálculo e Evento' }
+   };
 
-        {/* 📊 GRÁFICOS TEMPORARIAMENTE COMENTADOS - Aguardando integração com API
-        <div className="mt-6 flex flex-row gap-6">
-          <EvolucaoCard
-            kpiSelecionado={kpiSelecionado}
-            processedEvolucaoChartData={processedEvolucaoChartData}
-            sectionIcons={sectionIcons.filter(icon => icon.alt === "Maximize")}
-            cairoClassName={cairo.className}
-            onMaximize={() =>
-              setModalContent(
-                <div className="flex flex-col w-[90vw] h-[80vh]">
-                  <h2 className={`text-2xl font-bold mb-2 ${cairo.className}`}>
-                    Evolução de {kpiSelecionado}
-                  </h2>
-                  <p className={`text-base text-gray-500 mb-4 ${cairo.className}`}>
-                    Variação mensal de {kpiSelecionado.toLowerCase()} no período selecionado.
-                  </p>
-                  <div className="flex-1">
-                    <EvolucaoChart
-                      data={processedEvolucaoChartData}
-                      kpiName={kpiSelecionado}
-                    />
-                  </div>
-                </div>
-              )
-            }
-          />
-          <ValorPorGrupoCard
-            valorPorGrupoData={valorPorGrupoData}
-            sectionIcons={sectionIcons.filter(icon => icon.alt === "Maximize")}
-            cairoClassName={cairo.className}
-            onMaximize={() =>
-              setModalContent(
-                <div className="flex flex-col w-[90vw] h-[80vh]">
-                  <h2 className={`text-2xl font-bold mb-2 ${cairo.className}`}>
-                    Valor Por Grupo e Evento
-                  </h2>
-                  <p className={`text-base text-gray-500 mb-4 ${cairo.className}`}>
-                    Mostra a distribuição de valores por grupo e evento.
-                  </p>
-                  <div className="flex-1">
-                    <ValorPorGrupoChart data={valorPorGrupoData} />
-                  </div>
-                </div>
-              )
-            }
-          />
-        </div>
-        */}
+   return (
+     <div className="bg-[#f7f7f8] fixed inset-0 flex flex-col overflow-hidden">
+       <Header2 />
+       <div className="flex flex-col items-start p-4 gap-4 border-b border-black/10 bg-gray-100">        {/* Primeira linha: Apenas KPIs (mais espaço para respirar) */}
+         <SelecaoIndicadores 
+           indicadorSelecionado={kpiSelecionado}
+           onSelecaoIndicador={handleKpiChange}
+           onResetFiltros={handleResetAllFilters}
+         />        {/* Segunda linha: Filtros + Calendário */}
+         <div className="flex flex-row items-center justify-between w-full">
+           <SecaoFiltros 
+             ref={secaoFiltrosRef}
+             onEmpresaChange={setSelectedEmpresa}
+             onCentroCustoChange={setSelectedCentroCusto}
+             onDepartamentoChange={setSelectedDepartamento}
+             onServicoChange={setSelectedServico}
+           />
+           <Calendar
+             initialStartDate={startDate}
+             initialEndDate={endDate}
+             onStartDateChange={handleStartDateChange}
+             onEndDateChange={handleEndDateChange}
+           />
+         </div>
+       </div>      <div className="flex-1 p-4 overflow-y-auto min-h-0">
+         {/* KPIs: animação de slide down/up */}
+         {/* This div with `transform` creates a stacking context. Its children (tooltips z-50) will be stacked relative to it. */}
+         {/* This container itself needs to be effectively above the header's z-[40]. */}
+         <div className="mt-6"> {/* Gap superior maior para evitar corte de tooltips */}
+           <div className={`transition-all duration-200 ease-in-out transform origin-top
+               ${shouldShowKPIs()
+                 ? 'max-h-[800px] opacity-100 translate-y-0'
+                 : 'max-h-0 opacity-0 -translate-y-4'}`}>
+             <KpiCardsGrid cardsData={cardsData} />
+           </div>
+         </div>
 
-        <div className="mt-6 flex flex-row gap-6">
-          <DissidioCard
-            sectionIcons={sectionIcons.filter(icon => icon.alt === "Maximize")}
-            cairoClassName={cairo.className}
-            onMaximize={() => setModalAberto('dissidio')}
-          />
-          <ValorPorPessoaCard
-            sectionIcons={sectionIcons.filter(icon => icon.alt === "Maximize")}
-            cairoClassName={cairo.className}
-          />
-          <ValorPorCalculoCard
-            sectionIcons={sectionIcons.filter(icon => icon.alt === "Maximize")}
-            cairoClassName={cairo.className}
-          />
-        </div>
-      </div>
+         {/* 📊 GRÁFICOS TEMPORARIAMENTE COMENTADOS - Aguardando integração com API
+         <div className="mt-6 flex flex-row gap-6">
+           <EvolucaoCard
+             kpiSelecionado={kpiSelecionado}
+             processedEvolucaoChartData={processedEvolucaoChartData}
+             sectionIcons={sectionIcons.filter(icon => icon.alt === "Maximize")}
+             cairoClassName={cairo.className}
+             onMaximize={() =>
+               setModalContent(
+                 <div className="flex flex-col w-[90vw] h-[80vh]">
+                   <h2 className={`text-2xl font-bold mb-2 ${cairo.className}`}>
+                     Evolução de {kpiSelecionado}
+                   </h2>
+                   <p className={`text-base text-gray-500 mb-4 ${cairo.className}`}>
+                     Variação mensal de {kpiSelecionado.toLowerCase()} no período selecionado.
+                   </p>
+                   <div className="flex-1">
+                     <EvolucaoChart
+                       data={processedEvolucaoChartData}
+                       kpiName={kpiSelecionado}
+                     />
+                   </div>
+                 </div>
+               )
+             }
+           />
+           <ValorPorGrupoCard
+             valorPorGrupoData={valorPorGrupoData}
+             sectionIcons={sectionIcons.filter(icon => icon.alt === "Maximize")}
+             cairoClassName={cairo.className}
+             onMaximize={() =>
+               setModalContent(
+                 <div className="flex flex-col w-[90vw] h-[80vh]">
+                   <h2 className={`text-2xl font-bold mb-2 ${cairo.className}`}>
+                     Valor Por Grupo e Evento
+                   </h2>
+                   <p className={`text-base text-gray-500 mb-4 ${cairo.className}`}>
+                     Mostra a distribuição de valores por grupo e evento.
+                   </p>
+                   <div className="flex-1">
+                     <ValorPorGrupoChart data={valorPorGrupoData} />
+                   </div>
+                 </div>
+               )
+             }
+           />
+         </div>
+         */}
 
-      {modalAberto && (
-        <DetalhesModal
-          isOpen={modalAberto !== null}
-          onClose={() => setModalAberto(null)}
-          title="Dissídio"
-          subtitle="Visualização completa dos dissídios da empresa"
-          data={dissidioTableData}
-          sortedData={sortedDissidioData}
-          sortInfo={dissidioSortInfo}
-          exportConfig={exportConfigs.dissidio}
-          cairoClassName={cairo.className}
-        >
-          <DissidioModalTable
-            data={dissidioTableData}
-            cairoClassName={cairo.className}
-            onSortedDataChange={setSortedDissidioData}
-            onSortInfoChange={setDissidioSortInfo}
-          />
-        </DetalhesModal>
-      )}
-    </div>
-  );
+         <div className="mt-6 flex flex-row gap-6">
+           <DissidioCard
+             sectionIcons={sectionIcons.filter(icon => icon.alt === "Maximize")}
+             cairoClassName={cairo.className}
+             onMaximize={() => setModalAberto('dissidio')}
+           />
+           <ValorPorPessoaCard
+             sectionIcons={sectionIcons.filter(icon => icon.alt === "Maximize")}
+             cairoClassName={cairo.className}
+             onMaximize={() => setModalAberto('valorPorPessoa')}
+           />
+           <ValorPorCalculoCard
+             sectionIcons={sectionIcons.filter(icon => icon.alt === "Maximize")}
+             cairoClassName={cairo.className}
+             onMaximize={() => setModalAberto('valorPorCalculo')}
+           />
+         </div>
+       </div>
+
+       {modalAberto === 'dissidio' && (
+         <DetalhesModal
+           isOpen
+           onClose={() => setModalAberto(null)}
+           title="Dissídio"
+           subtitle="Visualização completa dos dissídios"
+           data={dissidioTableData}
+           sortedData={sortedDissidioData}
+           sortInfo={dissidioSortInfo}
+           exportConfig={exportConfigs.dissidio}
+           cairoClassName={cairo.className}
+         >
+           <DissidioModalTable
+             data={dissidioTableData}
+             cairoClassName={cairo.className}
+             onSortedDataChange={setSortedDissidioData}
+             onSortInfoChange={setDissidioSortInfo}
+           />
+         </DetalhesModal>
+       )}
+       {modalAberto === 'valorPorPessoa' && (
+         <DetalhesModal
+           isOpen
+           onClose={() => setModalAberto(null)}
+           title="Valor Por Tipo de Pessoa e Vínculo"
+           subtitle="Distribuição de valores por pessoa e vínculo"
+           data={processedValorPorPessoaData}
+           sortedData={sortedValorPorPessoaData}
+           sortInfo={valorPorPessoaSortInfo}
+           exportConfig={exportConfigs.valorPorPessoa}
+           cairoClassName={cairo.className}
+         >
+           <ModernBarChart
+             items={processedValorPorPessoaData}
+             cairoClassName={cairo.className}
+             colorScheme="green"
+           />
+         </DetalhesModal>
+       )}
+       {modalAberto === 'valorPorCalculo' && (
+         <DetalhesModal
+           isOpen
+           onClose={() => setModalAberto(null)}
+           title="Valor Por Tipo de Cálculo e Evento"
+           subtitle="Distribuição de valores por cálculo e evento"
+           data={processedValorPorCalculoData}
+           sortedData={sortedValorPorCalculoData}
+           sortInfo={valorPorCalculoSortInfo}
+           exportConfig={exportConfigs.valorPorCalculo}
+           cairoClassName={cairo.className}         >
+           <ModernBarChart
+             items={processedValorPorCalculoData}
+             cairoClassName={cairo.className}
+             colorScheme="blue"
+           />
+         </DetalhesModal>
+       )}
+     </div>
+   );
 }

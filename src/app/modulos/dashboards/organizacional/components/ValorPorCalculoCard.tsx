@@ -10,9 +10,10 @@ interface RawDataItem {
 interface ValorPorCalculoCardProps {
   sectionIcons: Array<{ src: string; alt: string; adjustSize?: boolean }>;
   cairoClassName: string;
+  onMaximize?: () => void;
 }
 
-const rawCalculoEventoData: RawDataItem[] = [
+export const rawCalculoEventoData: RawDataItem[] = [
   { name: "51 - 13º Adiantamento", value: "R$ 700,00" },
   { name: "42 - Complementar", value: "R$ 15.800,00" },
   { name: "52 - 13º Integral", value: "R$ 36.800,00" },
@@ -24,6 +25,7 @@ const rawCalculoEventoData: RawDataItem[] = [
 const ValorPorCalculoCard: React.FC<ValorPorCalculoCardProps> = ({
   sectionIcons,
   cairoClassName,
+  onMaximize,
 }) => {
   const processedData = useMemo(() => {
     // Converter valores de string para números para cálculos
@@ -61,7 +63,11 @@ const ValorPorCalculoCard: React.FC<ValorPorCalculoCardProps> = ({
         </div>
         <div className="flex items-center space-x-2 flex-shrink-0">
           {sectionIcons.map((icon, index) => (
-            <div key={index} className="cursor-pointer p-1">
+            <div
+              key={index}
+              className="cursor-pointer p-1"
+              onClick={() => icon.alt === 'Maximize' && onMaximize?.()}
+            >
               <Image
                 src={icon.src}
                 alt={icon.alt}

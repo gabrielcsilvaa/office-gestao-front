@@ -7,12 +7,7 @@ interface RawDataItem {
   value: string;
 }
 
-interface ValorPorPessoaCardProps {
-  sectionIcons: Array<{ src: string; alt: string; adjustSize?: boolean }>;
-  cairoClassName: string;
-}
-
-const rawNameBarData: RawDataItem[] = [
+export const rawNameBarData: RawDataItem[] = [
   { name: "RITA MARIA RODRIGUES DE OLIVEIRA", value: "R$ 1.600,00" },
   { name: "ISABEL CRISTINA BARBOSA RODRIGUES", value: "R$ 1.400,00" },
   { name: "MARIA GERLIANE DE ARAUJO MATIAS", value: "R$ 1.200,00" },
@@ -35,9 +30,17 @@ const rawNameBarData: RawDataItem[] = [
   { name: "BRUNO SILVA MARTINS", value: "R$ 400,00" },
 ];
 
+interface ValorPorPessoaCardProps {
+  sectionIcons: Array<{ src: string; alt: string; adjustSize?: boolean }>;
+
+  cairoClassName: string;
+  onMaximize?: () => void;
+}
+
 const ValorPorPessoaCard: React.FC<ValorPorPessoaCardProps> = ({
   sectionIcons,
   cairoClassName,
+  onMaximize,
 }) => {
   const processedData = useMemo(() => {
     // Converter valores de string para números para cálculos
@@ -75,7 +78,11 @@ const ValorPorPessoaCard: React.FC<ValorPorPessoaCardProps> = ({
         </div>
         <div className="flex items-center space-x-2 flex-shrink-0">
           {sectionIcons.map((icon, index) => (
-            <div key={index} className="cursor-pointer p-1">
+            <div
+              key={index}
+              className="cursor-pointer p-1"
+              onClick={() => icon.alt === 'Maximize' && onMaximize?.()}
+            >
               <Image
                 src={icon.src}
                 alt={icon.alt}
