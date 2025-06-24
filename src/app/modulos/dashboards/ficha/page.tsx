@@ -21,7 +21,6 @@ import autoTable from "jspdf-autotable";
 import { EmpresaFicha, FeriasPorEmpresa, AlteracoesPorEmpresa, FormattedFerias, FormattedAlteracao, Afastamento, Exame, Contrato } from "@/types/fichaPessoal.types";
 import { formatDate, formatDateToBR, parseCurrency } from "@/utils/formatters";
 import { useFichaPessoalData } from "@/hooks/useFichaPessoalData";
-import * as XLSX from 'xlsx';
 
 // Importe os novos componentes de tabela para o modal
 import FeriasModalTable from "./components/FeriasModalTable";
@@ -356,7 +355,8 @@ export default function FichaPessoalPage() {
         0: { cellWidth: 60, fontStyle: 'bold' }, // Nome do Funcionário
         1: { cellWidth: 35, halign: 'left' },    // Tipo (text, so left align)
         2: { cellWidth: 35, halign: 'right' },   // Data do Exame
-        3: { cellWidth: 35, halign: 'right' },   // Data de Vencimento        4: { cellWidth: 35, halign: 'left' },    // Resultado (text, so left align)
+        3: { cellWidth: 35, halign: 'right' },   // Data de Vencimento
+        4: { cellWidth: 35, halign: 'left' },    // Resultado (text, so left align)
       },
       alternateRowStyles: {
         fillColor: [245, 245, 245],
@@ -370,35 +370,41 @@ export default function FichaPessoalPage() {
 
     doc.save(`${reportName.replace(/ /g, "_")}.pdf`);
   };
-
   // Função para exportar exames para Excel (usando XLSX, igual ao padrão do carteira)
   const exportExamesToExcel = (data: Exame[], fileName: string, sortInfo?: string) => {
-    const excelData = data.map(e => ({
-      "Nome do Funcionário": e.nomeColaborador,
-      "Tipo": e.tipo,
-      "Data do Exame": e.dataExame,
-      "Data de Vencimento": e.vencimento,
-      "Resultado": e.resultado,
-    }));
+    // Importação dinâmica para evitar erro em ambiente SSR
+    import("xlsx").then(XLSX => {
+      const exportData = data.map(e => ({
+        "Nome do Funcionário": e.nomeColaborador,
+        "Tipo": e.tipo,
+        "Data do Exame": e.dataExame,
+        "Data de Vencimento": e.vencimento,
+        "Resultado": e.resultado,
+      }));
 
-    // Create workbook and worksheet
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(excelData);
-    
-    // Set column widths
-    ws['!cols'] = [
-      { width: 30 }, // Nome do Funcionário
-      { width: 20 }, // Tipo
-      { width: 15 }, // Data do Exame
-      { width: 18 }, // Data de Vencimento
-      { width: 15 }  // Resultado
-    ];
-    
-    // Add worksheet to workbook
-    XLSX.utils.book_append_sheet(wb, ws, 'Exames');
-    
-    // Save file
-    XLSX.writeFile(wb, `${fileName}.xlsx`);
+      // Adiciona informação de ordenação se disponível
+      if (sortInfo) {
+        exportData.unshift({
+          "Nome do Funcionário": `Ordenação: ${sortInfo}`,
+          "Tipo": "",
+          "Data do Exame": "",
+          "Data de Vencimento": "",
+          "Resultado": "",
+        } as any);
+        exportData.unshift({
+          "Nome do Funcionário": "",
+          "Tipo": "",
+          "Data do Exame": "",
+          "Data de Vencimento": "",
+          "Resultado": "",
+        } as any);
+      }
+
+      const ws = XLSX.utils.json_to_sheet(exportData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Exames");
+      XLSX.writeFile(wb, `${fileName}.xlsx`);
+    });
   };
   // Função para exportar afastamentos para PDF (padrão carteira)
   const exportAfastamentosToPDF = (data: Afastamento[], reportName: string, sortInfo?: string) => {
@@ -458,34 +464,42 @@ export default function FichaPessoalPage() {
       }
     });
 
-    doc.save(`${reportName.replace(/ /g, "_")}.pdf`);  };  // Função para exportar afastamentos para Excel (padrão carteira)
+    doc.save(`${reportName.replace(/ /g, "_")}.pdf`);
+  };
+  // Função para exportar afastamentos para Excel (padrão carteira)
   const exportAfastamentosToExcel = (data: Afastamento[], fileName: string, sortInfo?: string) => {
-    const leavesData = data.map(a => ({
-      "Nome do Funcionário": a.nomeColaborador,
-      "Tipo": a.tipo,
-      "Data de Início": a.inicio,
-      "Data de Término": a.termino,
-      "Dias Afastados": a.diasAfastados,
-    }));
+    import("xlsx").then(XLSX => {
+      const exportData = data.map(a => ({
+        "Nome do Funcionário": a.nomeColaborador,
+        "Tipo": a.tipo,
+        "Data de Início": a.inicio,
+        "Data de Término": a.termino,
+        "Dias Afastados": a.diasAfastados,
+      }));
 
-    // Create workbook and worksheet
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(leavesData);
-    
-    // Set column widths
-    ws['!cols'] = [
-      { width: 30 }, // Nome do Funcionário
-      { width: 20 }, // Tipo
-      { width: 15 }, // Data de Início
-      { width: 15 }, // Data de Término
-      { width: 15 }  // Dias Afastados
-    ];
-    
-    // Add worksheet to workbook
-    XLSX.utils.book_append_sheet(wb, ws, 'Afastamentos');
-    
-    // Save file
-    XLSX.writeFile(wb, `${fileName}.xlsx`);
+      // Adiciona informação de ordenação se disponível
+      if (sortInfo) {
+        exportData.unshift({
+          "Nome do Funcionário": `Ordenação: ${sortInfo}`,
+          "Tipo": "",
+          "Data de Início": "",
+          "Data de Término": "",
+          "Dias Afastados": "",
+        } as any);
+        exportData.unshift({
+          "Nome do Funcionário": "",
+          "Tipo": "",
+          "Data de Início": "",
+          "Data de Término": "",
+          "Dias Afastados": "",
+        } as any);
+      }
+
+      const ws = XLSX.utils.json_to_sheet(exportData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Afastamentos");
+      XLSX.writeFile(wb, `${fileName}.xlsx`);
+    });
   };
   // Função para exportar contratos para PDF (padrão carteira)
   const exportContratosToPDF = (data: Contrato[], reportName: string, sortInfo?: string) => {
@@ -531,7 +545,8 @@ export default function FichaPessoalPage() {
         1: { cellWidth: 40, halign: 'right' },   // Data de Admissão
         2: { cellWidth: 40, halign: 'right' },   // Data de Rescisão
         3: { cellWidth: 50, halign: 'right' },   // Salário Base
-      },      alternateRowStyles: {
+      },
+      alternateRowStyles: {
         fillColor: [245, 245, 245],
       },
       margin: { left: 4, right: 2 },
@@ -543,33 +558,37 @@ export default function FichaPessoalPage() {
 
     doc.save(`${reportName.replace(/ /g, "_")}.pdf`);
   };
-
   // Função para exportar contratos para Excel (padrão carteira)
   const exportContratosToExcel = (data: Contrato[], fileName: string, sortInfo?: string) => {
-    const contractsData = data.map(c => ({
-      "Nome do Funcionário": c.colaborador,
-      "Data de Admissão": c.dataAdmissao,
-      "Data de Rescisão": c.dataRescisao === "" ? "Ativo" : c.dataRescisao,
-      "Salário Base": c.salarioBase,
-    }));
+    import("xlsx").then(XLSX => {
+      const exportData = data.map(c => ({
+        "Nome do Funcionário": c.colaborador,
+        "Data de Admissão": c.dataAdmissao,
+        "Data de Rescisão": c.dataRescisao,
+        "Salário Base": c.salarioBase,
+      }));
 
-    // Create workbook and worksheet
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(contractsData);
-    
-    // Set column widths
-    ws['!cols'] = [
-      { width: 30 }, // Nome do Funcionário
-      { width: 18 }, // Data de Admissão
-      { width: 18 }, // Data de Rescisão
-      { width: 15 }  // Salário Base
-    ];
-    
-    // Add worksheet to workbook
-    XLSX.utils.book_append_sheet(wb, ws, 'Contratos');
-    
-    // Save file
-    XLSX.writeFile(wb, `${fileName}.xlsx`);
+      // Adiciona informação de ordenação se disponível
+      if (sortInfo) {
+        exportData.unshift({
+          "Nome do Funcionário": `Ordenação: ${sortInfo}`,
+          "Data de Admissão": "",
+          "Data de Rescisão": "",
+          "Salário Base": "",
+        } as any);
+        exportData.unshift({
+          "Nome do Funcionário": "",
+          "Data de Admissão": "",
+          "Data de Rescisão": "",
+          "Salário Base": "",
+        } as any);
+      }
+
+      const ws = XLSX.utils.json_to_sheet(exportData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Contratos");
+      XLSX.writeFile(wb, `${fileName}.xlsx`);
+    });
   };
   // Função para exportar férias para PDF (padrão carteira, colunas mais compactas)
   const exportFeriasToPDF = (data: FormattedFerias[], reportName: string, sortInfo?: string) => {
@@ -642,42 +661,53 @@ export default function FichaPessoalPage() {
     });
 
     doc.save(`${reportName.replace(/ /g, "_")}.pdf`);
-  };  // Função para exportar férias para Excel (padrão carteira)
+  };
+  // Função para exportar férias para Excel (padrão carteira)
   const exportFeriasToExcel = (data: FormattedFerias[], fileName: string, sortInfo?: string) => {
-    const vacationsData = data.map(f => ({
-      "Nome do Funcionário": f.nomeColaborador,
-      "Início Período Aquisitivo": f.inicioPeriodoAquisitivo,
-      "Fim Período Aquisitivo": f.fimPeriodoAquisitivo,
-      "Início Gozo": f.inicioPeriodoGozo,
-      "Fim Gozo": f.fimPeriodoGozo,
-      "Limite para Gozo": f.limiteParaGozo,
-      "Dias de Direito": f.diasDeDireito,
-      "Dias Gozados": f.diasGozados,
-      "Dias de Saldo": f.diasDeSaldo,
-    }));
+    import("xlsx").then(XLSX => {
+      const exportData = data.map(f => ({
+        "Nome do Funcionário": f.nomeColaborador,
+        "Início Período Aquisitivo": f.inicioPeriodoAquisitivo,
+        "Fim Período Aquisitivo": f.fimPeriodoAquisitivo,
+        "Início Gozo": f.inicioPeriodoGozo,
+        "Fim Gozo": f.fimPeriodoGozo,
+        "Limite para Gozo": f.limiteParaGozo,
+        "Dias de Direito": f.diasDeDireito,
+        "Dias Gozados": f.diasGozados,
+        "Dias de Saldo": f.diasDeSaldo,
+      }));
 
-    // Create workbook and worksheet
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(vacationsData);
-    
-    // Set column widths for landscape orientation
-    ws['!cols'] = [
-      { width: 25 }, // Nome do Funcionário
-      { width: 18 }, // Início Período Aquisitivo
-      { width: 18 }, // Fim Período Aquisitivo
-      { width: 15 }, // Início Gozo
-      { width: 15 }, // Fim Gozo
-      { width: 15 }, // Limite para Gozo
-      { width: 12 }, // Dias de Direito
-      { width: 12 }, // Dias Gozados
-      { width: 12 }  // Dias de Saldo
-    ];
-    
-    // Add worksheet to workbook
-    XLSX.utils.book_append_sheet(wb, ws, 'Férias');
-    
-    // Save file
-    XLSX.writeFile(wb, `${fileName}.xlsx`);
+      // Adiciona informação de ordenação se disponível
+      if (sortInfo) {
+        exportData.unshift({
+          "Nome do Funcionário": `Ordenação: ${sortInfo}`,
+          "Início Período Aquisitivo": "",
+          "Fim Período Aquisitivo": "",
+          "Início Gozo": "",
+          "Fim Gozo": "",
+          "Limite para Gozo": "",
+          "Dias de Direito": "",
+          "Dias Gozados": "",
+          "Dias de Saldo": "",
+        } as any);
+        exportData.unshift({
+          "Nome do Funcionário": "",
+          "Início Período Aquisitivo": "",
+          "Fim Período Aquisitivo": "",
+          "Início Gozo": "",
+          "Fim Gozo": "",
+          "Limite para Gozo": "",
+          "Dias de Direito": "",
+          "Dias Gozados": "",
+          "Dias de Saldo": "",
+        } as any);
+      }
+
+      const ws = XLSX.utils.json_to_sheet(exportData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Férias");
+      XLSX.writeFile(wb, `${fileName}.xlsx`);
+    });
   };
   // Função para exportar alterações salariais para PDF (padrão carteira)
   const exportAlteracoesToPDF = (data: FormattedAlteracao[], reportName: string, sortInfo?: string) => {
@@ -727,7 +757,8 @@ export default function FichaPessoalPage() {
         1: { cellWidth: 32, halign: 'right' },   // Competência
         2: { cellWidth: 32, halign: 'right' },   // Salário Anterior
         3: { cellWidth: 32, halign: 'right' },   // Salário Novo
-        4: { cellWidth: 32, halign: 'left' },    // Motivo (text, so left align)        5: { cellWidth: 24, halign: 'right' },   // Variação (%)
+        4: { cellWidth: 32, halign: 'left' },    // Motivo (text, so left align)
+        5: { cellWidth: 24, halign: 'right' },   // Variação (%)
       },
       alternateRowStyles: {
         fillColor: [245, 245, 245],
@@ -741,37 +772,43 @@ export default function FichaPessoalPage() {
 
     doc.save(`${reportName.replace(/ /g, "_")}.pdf`);
   };
-
   // Função para exportar alterações salariais para Excel (padrão carteira)
   const exportAlteracoesToExcel = (data: FormattedAlteracao[], fileName: string, sortInfo?: string) => {
-    const changesData = data.map(a => ({
-      "Nome do Funcionário": a.nomeColaborador,
-      "Competência": a.competencia,
-      "Salário Anterior": a.salarioAnterior !== null ? a.salarioAnterior.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "N/A",
-      "Salário Novo": a.salarioNovo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-      "Motivo": a.motivo,
-      "Variação (%)": a.percentual === "" ? "-" : a.percentual,
-    }));
+    import("xlsx").then(XLSX => {
+      const exportData = data.map(a => ({
+        "Nome do Funcionário": a.nomeColaborador,
+        "Competência": a.competencia,
+        "Salário Anterior": a.salarioAnterior !== null ? a.salarioAnterior.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "N/A",
+        "Salário Novo": a.salarioNovo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+        "Motivo": a.motivo,
+        "Variação (%)": a.percentual,
+      }));
 
-    // Create workbook and worksheet
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(changesData);
-    
-    // Set column widths
-    ws['!cols'] = [
-      { width: 25 }, // Nome do Funcionário
-      { width: 15 }, // Competência
-      { width: 18 }, // Salário Anterior
-      { width: 18 }, // Salário Novo
-      { width: 20 }, // Motivo
-      { width: 15 }  // Variação (%)
-    ];
-    
-    // Add worksheet to workbook
-    XLSX.utils.book_append_sheet(wb, ws, 'Alterações');
-    
-    // Save file
-    XLSX.writeFile(wb, `${fileName}.xlsx`);
+      // Adiciona informação de ordenação se disponível
+      if (sortInfo) {
+        exportData.unshift({
+          "Nome do Funcionário": `Ordenação: ${sortInfo}`,
+          "Competência": "",
+          "Salário Anterior": "",
+          "Salário Novo": "",
+          "Motivo": "",
+          "Variação (%)": "",
+        } as any);
+        exportData.unshift({
+          "Nome do Funcionário": "",
+          "Competência": "",
+          "Salário Anterior": "",
+          "Salário Novo": "",
+          "Motivo": "",
+          "Variação (%)": "",
+        } as any);
+      }
+
+      const ws = XLSX.utils.json_to_sheet(exportData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Alterações");
+      XLSX.writeFile(wb, `${fileName}.xlsx`);
+    });
   };
 
   // 📤 Configurações de exportação para cada tipo de modal
@@ -800,96 +837,8 @@ export default function FichaPessoalPage() {
       pdfHandler: exportAlteracoesToPDF,
       excelHandler: exportAlteracoesToExcel,
       reportName: "Detalhes de Alterações Salariais"
-    }  };
-
-  // 🎛️ Função helper para configurar cada modal
-  function getModalConfig(tipo: ModalType) {
-    switch (tipo) {
-      case 'exames':
-        return {
-          title: "Histórico de Exames Detalhado",
-          subtitle: "Visualização completa dos exames por funcionário",
-          data: examesData,
-          sortedData: sortedExamesData,
-          sortInfo: examesSortInfo,
-          exportConfig: exportConfigs.exames,
-          component: <AtestadosModalTable 
-            atestadosData={examesData} 
-            cairoClassName={cairo.className} 
-            onSortedDataChange={setSortedExamesData}
-            onSortInfoChange={setExamesSortInfo}
-          />
-        };
-      case 'afastamentos':
-        return {
-          title: "Histórico de Afastamentos Detalhado",
-          subtitle: "Visualização completa dos afastamentos por funcionário",
-          data: afastamentosData,
-          sortedData: sortedAfastamentosData,
-          sortInfo: afastamentosSortInfo,
-          exportConfig: exportConfigs.afastamentos,
-          component: <AfastamentosModalTable 
-            afastamentosData={afastamentosData} 
-            cairoClassName={cairo.className}
-            onSortedDataChange={setSortedAfastamentosData}
-            onSortInfoChange={setAfastamentosSortInfo}
-          />
-        };
-      case 'contratos':
-        return {
-          title: "Histórico de Contratos Detalhado",
-          subtitle: "Visualização completa dos contratos por funcionário",
-          data: contratosData,
-          sortedData: sortedContratosData,
-          sortInfo: contratosSortInfo,
-          exportConfig: exportConfigs.contratos,
-          component: <ContratosModalTable 
-            contratosData={contratosData} 
-            cairoClassName={cairo.className}
-            onSortedDataChange={setSortedContratosData}
-            onSortInfoChange={setContratosSortInfo}
-          />
-        };
-      case 'ferias':
-        return {
-          title: "Detalhes de Férias",
-          subtitle: "Visualização completa das férias por funcionário",
-          data: feriasData,
-          sortedData: sortedFeriasData,
-          sortInfo: feriasSortInfo,
-          exportConfig: exportConfigs.ferias,
-          component: <FeriasModalTable 
-            feriasData={feriasData} 
-            cairoClassName={cairo.className}
-            onSortedDataChange={setSortedFeriasData}
-            onSortInfoChange={setFeriasSortInfo}
-          />
-        };
-      case 'alteracoes':
-        return {
-          title: "Detalhes de Alterações Salariais",
-          subtitle: "Visualização completa das alterações salariais por funcionário",
-          data: alteracoesData,
-          sortedData: sortedAlteracoesData,
-          sortInfo: alteracoesSortInfo,
-          exportConfig: exportConfigs.alteracoes,
-          component: <AlteracoesSalariaisModalTable 
-            alteracoesData={alteracoesData} 
-            cairoClassName={cairo.className}
-            onSortedDataChange={setSortedAlteracoesData}
-            onSortInfoChange={setAlteracoesSortInfo}
-          />
-        };
-      default:
-        return {
-          title: "",
-          subtitle: "",
-          data: [],
-          exportConfig: undefined,
-          component: null
-        };
     }
-  }
+  };
 
   return (
     <div className="bg-[#f7f7f8] flex flex-col flex-1 h-full min-h-0">
@@ -1047,6 +996,88 @@ export default function FichaPessoalPage() {
         >
           {getModalConfig(modalAberto).component}
         </DetalhesModal>
-      )}    </div>
+      )}
+    </div>
   );
+  // 🎛️ Função helper para configurar cada modal
+  function getModalConfig(tipo: ModalType) {
+    switch (tipo) {
+      case 'exames':
+        return {          title: "Histórico de Exames Detalhado",
+          subtitle: "Visualização completa dos exames por funcionário",
+          data: examesData,
+          sortedData: sortedExamesData,
+          sortInfo: examesSortInfo,
+          exportConfig: exportConfigs.exames,
+          component: <AtestadosModalTable 
+            atestadosData={examesData} 
+            cairoClassName={cairo.className} 
+            onSortedDataChange={setSortedExamesData}
+            onSortInfoChange={setExamesSortInfo}
+          />
+        };
+      case 'afastamentos':
+        return {          title: "Histórico de Afastamentos Detalhado",
+          subtitle: "Visualização completa dos afastamentos por funcionário",
+          data: afastamentosData,
+          sortedData: sortedAfastamentosData,
+          sortInfo: afastamentosSortInfo,
+          exportConfig: exportConfigs.afastamentos,
+          component: <AfastamentosModalTable 
+            afastamentosData={afastamentosData} 
+            cairoClassName={cairo.className}
+            onSortedDataChange={setSortedAfastamentosData}
+            onSortInfoChange={setAfastamentosSortInfo}
+          />
+        };
+      case 'contratos':
+        return {          title: "Histórico de Contratos Detalhado",
+          subtitle: "Visualização completa dos contratos por funcionário",
+          data: contratosData,
+          sortedData: sortedContratosData,
+          sortInfo: contratosSortInfo,
+          exportConfig: exportConfigs.contratos,
+          component: <ContratosModalTable 
+            contratosData={contratosData} 
+            cairoClassName={cairo.className}
+            onSortedDataChange={setSortedContratosData}
+            onSortInfoChange={setContratosSortInfo}
+          />
+        };      case 'ferias':
+        return {          title: "Detalhes de Férias",
+          subtitle: "Visualização completa das férias por funcionário",
+          data: feriasData,
+          sortedData: sortedFeriasData,
+          sortInfo: feriasSortInfo,
+          exportConfig: exportConfigs.ferias,
+          component: <FeriasModalTable 
+            feriasData={feriasData} 
+            cairoClassName={cairo.className}
+            onSortedDataChange={setSortedFeriasData}
+            onSortInfoChange={setFeriasSortInfo}
+          />};
+      case 'alteracoes':
+        return {          title: "Detalhes de Alterações Salariais",
+          subtitle: "Visualização completa das alterações salariais por funcionário",
+          data: alteracoesData,
+          sortedData: sortedAlteracoesData,
+          sortInfo: alteracoesSortInfo,
+          exportConfig: exportConfigs.alteracoes,
+          component: <AlteracoesSalariaisModalTable 
+            alteracoesData={alteracoesData} 
+            cairoClassName={cairo.className}
+            onSortedDataChange={setSortedAlteracoesData}
+            onSortInfoChange={setAlteracoesSortInfo}
+          />
+        };
+      default:
+        return {
+          title: "",
+          subtitle: "",
+          data: [],
+          exportConfig: undefined,
+          component: null
+        };
+    }
+  }
 }
