@@ -5,17 +5,17 @@ import React from "react";
 
 interface MenuProps {
   filtros: {
-    centroCusto: string;
+    empresa: string;
     departamento: string;
-    tipoColaborador: string;
-    servico: string;
+    cargo: string;
+    categoria: string;
   };
   setFiltros: React.Dispatch<
     React.SetStateAction<{
-      centroCusto: string;
+      empresa: string;
       departamento: string;
-      tipoColaborador: string;
-      servico: string;
+      cargo: string;
+      categoria: string;
     }>
   >;
   botaoSelecionado: string;
@@ -28,6 +28,10 @@ interface MenuProps {
     afastamentos: number;
     turnover: string;
   };
+  empresas: string[];
+  departamentos: string[];
+  cargos: string[];
+  categorias: string[];
 }
 
 const Menu: React.FC<MenuProps> = ({
@@ -36,7 +40,10 @@ const Menu: React.FC<MenuProps> = ({
   botaoSelecionado,
   setBotaoSelecionado,
   resetarFiltros,
-
+  empresas,
+  departamentos,
+  cargos,
+  categorias,
 }) => {
   console.log("Menu renderizou");
 
@@ -73,28 +80,32 @@ const Menu: React.FC<MenuProps> = ({
                 )
               )}
             </div>
-          É o brian , exqueceeeeeeeeeeeeeeee
           </div>
         </div>
 
         <div className="flex flex-col md:flex-row md:items-center flex-wrap gap-4">
+          {/* EMPRESA */}
           <select
             className="w-full md:w-[232px] p-2 border rounded text-black-700 bg-white"
-            value={filtros.centroCusto}
+            value={filtros.empresa}
             onChange={(e) =>
               setFiltros((prev) => ({
                 ...prev,
-                centroCusto: e.target.value,
+                empresa: e.target.value,
               }))
             }
           >
             <option value="" disabled hidden>
-              Centro de Custo
+              Empresa
             </option>
-            <option value="1">Opção 1</option>
-            <option value="2">Opção 2</option>
+            {empresas.map((empresa) => (
+              <option key={empresa} value={empresa}>
+                {empresa}
+              </option>
+            ))}
           </select>
 
+          {/* DEPARTAMENTO */}
           <select
             className="w-full md:w-[232px] p-2 border rounded text-black-700 bg-white"
             value={filtros.departamento}
@@ -108,42 +119,53 @@ const Menu: React.FC<MenuProps> = ({
             <option value="" disabled hidden>
               Departamento
             </option>
-            <option value="1">Opção 1</option>
-            <option value="2">Opção 2</option>
+            {departamentos.map((departamento) => (
+              <option key={departamento} value={departamento}>
+                {departamento}
+              </option>
+            ))}
           </select>
 
+          {/* CARGO */}
           <select
             className="w-full md:w-[232px] p-2 border rounded text-black-700 bg-white"
-            value={filtros.tipoColaborador}
+            value={filtros.cargo}
             onChange={(e) =>
               setFiltros((prev) => ({
                 ...prev,
-                tipoColaborador: e.target.value,
+                cargo: e.target.value,
               }))
             }
           >
             <option value="" disabled hidden>
-              Colaborador/Diretor/Autônomo
+              Cargo
             </option>
-            <option value="1">Opção 1</option>
-            <option value="2">Opção 2</option>
+            {cargos.map((cargo) => (
+              <option key={cargo} value={cargo}>
+                {cargo}
+              </option>
+            ))}
           </select>
 
+          {/* CATEGORIA */}
           <select
             className="w-full md:w-[232px] p-2 border rounded text-black-700 bg-white"
-            value={filtros.servico}
+            value={filtros.categoria}
             onChange={(e) =>
               setFiltros((prev) => ({
                 ...prev,
-                servico: e.target.value,
+                categoria: e.target.value,
               }))
             }
           >
             <option value="" disabled hidden>
-              Serviço
+              Categoria
             </option>
-            <option value="1">Opção 1</option>
-            <option value="2">Opção 2</option>
+            {categorias.map((categoria) => (
+              <option key={categoria} value={categoria}>
+                {categoria}
+              </option>
+            ))}
           </select>
         </div>
       </div>

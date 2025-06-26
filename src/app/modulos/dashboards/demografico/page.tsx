@@ -13,17 +13,39 @@ import Calendar from "@/components/calendar";
 import { gerarMesesEntreDatas } from "@/utils/formatadores";
 
 const filtrarFuncionarios = (
-
   funcionarios: any[],
   filtro: string,
   startDate: Date,
-  endDate: Date
+  endDate: Date,
+  filtrosSelecionados: {
+    empresa: string;
+    departamento: string;
+    cargo: string;
+    categoria: string;
+  }
 ) => {
-  if (!filtro || filtro === "") return funcionarios;
-
-  return funcionarios.filter((func: any ) => {
+  return funcionarios.filter((func: any) => {
     const admissao = new Date(func.admissao);
     const demissao = func.demissao ? new Date(func.demissao) : null;
+
+    // Filtros de empresa, departamento, cargo e categoria
+    if (
+      filtrosSelecionados.empresa &&
+      func.empresa !== filtrosSelecionados.empresa
+    )
+      return false;
+    if (
+      filtrosSelecionados.departamento &&
+      func.departamento !== filtrosSelecionados.departamento
+    )
+      return false;
+    if (filtrosSelecionados.cargo && func.cargo !== filtrosSelecionados.cargo)
+      return false;
+    if (
+      filtrosSelecionados.categoria &&
+      func.categoria !== filtrosSelecionados.categoria
+    )
+      return false;
 
     switch (filtro) {
       case "Ativos":
@@ -43,23 +65,22 @@ const filtrarFuncionarios = (
   });
 };
 
-
 export default function Demografico() {
   const [botaoSelecionado, setBotaoSelecionado] = useState("");
   const [filtros, setFiltros] = useState({
-    centroCusto: "",
+    empresa: "",
     departamento: "",
-    tipoColaborador: "",
-    servico: "",
+    cargo: "",
+    categoria: "",
   });
 
   const resetarFiltros = () => {
     setBotaoSelecionado("");
     setFiltros({
-      centroCusto: "",
+      empresa: "",
       departamento: "",
-      tipoColaborador: "",
-      servico: "",
+      cargo: "",
+      categoria: "",
     });
   };
 
@@ -92,268 +113,351 @@ export default function Demografico() {
 
   const [colaboradores, setColaboradores] = useState([]);
 
-    //Estados de data
+  //Estados de data
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
 
-    const handleStartDateChange = (date: string | null) => {
+  const handleStartDateChange = (date: string | null) => {
     setStartDate(date);
-
   };
+
+  const [empresas, setEmpresas] = useState<string[]>([]);
+  const [departamentos, setDepartamentos] = useState<string[]>([]);
+  const [cargos, setCargos] = useState<string[]>([]);
+  const [categorias, setCategorias] = useState<string[]>([]);
 
   const handleEndDateChange = (date: string | null) => {
     setEndDate(date);
-
   };
   useEffect(() => {
     if (startDate && endDate) {
-    console.log(startDate)
-    console.log(endDate)// Ajusta a data final se for menor que a inicial
-    const datas = gerarMesesEntreDatas(startDate, endDate);
-    console.log("Meses entre datas:", datas);
+      console.log(startDate);
+      console.log(endDate); // Ajusta a data final se for menor que a inicial
+      const datas = gerarMesesEntreDatas(startDate, endDate);
+      console.log("Meses entre datas:", datas);
     }
   }, [startDate, endDate]);
 
- useEffect(() => {
-  const fetchDados = async () => {
-    try {
+  useEffect(() => {
+    const fetchDados = async () => {
+      if (!startDate || !endDate) {
+        return;
+      }
+      try {
+        const apiStartDate = startDate;
+        const apiEndDate = endDate;
 
-      const formatApiDate = (date: Date) => date.toISOString().split("T")[0];
-      const apiStartDate = startDate
-      const apiEndDate = endDate
+        const response = await fetch("/api/dashboards-demografico", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            start_date: apiStartDate,
+            end_date: apiEndDate,
+          }),
+        });
 
-      const response = await fetch("/api/dashboards-demografico", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          start_date: apiStartDate,
-          end_date: apiEndDate,
-        }),
-      });
+        if (!response.ok)
+          throw new Error("Erro na requisição: " + response.statusText);
 
-      if (!response.ok)
-        throw new Error("Erro na requisição: " + response.statusText);
+        const resultado = await response.json();
 
-      const resultado = await response.json();
-      const todosFuncionarios = resultado.dados.flatMap(
-        (empresa: any) => empresa.funcionarios
-      );
-      const funcionariosFiltrados = filtrarFuncionarios(
-        todosFuncionarios,
-        botaoSelecionado,
-        startDate,
-        endDate
-      );
+        const todosFuncionarios = resultado.dados.flatMap((empresa: any) =>
+          empresa.funcionarios.map((func: any) => ({
+            ...func,
+            empresa: empresa.nome_empresa, // adiciona nome_empresa ao funcionário
+          }))
+        );
 
-      const colaboradoresExtraidos = funcionariosFiltrados.map((func: any) => ({
-        nome: func.nome,
-        departamento: func.departamento || "Não informado",
-        faturamento: "-",
-      }));
+        // Coleta única dos campos para alimentar os <select>
+        const empresasUnicas = Array.from(
+          new Set(
+            todosFuncionarios.map((f: any) => f.empresa || "Não informado")
+          )
+        );
+        const departamentosUnicos = Array.from(
+          new Set(
+            todosFuncionarios.map((f: any) => f.departamento || "Não informado")
+          )
+        );
+        const cargosUnicos = Array.from(
+          new Set(todosFuncionarios.map((f: any) => f.cargo || "Não informado"))
+        );
+        const categoriasUnicas = Array.from(
+          new Set(
+            todosFuncionarios.map((f: any) => f.categoria || "Não informado")
+          )
+        );
 
-      setColaboradores(colaboradoresExtraidos);
+        // Seta nos estados
+        setEmpresas(empresasUnicas);
+        setDepartamentos(departamentosUnicos);
+        setCargos(cargosUnicos);
+        setCategorias(categoriasUnicas);
 
-      // Categoria
-      const categoriaContagem: { [key: string]: number } = {};
-      funcionariosFiltrados.forEach((funcionario: any) => {
-        const categoria = funcionario.categoria || "Não Informado";
-        categoriaContagem[categoria] =
-          (categoriaContagem[categoria] || 0) + 1;
-      });
-      const dadosCategoria = Object.entries(categoriaContagem).map(
-        ([categoria, total]) => ({
-          name: categoria,
-          colaboradores: total,
-        })
-      );
-      setDadosCategoria(dadosCategoria);
+        const funcionariosFiltrados = filtrarFuncionarios(
+          todosFuncionarios,
+          botaoSelecionado,
+          startDate,
+          endDate
+        ).filter((func: any) => {
+          const filtroEmpresa =
+            !filtros.empresa || func.empresa === filtros.empresa;
+          const filtroDepartamento =
+            !filtros.departamento || func.departamento === filtros.departamento;
+          const filtroCargo = !filtros.cargo || func.cargo === filtros.cargo;
+          const filtroCategoria =
+            !filtros.categoria || func.categoria === filtros.categoria;
 
-      // Cards
-      let ativos = 0, contratacoes = 0, demissoes = 0, afastamentos = 0;
-      todosFuncionarios.forEach((func: any) => {
-        const admissao = new Date(func.admissao);
-        const demissaoData = func.demissao ? new Date(func.demissao) : null;
+          return (
+            filtroEmpresa &&
+            filtroDepartamento &&
+            filtroCargo &&
+            filtroCategoria
+          );
+        });
 
-        if (!demissaoData) ativos++;
-        if (admissao >= startDate && admissao <= endDate) contratacoes++;
-        if (demissaoData && demissaoData >= startDate && demissaoData <= endDate) demissoes++;
+        const colaboradoresExtraidos = funcionariosFiltrados.map(
+          (func: any) => ({
+            nome: func.nome,
+            departamento: func.departamento || "Não informado",
+            faturamento: "-",
+          })
+        );
 
-        if (Array.isArray(func.afastamentos)) {
-          func.afastamentos.forEach((afast: any) => {
-            const ini = new Date(afast.data_inicio);
-            const fim = afast.data_fim ? new Date(afast.data_fim) : null;
-            const dentroPeriodo =
-              (ini >= startDate && ini <= endDate) ||
-              (fim && fim >= startDate && fim <= endDate);
-            if (dentroPeriodo) afastamentos++;
+        setColaboradores(colaboradoresExtraidos);
+
+        // Categoria
+        const categoriaContagem: { [key: string]: number } = {};
+        funcionariosFiltrados.forEach((funcionario: any) => {
+          const categoria = funcionario.categoria || "Não Informado";
+          categoriaContagem[categoria] =
+            (categoriaContagem[categoria] || 0) + 1;
+        });
+        const dadosCategoria = Object.entries(categoriaContagem).map(
+          ([categoria, total]) => ({
+            name: categoria,
+            colaboradores: total,
+          })
+        );
+        console.log("Dados de categoria:", dadosCategoria);
+        setDadosCategoria(dadosCategoria);
+
+        // Cards
+        let ativos = 0,
+          contratacoes = 0,
+          demissoes = 0,
+          afastamentos = 0;
+        todosFuncionarios.forEach((func: any) => {
+          const admissao = new Date(func.admissao);
+          const demissaoData = func.demissao ? new Date(func.demissao) : null;
+
+          if (!demissaoData) ativos++;
+          if (admissao >= startDate && admissao <= endDate) contratacoes++;
+          if (
+            demissaoData &&
+            demissaoData >= startDate &&
+            demissaoData <= endDate
+          )
+            demissoes++;
+
+          if (Array.isArray(func.afastamentos)) {
+            func.afastamentos.forEach((afast: any) => {
+              const ini = new Date(afast.data_inicio);
+              const fim = afast.data_fim ? new Date(afast.data_fim) : null;
+              const dentroPeriodo =
+                (ini >= startDate && ini <= endDate) ||
+                (fim && fim >= startDate && fim <= endDate);
+              if (dentroPeriodo) afastamentos++;
+            });
+          }
+        });
+
+        const turnover = (demissoes / (ativos + demissoes)) * 100;
+        setCardsData({
+          ativos,
+          contratacoes,
+          demissoes,
+          afastamentos,
+          turnover: `${turnover.toFixed(1)}%`,
+        });
+
+        // Gênero
+        const total = funcionariosFiltrados.length;
+        const totalMasculino = funcionariosFiltrados.filter(
+          (f: any) => f.sexo === "M"
+        ).length;
+        const totalFeminino = funcionariosFiltrados.filter(
+          (f: any) => f.sexo === "F"
+        ).length;
+        setPercentualMasculino((totalMasculino / total) * 100 || 0);
+        setPercentualFeminino((totalFeminino / total) * 100 || 0);
+
+        // Escolaridade
+        const escolaridadeMap = new Map<string, number>();
+        funcionariosFiltrados.forEach((f: any) => {
+          const esc = f.escolaridade || "Não informado";
+          escolaridadeMap.set(esc, (escolaridadeMap.get(esc) || 0) + 1);
+        });
+        const dadosEscolaridade = Array.from(escolaridadeMap.entries()).map(
+          ([escolaridade, total]) => ({ escolaridade, total })
+        );
+        console.log("Dados de escolaridade:", dadosEscolaridade);
+        setDadosDemograficos(dadosEscolaridade);
+
+        // Cargo
+        const cargoMap = new Map<string, number>();
+        funcionariosFiltrados.forEach((f: any) => {
+          const cargo = f.cargo || "Não informado";
+          cargoMap.set(cargo, (cargoMap.get(cargo) || 0) + 1);
+        });
+        const dadosCargo = Array.from(cargoMap.entries()).map(
+          ([cargo, total]) => ({ cargo, total })
+        );
+        console.log("Dados de cargo:", dadosCargo);
+        setDadosCargo(dadosCargo);
+
+        // Faixa etária
+        const getFaixaEtaria = (idade: number) => {
+          if (idade <= 25) return "00 a 25";
+          if (idade <= 35) return "26 a 35";
+          if (idade <= 45) return "36 a 45";
+          if (idade <= 55) return "46 a 55";
+          return "55+";
+        };
+
+        const calcularIdade = (dataNascimento: string) => {
+          const hoje = new Date();
+          const nascimento = new Date(dataNascimento);
+          let idade = hoje.getFullYear() - nascimento.getFullYear();
+          const mes = hoje.getMonth() - nascimento.getMonth();
+          if (mes < 0 || (mes === 0 && hoje.getDate() < nascimento.getDate()))
+            idade--;
+          return idade;
+        };
+
+        const faixaEtariaMap = new Map<string, number>();
+        funcionariosFiltrados.forEach((f: any) => {
+          if (f.data_nascimento) {
+            const idade = calcularIdade(f.data_nascimento);
+            const faixa = getFaixaEtaria(idade);
+            faixaEtariaMap.set(faixa, (faixaEtariaMap.get(faixa) || 0) + 1);
+          }
+        });
+        const dadosFaixa = Array.from(faixaEtariaMap.entries()).map(
+          ([name, colaboradores]) => ({ name, colaboradores })
+        );
+        console.log("Dados de faixa etária:", dadosFaixa);
+        setDadosFaixaEtaria(dadosFaixa);
+
+        // Gráfico de linha
+        const monthlyDataMap = new Map<
+          string,
+          { Ativos: number; Contratações: number; Demissões: number }
+        >();
+
+        const formatMonthKey = (date: Date): string =>
+          `${date.toLocaleString("pt-BR", { month: "short" }).replace(".", "")}/${date
+            .getFullYear()
+            .toString()
+            .slice(-2)}`;
+
+        const monthsInOrder: string[] = [];
+        const monthDates: Date[] = [];
+
+        for (
+          let d = new Date(startDate);
+          d <= endDate;
+          d.setMonth(d.getMonth() + 1)
+        ) {
+          const newDate = new Date(d);
+          const monthKey = formatMonthKey(newDate);
+          monthsInOrder.push(monthKey);
+          monthDates.push(new Date(newDate));
+          monthlyDataMap.set(monthKey, {
+            Ativos: 0,
+            Contratações: 0,
+            Demissões: 0,
           });
         }
-      });
 
-      const turnover = (demissoes / (ativos + demissoes)) * 100;
-      setCardsData({
-        ativos,
-        contratacoes,
-        demissoes,
-        afastamentos,
-        turnover: `${turnover.toFixed(1)}%`,
-      });
+        for (const func of funcionariosFiltrados) {
+          const admissaoDate = new Date(func.admissao);
+          const demissaoDate = func.demissao ? new Date(func.demissao) : null;
 
-      // Gênero
-      const total = funcionariosFiltrados.length;
-      const totalMasculino = funcionariosFiltrados.filter((f: any) => f.sexo === "M").length;
-      const totalFeminino = funcionariosFiltrados.filter((f: any) => f.sexo === "F").length;
-      setPercentualMasculino((totalMasculino / total) * 100 || 0);
-      setPercentualFeminino((totalFeminino / total) * 100 || 0);
+          for (let i = 0; i < monthDates.length; i++) {
+            const monthEnd = new Date(
+              monthDates[i].getFullYear(),
+              monthDates[i].getMonth() + 1,
+              0,
+              23,
+              59,
+              59,
+              999
+            );
+            const monthKey = monthsInOrder[i];
 
-      // Escolaridade
-      const escolaridadeMap = new Map<string, number>();
-      funcionariosFiltrados.forEach((f: any) => {
-        const esc = f.escolaridade || "Não informado";
-        escolaridadeMap.set(esc, (escolaridadeMap.get(esc) || 0) + 1);
-      });
-      const dadosEscolaridade = Array.from(escolaridadeMap.entries()).map(
-        ([escolaridade, total]) => ({ escolaridade, total })
-      );
-      setDadosDemograficos(dadosEscolaridade);
+            if (
+              admissaoDate.getFullYear() === monthDates[i].getFullYear() &&
+              admissaoDate.getMonth() === monthDates[i].getMonth()
+            ) {
+              monthlyDataMap.get(monthKey)!.Contratações++;
+            }
 
-      // Cargo
-      const cargoMap = new Map<string, number>();
-      funcionariosFiltrados.forEach((f: any) => {
-        const cargo = f.cargo || "Não informado";
-        cargoMap.set(cargo, (cargoMap.get(cargo) || 0) + 1);
-      });
-      const dadosCargo = Array.from(cargoMap.entries()).map(
-        ([cargo, total]) => ({ cargo, total })
-      );
-      setDadosCargo(dadosCargo);
+            if (
+              demissaoDate &&
+              demissaoDate.getFullYear() === monthDates[i].getFullYear() &&
+              demissaoDate.getMonth() === monthDates[i].getMonth()
+            ) {
+              monthlyDataMap.get(monthKey)!.Demissões++;
+            }
 
+            const ativoNesseMes =
+              admissaoDate <= monthEnd &&
+              (!demissaoDate || demissaoDate > monthEnd);
 
-      
-      // Faixa etária
-      const getFaixaEtaria = (idade: number) => {
-        if (idade <= 25) return "00 a 25";
-        if (idade <= 35) return "26 a 35";
-        if (idade <= 45) return "36 a 45";
-        if (idade <= 55) return "46 a 55";
-        return "55+";
-      };
-
-      const calcularIdade = (dataNascimento: string) => {
-        const hoje = new Date();
-        const nascimento = new Date(dataNascimento);
-        let idade = hoje.getFullYear() - nascimento.getFullYear();
-        const mes = hoje.getMonth() - nascimento.getMonth();
-        if (mes < 0 || (mes === 0 && hoje.getDate() < nascimento.getDate())) idade--;
-        return idade;
-      };
-
-      const faixaEtariaMap = new Map<string, number>();
-      funcionariosFiltrados.forEach((f: any) => {
-        if (f.data_nascimento) {
-          const idade = calcularIdade(f.data_nascimento);
-          const faixa = getFaixaEtaria(idade);
-          faixaEtariaMap.set(faixa, (faixaEtariaMap.get(faixa) || 0) + 1);
-        }
-      });
-      const dadosFaixa = Array.from(faixaEtariaMap.entries()).map(
-        ([name, colaboradores]) => ({ name, colaboradores })
-      );
-      setDadosFaixaEtaria(dadosFaixa);
-
-      // Gráfico de linha
-      const monthlyDataMap = new Map<
-        string,
-        { Ativos: number; Contratações: number; Demissões: number }
-      >();
-
-      const formatMonthKey = (date: Date): string =>
-        `${date.toLocaleString("pt-BR", { month: "short" }).replace(".", "")}/${date
-          .getFullYear()
-          .toString()
-          .slice(-2)}`;
-
-      const monthsInOrder: string[] = [];
-      const monthDates: Date[] = [];
-
-      for (let d = new Date(startDate); d <= endDate; d.setMonth(d.getMonth() + 1)) {
-        const newDate = new Date(d);
-        const monthKey = formatMonthKey(newDate);
-        monthsInOrder.push(monthKey);
-        monthDates.push(new Date(newDate));
-        monthlyDataMap.set(monthKey, { Ativos: 0, Contratações: 0, Demissões: 0 });
-      }
-
-      for (const func of funcionariosFiltrados) {
-        const admissaoDate = new Date(func.admissao);
-        const demissaoDate = func.demissao ? new Date(func.demissao) : null;
-
-        for (let i = 0; i < monthDates.length; i++) {
-          const monthEnd = new Date(
-            monthDates[i].getFullYear(),
-            monthDates[i].getMonth() + 1,
-            0,
-            23, 59, 59, 999
-          );
-          const monthKey = monthsInOrder[i];
-
-          if (
-            admissaoDate.getFullYear() === monthDates[i].getFullYear() &&
-            admissaoDate.getMonth() === monthDates[i].getMonth()
-          ) {
-            monthlyDataMap.get(monthKey)!.Contratações++;
-          }
-
-          if (
-            demissaoDate &&
-            demissaoDate.getFullYear() === monthDates[i].getFullYear() &&
-            demissaoDate.getMonth() === monthDates[i].getMonth()
-          ) {
-            monthlyDataMap.get(monthKey)!.Demissões++;
-          }
-
-          const ativoNesseMes =
-            admissaoDate <= monthEnd &&
-            (!demissaoDate || demissaoDate > monthEnd);
-
-          if (ativoNesseMes) {
-            monthlyDataMap.get(monthKey)!.Ativos++;
+            if (ativoNesseMes) {
+              monthlyDataMap.get(monthKey)!.Ativos++;
+            }
           }
         }
+
+        const dadosParaGraficoLinha = monthsInOrder.map((monthKey) => ({
+          month: monthKey,
+          Ativos: monthlyDataMap.get(monthKey)!.Ativos,
+          Contratações: monthlyDataMap.get(monthKey)!.Contratações,
+          Demissões: monthlyDataMap.get(monthKey)!.Demissões,
+        }));
+        setDadosEmpresas(dadosParaGraficoLinha);
+      } catch (error) {
+        console.error("Erro ao buscar dados:", error);
       }
+    };
 
-      const dadosParaGraficoLinha = monthsInOrder.map((monthKey) => ({
-        month: monthKey,
-        Ativos: monthlyDataMap.get(monthKey)!.Ativos,
-        Contratações: monthlyDataMap.get(monthKey)!.Contratações,
-        Demissões: monthlyDataMap.get(monthKey)!.Demissões,
-      }));
-      setDadosEmpresas(dadosParaGraficoLinha);
-    } catch (error) {
-      console.error("Erro ao buscar dados:", error);
-    }
-  };
-
-  fetchDados();
-}, [botaoSelecionado,startDate, endDate]);
+    fetchDados();
+  }, [botaoSelecionado, startDate, endDate, filtros]);
 
   return (
     <div className="bg-gray-100 h-full p-4 overflow-y-auto">
       <div>
-      <Menu
-        filtros={filtros}
-        setFiltros={setFiltros}
-        botaoSelecionado={botaoSelecionado}
-        setBotaoSelecionado={setBotaoSelecionado}
-        resetarFiltros={resetarFiltros}
-        cardsData={cardsData}
-      />
-                  <Calendar
-              onStartDateChange={handleStartDateChange}
-              onEndDateChange={handleEndDateChange}
-            />
-</div>
-    
+        <Menu
+          filtros={filtros}
+          setFiltros={setFiltros}
+          botaoSelecionado={botaoSelecionado}
+          setBotaoSelecionado={setBotaoSelecionado}
+          resetarFiltros={resetarFiltros}
+          cardsData={cardsData}
+          empresas={empresas}
+          departamentos={departamentos}
+          cargos={cargos}
+          categorias={categorias}
+        />
+
+        <Calendar
+          onStartDateChange={handleStartDateChange}
+          onEndDateChange={handleEndDateChange}
+        />
+      </div>
+
       <div className="h-px bg-gray-300 my-6"></div>
 
       {/* Gráficos principais */}
