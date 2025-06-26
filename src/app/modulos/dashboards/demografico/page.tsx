@@ -215,22 +215,6 @@ export default function Demografico() {
           endDate,
           filtros
         );
-        // ).filter((func: any) => {
-        //   const filtroEmpresa =
-        //     !filtros.empresa || (func.empresa && func.empresa === filtros.empresa);
-        //   const filtroDepartamento =
-        //     !filtros.departamento || (func.departamento && func.departamento === filtros.departamento);
-        //   const filtroCargo = !filtros.cargo || (func.cargo && func.cargo === filtros.cargo);
-        //   const filtroCategoria =
-        //     !filtros.categoria || func.categoria === filtros.categoria;
-
-        //   return (
-        //     filtroEmpresa &&
-        //     filtroDepartamento &&
-        //     filtroCargo &&
-        //     filtroCategoria
-        //   );
-        // });
 
         const colaboradoresExtraidos = funcionariosFiltrados.map(
           (func: any) => ({
@@ -259,11 +243,27 @@ export default function Demografico() {
         setDadosCategoria(dadosCategoria);
 
         // Cards
+        // ⬇️ Filtra os funcionários só com base nos filtros do menu
+        const funcionariosParaCards = todosFuncionarios.filter((func: any) => {
+          if (filtros.empresa && func.empresa !== filtros.empresa) return false;
+          if (
+            filtros.departamento &&
+            func.departamento !== filtros.departamento
+          )
+            return false;
+          if (filtros.cargo && func.cargo !== filtros.cargo) return false;
+          if (filtros.categoria && func.categoria !== filtros.categoria)
+            return false;
+          return true;
+        });
+
+        // ⬇️ Calcula os valores dos cards com base nesses filtros
         let ativos = 0,
           contratacoes = 0,
           demissoes = 0,
           afastamentos = 0;
-        todosFuncionarios.forEach((func: any) => {
+
+        funcionariosParaCards.forEach((func: any) => {
           const admissao = new Date(func.admissao);
           const demissaoData = func.demissao ? new Date(func.demissao) : null;
 
@@ -273,8 +273,9 @@ export default function Demografico() {
             demissaoData &&
             demissaoData >= startDate &&
             demissaoData <= endDate
-          )
+          ) {
             demissoes++;
+          }
 
           if (Array.isArray(func.afastamentos)) {
             func.afastamentos.forEach((afast: any) => {
@@ -294,7 +295,7 @@ export default function Demografico() {
           contratacoes,
           demissoes,
           afastamentos,
-          turnover: `${turnover.toFixed(1)}%`,
+          turnover: `${isNaN(turnover) ? "0.0" : turnover.toFixed(1)}%`,
         });
 
         // Gênero
