@@ -243,7 +243,7 @@ export default function Demografico() {
         setDadosCategoria(dadosCategoria);
 
         // Cards
-        // ⬇️ Filtra os funcionários só com base nos filtros do menu
+        // filtros  os funcionários só com base nos filtros do menu
         const funcionariosParaCards = todosFuncionarios.filter((func: any) => {
           if (filtros.empresa && func.empresa !== filtros.empresa) return false;
           if (
@@ -257,7 +257,7 @@ export default function Demografico() {
           return true;
         });
 
-        // ⬇️ Calcula os valores dos cards com base nesses filtros
+        // Calcula os valores dos cards com base nesses filtros
         let ativos = 0,
           contratacoes = 0,
           demissoes = 0,
@@ -448,8 +448,8 @@ export default function Demografico() {
           "✅ Dados gerados para o gráfico de linha:",
           dadosParaGraficoLinha
         );
-        console.log("📅 Meses em ordem:", monthsInOrder);
-        console.log("🧍‍♂️ Funcionários filtrados:", funcionariosFiltrados);
+        console.log(" Meses em ordem:", monthsInOrder);
+        console.log(" Funcionários filtrados:", funcionariosFiltrados);
 
         setDadosEmpresas(dadosParaGraficoLinha);
 
