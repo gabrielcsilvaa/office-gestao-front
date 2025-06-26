@@ -21,13 +21,6 @@ interface MenuProps {
   botaoSelecionado: string;
   setBotaoSelecionado: (botao: string) => void;
   resetarFiltros: () => void;
-  cardsData: {
-    ativos: number;
-    contratacoes: number;
-    demissoes: number;
-    afastamentos: number;
-    turnover: string;
-  };
   empresas: string[];
   departamentos: string[];
   cargos: string[];

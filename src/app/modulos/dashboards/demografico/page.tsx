@@ -28,6 +28,12 @@ const filtrarFuncionarios = (
     const admissao = new Date(func.admissao);
     const demissao = func.demissao ? new Date(func.demissao) : null;
 
+    // Verifica se tem empresa
+    if (!("empresa" in func)) {
+      console.warn("Funcionário sem empresa:", func);
+      return false;
+    }
+
     // Filtros de empresa, departamento, cargo e categoria
     if (
       filtrosSelecionados.empresa &&
@@ -83,6 +89,8 @@ export default function Demografico() {
       categoria: "",
     });
   };
+
+  const [todosFuncionarios, setTodosFuncionarios] = useState<any[]>([]);
 
   const [dadosDemograficos, setDadosDemograficos] = useState([]);
   const [dadosFaixaEtaria, setDadosFaixaEtaria] = useState([]);
@@ -147,6 +155,12 @@ export default function Demografico() {
         const apiStartDate = startDate;
         const apiEndDate = endDate;
 
+        console.log("🔍 Iniciando fetch com:");
+        console.log("Start:", startDate);
+        console.log("End:", endDate);
+        console.log("Botão selecionado:", botaoSelecionado);
+        console.log("Filtros:", filtros);
+
         const response = await fetch("/api/dashboards-demografico", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -198,23 +212,25 @@ export default function Demografico() {
           todosFuncionarios,
           botaoSelecionado,
           startDate,
-          endDate
-        ).filter((func: any) => {
-          const filtroEmpresa =
-            !filtros.empresa || func.empresa === filtros.empresa;
-          const filtroDepartamento =
-            !filtros.departamento || func.departamento === filtros.departamento;
-          const filtroCargo = !filtros.cargo || func.cargo === filtros.cargo;
-          const filtroCategoria =
-            !filtros.categoria || func.categoria === filtros.categoria;
+          endDate,
+          filtros
+        );
+        // ).filter((func: any) => {
+        //   const filtroEmpresa =
+        //     !filtros.empresa || (func.empresa && func.empresa === filtros.empresa);
+        //   const filtroDepartamento =
+        //     !filtros.departamento || (func.departamento && func.departamento === filtros.departamento);
+        //   const filtroCargo = !filtros.cargo || (func.cargo && func.cargo === filtros.cargo);
+        //   const filtroCategoria =
+        //     !filtros.categoria || func.categoria === filtros.categoria;
 
-          return (
-            filtroEmpresa &&
-            filtroDepartamento &&
-            filtroCargo &&
-            filtroCategoria
-          );
-        });
+        //   return (
+        //     filtroEmpresa &&
+        //     filtroDepartamento &&
+        //     filtroCargo &&
+        //     filtroCategoria
+        //   );
+        // });
 
         const colaboradoresExtraidos = funcionariosFiltrados.map(
           (func: any) => ({
@@ -427,7 +443,16 @@ export default function Demografico() {
           Contratações: monthlyDataMap.get(monthKey)!.Contratações,
           Demissões: monthlyDataMap.get(monthKey)!.Demissões,
         }));
+        console.log(
+          "✅ Dados gerados para o gráfico de linha:",
+          dadosParaGraficoLinha
+        );
+        console.log("📅 Meses em ordem:", monthsInOrder);
+        console.log("🧍‍♂️ Funcionários filtrados:", funcionariosFiltrados);
+
         setDadosEmpresas(dadosParaGraficoLinha);
+
+        setTodosFuncionarios(todosFuncionarios);
       } catch (error) {
         console.error("Erro ao buscar dados:", error);
       }
@@ -435,6 +460,28 @@ export default function Demografico() {
 
     fetchDados();
   }, [botaoSelecionado, startDate, endDate, filtros]);
+
+  useEffect(() => {
+    if (!todosFuncionarios.length) return;
+
+    const filtrados = todosFuncionarios.filter(
+      (func) => !filtros.empresa || func.empresa === filtros.empresa
+    );
+
+    const departamentosUnicos = Array.from(
+      new Set(filtrados.map((f) => f.departamento || "Não informado"))
+    );
+    const cargosUnicos = Array.from(
+      new Set(filtrados.map((f) => f.cargo || "Não informado"))
+    );
+    const categoriasUnicas = Array.from(
+      new Set(filtrados.map((f) => f.categoria || "Não informado"))
+    );
+
+    setDepartamentos(departamentosUnicos);
+    setCargos(cargosUnicos);
+    setCategorias(categoriasUnicas);
+  }, [filtros.empresa, todosFuncionarios]);
 
   return (
     <div className="bg-gray-100 h-full p-4 overflow-y-auto">
@@ -445,7 +492,6 @@ export default function Demografico() {
           botaoSelecionado={botaoSelecionado}
           setBotaoSelecionado={setBotaoSelecionado}
           resetarFiltros={resetarFiltros}
-          cardsData={cardsData}
           empresas={empresas}
           departamentos={departamentos}
           cargos={cargos}
