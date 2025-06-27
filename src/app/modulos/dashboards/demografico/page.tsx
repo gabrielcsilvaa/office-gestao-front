@@ -258,12 +258,13 @@ export default function Demografico() {
         });
 
         // Calcula os valores dos cards com base nesses filtros
+        // Cards (baseado nos filtros aplicados)
         let ativos = 0,
           contratacoes = 0,
           demissoes = 0,
           afastamentos = 0;
 
-        funcionariosParaCards.forEach((func: any) => {
+        funcionariosFiltrados.forEach((func: any) => {
           const admissao = new Date(func.admissao);
           const demissaoData = func.demissao ? new Date(func.demissao) : null;
 
@@ -273,9 +274,8 @@ export default function Demografico() {
             demissaoData &&
             demissaoData >= startDate &&
             demissaoData <= endDate
-          ) {
+          )
             demissoes++;
-          }
 
           if (Array.isArray(func.afastamentos)) {
             func.afastamentos.forEach((afast: any) => {
@@ -295,7 +295,7 @@ export default function Demografico() {
           contratacoes,
           demissoes,
           afastamentos,
-          turnover: `${isNaN(turnover) ? "0.0" : turnover.toFixed(1)}%`,
+          turnover: `${turnover.toFixed(1)}%`,
         });
 
         // Gênero
