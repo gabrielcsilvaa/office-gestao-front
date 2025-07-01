@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Dropdown } from "./components/Dropdown";
 import { useDropdown } from "./hooks/useDropdown";
 import Calendar from "@/components/calendar";
+import KpiCardsGrid from "./components/KpiCardsGrid";
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
@@ -79,6 +80,15 @@ export default function DashboardFiscal() {
     "LAVAGEM COMPLETA DE VEÍCULO",
     "ÁGUA MINERAL S/ GÁS 500ML",
     "PÃO DE QUEIJO (Unidade)"
+  ];
+
+  const cardsData = [
+    { title: "Ticket Médio", value: "4.778,16", tooltipText: "Valor médio por transação no período analisado." },
+    { title: "Faturamento", value: "R$ 619.995.200,00", tooltipText: "Total de receitas antes dos impostos e deduções." },
+    { title: "Entradas", value: "R$ 495.542.800,00", tooltipText: "Total de entradas fiscais no período." },
+    { title: "Carga Tributária", value: "7,31%", tooltipText: "Percentual de impostos sobre o faturamento total." },
+    { title: "Imposto Devido", value: "R$ 45.330,00", tooltipText: "Valor total de impostos a pagar no período." },
+    { title: "A Recuperar", value: "R$ 846.090,00", tooltipText: "Valor de créditos tributários a recuperar." }
   ];
 
   return (
@@ -175,7 +185,8 @@ export default function DashboardFiscal() {
 
       {/* Conteúdo Principal - Scrollable */}
       <div className="flex-1 overflow-y-auto p-4">
-        {/* Aqui vai o conteúdo do dashboard, como gráficos e tabelas */}
+        {/* Cards KPI */}
+        <KpiCardsGrid cardsData={cardsData} />
         </div>
       </div>
   );
