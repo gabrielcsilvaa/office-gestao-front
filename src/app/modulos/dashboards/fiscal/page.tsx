@@ -139,7 +139,7 @@ export default function DashboardFiscal() {
             <Dropdown
                 options={clienteOptions}
                 label="Cliente / Fornecedor"
-                widthClass="w-60"
+                widthClass="w-80"
                 selectedValue={clienteSelecionado}
                 onValueChange={setClienteSelecionado}
                 isOpen={openDropdown === 'cliente'}
@@ -148,7 +148,7 @@ export default function DashboardFiscal() {
             <Dropdown
                 options={acumuladorOptions}
                 label="Acumulador"
-                widthClass="w-72"
+                widthClass="w-80"
                 selectedValue={acumuladorSelecionado}
                 onValueChange={setAcumuladorSelecionado}
                 isOpen={openDropdown === 'acumulador'}
@@ -157,7 +157,7 @@ export default function DashboardFiscal() {
             <Dropdown
                 options={produtoOptions}
                 label="Produto"
-                widthClass="w-72"
+                widthClass="w-80"
                 selectedValue={produtoSelecionado}
                 onValueChange={setProdutoSelecionado}
                 isOpen={openDropdown === 'produto'}
