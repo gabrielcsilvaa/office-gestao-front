@@ -21,7 +21,7 @@ interface EvolucaoCardProps {
 
 const EvolucaoCard: React.FC<EvolucaoCardProps> = ({ title, data, onMaximize }) => {
   return (
-    <div className="w-full h-[400px] bg-white rounded-lg shadow-md relative overflow-hidden">
+    <div className="w-full h-[360px] bg-white rounded-lg shadow-md relative overflow-hidden">
       {/* Barra vertical ao lado do título */}
       <div className="w-6 h-0 left-[10px] top-[17px] absolute origin-top-left rotate-90 bg-zinc-300 outline-1 outline-offset-[-0.50px] outline-neutral-700"></div>
       
@@ -48,7 +48,7 @@ const EvolucaoCard: React.FC<EvolucaoCardProps> = ({ title, data, onMaximize }) 
 
       {/* Conteúdo do card - Gráfico */}
       <div className="flex-1 px-5 pb-5 min-h-0 overflow-y-auto">
-        <div className="h-[300px] w-full">
+        <div className="h-[260px] w-full">
           <EvolucaoChart data={data} kpiName={title} />
         </div>
       </div>

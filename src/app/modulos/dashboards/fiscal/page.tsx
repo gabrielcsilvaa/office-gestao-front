@@ -7,6 +7,7 @@ import { useDropdown } from "./hooks/useDropdown";
 import Calendar from "@/components/calendar";
 import KpiCardsGrid from "./components/KpiCardsGrid";
 import EvolucaoCard from "./components/EvolucaoCard";
+import ProgressBarCard from "./components/ProgressBarCard";
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
@@ -113,6 +114,46 @@ export default function DashboardFiscal() {
     { month: "Dez/2024", value: 53602856.14 }
   ];
 
+  // Dados para o primeiro card de barra de progresso - "TOP 100 Produtos / Serviços"
+  // Total dos valores: R$ 166.752.838,30
+  const topProdutosServicosData = [
+    { name: "Produto não informado", value: "R$ 115.439.645,23", numericValue: 115439645.23, percentage: 69.2, rank: 1 },
+    { name: "SERVIÇOS TOMADOS (2)", value: "R$ 11.213.561,10", numericValue: 11213561.10, percentage: 6.7, rank: 2 },
+    { name: "VASILHAME VAZIO P13 (2)", value: "R$ 6.496.853,83", numericValue: 6496853.83, percentage: 3.9, rank: 3 },
+    { name: "COTTON ALQUIMIA MENEGOTTI (80000000006084)", value: "R$ 4.694.056,41", numericValue: 4694056.41, percentage: 2.8, rank: 4 },
+    { name: "COTTON ALQUIMIA MENEGOTTI (143580A)", value: "R$ 4.670.102,95", numericValue: 4670102.95, percentage: 2.8, rank: 5 },
+    { name: "COTTON ALQUIMIA MENEGOTTI (143580A)", value: "R$ 4.663.614,92", numericValue: 4663614.92, percentage: 2.8, rank: 6 },
+    { name: "GASOLINA C COMUM (101001)", value: "R$ 4.492.489,40", numericValue: 4492489.40, percentage: 2.7, rank: 7 },
+    { name: "SERVIÇOS TOMADOS SEM CREDITO (9)", value: "R$ 4.450.120,01", numericValue: 4450120.01, percentage: 2.7, rank: 8 },
+    { name: "GASOLINA C COMUM (101001)", value: "R$ 4.365.533,64", numericValue: 4365533.64, percentage: 2.6, rank: 9 },
+    { name: "COTTON ALQUIMIA MENEGOTTI (143580A)", value: "R$ 4.236.279,81", numericValue: 4236279.81, percentage: 2.5, rank: 10 },
+    { name: "GASOLINA C COMUM (101001)", value: "R$ 4.031.582,00", numericValue: 4031582.00, percentage: 2.4, rank: 11 }
+  ];
+
+  // Dados para o segundo card de barra de progresso - "TOP 100 Clientes / Fornecedores"
+  // Total dos valores: R$ 145.126.267,43
+  const topClientesFornecedoresData = [
+    { name: "YAMAHA MOTOR DA AMAZONIA LTDA", value: "R$ 21.068.918,95", numericValue: 21068918.95, percentage: 14.5, rank: 1 },
+    { name: "VIBRA ENERGIA S.A", value: "R$ 20.507.156,97", numericValue: 20507156.97, percentage: 14.1, rank: 2 },
+    { name: "F DINARTE IND E COM DE CONFEC", value: "R$ 19.127.937,07", numericValue: 19127937.07, percentage: 13.2, rank: 3 },
+    { name: "DINART IND E COM DE CONFECCOES LTDA", value: "R$ 14.073.792,88", numericValue: 14073792.88, percentage: 9.7, rank: 4 },
+    { name: "TICKET SERVICOS SA", value: "R$ 13.703.588,36", numericValue: 13703588.36, percentage: 9.4, rank: 5 },
+    { name: "MALHAS MENEGOTTI INDUSTRIA TEXTIL LTDA", value: "R$ 11.524.068,34", numericValue: 11524068.34, percentage: 7.9, rank: 6 },
+    { name: "BIOSAUDE", value: "R$ 10.180.027,94", numericValue: 10180027.94, percentage: 7.0, rank: 7 },
+    { name: "BAHIANA DISTRIBUIDORA DE GAS LTDA", value: "R$ 9.972.635,56", numericValue: 9972635.56, percentage: 6.9, rank: 8 },
+    { name: "LYCEUM CONSULTORIA EDUCACIONAL", value: "R$ 9.033.402,58", numericValue: 9033402.58, percentage: 6.2, rank: 9 },
+    { name: "F DINART IND. E COM. DE CONFECCOES LTDA", value: "R$ 8.266.838,94", numericValue: 8266838.94, percentage: 5.7, rank: 10 },
+    { name: "HOSPITAL UNIMED SUL", value: "R$ 7.668.899,58", numericValue: 7668899.58, percentage: 5.3, rank: 11 }
+  ];
+
+  const handleMaximizeTopProdutos = () => {
+    console.log("Maximizar card TOP 100 Produtos / Serviços");
+  };
+
+  const handleMaximizeTopClientesFornecedores = () => {
+    console.log("Maximizar card TOP 100 Clientes / Fornecedores");
+  };
+
   return (
     <div className="bg-[#f7f7f8] flex flex-col flex-1 h-full min-h-0">
       {/* Header de Filtros - Fixo */}
@@ -216,6 +257,22 @@ export default function DashboardFiscal() {
             title="Evolução do Total de Entradas" 
             data={evolucaoData}
             onMaximize={handleMaximizeEvolucao}
+          />
+        </div>
+
+        {/* Novos Cards com Barras de Progresso - 2 por linha */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+          <ProgressBarCard 
+            title="TOP 100 Produtos / Serviços" 
+            items={topProdutosServicosData}
+            colorScheme="green"
+            onMaximize={handleMaximizeTopProdutos}
+          />
+          <ProgressBarCard 
+            title="TOP 100 Clientes / Fornecedores" 
+            items={topClientesFornecedoresData}
+            colorScheme="blue"
+            onMaximize={handleMaximizeTopClientesFornecedores}
           />
         </div>
         </div>

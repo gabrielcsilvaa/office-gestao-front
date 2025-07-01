@@ -72,7 +72,7 @@ const EvolucaoChart: React.FC<EvolucaoChartProps> = ({ data, kpiName }) => {
           top: 40,
           right: 65,
           left: 65, 
-          bottom: 50, 
+          bottom: 20, 
         }}
       >
         <defs>
