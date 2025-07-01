@@ -1,8 +1,10 @@
 "use client";
 import { Cairo } from "next/font/google";
 import { useState } from "react";
+import Image from "next/image";
 import { Dropdown } from "./components/Dropdown";
 import { useDropdown } from "./hooks/useDropdown";
+import Calendar from "@/components/calendar";
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
@@ -15,6 +17,24 @@ export default function DashboardFiscal() {
   const [clienteSelecionado, setClienteSelecionado] = useState("");
   const [acumuladorSelecionado, setAcumuladorSelecionado] = useState("");
   const [produtoSelecionado, setProdutoSelecionado] = useState("");
+  const [startDate, setStartDate] = useState<string | null>(null);
+  const [endDate, setEndDate] = useState<string | null>(null);
+
+  const handleStartDateChange = (date: string | null) => {
+    setStartDate(date);
+  };
+
+  const handleEndDateChange = (date: string | null) => {
+    setEndDate(date);
+  };
+
+  const handleResetAllFilters = () => {
+    setClienteSelecionado("");
+    setAcumuladorSelecionado("");
+    setProdutoSelecionado("");
+    setStartDate(null);
+    setEndDate(null);
+  };
 
   const clienteOptions = [
     "CLIENTES DIVERSOS (Varejo)",
@@ -58,11 +78,24 @@ export default function DashboardFiscal() {
   return (
     <div className="bg-[#f7f7f8] flex flex-col flex-1 h-full min-h-0">
       {/* Header de Filtros - Fixo */}
-      <div className="relative z-10 flex flex-row items-center justify-start gap-8 p-4 border-b border-black/10 bg-gray-100">
-        <h1 className={`text-[32px] leading-8 font-700 text-black ${cairo.className}`}>Dashboard Fiscal</h1>
+      <div className="relative z-10 flex flex-col gap-4 p-4 border-b border-black/10 bg-gray-100">
+        <div className="flex items-center gap-8">
+          <h1 className={`text-[32px] leading-8 font-700 text-black ${cairo.className}`}>Dashboard Fiscal - Faturamento e Entradas</h1>
+          <Image
+            src="/assets/icons/icon-reset-kpi.svg"
+            alt="Reset KPI Icon"
+            width={20}
+            height={20}
+            className="cursor-pointer hover:opacity-75 transition-opacity"
+            onClick={handleResetAllFilters}
+            title="Resetar todos os filtros"
+          />
+          <div className="w-[1px] h-[30px] bg-[#373A40]" />
+        </div>
         
-        {/* Filtros principais */}
-        <div className="flex items-center gap-4">
+        {/* Filtros principais e Calendário */}
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
             <Dropdown
                 options={clienteOptions}
                 label="Cliente / Fornecedor"
@@ -90,6 +123,13 @@ export default function DashboardFiscal() {
                 isOpen={openDropdown === 'produto'}
                 onToggle={() => handleToggleDropdown('produto')}
             />
+          </div>
+          <Calendar
+            initialStartDate={startDate}
+            initialEndDate={endDate}
+            onStartDateChange={handleStartDateChange}
+            onEndDateChange={handleEndDateChange}
+          />
         </div>
       </div>
 
