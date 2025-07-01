@@ -6,6 +6,7 @@ import { Dropdown } from "./components/Dropdown";
 import { useDropdown } from "./hooks/useDropdown";
 import Calendar from "@/components/calendar";
 import KpiCardsGrid from "./components/KpiCardsGrid";
+import EvolucaoCard from "./components/EvolucaoCard";
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
@@ -41,6 +42,11 @@ export default function DashboardFiscal() {
     setStartDate(null);
     setEndDate(null);
     setKpiSelecionado("Total de Entradas");
+  };
+
+  const handleMaximizeEvolucao = () => {
+    // Função para maximizar o card de evolução (a ser implementada)
+    console.log("Maximizar card de evolução");
   };
 
   const clienteOptions = [
@@ -187,6 +193,14 @@ export default function DashboardFiscal() {
       <div className="flex-1 overflow-y-auto p-4">
         {/* Cards KPI */}
         <KpiCardsGrid cardsData={cardsData} />
+        
+        {/* Card de Evolução - Largura Total */}
+        <div className="mt-6">
+          <EvolucaoCard 
+            title="Evolução do Total de Entradas" 
+            onMaximize={handleMaximizeEvolucao}
+          />
+        </div>
         </div>
       </div>
   );
