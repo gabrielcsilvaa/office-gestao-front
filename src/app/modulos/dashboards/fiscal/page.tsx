@@ -19,6 +19,7 @@ export default function DashboardFiscal() {
   const [produtoSelecionado, setProdutoSelecionado] = useState("");
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
+  const [kpiSelecionado, setKpiSelecionado] = useState("Total de Entradas");
 
   const handleStartDateChange = (date: string | null) => {
     setStartDate(date);
@@ -28,12 +29,17 @@ export default function DashboardFiscal() {
     setEndDate(date);
   };
 
+  const handleKpiChange = (kpi: string) => {
+    setKpiSelecionado(kpi);
+  };
+
   const handleResetAllFilters = () => {
     setClienteSelecionado("");
     setAcumuladorSelecionado("");
     setProdutoSelecionado("");
     setStartDate(null);
     setEndDate(null);
+    setKpiSelecionado("Total de Entradas");
   };
 
   const clienteOptions = [
@@ -91,6 +97,40 @@ export default function DashboardFiscal() {
             title="Resetar todos os filtros"
           />
           <div className="w-[1px] h-[30px] bg-[#373A40]" />
+          
+          {/* KPIs - 2 linhas de 4 colunas */}
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-4">
+              {["Total de Entradas", "Aquisições de Serviço", "Compras", "Outras Entradas"].map((kpi) => (
+                <button
+                  key={kpi}
+                  className={`w-[180px] px-4 h-[40px] flex items-center justify-center rounded-md border border-neutral-700 text-sm font-semibold leading-tight hover:bg-[var(--color-neutral-700)] hover:text-white cursor-pointer transition-colors ${cairo.className} ${
+                    kpiSelecionado === kpi
+                      ? "bg-[var(--color-neutral-700)] text-white"
+                      : "bg-white text-gray-500"
+                  }`}
+                  onClick={() => handleKpiChange(kpi)}
+                >
+                  {kpi}
+                </button>
+              ))}
+            </div>
+            <div className="flex items-center gap-4">
+              {["Faturamento Total", "Vendas", "Serviços", "Devoluções"].map((kpi) => (
+                <button
+                  key={kpi}
+                  className={`w-[180px] px-4 h-[40px] flex items-center justify-center rounded-md border border-neutral-700 text-sm font-semibold leading-tight hover:bg-[var(--color-neutral-700)] hover:text-white cursor-pointer transition-colors ${cairo.className} ${
+                    kpiSelecionado === kpi
+                      ? "bg-[var(--color-neutral-700)] text-white"
+                      : "bg-white text-gray-500"
+                  }`}
+                  onClick={() => handleKpiChange(kpi)}
+                >
+                  {kpi}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
         
         {/* Filtros principais e Calendário */}
