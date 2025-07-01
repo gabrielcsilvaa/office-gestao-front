@@ -97,6 +97,22 @@ export default function DashboardFiscal() {
     { title: "A Recuperar", value: "R$ 846.090,00", tooltipText: "Valor de créditos tributários a recuperar." }
   ];
 
+  // Dados para o gráfico de evolução
+  const evolucaoData = [
+    { month: "Jan/2024", value: 30288035.12 },
+    { month: "Fev/2024", value: 26307276.15 },
+    { month: "Mar/2024", value: 32832801.44 },
+    { month: "Abr/2024", value: 43884300.49 },
+    { month: "Mai/2024", value: 39243554.24 },
+    { month: "Jun/2024", value: 40105421.16 },
+    { month: "Jul/2024", value: 43384822.79 },
+    { month: "Ago/2024", value: 46108634.08 },
+    { month: "Set/2024", value: 47415413.48 },
+    { month: "Out/2024", value: 46454140.89 },
+    { month: "Nov/2024", value: 45986012.62 },
+    { month: "Dez/2024", value: 53602856.14 }
+  ];
+
   return (
     <div className="bg-[#f7f7f8] flex flex-col flex-1 h-full min-h-0">
       {/* Header de Filtros - Fixo */}
@@ -198,6 +214,7 @@ export default function DashboardFiscal() {
         <div className="mt-6">
           <EvolucaoCard 
             title="Evolução do Total de Entradas" 
+            data={evolucaoData}
             onMaximize={handleMaximizeEvolucao}
           />
         </div>

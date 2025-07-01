@@ -1,18 +1,25 @@
 import React from 'react';
 import Image from "next/image";
 import { Cairo } from "next/font/google";
+import EvolucaoChart from "./EvolucaoChart";
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
   subsets: ["latin"],
 });
 
+interface ChartDataPoint {
+  month: string;
+  value: number;
+}
+
 interface EvolucaoCardProps {
   title: string;
+  data: ChartDataPoint[];
   onMaximize?: () => void;
 }
 
-const EvolucaoCard: React.FC<EvolucaoCardProps> = ({ title, onMaximize }) => {
+const EvolucaoCard: React.FC<EvolucaoCardProps> = ({ title, data, onMaximize }) => {
   return (
     <div className="w-full h-[400px] bg-white rounded-lg shadow-md relative overflow-hidden">
       {/* Barra vertical ao lado do título */}
@@ -39,10 +46,10 @@ const EvolucaoCard: React.FC<EvolucaoCardProps> = ({ title, onMaximize }) => {
         </div>
       </div>
 
-      {/* Conteúdo do card */}
+      {/* Conteúdo do card - Gráfico */}
       <div className="flex-1 px-5 pb-5 min-h-0 overflow-y-auto">
-        <div className="h-full flex items-center justify-center text-gray-500">
-          <p className={`text-sm ${cairo.className}`}>Conteúdo em desenvolvimento...</p>
+        <div className="h-[300px] w-full">
+          <EvolucaoChart data={data} kpiName={title} />
         </div>
       </div>
     </div>
