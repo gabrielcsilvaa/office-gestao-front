@@ -8,6 +8,7 @@ import Calendar from "@/components/calendar";
 import KpiCardsGrid from "./components/KpiCardsGrid";
 import EvolucaoCard from "./components/EvolucaoCard";
 import ProgressBarCard from "./components/ProgressBarCard";
+import EmptyCard from "./components/EmptyCard";
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
@@ -154,6 +155,10 @@ export default function DashboardFiscal() {
     console.log("Maximizar card TOP 100 Clientes / Fornecedores");
   };
 
+  const handleMaximizeValorPorLocal = () => {
+    console.log("Maximizar card Valor por Local");
+  };
+
   return (
     <div className="bg-[#f7f7f8] flex flex-col flex-1 h-full min-h-0">
       {/* Header de Filtros - Fixo */}
@@ -273,6 +278,14 @@ export default function DashboardFiscal() {
             items={topClientesFornecedoresData}
             colorScheme="blue"
             onMaximize={handleMaximizeTopClientesFornecedores}
+          />
+        </div>
+
+        {/* Terceiro Card - Valor por Local (largura total) */}
+        <div className="mt-6">
+          <EmptyCard 
+            title="Valor por Local" 
+            onMaximize={handleMaximizeValorPorLocal}
           />
         </div>
         </div>
