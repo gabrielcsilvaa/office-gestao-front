@@ -18,16 +18,6 @@ const MapComponent = dynamic(() => import('./MapComponent'), {
   )
 });
 
-const SimpleMap = dynamic(() => import('./SimpleMap'), { 
-  ssr: false,
-  loading: () => (
-    <div className="w-full h-full flex items-center justify-center bg-gray-50 rounded-lg">
-      <div className="text-center">
-        <div className="text-gray-500 mb-2">📊 Carregando visualização...</div>
-      </div>
-    </div>
-  )
-});
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
