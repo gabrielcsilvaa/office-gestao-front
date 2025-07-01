@@ -15,6 +15,7 @@
     "icons": "^1.0.0",
     "jspdf": "^3.0.1",
     "jspdf-autotable": "^5.0.2",
+    "leaflet": "^1.9.4",
     "lucide-react": "^0.511.0",
     "next": "^15.3.2",
     "next-auth": "^4.24.11",
@@ -25,6 +26,7 @@
     "react-datepicker": "^8.3.0",
     "react-dom": "^19.1.0",
     "react-icons": "^5.5.0",
+    "react-leaflet": "^5.0.0-rc.2",
     "reactflow": "^11.11.4",
     "recharts": "^2.15.3",
     "xlsx": "^0.18.5"
@@ -34,6 +36,7 @@
     "@tailwindcss/postcss": "^4",
     "@types/dagre": "^0.7.52",
     "@types/file-saver": "^2.0.7",
+    "@types/leaflet": "^1.9.19",
     "@types/node": "^20",
     "@types/pdfmake": "^0.2.11",
     "@types/react": "^19",
