@@ -520,12 +520,16 @@ export default function Demografico() {
           departamentos={departamentos}
           cargos={cargos}
           categorias={categorias}
-        />
-
-        <Calendar
+          startDate={startDate}
+          endDate={endDate}
           onStartDateChange={handleStartDateChange}
           onEndDateChange={handleEndDateChange}
         />
+
+        {/* <Calendar
+          onStartDateChange={handleStartDateChange}
+          onEndDateChange={handleEndDateChange}
+        /> */}
       </div>
 
       <div className="h-px bg-gray-300 my-6"></div>

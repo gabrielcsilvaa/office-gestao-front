@@ -66,7 +66,7 @@ export default function GraficoEscolaridade({
             type="category"
             dataKey="name"
             tickLine={false}
-            width={50} // aumenta espaço lateral pro texto
+            width={120} // aumenta espaço lateral pro texto
             tick={{ fontSize: 10 }} // diminui o tamanho da fonte
           />
           <Tooltip cursor={{ fill: "#f5f5f5" }} />

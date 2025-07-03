@@ -1,8 +1,8 @@
 "use client";
 
+import Calendar from "@/components/calendar";
 import { RotateCcw } from "lucide-react";
 import React from "react";
-
 
 interface MenuProps {
   filtros: {
@@ -26,6 +26,10 @@ interface MenuProps {
   departamentos: string[];
   cargos: string[];
   categorias: string[];
+  startDate: Date | null;
+  endDate: Date | null;
+  onStartDateChange: (dateString: string | null) => void;
+  onEndDateChange: (dateString: string | null) => void;
 }
 
 const Menu: React.FC<MenuProps> = ({
@@ -38,17 +42,23 @@ const Menu: React.FC<MenuProps> = ({
   departamentos,
   cargos,
   categorias,
+  startDate,
+  endDate,
+  onStartDateChange,
+  onEndDateChange,
 }) => {
   console.log("Menu renderizou");
 
   return (
     <div className="bg-gray-100 py-2 mb-6">
       <div className="px-6">
-        <div className="flex flex-col md:flex-row md:items-center flex-wrap gap-4 mb-6">
-          <h1 className="text-2xl font-bold whitespace-nowrap">
-            Dashboard Demográfico
-          </h1>
-          <div className="flex items-center flex-wrap gap-x-4 gap-y-2">
+        {/* LINHA SUPERIOR: Título, botões e calendário no canto direito */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between flex-wrap gap-4 mb-6">
+          {/* Esquerda: Título, botão reset e filtros */}
+          <div className="flex flex-wrap items-center gap-4">
+            <h1 className="text-2xl font-bold whitespace-nowrap">
+              Dashboard Demográfico
+            </h1>
             <button
               onClick={resetarFiltros}
               className="flex items-center gap-2 px-3 py-2 rounded bg-gray-200 hover:bg-gray-300 transition"
@@ -75,8 +85,17 @@ const Menu: React.FC<MenuProps> = ({
               )}
             </div>
           </div>
+
+          {/* Direita: Calendar */}
+          <div className="ml-auto">
+            <Calendar
+              onStartDateChange={onStartDateChange}
+              onEndDateChange={onEndDateChange}
+            />
+          </div>
         </div>
 
+        {/* LINHA DOS SELECTS */}
         <div className="flex flex-col md:flex-row md:items-center flex-wrap gap-4">
           {/* EMPRESA */}
           <select
