@@ -49,7 +49,7 @@ export default function GraficoFaixaEtaria({ dados }: GraficoFaixaEtariaProps) {
       >
         Colaboradores por Faixa Etária
       </h3>
-      <ResponsiveContainer width="100%" height="90%">
+      <ResponsiveContainer width="100%" height={240}>
         <BarChart
           data={dados}
           layout="vertical"

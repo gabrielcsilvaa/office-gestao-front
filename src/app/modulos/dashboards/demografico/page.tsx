@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react"; // Adicionado useCallback
 import GraficoLinha from "./components/grafico_linha";
 import GraficoGenero from "./components/grafico_genero";
 import GraficoFaixaEtaria from "./components/grafico_faixa_etaria";
@@ -12,9 +12,10 @@ import React from "react";
 import Calendar from "@/components/calendar";
 import { gerarMesesEntreDatas } from "@/utils/formatadores";
 
+// Ajuste na função filtrarFuncionarios para maior flexibilidade
 const filtrarFuncionarios = (
   funcionarios: any[],
-  filtro: string,
+  filtroBotao: string, // Renomeado para evitar conflito com 'filtro'
   startDate: Date,
   endDate: Date,
   filtrosSelecionados: {
@@ -24,17 +25,14 @@ const filtrarFuncionarios = (
     categoria: string;
   }
 ) => {
-  return funcionarios.filter((func: any) => {
-    const admissao = new Date(func.admissao);
-    const demissao = func.demissao ? new Date(func.demissao) : null;
-
-    // Verifica se tem empresa
+  let funcionariosFiltrados = funcionarios.filter((func: any) => {
+    // Verifica se tem empresa (mantido para robustez)
     if (!("empresa" in func)) {
       console.warn("Funcionário sem empresa:", func);
       return false;
     }
 
-    // Filtros de empresa, departamento, cargo e categoria
+    // Filtros de empresa, departamento, cargo e categoria (sempre aplicados)
     if (
       filtrosSelecionados.empresa &&
       func.empresa !== filtrosSelecionados.empresa
@@ -53,22 +51,43 @@ const filtrarFuncionarios = (
     )
       return false;
 
-    switch (filtro) {
-      case "Ativos":
-        return !demissao;
-      case "Contratações":
-        return admissao >= startDate && admissao <= endDate;
-      case "Demissões":
-        return demissao && demissao >= startDate && demissao <= endDate;
-      case "Más Contratações":
-        const hoje = new Date();
-        const tempoEmpresa = (demissao ?? hoje).getTime() - admissao.getTime();
-        const mesesEmpresa = tempoEmpresa / (1000 * 60 * 60 * 24 * 30);
-        return mesesEmpresa < 3;
-      default:
-        return true;
-    }
+    return true; // Retorna true para continuar filtrando pelos botões
   });
+
+  // Aplica o filtro do botão (Ativos, Contratações, Demissões, Más Contratações)
+  // APENAS aos dados que irão para os gráficos.
+  // Os cards serão calculados a partir dos dados BRUTOS do período.
+  switch (filtroBotao) {
+    case "Ativos":
+      return funcionariosFiltrados.filter((func) => {
+        const admissao = new Date(func.admissao);
+        const demissaoData = func.demissao ? new Date(func.demissao) : null;
+        // Ativo no FINAL do período endDate
+        return admissao <= endDate && (!demissaoData || demissaoData > endDate);
+      });
+    case "Contratações":
+      return funcionariosFiltrados.filter((func) => {
+        const admissao = new Date(func.admissao);
+        return admissao >= startDate && admissao <= endDate;
+      });
+    case "Demissões":
+      return funcionariosFiltrados.filter((func) => {
+        const demissaoData = func.demissao ? new Date(func.demissao) : null;
+        return demissaoData && demissaoData >= startDate && demissaoData <= endDate;
+      });
+    case "Más Contratações":
+      return funcionariosFiltrados.filter((func) => {
+        const admissao = new Date(func.admissao);
+        const demissaoData = func.demissao ? new Date(func.demissao) : null;
+        const hoje = new Date();
+        const dataReferenciaDemissao = demissaoData || hoje;
+        const tempoEmpresaMs = dataReferenciaDemissao.getTime() - admissao.getTime();
+        const mesesEmpresa = tempoEmpresaMs / (1000 * 60 * 60 * 24 * (365.25 / 12)); // Meses mais precisos
+        return mesesEmpresa < 3;
+      });
+    default:
+      return funcionariosFiltrados; // Retorna todos os funcionários filtrados por selects
+  }
 };
 
 export default function Demografico() {
@@ -90,7 +109,7 @@ export default function Demografico() {
     });
   };
 
-  const [todosFuncionarios, setTodosFuncionarios] = useState<any[]>([]);
+  const [todosFuncionariosAPI, setTodosFuncionariosAPI] = useState<any[]>([]); // Armazena todos os dados da API para o período
 
   const [dadosDemograficos, setDadosDemograficos] = useState([]);
   const [dadosFaixaEtaria, setDadosFaixaEtaria] = useState([]);
@@ -122,11 +141,11 @@ export default function Demografico() {
   const [colaboradores, setColaboradores] = useState([]);
 
   //Estados de data
-  const [startDate, setStartDate] = useState<string | null>(null);
-  const [endDate, setEndDate] = useState<string | null>(null);
+  const [startDate, setStartDate] = useState<Date | null>(null); // Alterado para Date
+  const [endDate, setEndDate] = useState<Date | null>(null);     // Alterado para Date
 
-  const handleStartDateChange = (date: string | null) => {
-    setStartDate(date);
+  const handleStartDateChange = (dateString: string | null) => {
+    setStartDate(dateString ? new Date(dateString) : null);
   };
 
   const [empresas, setEmpresas] = useState<string[]>([]);
@@ -134,14 +153,21 @@ export default function Demografico() {
   const [cargos, setCargos] = useState<string[]>([]);
   const [categorias, setCategorias] = useState<string[]>([]);
 
-  const handleEndDateChange = (date: string | null) => {
-    setEndDate(date);
+  const handleEndDateChange = (dateString: string | null) => {
+    setEndDate(dateString ? new Date(dateString) : null);
   };
+
+  // Garante que as datas sejam objetos Date para comparações
   useEffect(() => {
     if (startDate && endDate) {
       console.log(startDate);
-      console.log(endDate); // Ajusta a data final se for menor que a inicial
-      const datas = gerarMesesEntreDatas(startDate, endDate);
+      console.log(endDate);
+      // gerarMesesEntreDatas espera strings, então converta de volta se precisar
+      // Ou ajuste gerarMesesEntreDatas para receber Date
+      const datas = gerarMesesEntreDatas(
+        startDate.toISOString().split('T')[0],
+        endDate.toISOString().split('T')[0]
+      );
       console.log("Meses entre datas:", datas);
     }
   }, [startDate, endDate]);
@@ -152,8 +178,9 @@ export default function Demografico() {
         return;
       }
       try {
-        const apiStartDate = startDate;
-        const apiEndDate = endDate;
+        // Formata as datas para envio à API se necessário (geralmente YYYY-MM-DD)
+        const apiStartDate = startDate.toISOString().split("T")[0];
+        const apiEndDate = endDate.toISOString().split("T")[0];
 
         console.log("🔍 Iniciando fetch com:");
         console.log("Start:", startDate);
@@ -175,60 +202,117 @@ export default function Demografico() {
 
         const resultado = await response.json();
 
-        const todosFuncionarios = resultado.dados.flatMap((empresa: any) =>
-          empresa.funcionarios.map((func: any) => ({
-            ...func,
-            empresa: empresa.nome_empresa, // adiciona nome_empresa ao funcionário
-          }))
+        const todosFuncionariosRespostaAPI = resultado.dados.flatMap(
+          (empresa: any) =>
+            empresa.funcionarios.map((func: any) => ({
+              ...func,
+              empresa: empresa.nome_empresa, // adiciona nome_empresa ao funcionário
+            }))
         );
+        // Armazena todos os funcionários do período, sem filtros de botão
+        setTodosFuncionariosAPI(todosFuncionariosRespostaAPI);
 
-        // Coleta única dos campos para alimentar os <select>
+        // --- CÁLCULO DOS CARDS (SEMPRE GERAL DO PERÍODO SELECIONADO) ---
+        let ativosCard = 0,
+          contratacoesCard = 0,
+          demissoesCard = 0,
+          afastamentosCard = 0;
+
+        todosFuncionariosRespostaAPI.forEach((func: any) => {
+          const admissao = new Date(func.admissao);
+          const demissaoData = func.demissao ? new Date(func.demissao) : null;
+
+          // Ativos: Considera quem está ativo no FINAL do período endDate
+          if (admissao <= endDate && (!demissaoData || demissaoData > endDate)) {
+            ativosCard++;
+          }
+          // Contratações: Ocorreram DENTRO do período startDate e endDate
+          if (admissao >= startDate && admissao <= endDate) {
+            contratacoesCard++;
+          }
+          // Demissões: Ocorreram DENTRO do período startDate e endDate
+          if (demissaoData && demissaoData >= startDate && demissaoData <= endDate) {
+            demissoesCard++;
+          }
+
+          if (Array.isArray(func.afastamentos)) {
+            func.afastamentos.forEach((afast: any) => {
+              const ini = new Date(afast.data_inicio);
+              const fim = afast.data_fim ? new Date(afast.data_fim) : null;
+              // Afastamento ativo em ALGUM momento dentro do período selecionado
+              const dentroPeriodo =
+                (ini <= endDate && (!fim || fim >= startDate)); // Afastamento se sobrepõe ao período
+              if (dentroPeriodo) afastamentosCard++;
+            });
+          }
+        });
+
+        const turnoverCard =
+          (demissoesCard / (ativosCard + demissoesCard)) * 100 || 0;
+        setCardsData({
+          ativos: ativosCard,
+          contratacoes: contratacoesCard,
+          demissoes: demissoesCard,
+          afastamentos: afastamentosCard,
+          turnover: `${turnoverCard.toFixed(1)}%`,
+        });
+
+        // --- FILTROS PARA OS SELECTS (APENAS COM BASE EM TODOS OS DADOS DA API) ---
+        // Isso garante que as opções nos selects não mudem conforme o filtro de botão
         const empresasUnicas = Array.from(
           new Set(
-            todosFuncionarios.map((f: any) => f.empresa || "Não informado")
+            todosFuncionariosRespostaAPI.map(
+              (f: any) => f.empresa || "Não informado"
+            )
           )
         );
         const departamentosUnicos = Array.from(
           new Set(
-            todosFuncionarios.map((f: any) => f.departamento || "Não informado")
+            todosFuncionariosRespostaAPI.map(
+              (f: any) => f.departamento || "Não informado"
+            )
           )
         );
         const cargosUnicos = Array.from(
-          new Set(todosFuncionarios.map((f: any) => f.cargo || "Não informado"))
+          new Set(
+            todosFuncionariosRespostaAPI.map((f: any) => f.cargo || "Não informado")
+          )
         );
         const categoriasUnicas = Array.from(
           new Set(
-            todosFuncionarios.map((f: any) => f.categoria || "Não informado")
+            todosFuncionariosRespostaAPI.map(
+              (f: any) => f.categoria || "Não informado"
+            )
           )
         );
 
-        // Seta nos estados
         setEmpresas(empresasUnicas);
         setDepartamentos(departamentosUnicos);
         setCargos(cargosUnicos);
         setCategorias(categoriasUnicas);
 
-        const funcionariosFiltrados = filtrarFuncionarios(
-          todosFuncionarios,
+        // --- CÁLCULO DOS DADOS PARA OS GRÁFICOS (APLICA TODOS OS FILTROS) ---
+        const funcionariosParaGraficos = filtrarFuncionarios(
+          todosFuncionariosRespostaAPI, // Usa todos os dados da API
           botaoSelecionado,
           startDate,
           endDate,
           filtros
         );
 
-        const colaboradoresExtraidos = funcionariosFiltrados.map(
+        // Colaboradores para a tabela
+        const colaboradoresExtraidos = funcionariosParaGraficos.map(
           (func: any) => ({
             nome: func.nome,
             departamento: func.departamento || "Não informado",
-            faturamento: "-",
+            faturamento: "-", // Verifique a fonte deste dado
           })
         );
-
         setColaboradores(colaboradoresExtraidos);
 
-        // Categoria
+        // Categoria (para gráficos)
         const categoriaContagem: { [key: string]: number } = {};
-        funcionariosFiltrados.forEach((funcionario: any) => {
+        funcionariosParaGraficos.forEach((funcionario: any) => {
           const categoria = funcionario.categoria || "Não Informado";
           categoriaContagem[categoria] =
             (categoriaContagem[categoria] || 0) + 1;
@@ -242,76 +326,20 @@ export default function Demografico() {
         console.log("Dados de categoria:", dadosCategoria);
         setDadosCategoria(dadosCategoria);
 
-        // Cards
-        // filtros  os funcionários só com base nos filtros do menu
-        const funcionariosParaCards = todosFuncionarios.filter((func: any) => {
-          if (filtros.empresa && func.empresa !== filtros.empresa) return false;
-          if (
-            filtros.departamento &&
-            func.departamento !== filtros.departamento
-          )
-            return false;
-          if (filtros.cargo && func.cargo !== filtros.cargo) return false;
-          if (filtros.categoria && func.categoria !== filtros.categoria)
-            return false;
-          return true;
-        });
-
-        // Calcula os valores dos cards com base nesses filtros
-        // Cards (baseado nos filtros aplicados)
-        let ativos = 0,
-          contratacoes = 0,
-          demissoes = 0,
-          afastamentos = 0;
-
-        funcionariosFiltrados.forEach((func: any) => {
-          const admissao = new Date(func.admissao);
-          const demissaoData = func.demissao ? new Date(func.demissao) : null;
-
-          if (!demissaoData) ativos++;
-          if (admissao >= startDate && admissao <= endDate) contratacoes++;
-          if (
-            demissaoData &&
-            demissaoData >= startDate &&
-            demissaoData <= endDate
-          )
-            demissoes++;
-
-          if (Array.isArray(func.afastamentos)) {
-            func.afastamentos.forEach((afast: any) => {
-              const ini = new Date(afast.data_inicio);
-              const fim = afast.data_fim ? new Date(afast.data_fim) : null;
-              const dentroPeriodo =
-                (ini >= startDate && ini <= endDate) ||
-                (fim && fim >= startDate && fim <= endDate);
-              if (dentroPeriodo) afastamentos++;
-            });
-          }
-        });
-
-        const turnover = (demissoes / (ativos + demissoes)) * 100;
-        setCardsData({
-          ativos,
-          contratacoes,
-          demissoes,
-          afastamentos,
-          turnover: `${turnover.toFixed(1)}%`,
-        });
-
-        // Gênero
-        const total = funcionariosFiltrados.length;
-        const totalMasculino = funcionariosFiltrados.filter(
+        // Gênero (para gráficos)
+        const totalGraficos = funcionariosParaGraficos.length;
+        const totalMasculino = funcionariosParaGraficos.filter(
           (f: any) => f.sexo === "M"
         ).length;
-        const totalFeminino = funcionariosFiltrados.filter(
+        const totalFeminino = funcionariosParaGraficos.filter(
           (f: any) => f.sexo === "F"
         ).length;
-        setPercentualMasculino((totalMasculino / total) * 100 || 0);
-        setPercentualFeminino((totalFeminino / total) * 100 || 0);
+        setPercentualMasculino((totalMasculino / totalGraficos) * 100 || 0);
+        setPercentualFeminino((totalFeminino / totalGraficos) * 100 || 0);
 
-        // Escolaridade
+        // Escolaridade (para gráficos)
         const escolaridadeMap = new Map<string, number>();
-        funcionariosFiltrados.forEach((f: any) => {
+        funcionariosParaGraficos.forEach((f: any) => {
           const esc = f.escolaridade || "Não informado";
           escolaridadeMap.set(esc, (escolaridadeMap.get(esc) || 0) + 1);
         });
@@ -321,9 +349,9 @@ export default function Demografico() {
         console.log("Dados de escolaridade:", dadosEscolaridade);
         setDadosDemograficos(dadosEscolaridade);
 
-        // Cargo
+        // Cargo (para gráficos)
         const cargoMap = new Map<string, number>();
-        funcionariosFiltrados.forEach((f: any) => {
+        funcionariosParaGraficos.forEach((f: any) => {
           const cargo = f.cargo || "Não informado";
           cargoMap.set(cargo, (cargoMap.get(cargo) || 0) + 1);
         });
@@ -333,7 +361,7 @@ export default function Demografico() {
         console.log("Dados de cargo:", dadosCargo);
         setDadosCargo(dadosCargo);
 
-        // Faixa etária
+        // Faixa etária (para gráficos)
         const getFaixaEtaria = (idade: number) => {
           if (idade <= 25) return "00 a 25";
           if (idade <= 35) return "26 a 35";
@@ -353,7 +381,7 @@ export default function Demografico() {
         };
 
         const faixaEtariaMap = new Map<string, number>();
-        funcionariosFiltrados.forEach((f: any) => {
+        funcionariosParaGraficos.forEach((f: any) => {
           if (f.data_nascimento) {
             const idade = calcularIdade(f.data_nascimento);
             const faixa = getFaixaEtaria(idade);
@@ -366,7 +394,7 @@ export default function Demografico() {
         console.log("Dados de faixa etária:", dadosFaixa);
         setDadosFaixaEtaria(dadosFaixa);
 
-        // Gráfico de linha
+        // Gráfico de linha (dados para Ativos, Contratações, Demissões por mês)
         const monthlyDataMap = new Map<
           string,
           { Ativos: number; Contratações: number; Demissões: number }
@@ -381,6 +409,7 @@ export default function Demografico() {
         const monthsInOrder: string[] = [];
         const monthDates: Date[] = [];
 
+        // Inicializa o mapa com todos os meses do período para garantir que apareçam no gráfico
         for (
           let d = new Date(startDate);
           d <= endDate;
@@ -389,7 +418,7 @@ export default function Demografico() {
           const newDate = new Date(d);
           const monthKey = formatMonthKey(newDate);
           monthsInOrder.push(monthKey);
-          monthDates.push(new Date(newDate));
+          monthDates.push(new Date(newDate)); // Armazena a data completa para referência
           monthlyDataMap.set(monthKey, {
             Ativos: 0,
             Contratações: 0,
@@ -397,41 +426,36 @@ export default function Demografico() {
           });
         }
 
-        for (const func of funcionariosFiltrados) {
+        // Popula o monthlyDataMap com os dados dos funcionários FILTRADOS para GRÁFICOS
+        for (const func of funcionariosParaGraficos) {
           const admissaoDate = new Date(func.admissao);
           const demissaoDate = func.demissao ? new Date(func.demissao) : null;
 
           for (let i = 0; i < monthDates.length; i++) {
-            const monthEnd = new Date(
-              monthDates[i].getFullYear(),
-              monthDates[i].getMonth() + 1,
-              0,
-              23,
-              59,
-              59,
-              999
-            );
+            const monthStart = new Date(monthDates[i].getFullYear(), monthDates[i].getMonth(), 1);
+            const monthEnd = new Date(monthDates[i].getFullYear(), monthDates[i].getMonth() + 1, 0, 23, 59, 59, 999);
             const monthKey = monthsInOrder[i];
 
+            // Contratações no mês (se a admissão estiver no mês atual do loop)
             if (
-              admissaoDate.getFullYear() === monthDates[i].getFullYear() &&
-              admissaoDate.getMonth() === monthDates[i].getMonth()
+              admissaoDate >= monthStart && admissaoDate <= monthEnd
             ) {
               monthlyDataMap.get(monthKey)!.Contratações++;
             }
 
+            // Demissões no mês (se a demissão estiver no mês atual do loop)
             if (
               demissaoDate &&
-              demissaoDate.getFullYear() === monthDates[i].getFullYear() &&
-              demissaoDate.getMonth() === monthDates[i].getMonth()
+              demissaoDate >= monthStart && demissaoDate <= monthEnd
             ) {
               monthlyDataMap.get(monthKey)!.Demissões++;
             }
 
+            // Ativos no final do mês (para o gráfico de linha)
+            // Um funcionário está ativo em um mês se ele foi admitido ATÉ o final do mês
+            // E (não foi demitido OU foi demitido DEPOIS do final do mês)
             const ativoNesseMes =
-              admissaoDate <= monthEnd &&
-              (!demissaoDate || demissaoDate > monthEnd);
-
+              admissaoDate <= monthEnd && (!demissaoDate || demissaoDate > monthEnd);
             if (ativoNesseMes) {
               monthlyDataMap.get(monthKey)!.Ativos++;
             }
@@ -444,45 +468,44 @@ export default function Demografico() {
           Contratações: monthlyDataMap.get(monthKey)!.Contratações,
           Demissões: monthlyDataMap.get(monthKey)!.Demissões,
         }));
-        console.log(
-          "✅ Dados gerados para o gráfico de linha:",
-          dadosParaGraficoLinha
-        );
-        console.log(" Meses em ordem:", monthsInOrder);
-        console.log(" Funcionários filtrados:", funcionariosFiltrados);
-
+        console.log(" Dados gerados para o gráfico de linha:", dadosParaGraficoLinha);
         setDadosEmpresas(dadosParaGraficoLinha);
 
-        setTodosFuncionarios(todosFuncionarios);
       } catch (error) {
         console.error("Erro ao buscar dados:", error);
       }
     };
 
     fetchDados();
-  }, [botaoSelecionado, startDate, endDate, filtros]);
+  }, [botaoSelecionado, startDate, endDate, filtros, todosFuncionariosAPI]); // Adicionei todosFuncionariosAPI aqui
 
+  // Este useEffect para atualizar os selects com base nos dados da API,
+  // mas sem que os filtros do usuário removam as opções
   useEffect(() => {
-    if (!todosFuncionarios.length) return;
+    if (!todosFuncionariosAPI.length) return;
 
-    const filtrados = todosFuncionarios.filter(
-      (func) => !filtros.empresa || func.empresa === filtros.empresa
-    );
+    // Apenas filtra por empresa se um filtro de empresa estiver aplicado
+    const funcionariosParaSelects = filtros.empresa
+      ? todosFuncionariosAPI.filter(
+          (func) => func.empresa === filtros.empresa
+        )
+      : todosFuncionariosAPI;
 
     const departamentosUnicos = Array.from(
-      new Set(filtrados.map((f) => f.departamento || "Não informado"))
+      new Set(funcionariosParaSelects.map((f) => f.departamento || "Não informado"))
     );
     const cargosUnicos = Array.from(
-      new Set(filtrados.map((f) => f.cargo || "Não informado"))
+      new Set(funcionariosParaSelects.map((f) => f.cargo || "Não informado"))
     );
     const categoriasUnicas = Array.from(
-      new Set(filtrados.map((f) => f.categoria || "Não informado"))
+      new Set(funcionariosParaSelects.map((f) => f.categoria || "Não informado"))
     );
 
     setDepartamentos(departamentosUnicos);
     setCargos(cargosUnicos);
     setCategorias(categoriasUnicas);
-  }, [filtros.empresa, todosFuncionarios]);
+  }, [filtros.empresa, todosFuncionariosAPI]);
+
 
   return (
     <div className="bg-gray-100 h-full p-4 overflow-y-auto">
