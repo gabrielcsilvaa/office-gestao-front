@@ -19,7 +19,6 @@ export default function DashboardFiscal() {
   const { openDropdown, handleToggleDropdown } = useDropdown();
 
   const [clienteSelecionado, setClienteSelecionado] = useState("");
-  const [acumuladorSelecionado, setAcumuladorSelecionado] = useState("");
   const [produtoSelecionado, setProdutoSelecionado] = useState("");
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
@@ -39,7 +38,6 @@ export default function DashboardFiscal() {
 
   const handleResetAllFilters = () => {
     setClienteSelecionado("");
-    setAcumuladorSelecionado("");
     setProdutoSelecionado("");
     setStartDate(null);
     setEndDate(null);
@@ -62,19 +60,6 @@ export default function DashboardFiscal() {
     "AMBEV S.A.",
     "THE COCA-COLA COMPANY",
     "LIMPA FÁCIL PRODUTOS DE LIMPEZA"
-  ];
-
-  const acumuladorOptions = [
-    "Venda de Combustível (Subst. Tributária) (101)",
-    "Venda Loja de Conveniência (748)",
-    "Venda de Lubrificantes (105)",
-    "Prestação de Serviço (Ex: Lava-Jato) (301)",
-    "Devolução de Venda por Cliente (191)",
-    "Transferência de Estoque entre Filiais (415)",
-    "Compra de Mercadoria para Revenda (201)",
-    "Compra para Uso e Consumo (225)",
-    "Venda de Ativo Imobilizado (810)",
-    "Bonificação, Doação ou Brinde (950)"
   ];
 
   const produtoOptions = [
@@ -176,13 +161,13 @@ export default function DashboardFiscal() {
           />
           <div className="w-[1px] h-[30px] bg-[#373A40]" />
           
-          {/* KPIs - 2 linhas de 4 colunas */}
-          <div className="flex flex-col gap-2">
+          {/* KPIs - 2 linhas de 3 colunas alinhados à direita */}
+          <div className="flex flex-col gap-2 ml-auto">
             <div className="flex items-center gap-4">
-              {["Total de Entradas", "Aquisições de Serviço", "Compras", "Outras Entradas"].map((kpi) => (
+              {["Total de Entradas", "Faturamento Total", "Vendas"].map((kpi) => (
                 <button
                   key={kpi}
-                  className={`w-[180px] px-4 h-[40px] flex items-center justify-center rounded-md border border-neutral-700 text-sm font-semibold leading-tight hover:bg-[var(--color-neutral-700)] hover:text-white cursor-pointer transition-colors ${cairo.className} ${
+                  className={`w-[220px] px-4 h-[40px] flex items-center justify-center rounded-md border border-neutral-700 text-sm font-semibold leading-tight hover:bg-[var(--color-neutral-700)] hover:text-white cursor-pointer transition-colors ${cairo.className} ${
                     kpiSelecionado === kpi
                       ? "bg-[var(--color-neutral-700)] text-white"
                       : "bg-white text-gray-500"
@@ -194,10 +179,10 @@ export default function DashboardFiscal() {
               ))}
             </div>
             <div className="flex items-center gap-4">
-              {["Faturamento Total", "Vendas", "Serviços", "Devoluções"].map((kpi) => (
+              {["Outras Entradas", "Serviços", "Devoluções"].map((kpi) => (
                 <button
                   key={kpi}
-                  className={`w-[180px] px-4 h-[40px] flex items-center justify-center rounded-md border border-neutral-700 text-sm font-semibold leading-tight hover:bg-[var(--color-neutral-700)] hover:text-white cursor-pointer transition-colors ${cairo.className} ${
+                  className={`w-[220px] px-4 h-[40px] flex items-center justify-center rounded-md border border-neutral-700 text-sm font-semibold leading-tight hover:bg-[var(--color-neutral-700)] hover:text-white cursor-pointer transition-colors ${cairo.className} ${
                     kpiSelecionado === kpi
                       ? "bg-[var(--color-neutral-700)] text-white"
                       : "bg-white text-gray-500"
@@ -222,15 +207,6 @@ export default function DashboardFiscal() {
                 onValueChange={setClienteSelecionado}
                 isOpen={openDropdown === 'cliente'}
                 onToggle={() => handleToggleDropdown('cliente')}
-            />
-            <Dropdown
-                options={acumuladorOptions}
-                label="Acumulador"
-                widthClass="w-72"
-                selectedValue={acumuladorSelecionado}
-                onValueChange={setAcumuladorSelecionado}
-                isOpen={openDropdown === 'acumulador'}
-                onToggle={() => handleToggleDropdown('acumulador')}
             />
             <Dropdown
                 options={produtoOptions}
