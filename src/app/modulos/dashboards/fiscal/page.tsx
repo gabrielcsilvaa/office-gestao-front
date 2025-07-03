@@ -27,6 +27,7 @@ export default function DashboardFiscal() {
   const [kpiSelecionado, setKpiSelecionado] = useState("Total de Entradas");
   const [data, setData] = useState(null);
   const [fornecedorOptions, setFornecedorOptions] = useState<string[]>([]);
+  const [clienteOptions, setClienteOptions] = useState<string[]>([]);
 
   // Tipo para os dados de entrada
   type EntradaData = {
@@ -38,6 +39,32 @@ export default function DashboardFiscal() {
     CEP: string | null;
     data: string;
     valor: string;
+  };
+
+  // Tipo para os dados de serviços
+  type ServicoData = {
+    cliente: number;
+    nome_cliente: string;
+    empresa: number;
+    nome_empresa: string;
+    cnpj: string;
+    UF: string;
+    data: string;
+    valor: string;
+    cancelada: string;
+  };
+
+  // Tipo para os dados de saídas
+  type SaidaData = {
+    cliente: number;
+    nome_cliente: string;
+    empresa: number;
+    nome_empresa: string;
+    cnpj: string;
+    UF: string;
+    data: string;
+    valor: string;
+    cancelada: string;
   };
 
   // Define dinamicamente o rótulo do dropdown principal conforme o KPI selecionado
@@ -120,6 +147,30 @@ export default function DashboardFiscal() {
             setFornecedorOptions([]);
           }
 
+          // Extrair clientes únicos dos dados de serviços e saídas
+          const clientesSet = new Set<string>();
+          
+          // Adicionar clientes dos serviços (apenas os não cancelados)
+          if (result.servicos && Array.isArray(result.servicos)) {
+            result.servicos
+              .filter((servico: ServicoData) => servico.cancelada === "N")
+              .forEach((servico: ServicoData) => {
+                clientesSet.add(servico.nome_cliente);
+              });
+          }
+          
+          // Adicionar clientes das saídas (apenas os não cancelados)
+          if (result.saidas && Array.isArray(result.saidas)) {
+            result.saidas
+              .filter((saida: SaidaData) => saida.cancelada === "N")
+              .forEach((saida: SaidaData) => {
+                clientesSet.add(saida.nome_cliente);
+              });
+          }
+
+          const clientesUnicos = Array.from(clientesSet).sort();
+          setClienteOptions(clientesUnicos);
+
         } catch (error) {
           console.error(
             "Erro ao buscar dados para o dashboard fiscal:",
@@ -172,8 +223,13 @@ export default function DashboardFiscal() {
       return fornecedorOptions;
     }
     
-    // Para clientes (outros KPIs), usar dados estáticos por enquanto
-    // TODO: Implementar dados dinâmicos de clientes quando disponível
+    // Para clientes (Faturamento Total, Vendas), usar dados dinâmicos da API
+    if (["Faturamento Total", "Vendas"].includes(kpiSelecionado)) {
+      return clienteOptions;
+    }
+    
+    // Para Serviços e Devoluções, usar dados estáticos por enquanto
+    // TODO: Implementar lógica específica para serviços e devoluções
     return [
       "CLIENTES DIVERSOS (Varejo)",
       "FUNDO MUNICIPAL DE SAUDE DE FORTALEZA",
