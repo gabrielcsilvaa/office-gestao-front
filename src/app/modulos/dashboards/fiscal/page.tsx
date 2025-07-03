@@ -292,6 +292,162 @@ export default function DashboardFiscal() {
     }
   };
 
+  // Define dinamicamente o card de faturamento/gastos conforme o KPI selecionado
+  const getFaturamentoCardInfo = (kpi: string) => {
+    switch (kpi) {
+      case "Vendas":
+      case "Serviços":
+      case "Faturamento Total":
+        return {
+          title: "Faturamento",
+          tooltipText: "Total de receitas no período analisado."
+        };
+      
+      case "Compras":
+      case "Total de Entradas":
+        return {
+          title: "Total de Gastos",
+          tooltipText: "Total de gastos com fornecedores no período."
+        };
+      
+      case "Devoluções":
+        return {
+          title: "Valor Devolvido",
+          tooltipText: "Total de valores devolvidos aos clientes."
+        };
+      
+      default:
+        return {
+          title: "Faturamento",
+          tooltipText: "Total de receitas no período analisado."
+        };
+    }
+  };
+
+  // Calcula dinamicamente o valor do card faturamento/gastos conforme o KPI selecionado
+  const getFaturamentoValue = (kpi: string, data: any): string => {
+    if (!data) return "R$ 0,00";
+
+    try {
+      let total = 0;
+
+      switch (kpi) {
+        case "Vendas":
+          // Apenas saídas não canceladas
+          if (data.saidas && Array.isArray(data.saidas)) {
+            let saidasValidas = data.saidas.filter((saida: SaidaData) => saida.cancelada === "N");
+            
+            // Filtrar por cliente específico se selecionado
+            if (clienteSelecionado) {
+              saidasValidas = saidasValidas.filter((saida: SaidaData) => saida.nome_cliente === clienteSelecionado);
+            }
+            
+            total = saidasValidas.reduce((acc: number, saida: SaidaData) => acc + parseFloat(saida.valor || "0"), 0);
+          }
+          break;
+
+        case "Serviços":
+          // Apenas serviços não cancelados
+          if (data.servicos && Array.isArray(data.servicos)) {
+            let servicosValidos = data.servicos.filter((servico: ServicoData) => servico.cancelada === "N");
+            
+            // Filtrar por cliente específico se selecionado (remover indicação de tipo)
+            if (clienteSelecionado) {
+              const clienteLimpo = clienteSelecionado.replace(/ \((Cliente|Fornecedor)\)$/, '');
+              servicosValidos = servicosValidos.filter((servico: ServicoData) => servico.nome_cliente === clienteLimpo);
+            }
+            
+            total = servicosValidos.reduce((acc: number, servico: ServicoData) => acc + parseFloat(servico.valor || "0"), 0);
+          }
+          break;
+
+        case "Faturamento Total":
+          // Saídas + Serviços não cancelados
+          if (data.saidas && Array.isArray(data.saidas)) {
+            let saidasValidas = data.saidas.filter((saida: SaidaData) => saida.cancelada === "N");
+            
+            // Filtrar por cliente específico se selecionado
+            if (clienteSelecionado) {
+              saidasValidas = saidasValidas.filter((saida: SaidaData) => saida.nome_cliente === clienteSelecionado);
+            }
+            
+            total += saidasValidas.reduce((acc: number, saida: SaidaData) => acc + parseFloat(saida.valor || "0"), 0);
+          }
+          if (data.servicos && Array.isArray(data.servicos)) {
+            let servicosValidos = data.servicos.filter((servico: ServicoData) => servico.cancelada === "N");
+            
+            // Filtrar por cliente específico se selecionado
+            if (clienteSelecionado) {
+              servicosValidos = servicosValidos.filter((servico: ServicoData) => servico.nome_cliente === clienteSelecionado);
+            }
+            
+            total += servicosValidos.reduce((acc: number, servico: ServicoData) => acc + parseFloat(servico.valor || "0"), 0);
+          }
+          break;
+
+        case "Compras":
+        case "Total de Entradas":
+          // Todas as entradas
+          if (data.entradas && Array.isArray(data.entradas)) {
+            let entradasValidas = data.entradas;
+            
+            // Filtrar por fornecedor específico se selecionado
+            if (clienteSelecionado) {
+              entradasValidas = entradasValidas.filter((entrada: EntradaData) => entrada.nome_fornecedor === clienteSelecionado);
+            }
+            
+            total = entradasValidas.reduce((acc: number, entrada: EntradaData) => acc + parseFloat(entrada.valor || "0"), 0);
+          }
+          break;
+
+        case "Devoluções":
+          // Para devoluções, considerar transações canceladas como proxy
+          if (clienteSelecionado) {
+            const clienteLimpo = clienteSelecionado.replace(/ \((Cliente|Fornecedor)\)$/, '');
+            const tipoSelecionado = clienteSelecionado.includes('(Fornecedor)') ? 'fornecedor' : 'cliente';
+            
+            if (tipoSelecionado === 'cliente') {
+              // Buscar devoluções de clientes (saídas e serviços cancelados)
+              if (data.saidas && Array.isArray(data.saidas)) {
+                const saidasCanceladas = data.saidas
+                  .filter((saida: SaidaData) => saida.cancelada === "S" && saida.nome_cliente === clienteLimpo);
+                total += saidasCanceladas.reduce((acc: number, saida: SaidaData) => acc + parseFloat(saida.valor || "0"), 0);
+              }
+              if (data.servicos && Array.isArray(data.servicos)) {
+                const servicosCancelados = data.servicos
+                  .filter((servico: ServicoData) => servico.cancelada === "S" && servico.nome_cliente === clienteLimpo);
+                total += servicosCancelados.reduce((acc: number, servico: ServicoData) => acc + parseFloat(servico.valor || "0"), 0);
+              }
+            }
+            // Para fornecedor, não temos dados específicos de devoluções de compras
+          } else {
+            // Todas as devoluções (saídas e serviços cancelados)
+            if (data.saidas && Array.isArray(data.saidas)) {
+              const saidasCanceladas = data.saidas.filter((saida: SaidaData) => saida.cancelada === "S");
+              total += saidasCanceladas.reduce((acc: number, saida: SaidaData) => acc + parseFloat(saida.valor || "0"), 0);
+            }
+            if (data.servicos && Array.isArray(data.servicos)) {
+              const servicosCancelados = data.servicos.filter((servico: ServicoData) => servico.cancelada === "S");
+              total += servicosCancelados.reduce((acc: number, servico: ServicoData) => acc + parseFloat(servico.valor || "0"), 0);
+            }
+          }
+          break;
+
+        default:
+          return "R$ 0,00";
+      }
+
+      return "R$ " + total.toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+
+    } catch (error) {
+      console.error("Erro ao calcular faturamento/gastos:", error);
+      return "R$ 0,00";
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       if (startDate && endDate) {
@@ -441,8 +597,14 @@ export default function DashboardFiscal() {
 
   // Filtrar cards baseado no KPI selecionado
   const getCardsData = () => {
+    const faturamentoCardInfo = getFaturamentoCardInfo(kpiSelecionado);
+    
     const baseCards = [
-      { title: "Faturamento", value: "R$ 619.995.200,00", tooltipText: "Total de receitas antes dos impostos e deduções." },
+      { 
+        title: faturamentoCardInfo.title, 
+        value: getFaturamentoValue(kpiSelecionado, data), 
+        tooltipText: faturamentoCardInfo.tooltipText 
+      },
       { title: "Entradas", value: "R$ 495.542.800,00", tooltipText: "Total de entradas fiscais no período." },
       { title: "Carga Tributária", value: "7,31%", tooltipText: "Percentual de impostos sobre o faturamento total." },
       { title: "Imposto Devido", value: "R$ 45.330,00", tooltipText: "Valor total de impostos a pagar no período." },
