@@ -1,6 +1,6 @@
 "use client";
 import { Cairo } from "next/font/google";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Dropdown } from "./components/Dropdown";
 import { useDropdown } from "./hooks/useDropdown";
@@ -23,6 +23,48 @@ export default function DashboardFiscal() {
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
   const [kpiSelecionado, setKpiSelecionado] = useState("Total de Entradas");
+  const [data, setData] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (startDate && endDate) {
+        try {
+          console.log("Buscando dados para o dashboard fiscal com as datas:", {
+            startDate,
+            endDate,
+          });
+          const response = await fetch("/api/dashboard-fiscal", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              start_date: startDate,
+              end_date: endDate,
+            }),
+          });
+
+          const result = await response.json();
+
+          if (!response.ok) {
+            throw new Error(
+              result.error || `Erro do backend: ${response.statusText}`
+            );
+          }
+
+          console.log("Dados recebidos da API fiscal:", result);
+          setData(result);
+        } catch (error) {
+          console.error(
+            "Erro ao buscar dados para o dashboard fiscal:",
+            error
+          );
+        }
+      }
+    };
+
+    fetchData();
+  }, [startDate, endDate]);
 
   const handleStartDateChange = (date: string | null) => {
     setStartDate(date);
@@ -179,7 +221,7 @@ export default function DashboardFiscal() {
               ))}
             </div>
             <div className="flex items-center gap-4">
-              {["Outras Entradas", "Serviços", "Devoluções"].map((kpi) => (
+              {["Compras", "Serviços", "Devoluções"].map((kpi) => (
                 <button
                   key={kpi}
                   className={`w-[220px] px-4 h-[40px] flex items-center justify-center rounded-md border border-neutral-700 text-sm font-semibold leading-tight hover:bg-[var(--color-neutral-700)] hover:text-white cursor-pointer transition-colors ${cairo.className} ${
