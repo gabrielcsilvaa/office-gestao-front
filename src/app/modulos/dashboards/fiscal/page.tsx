@@ -9,6 +9,7 @@ import KpiCardsGrid from "./components/KpiCardsGrid";
 import EvolucaoCard from "./components/EvolucaoCard";
 import ProgressBarCard from "./components/ProgressBarCard";
 import EmptyCard from "./components/EmptyCard";
+import Loading from "@/app/loading";
 
 const cairo = Cairo({
   weight: ["500", "600", "700"],
@@ -22,12 +23,14 @@ export default function DashboardFiscal() {
   const [produtoSelecionado, setProdutoSelecionado] = useState("");
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   const [kpiSelecionado, setKpiSelecionado] = useState("Total de Entradas");
   const [data, setData] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
       if (startDate && endDate) {
+        setLoading(true);
         try {
           console.log("Buscando dados para o dashboard fiscal com as datas:", {
             startDate,
@@ -59,12 +62,18 @@ export default function DashboardFiscal() {
             "Erro ao buscar dados para o dashboard fiscal:",
             error
           );
+        } finally {
+          setLoading(false);
         }
       }
     };
 
     fetchData();
   }, [startDate, endDate]);
+  // 🔄 Loading state
+  if (loading) {
+    return <Loading />;
+  }
 
   const handleStartDateChange = (date: string | null) => {
     setStartDate(date);
