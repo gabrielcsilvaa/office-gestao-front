@@ -305,6 +305,7 @@ export default function DashboardFiscal() {
                 onValueChange={setProdutoSelecionado}
                 isOpen={openDropdown === 'produto'}
                 onToggle={() => handleToggleDropdown('produto')}
+                disabled={true}
             />
           </div>
           <Calendar

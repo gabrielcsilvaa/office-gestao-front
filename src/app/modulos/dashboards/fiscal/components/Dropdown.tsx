@@ -15,6 +15,7 @@ interface DropdownProps {
   onValueChange: (value: string) => void;
   isOpen: boolean;
   onToggle: () => void;
+  disabled?: boolean;
 }
 
 export const Dropdown: React.FC<DropdownProps> = ({
@@ -25,6 +26,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
   onValueChange,
   isOpen,
   onToggle,
+  disabled = false,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
@@ -128,11 +130,15 @@ export const Dropdown: React.FC<DropdownProps> = ({
       <div
         role="combobox"
         aria-haspopup="listbox"
-        tabIndex={0}
+        tabIndex={disabled ? -1 : 0}
         aria-expanded={isOpen}
         aria-label={label}
-        className={`${widthClass} px-4 h-[44px] flex items-center justify-between bg-white rounded-md border border-neutral-700 text-gray-500 text-sm font-semibold leading-tight ${cairo.className} hover:bg-[var(--color-neutral-700)] hover:text-white cursor-pointer`}
-        onClick={onToggle}
+        className={`${widthClass} px-4 h-[44px] flex items-center justify-between bg-white rounded-md border border-neutral-700 text-sm font-semibold leading-tight ${cairo.className} ${
+          disabled 
+            ? 'text-gray-400 cursor-not-allowed opacity-50' 
+            : 'text-gray-500 hover:bg-[var(--color-neutral-700)] hover:text-white cursor-pointer'
+        }`}
+        onClick={disabled ? undefined : onToggle}
       >
         <span className="flex-grow whitespace-nowrap overflow-hidden text-ellipsis">
           {selectedValue || label}
@@ -141,7 +147,7 @@ export const Dropdown: React.FC<DropdownProps> = ({
           <path fillRule="evenodd" clipRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"></path>
         </svg>
       </div>
-      {isOpen && (
+      {isOpen && !disabled && (
         <div className={`absolute z-50 mt-1 ${widthClass} bg-white border border-gray-300 rounded-lg shadow-xl overflow-hidden`}>
           <div className="p-3 bg-gray-50 border-b border-gray-200">
             <div className="relative">
