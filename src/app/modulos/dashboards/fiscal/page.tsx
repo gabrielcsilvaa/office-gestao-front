@@ -123,6 +123,36 @@ export default function DashboardFiscal() {
   const labelClienteFornecedor = getClienteFornecedorLabel(kpiSelecionado);
   const labelClienteFornecedorPlural = getClienteFornecedorLabelPlural(kpiSelecionado);
 
+  // Define dinamicamente o título do card de evolução conforme o KPI selecionado
+  const getEvolucaoTitle = (kpi: string) => {
+    const titles: Record<string, string> = {
+      "Total de Entradas": "Evolução do Total de Entradas",
+      "Faturamento Total": "Evolução do Faturamento Total",
+      "Vendas": "Evolução das Vendas",
+      "Compras": "Evolução das Compras",
+      "Serviços": "Evolução dos Serviços",
+      "Devoluções": "Evolução das Devoluções"
+    };
+    return titles[kpi] || `Evolução de ${kpi}`;
+  };
+
+  // Define dinamicamente o título do card TOP 100 conforme o KPI selecionado
+  const getTopProdutosServicosTitle = (kpi: string) => {
+    // Produtos: movimentação de mercadorias físicas
+    if (["Vendas", "Compras", "Total de Entradas", "Devoluções"].includes(kpi)) {
+      return "TOP 100 Produtos";
+    }
+    // Serviços: prestação de atividades
+    if (["Serviços"].includes(kpi)) {
+      return "TOP 100 Serviços";
+    }
+    // Ambos: faturamento total engloba produtos e serviços
+    if (["Faturamento Total"].includes(kpi)) {
+      return "TOP 100 Produtos / Serviços";
+    }
+    return "TOP 100 Produtos / Serviços";
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       if (startDate && endDate) {
@@ -318,7 +348,7 @@ export default function DashboardFiscal() {
     { name: "VIBRA ENERGIA S.A", value: "R$ 20.507.156,97", numericValue: 20507156.97, percentage: 14.1, rank: 2 },
     { name: "F DINARTE IND E COM DE CONFEC", value: "R$ 19.127.937,07", numericValue: 19127937.07, percentage: 13.2, rank: 3 },
     { name: "DINART IND E COM DE CONFECCOES LTDA", value: "R$ 14.073.792,88", numericValue: 14073792.88, percentage: 9.7, rank: 4 },
-    { name: "TICKET SERVICOS SA", value: "R$ 13.703.588,36", numericValue: 13703588.36, percentage: 9.4, rank: 5 },
+    { name: "TICKET SERVIÇOS SA", value: "R$ 13.703.588,36", numericValue: 13703588.36, percentage: 9.4, rank: 5 },
     { name: "MALHAS MENEGOTTI INDUSTRIA TEXTIL LTDA", value: "R$ 11.524.068,34", numericValue: 11524068.34, percentage: 7.9, rank: 6 },
     { name: "BIOSAUDE", value: "R$ 10.180.027,94", numericValue: 10180027.94, percentage: 7.0, rank: 7 },
     { name: "BAHIANA DISTRIBUIDORA DE GAS LTDA", value: "R$ 9.972.635,56", numericValue: 9972635.56, percentage: 6.9, rank: 8 },
@@ -431,7 +461,7 @@ export default function DashboardFiscal() {
         {/* Card de Evolução - Largura Total */}
         <div className="mt-6">
           <EvolucaoCard 
-            title="Evolução do Total de Entradas" 
+            title={getEvolucaoTitle(kpiSelecionado)} 
             data={evolucaoData}
             onMaximize={handleMaximizeEvolucao}
           />
@@ -440,7 +470,7 @@ export default function DashboardFiscal() {
         {/* Novos Cards com Barras de Progresso - 2 por linha */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
           <ProgressBarCard 
-            title="TOP 100 Produtos / Serviços" 
+            title={getTopProdutosServicosTitle(kpiSelecionado)} 
             items={topProdutosServicosData}
             colorScheme="green"
             onMaximize={handleMaximizeTopProdutos}
