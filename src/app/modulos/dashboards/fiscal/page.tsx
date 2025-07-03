@@ -27,6 +27,43 @@ export default function DashboardFiscal() {
   const [kpiSelecionado, setKpiSelecionado] = useState("Total de Entradas");
   const [data, setData] = useState(null);
 
+  // Define dinamicamente o rótulo do dropdown principal conforme o KPI selecionado
+  const getClienteFornecedorLabel = (kpi: string) => {
+    // Fornecedor: dinheiro SAINDO da empresa (compras/entradas)
+    if (["Total de Entradas", "Compras"].includes(kpi)) {
+      return "Fornecedor";
+    }
+    // Cliente: dinheiro ENTRANDO na empresa (vendas/faturamento)
+    if (["Faturamento Total", "Vendas"].includes(kpi)) {
+      return "Cliente";
+    }
+    // Para Serviços e Devoluções, usar ambos os contextos
+    if (["Serviços", "Devoluções"].includes(kpi)) {
+      return "Cliente / Fornecedor";
+    }
+    return "Cliente";
+  };
+
+  // Para o título do card, versão plural
+  const getClienteFornecedorLabelPlural = (kpi: string) => {
+    // Fornecedor: dinheiro SAINDO da empresa (compras/entradas)
+    if (["Total de Entradas", "Compras"].includes(kpi)) {
+      return "Fornecedores";
+    }
+    // Cliente: dinheiro ENTRANDO na empresa (vendas/faturamento)
+    if (["Faturamento Total", "Vendas"].includes(kpi)) {
+      return "Clientes";
+    }
+    // Para Serviços e Devoluções, usar ambos os contextos
+    if (["Serviços", "Devoluções"].includes(kpi)) {
+      return "Clientes / Fornecedores";
+    }
+    return "Clientes";
+  };
+  
+  const labelClienteFornecedor = getClienteFornecedorLabel(kpiSelecionado);
+  const labelClienteFornecedorPlural = getClienteFornecedorLabelPlural(kpiSelecionado);
+
   useEffect(() => {
     const fetchData = async () => {
       if (startDate && endDate) {
@@ -57,6 +94,7 @@ export default function DashboardFiscal() {
 
           console.log("Dados recebidos da API fiscal:", result);
           setData(result);
+
         } catch (error) {
           console.error(
             "Erro ao buscar dados para o dashboard fiscal:",
@@ -252,7 +290,7 @@ export default function DashboardFiscal() {
           <div className="flex items-center gap-4">
             <Dropdown
                 options={clienteOptions}
-                label="Cliente / Fornecedor"
+                label={labelClienteFornecedor}
                 widthClass="w-72"
                 selectedValue={clienteSelecionado}
                 onValueChange={setClienteSelecionado}
@@ -301,7 +339,7 @@ export default function DashboardFiscal() {
             onMaximize={handleMaximizeTopProdutos}
           />
           <ProgressBarCard 
-            title="TOP 100 Clientes / Fornecedores" 
+            title={`TOP 100 ${labelClienteFornecedorPlural}`}
             items={topClientesFornecedoresData}
             colorScheme="blue"
             onMaximize={handleMaximizeTopClientesFornecedores}
