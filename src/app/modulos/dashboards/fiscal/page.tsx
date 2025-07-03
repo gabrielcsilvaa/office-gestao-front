@@ -28,6 +28,8 @@ export default function DashboardFiscal() {
   const [data, setData] = useState(null);
   const [fornecedorOptions, setFornecedorOptions] = useState<string[]>([]);
   const [clienteOptions, setClienteOptions] = useState<string[]>([]);
+  const [opcoesMintas, setOpcoesMintas] = useState<Array<{value: string, type: 'Cliente' | 'Fornecedor'}>>([]);
+  const [clienteFornecedorMixedOptions, setClienteFornecedorMixedOptions] = useState<Array<{label: string, value: string, type: 'cliente' | 'fornecedor'}>>([]);
 
   // Tipo para os dados de entrada
   type EntradaData = {
@@ -101,6 +103,23 @@ export default function DashboardFiscal() {
     return "Clientes";
   };
   
+  // Retorna as opções do dropdown conforme o KPI selecionado
+  const getDropdownOptions = (): string[] => {
+    // Fornecedor: dinheiro SAINDO da empresa (compras/entradas)
+    if (["Total de Entradas", "Compras"].includes(kpiSelecionado)) {
+      return fornecedorOptions;
+    }
+    // Cliente: dinheiro ENTRANDO na empresa (vendas/faturamento)
+    if (["Faturamento Total", "Vendas"].includes(kpiSelecionado)) {
+      return clienteOptions;
+    }
+    // Para Serviços e Devoluções, usar opções mistas com indicação do tipo
+    if (["Serviços", "Devoluções"].includes(kpiSelecionado)) {
+      return opcoesMintas.map(opcao => `${opcao.value} (${opcao.type})`);
+    }
+    return [];
+  };
+
   const labelClienteFornecedor = getClienteFornecedorLabel(kpiSelecionado);
   const labelClienteFornecedorPlural = getClienteFornecedorLabelPlural(kpiSelecionado);
 
@@ -171,6 +190,28 @@ export default function DashboardFiscal() {
           const clientesUnicos = Array.from(clientesSet).sort();
           setClienteOptions(clientesUnicos);
 
+          // Criar opções mistas para "Serviços" e "Devoluções" (clientes + fornecedores)
+          const opcoesMistas: Array<{value: string, type: 'Cliente' | 'Fornecedor'}> = [];
+          
+          // Adicionar fornecedores únicos
+          if (result.entradas && Array.isArray(result.entradas)) {
+            const fornecedoresUnicos = Array.from(
+              new Set(result.entradas.map((entrada: EntradaData) => entrada.nome_fornecedor))
+            ) as string[];
+            fornecedoresUnicos.forEach((fornecedor) => {
+              opcoesMistas.push({ value: fornecedor, type: 'Fornecedor' });
+            });
+          }
+
+          // Adicionar clientes únicos
+          clientesUnicos.forEach(cliente => {
+            opcoesMistas.push({ value: cliente, type: 'Cliente' });
+          });
+
+          // Ordenar por valor (alfabética)
+          opcoesMistas.sort((a, b) => a.value.localeCompare(b.value));
+          setOpcoesMintas(opcoesMistas);
+
         } catch (error) {
           console.error(
             "Erro ao buscar dados para o dashboard fiscal:",
@@ -214,34 +255,6 @@ export default function DashboardFiscal() {
   const handleMaximizeEvolucao = () => {
     // Função para maximizar o card de evolução (a ser implementada)
     console.log("Maximizar card de evolução");
-  };
-
-  // Função para obter as opções do dropdown baseado no KPI selecionado
-  const getDropdownOptions = () => {
-    // Para fornecedores (Total de Entradas, Compras), usar dados da API
-    if (["Total de Entradas", "Compras"].includes(kpiSelecionado)) {
-      return fornecedorOptions;
-    }
-    
-    // Para clientes (Faturamento Total, Vendas), usar dados dinâmicos da API
-    if (["Faturamento Total", "Vendas"].includes(kpiSelecionado)) {
-      return clienteOptions;
-    }
-    
-    // Para Serviços e Devoluções, usar dados estáticos por enquanto
-    // TODO: Implementar lógica específica para serviços e devoluções
-    return [
-      "CLIENTES DIVERSOS (Varejo)",
-      "FUNDO MUNICIPAL DE SAUDE DE FORTALEZA",
-      "POLÍCIA MILITAR DO ESTADO DO CEARÁ",
-      "TRANSLOG TRANSPORTES E LOGÍSTICA S.A.",
-      "LOCADORA DE VEÍCULOS MOVILOC LTDA",
-      "IPIRANGA PRODUTOS DE PETRÓLEO S.A.",
-      "RAÍZEN COMBUSTÍVEIS S.A. (Shell)",
-      "AMBEV S.A.",
-      "THE COCA-COLA COMPANY",
-      "LIMPA FÁCIL PRODUTOS DE LIMPEZA"
-    ];
   };
 
   const produtoOptions = [
