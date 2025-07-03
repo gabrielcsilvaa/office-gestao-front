@@ -26,6 +26,19 @@ export default function DashboardFiscal() {
   const [loading, setLoading] = useState(false);
   const [kpiSelecionado, setKpiSelecionado] = useState("Total de Entradas");
   const [data, setData] = useState(null);
+  const [fornecedorOptions, setFornecedorOptions] = useState<string[]>([]);
+
+  // Tipo para os dados de entrada
+  type EntradaData = {
+    fornecedor: number;
+    nome_fornecedor: string;
+    empresa: number;
+    nome_empresa: string;
+    cnpj: string;
+    CEP: string | null;
+    data: string;
+    valor: string;
+  };
 
   // Define dinamicamente o rótulo do dropdown principal conforme o KPI selecionado
   const getClienteFornecedorLabel = (kpi: string) => {
@@ -95,6 +108,18 @@ export default function DashboardFiscal() {
           console.log("Dados recebidos da API fiscal:", result);
           setData(result);
 
+          // Extrair fornecedores únicos dos dados de entradas
+          if (result.entradas && Array.isArray(result.entradas)) {
+            const fornecedoresUnicos = Array.from(
+              new Set(
+                result.entradas.map((entrada: EntradaData) => entrada.nome_fornecedor)
+              )
+            ).sort() as string[];
+            setFornecedorOptions(fornecedoresUnicos);
+          } else {
+            setFornecedorOptions([]);
+          }
+
         } catch (error) {
           console.error(
             "Erro ao buscar dados para o dashboard fiscal:",
@@ -123,6 +148,8 @@ export default function DashboardFiscal() {
 
   const handleKpiChange = (kpi: string) => {
     setKpiSelecionado(kpi);
+    // Limpar seleção do dropdown quando KPI mudar
+    setClienteSelecionado("");
   };
 
   const handleResetAllFilters = () => {
@@ -138,18 +165,28 @@ export default function DashboardFiscal() {
     console.log("Maximizar card de evolução");
   };
 
-  const clienteOptions = [
-    "CLIENTES DIVERSOS (Varejo)",
-    "FUNDO MUNICIPAL DE SAUDE DE FORTALEZA",
-    "POLÍCIA MILITAR DO ESTADO DO CEARÁ",
-    "TRANSLOG TRANSPORTES E LOGÍSTICA S.A.",
-    "LOCADORA DE VEÍCULOS MOVILOC LTDA",
-    "IPIRANGA PRODUTOS DE PETRÓLEO S.A.",
-    "RAÍZEN COMBUSTÍVEIS S.A. (Shell)",
-    "AMBEV S.A.",
-    "THE COCA-COLA COMPANY",
-    "LIMPA FÁCIL PRODUTOS DE LIMPEZA"
-  ];
+  // Função para obter as opções do dropdown baseado no KPI selecionado
+  const getDropdownOptions = () => {
+    // Para fornecedores (Total de Entradas, Compras), usar dados da API
+    if (["Total de Entradas", "Compras"].includes(kpiSelecionado)) {
+      return fornecedorOptions;
+    }
+    
+    // Para clientes (outros KPIs), usar dados estáticos por enquanto
+    // TODO: Implementar dados dinâmicos de clientes quando disponível
+    return [
+      "CLIENTES DIVERSOS (Varejo)",
+      "FUNDO MUNICIPAL DE SAUDE DE FORTALEZA",
+      "POLÍCIA MILITAR DO ESTADO DO CEARÁ",
+      "TRANSLOG TRANSPORTES E LOGÍSTICA S.A.",
+      "LOCADORA DE VEÍCULOS MOVILOC LTDA",
+      "IPIRANGA PRODUTOS DE PETRÓLEO S.A.",
+      "RAÍZEN COMBUSTÍVEIS S.A. (Shell)",
+      "AMBEV S.A.",
+      "THE COCA-COLA COMPANY",
+      "LIMPA FÁCIL PRODUTOS DE LIMPEZA"
+    ];
+  };
 
   const produtoOptions = [
     "GASOLINA COMUM",
@@ -289,7 +326,7 @@ export default function DashboardFiscal() {
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <Dropdown
-                options={clienteOptions}
+                options={getDropdownOptions()}
                 label={labelClienteFornecedor}
                 widthClass="w-72"
                 selectedValue={clienteSelecionado}
