@@ -439,14 +439,29 @@ export default function DashboardFiscal() {
     "PÃO DE QUEIJO (Unidade)"
   ];
 
-  const cardsData = [
-    { title: "Ticket Médio", value: getTicketMedio(kpiSelecionado, data), tooltipText: "Valor médio por transação no período analisado." },
-    { title: "Faturamento", value: "R$ 619.995.200,00", tooltipText: "Total de receitas antes dos impostos e deduções." },
-    { title: "Entradas", value: "R$ 495.542.800,00", tooltipText: "Total de entradas fiscais no período." },
-    { title: "Carga Tributária", value: "7,31%", tooltipText: "Percentual de impostos sobre o faturamento total." },
-    { title: "Imposto Devido", value: "R$ 45.330,00", tooltipText: "Valor total de impostos a pagar no período." },
-    { title: "A Recuperar", value: "R$ 846.090,00", tooltipText: "Valor de créditos tributários a recuperar." }
-  ];
+  // Filtrar cards baseado no KPI selecionado
+  const getCardsData = () => {
+    const baseCards = [
+      { title: "Faturamento", value: "R$ 619.995.200,00", tooltipText: "Total de receitas antes dos impostos e deduções." },
+      { title: "Entradas", value: "R$ 495.542.800,00", tooltipText: "Total de entradas fiscais no período." },
+      { title: "Carga Tributária", value: "7,31%", tooltipText: "Percentual de impostos sobre o faturamento total." },
+      { title: "Imposto Devido", value: "R$ 45.330,00", tooltipText: "Valor total de impostos a pagar no período." },
+      { title: "A Recuperar", value: "R$ 846.090,00", tooltipText: "Valor de créditos tributários a recuperar." }
+    ];
+
+    // Para Devoluções, não mostrar o card de Ticket Médio
+    if (kpiSelecionado === "Devoluções") {
+      return baseCards;
+    }
+
+    // Para todos os outros KPIs, incluir o Ticket Médio no início
+    return [
+      { title: "Ticket Médio", value: getTicketMedio(kpiSelecionado, data), tooltipText: "Valor médio por transação no período analisado." },
+      ...baseCards
+    ];
+  };
+
+  const cardsData = getCardsData();
 
   // Dados para o gráfico de evolução
   const evolucaoData = [
