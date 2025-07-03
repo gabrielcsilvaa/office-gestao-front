@@ -477,7 +477,7 @@ export default function Demografico() {
     };
 
     fetchDados();
-  }, [botaoSelecionado, startDate, endDate, filtros, todosFuncionariosAPI]); // Adicionei todosFuncionariosAPI aqui
+  }, [botaoSelecionado, startDate, endDate, filtros, ]); // Adicionei todosFuncionariosAPI aqui
 
   // Este useEffect para atualizar os selects com base nos dados da API,
   // mas sem que os filtros do usuário removam as opções
@@ -578,19 +578,19 @@ export default function Demografico() {
         <div className="w-full lg:w-1/2">
           <div className="bg-gray-100 h-full">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="aspect-square w-full h-[300px]">
+              <div className=" w-full h-[300px]">
                 <GraficoGenero
                   masculinoPercentual={percentualMasculino}
                   femininoPercentual={percentualFeminino}
                 />
               </div>
-              <div className="aspect-square w-full h-[300px]">
+              <div className="aspect-[4/3]  w-full h-[300px]">
                 <GraficoFaixaEtaria dados={dadosFaixaEtaria} />
               </div>
-              <div className="aspect-square w-full h-[300px]">
+              <div className="aspect-[4/3]  w-full h-[300px]">
                 <GraficoCategoria dados={dadosCategoria} />
               </div>
-              <div className="aspect-square w-full h-[300px]">
+              <div className="aspect-[4/3]  w-full h-[300px]">
                 <GraficoEscolaridade dados={dadosDemograficos} />
               </div>
             </div>
@@ -600,10 +600,10 @@ export default function Demografico() {
 
       {/* Parte inferior: tabela e gráfico de cargo */}
       <div className="flex flex-col lg:flex-row gap-4 mt-4">
-        <div className="w-full lg:w-1/2 bg-white rounded shadow">
+        <div className="w-full lg:w-1/2 bg-white rounded shadow ">
           <TabelaColaboradores colaboradores={colaboradores} />
         </div>
-        <div className="w-full lg:w-1/2 bg-white rounded shadow">
+        <div className="w-full lg:w-1/2 bg-white rounded shadow ">
           <GraficoCargo dados={dadosCargo} />
         </div>
       </div>
