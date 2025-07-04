@@ -76,11 +76,11 @@ export default function DashboardFiscal() {
       return "Fornecedor";
     }
     // Cliente: dinheiro ENTRANDO na empresa (vendas/receitas)
-    if (["Receita Bruta Total", "Vendas de Produtos"].includes(kpi)) {
+    if (["Receita Bruta Total", "Vendas de Produtos", "Serviços Prestados"].includes(kpi)) {
       return "Cliente";
     }
-    // Para Serviços e Cancelamentos, usar ambos os contextos
-    if (["Serviços Prestados", "Notas Canceladas"].includes(kpi)) {
+    // Para Cancelamentos, usar ambos os contextos
+    if (["Notas Canceladas"].includes(kpi)) {
       return "Cliente / Fornecedor";
     }
     return "Cliente";
@@ -93,11 +93,11 @@ export default function DashboardFiscal() {
       return "Fornecedores";
     }
     // Cliente: dinheiro ENTRANDO na empresa (vendas/receitas)
-    if (["Receita Bruta Total", "Vendas de Produtos"].includes(kpi)) {
+    if (["Receita Bruta Total", "Vendas de Produtos", "Serviços Prestados"].includes(kpi)) {
       return "Clientes";
     }
-    // Para Serviços e Cancelamentos, usar ambos os contextos
-    if (["Serviços Prestados", "Notas Canceladas"].includes(kpi)) {
+    // Para Cancelamentos, usar ambos os contextos
+    if (["Notas Canceladas"].includes(kpi)) {
       return "Clientes / Fornecedores";
     }
     return "Clientes";
@@ -110,11 +110,11 @@ export default function DashboardFiscal() {
       return fornecedorOptions;
     }
     // Cliente: dinheiro ENTRANDO na empresa (vendas/receitas)
-    if (["Receita Bruta Total", "Vendas de Produtos"].includes(kpiSelecionado)) {
+    if (["Receita Bruta Total", "Vendas de Produtos", "Serviços Prestados"].includes(kpiSelecionado)) {
       return clienteOptions;
     }
-    // Para Serviços e Cancelamentos, usar opções mistas com indicação do tipo
-    if (["Serviços Prestados", "Notas Canceladas"].includes(kpiSelecionado)) {
+    // Para Cancelamentos, usar opções mistas com indicação do tipo
+    if (["Notas Canceladas"].includes(kpiSelecionado)) {
       return opcoesMintas.map(opcao => `${opcao.value} (${opcao.type})`);
     }
     return [];
@@ -208,10 +208,9 @@ export default function DashboardFiscal() {
           if (data.servicos && Array.isArray(data.servicos)) {
             let servicosValidos = data.servicos.filter((servico: ServicoData) => servico.cancelada === "N");
             
-            // Filtrar por cliente específico se selecionado (remover indicação de tipo)
+            // Filtrar por cliente específico se selecionado
             if (clienteSelecionado) {
-              const clienteLimpo = clienteSelecionado.replace(/ \((Cliente|Fornecedor)\)$/, '');
-              servicosValidos = servicosValidos.filter((servico: ServicoData) => servico.nome_cliente === clienteLimpo);
+              servicosValidos = servicosValidos.filter((servico: ServicoData) => servico.nome_cliente === clienteSelecionado);
             }
             
             total = servicosValidos.reduce((acc: number, servico: ServicoData) => acc + parseFloat(servico.valor || "0"), 0);
@@ -735,8 +734,7 @@ export default function DashboardFiscal() {
       case "Serviços Prestados":
         let servicosPresados = data.servicos?.filter((item: any) => item.cancelada !== "S") || [];
         if (clienteSelecionado) {
-          const clienteLimpo = clienteSelecionado.replace(/ \((Cliente|Fornecedor)\)$/, '');
-          servicosPresados = servicosPresados.filter((servico: any) => servico.nome_cliente === clienteLimpo);
+          servicosPresados = servicosPresados.filter((servico: any) => servico.nome_cliente === clienteSelecionado);
         }
         return servicosPresados.length.toLocaleString();
       
@@ -803,7 +801,7 @@ export default function DashboardFiscal() {
       let saidasFiltradas = data.saidas?.filter((item: any) => item.cancelada !== "S") || [];
       
       if (clienteSelecionado) {
-        saidasFiltradas = saidasFiltradas.filter((saida: any) => saida.nome_cliente === clienteSelecionado);
+        saidasFiltradas = saidasFiltradas.filter((saida: any) => saidasFiltradas.nome_cliente === clienteSelecionado);
       }
       
       const valor = saidasFiltradas.reduce((total: number, item: any) => total + parseFloat(item.valor), 0);
@@ -849,10 +847,9 @@ export default function DashboardFiscal() {
           if (data.servicos && Array.isArray(data.servicos)) {
             let servicosValidos = data.servicos.filter((servico: ServicoData) => servico.cancelada !== "S");
             
-            // Filtrar por cliente específico se selecionado (remover indicação de tipo)
+            // Filtrar por cliente específico se selecionado
             if (clienteSelecionado) {
-              const clienteLimpo = clienteSelecionado.replace(/ \((Cliente|Fornecedor)\)$/, '');
-              servicosValidos = servicosValidos.filter((servico: ServicoData) => servico.nome_cliente === clienteLimpo);
+              servicosValidos = servicosValidos.filter((servico: ServicoData) => servico.nome_cliente === clienteSelecionado);
             }
             
             servicosValidos.forEach((servico: ServicoData) => {
@@ -919,6 +916,30 @@ export default function DashboardFiscal() {
       });
     } catch (error) {
       console.error("Erro ao calcular valor cancelado de produtos:", error);
+      return "R$ 0,00";
+    }
+  };
+
+  // Calcula o valor total cancelado de serviços (serviços cancelados)
+  const getValorCanceladoServicos = (data: any): string => {
+    if (!data || !data.servicos || !Array.isArray(data.servicos)) return "R$ 0,00";
+    
+    try {
+      let servicosCancelados = data.servicos.filter((servico: ServicoData) => servico.cancelada === "S");
+      
+      // Filtrar por cliente específico se selecionado
+      if (clienteSelecionado) {
+        servicosCancelados = servicosCancelados.filter((servico: ServicoData) => servico.nome_cliente === clienteSelecionado);
+      }
+      
+      const total = servicosCancelados.reduce((acc: number, servico: ServicoData) => acc + parseFloat(servico.valor || "0"), 0);
+      
+      return "R$ " + total.toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    } catch (error) {
+      console.error("Erro ao calcular valor cancelado de serviços:", error);
       return "R$ 0,00";
     }
   };
@@ -1014,6 +1035,9 @@ export default function DashboardFiscal() {
         ];
 
       case "Serviços Prestados":
+        // Hierarquia Fiscal Recomendada - 6 Cards em linha única
+        // Linha 1: Performance da Operação (O Sucesso)
+        // Linha 2: Contexto Estratégico e Saúde do Processo
         return [
           { 
             title: "Serviços Prestados", 
@@ -1034,6 +1058,16 @@ export default function DashboardFiscal() {
             title: "% da Receita Total", 
             value: `${getMixReceita(data).servicos}%`, 
             tooltipText: "Percentual que os serviços representam da receita total." 
+          },
+          { 
+            title: "Nº de Clientes Únicos", 
+            value: getNumeroClientesUnicos(kpiSelecionado, data), 
+            tooltipText: "Quantidade de clientes distintos que contrataram serviços no período." 
+          },
+          { 
+            title: "Valor Cancelado", 
+            value: getValorCanceladoServicos(data), 
+            tooltipText: "Valor total das notas de serviço que foram canceladas." 
           }
         ];
 
