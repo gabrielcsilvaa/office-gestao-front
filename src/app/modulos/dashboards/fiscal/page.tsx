@@ -28,8 +28,6 @@ export default function DashboardFiscal() {
   const [data, setData] = useState(null);
   const [fornecedorOptions, setFornecedorOptions] = useState<string[]>([]);
   const [clienteOptions, setClienteOptions] = useState<string[]>([]);
-  const [opcoesMintas, setOpcoesMintas] = useState<Array<{value: string, type: 'Cliente' | 'Fornecedor'}>>([]);
-  const [clienteFornecedorMixedOptions, setClienteFornecedorMixedOptions] = useState<Array<{label: string, value: string, type: 'cliente' | 'fornecedor'}>>([]);
 
   // Tipo para os dados de entrada
   type EntradaData = {
@@ -75,13 +73,9 @@ export default function DashboardFiscal() {
     if (["Compras e Aquisições"].includes(kpi)) {
       return "Fornecedor";
     }
-    // Cliente: dinheiro ENTRANDO na empresa (vendas/receitas)
-    if (["Receita Bruta Total", "Vendas de Produtos", "Serviços Prestados"].includes(kpi)) {
+    // Cliente: dinheiro ENTRANDO na empresa (vendas/receitas/cancelamentos)
+    if (["Receita Bruta Total", "Vendas de Produtos", "Serviços Prestados", "Cancelamentos de Receita"].includes(kpi)) {
       return "Cliente";
-    }
-    // Para Cancelamentos, usar ambos os contextos
-    if (["Notas Canceladas"].includes(kpi)) {
-      return "Cliente / Fornecedor";
     }
     return "Cliente";
   };
@@ -97,7 +91,7 @@ export default function DashboardFiscal() {
       return "Clientes";
     }
     // Para Cancelamentos, usar ambos os contextos
-    if (["Notas Canceladas"].includes(kpi)) {
+    if (["Cancelamentos de Receita"].includes(kpi)) {
       return "Clientes / Fornecedores";
     }
     return "Clientes";
@@ -109,13 +103,36 @@ export default function DashboardFiscal() {
     if (["Compras e Aquisições"].includes(kpiSelecionado)) {
       return fornecedorOptions;
     }
-    // Cliente: dinheiro ENTRANDO na empresa (vendas/receitas)
+    // Cliente: dinheiro ENTRANDO na empresa (vendas/receitas/cancelamentos)
     if (["Receita Bruta Total", "Vendas de Produtos", "Serviços Prestados"].includes(kpiSelecionado)) {
       return clienteOptions;
     }
-    // Para Cancelamentos, usar opções mistas com indicação do tipo
-    if (["Notas Canceladas"].includes(kpiSelecionado)) {
-      return opcoesMintas.map(opcao => `${opcao.value} (${opcao.type})`);
+    // Para Cancelamentos de Receita, mostrar apenas clientes que têm cancelamentos
+    if (["Cancelamentos de Receita"].includes(kpiSelecionado)) {
+      if (!data) return [];
+      
+      const clientesComCancelamentos = new Set<string>();
+      const dataTyped = data as any;
+      
+      // Adicionar clientes das saídas canceladas
+      if (dataTyped.saidas && Array.isArray(dataTyped.saidas)) {
+        dataTyped.saidas
+          .filter((saida: any) => saida.cancelada === "S")
+          .forEach((saida: any) => {
+            clientesComCancelamentos.add(saida.nome_cliente);
+          });
+      }
+      
+      // Adicionar clientes dos serviços cancelados
+      if (dataTyped.servicos && Array.isArray(dataTyped.servicos)) {
+        dataTyped.servicos
+          .filter((servico: any) => servico.cancelada === "S")
+          .forEach((servico: any) => {
+            clientesComCancelamentos.add(servico.nome_cliente);
+          });
+      }
+      
+      return Array.from(clientesComCancelamentos).sort();
     }
     return [];
   };
@@ -130,7 +147,7 @@ export default function DashboardFiscal() {
       "Receita Bruta Total": "Evolução da Receita Bruta Total", 
       "Vendas de Produtos": "Evolução de Vendas de Produtos",
       "Serviços Prestados": "Evolução de Serviços Prestados",
-      "Notas Canceladas": "Evolução de Notas Canceladas"
+      "Cancelamentos de Receita": "Evolução de Cancelamentos de Receita"
     };
     return titles[kpi] || `Evolução de ${kpi}`;
   };
@@ -138,7 +155,7 @@ export default function DashboardFiscal() {
   // Define dinamicamente o título do card TOP 100 conforme o KPI selecionado
   const getTopProdutosServicosTitle = (kpi: string) => {
     // Produtos: movimentação de mercadorias físicas
-    if (["Vendas de Produtos", "Compras e Aquisições", "Notas Canceladas"].includes(kpi)) {
+    if (["Vendas de Produtos", "Compras e Aquisições", "Cancelamentos de Receita"].includes(kpi)) {
       return "TOP 100 Produtos";
     }
     // Serviços: prestação de atividades
@@ -259,32 +276,24 @@ export default function DashboardFiscal() {
           }
           break;
 
-        case "Notas Canceladas":
-          // Para cancelamentos, considerar transações canceladas
+        case "Cancelamentos de Receita":
+          // Para cancelamentos de receita, considerar apenas clientes (receita cancelada)
           if (clienteSelecionado) {
-            const clienteLimpo = clienteSelecionado.replace(/ \((Cliente|Fornecedor)\)$/, '');
-            const tipoSelecionado = clienteSelecionado.includes('(Fornecedor)') ? 'fornecedor' : 'cliente';
-            
-            if (tipoSelecionado === 'cliente') {
-              // Buscar cancelamentos de clientes (saídas e serviços cancelados)
-              if (data.saidas && Array.isArray(data.saidas)) {
-                const saidasCanceladas = data.saidas
-                  .filter((saida: SaidaData) => saida.cancelada === "S" && saida.nome_cliente === clienteLimpo);
-                total += saidasCanceladas.reduce((acc: number, saida: SaidaData) => acc + parseFloat(saida.valor || "0"), 0);
-                quantidade += saidasCanceladas.length;
-              }
-              if (data.servicos && Array.isArray(data.servicos)) {
-                const servicosCancelados = data.servicos
-                  .filter((servico: ServicoData) => servico.cancelada === "S" && servico.nome_cliente === clienteLimpo);
-                total += servicosCancelados.reduce((acc: number, servico: ServicoData) => acc + parseFloat(servico.valor || "0"), 0);
-                quantidade += servicosCancelados.length;
-              }
-            } else {
-              // Para fornecedor, não temos dados específicos de cancelamentos de compras
-              return "R$ 0,00";
+            // Buscar cancelamentos de clientes (saídas e serviços cancelados)
+            if (data.saidas && Array.isArray(data.saidas)) {
+              const saidasCanceladas = data.saidas
+                .filter((saida: SaidaData) => saida.cancelada === "S" && saida.nome_cliente === clienteSelecionado);
+              total += saidasCanceladas.reduce((acc: number, saida: SaidaData) => acc + parseFloat(saida.valor || "0"), 0);
+              quantidade += saidasCanceladas.length;
+            }
+            if (data.servicos && Array.isArray(data.servicos)) {
+              const servicosCancelados = data.servicos
+                .filter((servico: ServicoData) => servico.cancelada === "S" && servico.nome_cliente === clienteSelecionado);
+              total += servicosCancelados.reduce((acc: number, servico: ServicoData) => acc + parseFloat(servico.valor || "0"), 0);
+              quantidade += servicosCancelados.length;
             }
           } else {
-            // Todos os cancelamentos (saídas e serviços cancelados)
+            // Todos os cancelamentos de receita (saídas e serviços cancelados)
             if (data.saidas && Array.isArray(data.saidas)) {
               const saidasCanceladas = data.saidas.filter((saida: SaidaData) => saida.cancelada === "S");
               total += saidasCanceladas.reduce((acc: number, saida: SaidaData) => acc + parseFloat(saida.valor || "0"), 0);
@@ -333,10 +342,10 @@ export default function DashboardFiscal() {
           tooltipText: "Total de gastos com fornecedores no período."
         };
       
-      case "Notas Canceladas":
+      case "Cancelamentos de Receita":
         return {
           title: "Valor Cancelado",
-          tooltipText: "Total de valores de notas fiscais canceladas."
+          tooltipText: "Total de valores de receitas canceladas (produtos + serviços)."
         };
       
       default:
@@ -422,30 +431,22 @@ export default function DashboardFiscal() {
           }
           break;
 
-        case "Notas Canceladas":
-          // Para cancelamentos, considerar transações canceladas
+        case "Cancelamentos de Receita":
+          // Para cancelamentos de receita, considerar apenas clientes (receita cancelada)
           if (clienteSelecionado) {
-            const clienteLimpo = clienteSelecionado.replace(/ \((Cliente|Fornecedor)\)$/, '');
-            const tipoSelecionado = clienteSelecionado.includes('(Fornecedor)') ? 'fornecedor' : 'cliente';
-            
-            if (tipoSelecionado === 'cliente') {
-              // Buscar cancelamentos de clientes (saídas e serviços cancelados)
-              if (data.saidas && Array.isArray(data.saidas)) {
-                const saidasCanceladas = data.saidas
-                  .filter((saida: SaidaData) => saida.cancelada === "S" && saida.nome_cliente === clienteLimpo);
-                total += saidasCanceladas.reduce((acc: number, saida: SaidaData) => acc + parseFloat(saida.valor || "0"), 0);
-              }
-              if (data.servicos && Array.isArray(data.servicos)) {
-                const servicosCancelados = data.servicos
-                  .filter((servico: ServicoData) => servico.cancelada === "S" && servico.nome_cliente === clienteLimpo);
-                total += servicosCancelados.reduce((acc: number, servico: ServicoData) => acc + parseFloat(servico.valor || "0"), 0);
-              }
-            } else {
-              // Para fornecedor, não temos dados específicos de cancelamentos de compras
-              return "R$ 0,00";
+            // Buscar cancelamentos de clientes (saídas e serviços cancelados)
+            if (data.saidas && Array.isArray(data.saidas)) {
+              const saidasCanceladas = data.saidas
+                .filter((saida: SaidaData) => saida.cancelada === "S" && saida.nome_cliente === clienteSelecionado);
+              total += saidasCanceladas.reduce((acc: number, saida: SaidaData) => acc + parseFloat(saida.valor || "0"), 0);
+            }
+            if (data.servicos && Array.isArray(data.servicos)) {
+              const servicosCancelados = data.servicos
+                .filter((servico: ServicoData) => servico.cancelada === "S" && servico.nome_cliente === clienteSelecionado);
+              total += servicosCancelados.reduce((acc: number, servico: ServicoData) => acc + parseFloat(servico.valor || "0"), 0);
             }
           } else {
-            // Todos os cancelamentos (saídas e serviços cancelados)
+            // Todos os cancelamentos de receita (saídas e serviços cancelados)
             if (data.saidas && Array.isArray(data.saidas)) {
               const saidasCanceladas = data.saidas.filter((saida: SaidaData) => saida.cancelada === "S");
               total += saidasCanceladas.reduce((acc: number, saida: SaidaData) => acc + parseFloat(saida.valor || "0"), 0);
@@ -539,28 +540,6 @@ export default function DashboardFiscal() {
           const clientesUnicos = Array.from(clientesSet).sort();
           setClienteOptions(clientesUnicos);
 
-          // Criar opções mistas para "Serviços" e "Devoluções" (clientes + fornecedores)
-          const opcoesMistas: Array<{value: string, type: 'Cliente' | 'Fornecedor'}> = [];
-          
-          // Adicionar fornecedores únicos
-          if (result.entradas && Array.isArray(result.entradas)) {
-            const fornecedoresUnicos = Array.from(
-              new Set(result.entradas.map((entrada: EntradaData) => entrada.nome_fornecedor))
-            ) as string[];
-            fornecedoresUnicos.forEach((fornecedor) => {
-              opcoesMistas.push({ value: fornecedor, type: 'Fornecedor' });
-            });
-          }
-
-          // Adicionar clientes únicos
-          clientesUnicos.forEach(cliente => {
-            opcoesMistas.push({ value: cliente, type: 'Cliente' });
-          });
-
-          // Ordenar por valor (alfabética)
-          opcoesMistas.sort((a, b) => a.value.localeCompare(b.value));
-          setOpcoesMintas(opcoesMistas);
-
         } catch (error) {
           console.error(
             "Erro ao buscar dados para o dashboard fiscal:",
@@ -623,7 +602,7 @@ export default function DashboardFiscal() {
     if (!data) return "0,0%";
     
     // Valor total cancelado (já considera o filtro de cliente)
-    const valorCancelado = getFaturamentoValueNumeric("Notas Canceladas", data);
+    const valorCancelado = getFaturamentoValueNumeric("Cancelamentos de Receita", data);
     
     // Valor total da receita bruta (incluindo canceladas, considerando filtro de cliente)
     let saidasTotal = data.saidas || [];
@@ -682,21 +661,13 @@ export default function DashboardFiscal() {
         }
         return entradasFiltradas.reduce((total: number, item: any) => total + parseFloat(item.valor), 0);
       
-      case "Notas Canceladas":
+      case "Cancelamentos de Receita":
         let canceladasSaidas = data.saidas?.filter((item: any) => item.cancelada === "S") || [];
         let canceladasServicos = data.servicos?.filter((item: any) => item.cancelada === "S") || [];
         
         if (clienteSelecionado) {
-          const clienteLimpo = clienteSelecionado.replace(/ \((Cliente|Fornecedor)\)$/, '');
-          const tipoSelecionado = clienteSelecionado.includes('(Fornecedor)') ? 'fornecedor' : 'cliente';
-          
-          if (tipoSelecionado === 'cliente') {
-            canceladasSaidas = canceladasSaidas.filter((saida: any) => saida.nome_cliente === clienteLimpo);
-            canceladasServicos = canceladasServicos.filter((servico: any) => servico.nome_cliente === clienteLimpo);
-          } else {
-            // Para fornecedores, não temos cancelamentos de compras
-            return 0;
-          }
+          canceladasSaidas = canceladasSaidas.filter((saida: any) => saida.nome_cliente === clienteSelecionado);
+          canceladasServicos = canceladasServicos.filter((servico: any) => servico.nome_cliente === clienteSelecionado);
         }
         
         const valorCanceladoSaidas = canceladasSaidas.reduce((total: number, item: any) => total + parseFloat(item.valor), 0);
@@ -745,21 +716,13 @@ export default function DashboardFiscal() {
         }
         return entradasFiltradas.length.toLocaleString();
       
-      case "Notas Canceladas":
+      case "Cancelamentos de Receita":
         let canceladasSaidas = data.saidas?.filter((item: any) => item.cancelada === "S") || [];
         let canceladasServicos = data.servicos?.filter((item: any) => item.cancelada === "S") || [];
         
         if (clienteSelecionado) {
-          const clienteLimpo = clienteSelecionado.replace(/ \((Cliente|Fornecedor)\)$/, '');
-          const tipoSelecionado = clienteSelecionado.includes('(Fornecedor)') ? 'fornecedor' : 'cliente';
-          
-          if (tipoSelecionado === 'cliente') {
-            canceladasSaidas = canceladasSaidas.filter((saida: any) => saida.nome_cliente === clienteLimpo);
-            canceladasServicos = canceladasServicos.filter((servico: any) => servico.nome_cliente === clienteLimpo);
-          } else {
-            // Para fornecedores, não temos cancelamentos de compras
-            return "0";
-          }
+          canceladasSaidas = canceladasSaidas.filter((saida: any) => saida.nome_cliente === clienteSelecionado);
+          canceladasServicos = canceladasServicos.filter((servico: any) => servico.nome_cliente === clienteSelecionado);
         }
         
         return (canceladasSaidas.length + canceladasServicos.length).toLocaleString();
@@ -944,6 +907,106 @@ export default function DashboardFiscal() {
     }
   };
 
+  // Calcula o cancelamento médio para o KPI "Cancelamentos de Receita"
+  const getCancelamentoMedio = (data: any): string => {
+    if (!data) return "R$ 0,00";
+    
+    try {
+      let canceladasSaidas = data.saidas?.filter((item: any) => item.cancelada === "S") || [];
+      let canceladasServicos = data.servicos?.filter((item: any) => item.cancelada === "S") || [];
+      
+      if (clienteSelecionado) {
+        canceladasSaidas = canceladasSaidas.filter((saida: any) => saida.nome_cliente === clienteSelecionado);
+        canceladasServicos = canceladasServicos.filter((servico: any) => servico.nome_cliente === clienteSelecionado);
+      }
+      
+      const valorTotal = canceladasSaidas.reduce((total: number, item: any) => total + parseFloat(item.valor), 0) +
+                        canceladasServicos.reduce((total: number, item: any) => total + parseFloat(item.valor), 0);
+      const quantidade = canceladasSaidas.length + canceladasServicos.length;
+      
+      if (quantidade === 0) return "R$ 0,00";
+      
+      const cancelamentoMedio = valorTotal / quantidade;
+      return "R$ " + cancelamentoMedio.toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    } catch (error) {
+      console.error("Erro ao calcular cancelamento médio:", error);
+      return "R$ 0,00";
+    }
+  };
+
+  // Calcula o mix de cancelamentos entre produtos e serviços
+  const getMixCancelamentos = (data: any): string => {
+    if (!data) return "0% Produtos | 0% Serviços";
+    
+    try {
+      let canceladasSaidas = data.saidas?.filter((item: any) => item.cancelada === "S") || [];
+      let canceladasServicos = data.servicos?.filter((item: any) => item.cancelada === "S") || [];
+      
+      if (clienteSelecionado) {
+        canceladasSaidas = canceladasSaidas.filter((saida: any) => saida.nome_cliente === clienteSelecionado);
+        canceladasServicos = canceladasServicos.filter((servico: any) => servico.nome_cliente === clienteSelecionado);
+      }
+      
+      const valorSaidas = canceladasSaidas.reduce((total: number, item: any) => total + parseFloat(item.valor), 0);
+      const valorServicos = canceladasServicos.reduce((total: number, item: any) => total + parseFloat(item.valor), 0);
+      const valorTotal = valorSaidas + valorServicos;
+      
+      if (valorTotal === 0) return "0% Produtos | 0% Serviços";
+      
+      const percentualProdutos = Math.round((valorSaidas / valorTotal) * 100);
+      const percentualServicos = Math.round((valorServicos / valorTotal) * 100);
+      
+      return `${percentualProdutos}% Produtos | ${percentualServicos}% Serviços`;
+    } catch (error) {
+      console.error("Erro ao calcular mix de cancelamentos:", error);
+      return "0% Produtos | 0% Serviços";
+    }
+  };
+
+  // Encontra o cliente com maior valor total de cancelamentos
+  const getTopClientePorCancelamento = (data: any): string => {
+    if (!data) return "Nenhum cliente";
+    
+    try {
+      const cancelamentosPorCliente: { [cliente: string]: number } = {};
+      
+      // Processar saídas canceladas
+      const saidasCanceladas = data.saidas?.filter((item: any) => item.cancelada === "S") || [];
+      saidasCanceladas.forEach((saida: any) => {
+        const cliente = saida.nome_cliente;
+        cancelamentosPorCliente[cliente] = (cancelamentosPorCliente[cliente] || 0) + parseFloat(saida.valor);
+      });
+      
+      // Processar serviços cancelados
+      const servicosCancelados = data.servicos?.filter((item: any) => item.cancelada === "S") || [];
+      servicosCancelados.forEach((servico: any) => {
+        const cliente = servico.nome_cliente;
+        cancelamentosPorCliente[cliente] = (cancelamentosPorCliente[cliente] || 0) + parseFloat(servico.valor);
+      });
+      
+      // Se um cliente específico está selecionado, retornar apenas esse cliente
+      if (clienteSelecionado && cancelamentosPorCliente[clienteSelecionado]) {
+        return clienteSelecionado;
+      }
+      
+      // Encontrar o cliente com maior valor total
+      const clientes = Object.keys(cancelamentosPorCliente);
+      if (clientes.length === 0) return "Nenhum cliente";
+      
+      const topCliente = clientes.reduce((top, cliente) => 
+        cancelamentosPorCliente[cliente] > cancelamentosPorCliente[top] ? cliente : top
+      );
+      
+      return topCliente;
+    } catch (error) {
+      console.error("Erro ao calcular top cliente por cancelamento:", error);
+      return "Erro no cálculo";
+    }
+  };
+
   const handleMaximizeTopProdutos = () => {
     console.log("Maximizar card TOP 100 Produtos / Serviços");
   };
@@ -1090,22 +1153,37 @@ export default function DashboardFiscal() {
           }
         ];
 
-      case "Notas Canceladas":
+      case "Cancelamentos de Receita":
         return [
           { 
             title: "Valor Cancelado", 
             value: getFaturamentoValue(kpiSelecionado, data), 
-            tooltipText: "Valor total das notas canceladas (produtos + serviços)." 
+            tooltipText: "Valor total das receitas canceladas (produtos + serviços)." 
+          },
+          { 
+            title: "Cancelamento Médio", 
+            value: getCancelamentoMedio(data), 
+            tooltipText: "Valor médio por nota fiscal cancelada." 
           },
           { 
             title: "Nº de Cancelamentos", 
             value: getNumeroTransacoes(kpiSelecionado, data), 
-            tooltipText: "Quantidade total de notas canceladas." 
+            tooltipText: "Quantidade total de cancelamentos de receita." 
           },
           { 
             title: "% da Receita Bruta", 
             value: getPercentualCancelamentos(data), 
             tooltipText: "Percentual que os cancelamentos representam sobre a receita bruta total." 
+          },
+          { 
+            title: "Mix de Cancelamentos", 
+            value: getMixCancelamentos(data), 
+            tooltipText: "Composição percentual dos cancelamentos entre produtos e serviços." 
+          },
+          { 
+            title: "Top Cliente por Cancelamento", 
+            value: getTopClientePorCancelamento(data), 
+            tooltipText: "Cliente que acumulou o maior valor em cancelamentos de receita no período." 
           }
         ];
 
@@ -1201,7 +1279,7 @@ export default function DashboardFiscal() {
             </div>
             {/* Linha 2: Custos e Exceções */}
             <div className="flex items-center gap-4">
-              {["Compras e Aquisições", "Notas Canceladas"].map((kpi) => (
+              {["Compras e Aquisições", "Cancelamentos de Receita"].map((kpi) => (
                 <button
                   key={kpi}
                   className={`w-[220px] px-4 h-[40px] flex items-center justify-center rounded-md border border-neutral-700 text-sm font-semibold leading-tight hover:bg-[var(--color-neutral-700)] hover:text-white cursor-pointer transition-colors ${cairo.className} ${
