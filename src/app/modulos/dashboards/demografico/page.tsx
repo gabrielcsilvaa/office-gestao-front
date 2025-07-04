@@ -9,7 +9,6 @@ import GraficoCargo from "./components/grafico_cargo";
 import TabelaColaboradores from "./components/tabela_colaboradores";
 import Menu from "./components/menu";
 import React from "react";
-import Calendar from "@/components/calendar";
 import { gerarMesesEntreDatas } from "@/utils/formatadores";
 
 // Ajuste na função filtrarFuncionarios para maior flexibilidade
@@ -526,10 +525,7 @@ export default function Demografico() {
           onEndDateChange={handleEndDateChange}
         />
 
-        {/* <Calendar
-          onStartDateChange={handleStartDateChange}
-          onEndDateChange={handleEndDateChange}
-        /> */}
+      
       </div>
 
       <div className="h-px bg-gray-300 my-6"></div>
