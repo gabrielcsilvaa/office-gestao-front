@@ -48,11 +48,11 @@ export default function Card({ title, value, tooltipText, onClick }: CardProps) 
 
   return (
     <div
-      className="cursor-pointer py-2 px-4 flex flex-col w-full h-20 bg-white rounded-md shadow-md relative" 
+      className="cursor-pointer py-3 px-4 flex flex-col w-full min-h-[80px] bg-white rounded-md shadow-md relative" 
       onClick={onClick}
     >
       {tooltipText && (
-        <div ref={iconRef} className="absolute top-1 right-1 group">
+        <div ref={iconRef} className="absolute top-2 right-2 group">
           {" "}
           {/* Added ref */}
           <Image
@@ -64,21 +64,21 @@ export default function Card({ title, value, tooltipText, onClick }: CardProps) 
           />
           <div
             ref={tooltipRef}
-            className={`absolute bottom-full mb-1 w-max max-w-xs p-2 bg-black text-white text-xs rounded-md shadow-lg 
-                       opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-50 pointer-events-none 
-                       ${positionClass}`}
+            className={`absolute bottom-full mb-1 w-max p-2 bg-black text-white text-xs rounded-md shadow-lg 
+                       opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-[9999] pointer-events-none 
+                       whitespace-nowrap ${positionClass}`}
           >
             {tooltipText}
           </div>
         </div>
       )}
-      <div className="flex flex-col items-start justify-center flex-grow mt-1">
+      <div className="flex flex-col items-start justify-center flex-grow mt-1 pr-6">
         <span
-          className={`text-sm ${cairo.className} text-left text-gray-500`}
+          className={`text-sm ${cairo.className} text-left text-gray-500 leading-tight mb-1`}
         >
           {title}
         </span>
-        <span className={`text-lg ${cairo.className} block`}>{value}</span>
+        <span className={`text-lg ${cairo.className} block leading-tight font-semibold`}>{value}</span>
       </div>
     </div>
   );

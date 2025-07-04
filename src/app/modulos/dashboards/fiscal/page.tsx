@@ -24,7 +24,7 @@ export default function DashboardFiscal() {
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [kpiSelecionado, setKpiSelecionado] = useState("Total de Entradas");
+  const [kpiSelecionado, setKpiSelecionado] = useState("Receita Bruta Total");
   const [data, setData] = useState(null);
   const [fornecedorOptions, setFornecedorOptions] = useState<string[]>([]);
   const [clienteOptions, setClienteOptions] = useState<string[]>([]);
@@ -71,16 +71,16 @@ export default function DashboardFiscal() {
 
   // Define dinamicamente o rótulo do dropdown principal conforme o KPI selecionado
   const getClienteFornecedorLabel = (kpi: string) => {
-    // Fornecedor: dinheiro SAINDO da empresa (compras/entradas)
-    if (["Total de Entradas", "Compras"].includes(kpi)) {
+    // Fornecedor: dinheiro SAINDO da empresa (compras/aquisições)
+    if (["Compras e Aquisições"].includes(kpi)) {
       return "Fornecedor";
     }
-    // Cliente: dinheiro ENTRANDO na empresa (vendas/faturamento)
-    if (["Faturamento Total", "Vendas"].includes(kpi)) {
+    // Cliente: dinheiro ENTRANDO na empresa (vendas/receitas)
+    if (["Receita Bruta Total", "Vendas de Produtos"].includes(kpi)) {
       return "Cliente";
     }
-    // Para Serviços e Devoluções, usar ambos os contextos
-    if (["Serviços", "Devoluções"].includes(kpi)) {
+    // Para Serviços e Cancelamentos, usar ambos os contextos
+    if (["Serviços Prestados", "Notas Canceladas"].includes(kpi)) {
       return "Cliente / Fornecedor";
     }
     return "Cliente";
@@ -88,16 +88,16 @@ export default function DashboardFiscal() {
 
   // Para o título do card, versão plural
   const getClienteFornecedorLabelPlural = (kpi: string) => {
-    // Fornecedor: dinheiro SAINDO da empresa (compras/entradas)
-    if (["Total de Entradas", "Compras"].includes(kpi)) {
+    // Fornecedor: dinheiro SAINDO da empresa (compras/aquisições)
+    if (["Compras e Aquisições"].includes(kpi)) {
       return "Fornecedores";
     }
-    // Cliente: dinheiro ENTRANDO na empresa (vendas/faturamento)
-    if (["Faturamento Total", "Vendas"].includes(kpi)) {
+    // Cliente: dinheiro ENTRANDO na empresa (vendas/receitas)
+    if (["Receita Bruta Total", "Vendas de Produtos"].includes(kpi)) {
       return "Clientes";
     }
-    // Para Serviços e Devoluções, usar ambos os contextos
-    if (["Serviços", "Devoluções"].includes(kpi)) {
+    // Para Serviços e Cancelamentos, usar ambos os contextos
+    if (["Serviços Prestados", "Notas Canceladas"].includes(kpi)) {
       return "Clientes / Fornecedores";
     }
     return "Clientes";
@@ -105,16 +105,16 @@ export default function DashboardFiscal() {
   
   // Retorna as opções do dropdown conforme o KPI selecionado
   const getDropdownOptions = (): string[] => {
-    // Fornecedor: dinheiro SAINDO da empresa (compras/entradas)
-    if (["Total de Entradas", "Compras"].includes(kpiSelecionado)) {
+    // Fornecedor: dinheiro SAINDO da empresa (compras/aquisições)
+    if (["Compras e Aquisições"].includes(kpiSelecionado)) {
       return fornecedorOptions;
     }
-    // Cliente: dinheiro ENTRANDO na empresa (vendas/faturamento)
-    if (["Faturamento Total", "Vendas"].includes(kpiSelecionado)) {
+    // Cliente: dinheiro ENTRANDO na empresa (vendas/receitas)
+    if (["Receita Bruta Total", "Vendas de Produtos"].includes(kpiSelecionado)) {
       return clienteOptions;
     }
-    // Para Serviços e Devoluções, usar opções mistas com indicação do tipo
-    if (["Serviços", "Devoluções"].includes(kpiSelecionado)) {
+    // Para Serviços e Cancelamentos, usar opções mistas com indicação do tipo
+    if (["Serviços Prestados", "Notas Canceladas"].includes(kpiSelecionado)) {
       return opcoesMintas.map(opcao => `${opcao.value} (${opcao.type})`);
     }
     return [];
@@ -126,12 +126,11 @@ export default function DashboardFiscal() {
   // Define dinamicamente o título do card de evolução conforme o KPI selecionado
   const getEvolucaoTitle = (kpi: string) => {
     const titles: Record<string, string> = {
-      "Total de Entradas": "Evolução do Total de Entradas",
-      "Faturamento Total": "Evolução do Faturamento Total",
-      "Vendas": "Evolução das Vendas",
-      "Compras": "Evolução das Compras",
-      "Serviços": "Evolução dos Serviços",
-      "Devoluções": "Evolução das Devoluções"
+      "Compras e Aquisições": "Evolução de Compras e Aquisições",
+      "Receita Bruta Total": "Evolução da Receita Bruta Total", 
+      "Vendas de Produtos": "Evolução de Vendas de Produtos",
+      "Serviços Prestados": "Evolução de Serviços Prestados",
+      "Notas Canceladas": "Evolução de Notas Canceladas"
     };
     return titles[kpi] || `Evolução de ${kpi}`;
   };
@@ -139,18 +138,45 @@ export default function DashboardFiscal() {
   // Define dinamicamente o título do card TOP 100 conforme o KPI selecionado
   const getTopProdutosServicosTitle = (kpi: string) => {
     // Produtos: movimentação de mercadorias físicas
-    if (["Vendas", "Compras", "Total de Entradas", "Devoluções"].includes(kpi)) {
+    if (["Vendas de Produtos", "Compras e Aquisições", "Notas Canceladas"].includes(kpi)) {
       return "TOP 100 Produtos";
     }
     // Serviços: prestação de atividades
-    if (["Serviços"].includes(kpi)) {
+    if (["Serviços Prestados"].includes(kpi)) {
       return "TOP 100 Serviços";
     }
-    // Ambos: faturamento total engloba produtos e serviços
-    if (["Faturamento Total"].includes(kpi)) {
+    // Ambos: receita bruta total engloba produtos e serviços
+    if (["Receita Bruta Total"].includes(kpi)) {
       return "TOP 100 Produtos / Serviços";
     }
     return "TOP 100 Produtos / Serviços";
+  };
+
+  // Funções para título e tooltip dinâmicos do card de ticket médio/compra média
+  const getTicketMedioTitle = (kpi: string): string => {
+    switch (kpi) {
+      case "Compras e Aquisições":
+        return "Compra Média";
+      case "Vendas de Produtos":
+      case "Serviços Prestados":
+      case "Receita Bruta Total":
+        return "Ticket Médio";
+      default:
+        return "Ticket Médio";
+    }
+  };
+
+  const getTicketMedioTooltip = (kpi: string): string => {
+    switch (kpi) {
+      case "Compras e Aquisições":
+        return "Valor médio por pedido de compra no período analisado.";
+      case "Vendas de Produtos":
+      case "Serviços Prestados":
+      case "Receita Bruta Total":
+        return "Valor médio por transação de receita no período analisado.";
+      default:
+        return "Valor médio por transação no período analisado.";
+    }
   };
 
   // Calcula dinamicamente o ticket médio conforme o KPI selecionado
@@ -162,7 +188,7 @@ export default function DashboardFiscal() {
       let quantidade = 0;
 
       switch (kpi) {
-        case "Vendas":
+        case "Vendas de Produtos":
           // Apenas saídas não canceladas
           if (data.saidas && Array.isArray(data.saidas)) {
             let saidasValidas = data.saidas.filter((saida: SaidaData) => saida.cancelada === "N");
@@ -177,7 +203,7 @@ export default function DashboardFiscal() {
           }
           break;
 
-        case "Serviços":
+        case "Serviços Prestados":
           // Apenas serviços não cancelados
           if (data.servicos && Array.isArray(data.servicos)) {
             let servicosValidos = data.servicos.filter((servico: ServicoData) => servico.cancelada === "N");
@@ -193,7 +219,7 @@ export default function DashboardFiscal() {
           }
           break;
 
-        case "Faturamento Total":
+        case "Receita Bruta Total":
           // Saídas + Serviços não cancelados
           if (data.saidas && Array.isArray(data.saidas)) {
             let saidasValidas = data.saidas.filter((saida: SaidaData) => saida.cancelada === "N");
@@ -219,8 +245,7 @@ export default function DashboardFiscal() {
           }
           break;
 
-        case "Compras":
-        case "Total de Entradas":
+        case "Compras e Aquisições":
           // Todas as entradas
           if (data.entradas && Array.isArray(data.entradas)) {
             let entradasValidas = data.entradas;
@@ -235,14 +260,14 @@ export default function DashboardFiscal() {
           }
           break;
 
-        case "Devoluções":
-          // Para devoluções, considerar transações canceladas como proxy
+        case "Notas Canceladas":
+          // Para cancelamentos, considerar transações canceladas
           if (clienteSelecionado) {
             const clienteLimpo = clienteSelecionado.replace(/ \((Cliente|Fornecedor)\)$/, '');
             const tipoSelecionado = clienteSelecionado.includes('(Fornecedor)') ? 'fornecedor' : 'cliente';
             
             if (tipoSelecionado === 'cliente') {
-              // Buscar devoluções de clientes (saídas e serviços cancelados)
+              // Buscar cancelamentos de clientes (saídas e serviços cancelados)
               if (data.saidas && Array.isArray(data.saidas)) {
                 const saidasCanceladas = data.saidas
                   .filter((saida: SaidaData) => saida.cancelada === "S" && saida.nome_cliente === clienteLimpo);
@@ -256,11 +281,11 @@ export default function DashboardFiscal() {
                 quantidade += servicosCancelados.length;
               }
             } else {
-              // Para fornecedor, não temos dados específicos de devoluções de compras
+              // Para fornecedor, não temos dados específicos de cancelamentos de compras
               return "R$ 0,00";
             }
           } else {
-            // Todas as devoluções (saídas e serviços cancelados)
+            // Todos os cancelamentos (saídas e serviços cancelados)
             if (data.saidas && Array.isArray(data.saidas)) {
               const saidasCanceladas = data.saidas.filter((saida: SaidaData) => saida.cancelada === "S");
               total += saidasCanceladas.reduce((acc: number, saida: SaidaData) => acc + parseFloat(saida.valor || "0"), 0);
@@ -295,31 +320,30 @@ export default function DashboardFiscal() {
   // Define dinamicamente o card de faturamento/gastos conforme o KPI selecionado
   const getFaturamentoCardInfo = (kpi: string) => {
     switch (kpi) {
-      case "Vendas":
-      case "Serviços":
-      case "Faturamento Total":
+      case "Vendas de Produtos":
+      case "Serviços Prestados":
+      case "Receita Bruta Total":
         return {
-          title: "Faturamento",
-          tooltipText: "Total de receitas no período analisado."
+          title: "Receita Bruta",
+          tooltipText: "Total de receitas brutas no período analisado."
         };
       
-      case "Compras":
-      case "Total de Entradas":
+      case "Compras e Aquisições":
         return {
           title: "Total de Gastos",
           tooltipText: "Total de gastos com fornecedores no período."
         };
       
-      case "Devoluções":
+      case "Notas Canceladas":
         return {
-          title: "Valor Devolvido",
-          tooltipText: "Total de valores devolvidos aos clientes."
+          title: "Valor Cancelado",
+          tooltipText: "Total de valores de notas fiscais canceladas."
         };
       
       default:
         return {
-          title: "Faturamento",
-          tooltipText: "Total de receitas no período analisado."
+          title: "Receita Bruta",
+          tooltipText: "Total de receitas brutas no período analisado."
         };
     }
   };
@@ -332,7 +356,7 @@ export default function DashboardFiscal() {
       let total = 0;
 
       switch (kpi) {
-        case "Vendas":
+        case "Vendas de Produtos":
           // Apenas saídas não canceladas
           if (data.saidas && Array.isArray(data.saidas)) {
             let saidasValidas = data.saidas.filter((saida: SaidaData) => saida.cancelada === "N");
@@ -346,7 +370,7 @@ export default function DashboardFiscal() {
           }
           break;
 
-        case "Serviços":
+        case "Serviços Prestados":
           // Apenas serviços não cancelados
           if (data.servicos && Array.isArray(data.servicos)) {
             let servicosValidos = data.servicos.filter((servico: ServicoData) => servico.cancelada === "N");
@@ -361,7 +385,7 @@ export default function DashboardFiscal() {
           }
           break;
 
-        case "Faturamento Total":
+        case "Receita Bruta Total":
           // Saídas + Serviços não cancelados
           if (data.saidas && Array.isArray(data.saidas)) {
             let saidasValidas = data.saidas.filter((saida: SaidaData) => saida.cancelada === "N");
@@ -385,8 +409,7 @@ export default function DashboardFiscal() {
           }
           break;
 
-        case "Compras":
-        case "Total de Entradas":
+        case "Compras e Aquisições":
           // Todas as entradas
           if (data.entradas && Array.isArray(data.entradas)) {
             let entradasValidas = data.entradas;
@@ -400,14 +423,14 @@ export default function DashboardFiscal() {
           }
           break;
 
-        case "Devoluções":
-          // Para devoluções, considerar transações canceladas como proxy
+        case "Notas Canceladas":
+          // Para cancelamentos, considerar transações canceladas
           if (clienteSelecionado) {
             const clienteLimpo = clienteSelecionado.replace(/ \((Cliente|Fornecedor)\)$/, '');
             const tipoSelecionado = clienteSelecionado.includes('(Fornecedor)') ? 'fornecedor' : 'cliente';
             
             if (tipoSelecionado === 'cliente') {
-              // Buscar devoluções de clientes (saídas e serviços cancelados)
+              // Buscar cancelamentos de clientes (saídas e serviços cancelados)
               if (data.saidas && Array.isArray(data.saidas)) {
                 const saidasCanceladas = data.saidas
                   .filter((saida: SaidaData) => saida.cancelada === "S" && saida.nome_cliente === clienteLimpo);
@@ -419,9 +442,9 @@ export default function DashboardFiscal() {
                 total += servicosCancelados.reduce((acc: number, servico: ServicoData) => acc + parseFloat(servico.valor || "0"), 0);
               }
             }
-            // Para fornecedor, não temos dados específicos de devoluções de compras
+            // Para fornecedor, não temos dados específicos de cancelamentos de compras
           } else {
-            // Todas as devoluções (saídas e serviços cancelados)
+            // Todos os cancelamentos (saídas e serviços cancelados)
             if (data.saidas && Array.isArray(data.saidas)) {
               const saidasCanceladas = data.saidas.filter((saida: SaidaData) => saida.cancelada === "S");
               total += saidasCanceladas.reduce((acc: number, saida: SaidaData) => acc + parseFloat(saida.valor || "0"), 0);
@@ -574,7 +597,7 @@ export default function DashboardFiscal() {
     setProdutoSelecionado("");
     setStartDate(null);
     setEndDate(null);
-    setKpiSelecionado("Total de Entradas");
+    setKpiSelecionado("Compras e Aquisições");
   };
 
   const handleMaximizeEvolucao = () => {
@@ -595,32 +618,259 @@ export default function DashboardFiscal() {
     "PÃO DE QUEIJO (Unidade)"
   ];
 
-  // Filtrar cards baseado no KPI selecionado
+  const getPercentualCancelamentos = (data: any) => {
+    if (!data) return "0,0%";
+    
+    // Valor total cancelado
+    const valorCancelado = getFaturamentoValueNumeric("Notas Canceladas", data);
+    
+    // Valor total da receita bruta (incluindo canceladas para calcular o percentual correto)
+    const valorSaidasTotal = data.saidas?.reduce((total: number, item: any) => total + parseFloat(item.valor), 0) || 0;
+    const valorServicosTotal = data.servicos?.reduce((total: number, item: any) => total + parseFloat(item.valor), 0) || 0;
+    const receitaBrutaComCanceladas = valorSaidasTotal + valorServicosTotal;
+    
+    if (receitaBrutaComCanceladas === 0) return "0,0%";
+    
+    const percentual = (valorCancelado / receitaBrutaComCanceladas) * 100;
+    return `${percentual.toFixed(1)}%`;
+  };
+
+  const getFaturamentoValueNumeric = (kpi: string, data: any): number => {
+    if (!data) return 0;
+    
+    switch (kpi) {
+      case "Receita Bruta Total":
+        const saidasTotal = data.saidas
+          ?.filter((item: any) => item.cancelada !== "S")
+          ?.reduce((total: number, item: any) => total + parseFloat(item.valor), 0) || 0;
+        const servicosTotal = data.servicos
+          ?.filter((item: any) => item.cancelada !== "S")
+          ?.reduce((total: number, item: any) => total + parseFloat(item.valor), 0) || 0;
+        return saidasTotal + servicosTotal;
+      
+      case "Vendas de Produtos":
+        return data.saidas
+          ?.filter((item: any) => item.cancelada !== "S")
+          ?.reduce((total: number, item: any) => total + parseFloat(item.valor), 0) || 0;
+      
+      case "Serviços Prestados":
+        return data.servicos
+          ?.filter((item: any) => item.cancelada !== "S")
+          ?.reduce((total: number, item: any) => total + parseFloat(item.valor), 0) || 0;
+      
+      case "Compras e Aquisições":
+        return data.entradas
+          ?.reduce((total: number, item: any) => total + parseFloat(item.valor), 0) || 0;
+      
+      case "Notas Canceladas":
+        const canceladasSaidas = data.saidas
+          ?.filter((item: any) => item.cancelada === "S")
+          ?.reduce((total: number, item: any) => total + parseFloat(item.valor), 0) || 0;
+        const canceladasServicos = data.servicos
+          ?.filter((item: any) => item.cancelada === "S")
+          ?.reduce((total: number, item: any) => total + parseFloat(item.valor), 0) || 0;
+        return canceladasSaidas + canceladasServicos;
+      
+      default:
+        return 0;
+    }
+  };
+  const getNumeroTransacoes = (kpi: string, data: any) => {
+    if (!data) return "0";
+    
+    switch (kpi) {
+      case "Receita Bruta Total":
+        // Contar transações de saídas + serviços (não canceladas)
+        const saidasCount = data.saidas?.filter((item: any) => item.cancelada !== "S").length || 0;
+        const servicosCount = data.servicos?.filter((item: any) => item.cancelada !== "S").length || 0;
+        return (saidasCount + servicosCount).toLocaleString();
+      
+      case "Vendas de Produtos":
+        return data.saidas?.filter((item: any) => item.cancelada !== "S").length?.toLocaleString() || "0";
+      
+      case "Serviços Prestados":
+        return data.servicos?.filter((item: any) => item.cancelada !== "S").length?.toLocaleString() || "0";
+      
+      case "Compras e Aquisições":
+        return data.entradas?.length?.toLocaleString() || "0";
+      
+      case "Notas Canceladas":
+        const canceladasSaidas = data.saidas?.filter((item: any) => item.cancelada === "S").length || 0;
+        const canceladasServicos = data.servicos?.filter((item: any) => item.cancelada === "S").length || 0;
+        return (canceladasSaidas + canceladasServicos).toLocaleString();
+      
+      default:
+        return "0";
+    }
+  };
+
+  const getMixReceita = (data: any) => {
+    if (!data) return { produtos: 0, servicos: 0 };
+    
+    const valorSaidas = data.saidas
+      ?.filter((item: any) => item.cancelada !== "S")
+      ?.reduce((total: number, item: any) => total + parseFloat(item.valor), 0) || 0;
+    
+    const valorServicos = data.servicos
+      ?.filter((item: any) => item.cancelada !== "S")
+      ?.reduce((total: number, item: any) => total + parseFloat(item.valor), 0) || 0;
+    
+    const total = valorSaidas + valorServicos;
+    
+    if (total === 0) return { produtos: 0, servicos: 0 };
+    
+    return {
+      produtos: Math.round((valorSaidas / total) * 100),
+      servicos: Math.round((valorServicos / total) * 100)
+    };
+  };
+
+  const getValorComponenteReceita = (tipo: 'produtos' | 'servicos', data: any) => {
+    if (!data) return "R$ 0,00";
+    
+    if (tipo === 'produtos') {
+      const valor = data.saidas
+        ?.filter((item: any) => item.cancelada !== "S")
+        ?.reduce((total: number, item: any) => total + parseFloat(item.valor), 0) || 0;
+      return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    } else {
+      const valor = data.servicos
+        ?.filter((item: any) => item.cancelada !== "S")
+        ?.reduce((total: number, item: any) => total + parseFloat(item.valor), 0) || 0;
+      return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+  };
+
+  // Filtrar cards baseado no KPI selecionado - Nova Arquitetura Fiscal
   const getCardsData = () => {
     const faturamentoCardInfo = getFaturamentoCardInfo(kpiSelecionado);
     
-    const baseCards = [
-      { 
-        title: faturamentoCardInfo.title, 
-        value: getFaturamentoValue(kpiSelecionado, data), 
-        tooltipText: faturamentoCardInfo.tooltipText 
-      },
-      { title: "Entradas", value: "R$ 495.542.800,00", tooltipText: "Total de entradas fiscais no período." },
-      { title: "Carga Tributária", value: "7,31%", tooltipText: "Percentual de impostos sobre o faturamento total." },
-      { title: "Imposto Devido", value: "R$ 45.330,00", tooltipText: "Valor total de impostos a pagar no período." },
-      { title: "A Recuperar", value: "R$ 846.090,00", tooltipText: "Valor de créditos tributários a recuperar." }
-    ];
+    // Estrutura específica para cada KPI, focando apenas em métricas calculáveis
+    switch (kpiSelecionado) {
+      case "Receita Bruta Total":
+        const mixReceita = getMixReceita(data);
+        return [
+          { 
+            title: "Receita Bruta Total", 
+            value: getFaturamentoValue(kpiSelecionado, data), 
+            tooltipText: "Valor total da receita (produtos + serviços) no período selecionado." 
+          },
+          { 
+            title: "Ticket Médio", 
+            value: getTicketMedio(kpiSelecionado, data), 
+            tooltipText: "Valor médio por transação de receita (Total ÷ Nº de transações)." 
+          },
+          { 
+            title: "Nº de Transações", 
+            value: getNumeroTransacoes(kpiSelecionado, data), 
+            tooltipText: "Quantidade total de notas de venda e serviços emitidas." 
+          },
+          { 
+            title: "Mix de Receita", 
+            value: `${mixReceita.produtos}% Produtos | ${mixReceita.servicos}% Serviços`, 
+            tooltipText: "Composição percentual da receita entre produtos e serviços." 
+          },
+          { 
+            title: "Vendas de Produtos", 
+            value: getValorComponenteReceita('produtos', data), 
+            tooltipText: "Valor total das vendas de produtos (componente da receita bruta)." 
+          },
+          { 
+            title: "Serviços Prestados", 
+            value: getValorComponenteReceita('servicos', data), 
+            tooltipText: "Valor total dos serviços prestados (componente da receita bruta)." 
+          }
+        ];
 
-    // Para Devoluções, não mostrar o card de Ticket Médio
-    if (kpiSelecionado === "Devoluções") {
-      return baseCards;
+      case "Vendas de Produtos":
+        return [
+          { 
+            title: "Vendas de Produtos", 
+            value: getFaturamentoValue(kpiSelecionado, data), 
+            tooltipText: "Valor total das vendas de produtos no período." 
+          },
+          { 
+            title: "Ticket Médio", 
+            value: getTicketMedio(kpiSelecionado, data), 
+            tooltipText: "Valor médio por nota de venda de produto." 
+          },
+          { 
+            title: "Nº de Notas", 
+            value: getNumeroTransacoes(kpiSelecionado, data), 
+            tooltipText: "Quantidade de notas fiscais de venda emitidas." 
+          },
+          { 
+            title: "% da Receita Total", 
+            value: `${getMixReceita(data).produtos}%`, 
+            tooltipText: "Percentual que as vendas de produtos representam da receita total." 
+          }
+        ];
+
+      case "Serviços Prestados":
+        return [
+          { 
+            title: "Serviços Prestados", 
+            value: getFaturamentoValue(kpiSelecionado, data), 
+            tooltipText: "Valor total dos serviços prestados no período." 
+          },
+          { 
+            title: "Ticket Médio", 
+            value: getTicketMedio(kpiSelecionado, data), 
+            tooltipText: "Valor médio por nota de serviço prestado." 
+          },
+          { 
+            title: "Nº de Notas", 
+            value: getNumeroTransacoes(kpiSelecionado, data), 
+            tooltipText: "Quantidade de notas fiscais de serviço emitidas." 
+          },
+          { 
+            title: "% da Receita Total", 
+            value: `${getMixReceita(data).servicos}%`, 
+            tooltipText: "Percentual que os serviços representam da receita total." 
+          }
+        ];
+
+      case "Compras e Aquisições":
+        return [
+          { 
+            title: "Compras e Aquisições", 
+            value: getFaturamentoValue(kpiSelecionado, data), 
+            tooltipText: "Valor total das compras e aquisições no período." 
+          },
+          { 
+            title: "Compra Média", 
+            value: getTicketMedio(kpiSelecionado, data), 
+            tooltipText: "Valor médio por nota de entrada/compra." 
+          },
+          { 
+            title: "Nº de Notas", 
+            value: getNumeroTransacoes(kpiSelecionado, data), 
+            tooltipText: "Quantidade de notas fiscais de entrada recebidas." 
+          }
+        ];
+
+      case "Notas Canceladas":
+        return [
+          { 
+            title: "Valor Cancelado", 
+            value: getFaturamentoValue(kpiSelecionado, data), 
+            tooltipText: "Valor total das notas canceladas (produtos + serviços)." 
+          },
+          { 
+            title: "Nº de Cancelamentos", 
+            value: getNumeroTransacoes(kpiSelecionado, data), 
+            tooltipText: "Quantidade total de notas canceladas." 
+          },
+          { 
+            title: "% da Receita Bruta", 
+            value: getPercentualCancelamentos(data), 
+            tooltipText: "Percentual que os cancelamentos representam sobre a receita bruta total." 
+          }
+        ];
+
+      default:
+        return [];
     }
-
-    // Para todos os outros KPIs, incluir o Ticket Médio no início
-    return [
-      { title: "Ticket Médio", value: getTicketMedio(kpiSelecionado, data), tooltipText: "Valor médio por transação no período analisado." },
-      ...baseCards
-    ];
   };
 
   const cardsData = getCardsData();
@@ -702,10 +952,11 @@ export default function DashboardFiscal() {
           />
           <div className="w-[1px] h-[30px] bg-[#373A40]" />
           
-          {/* KPIs - 2 linhas de 3 colunas alinhados à direita */}
+          {/* KPIs - 2 linhas seguindo hierarquia fiscal: Receita → Componentes → Custos → Exceções */}
           <div className="flex flex-col gap-2 ml-auto">
+            {/* Linha 1: Receita Total e seus Componentes */}
             <div className="flex items-center gap-4">
-              {["Total de Entradas", "Faturamento Total", "Vendas"].map((kpi) => (
+              {["Receita Bruta Total", "Vendas de Produtos", "Serviços Prestados"].map((kpi) => (
                 <button
                   key={kpi}
                   className={`w-[220px] px-4 h-[40px] flex items-center justify-center rounded-md border border-neutral-700 text-sm font-semibold leading-tight hover:bg-[var(--color-neutral-700)] hover:text-white cursor-pointer transition-colors ${cairo.className} ${
@@ -719,8 +970,9 @@ export default function DashboardFiscal() {
                 </button>
               ))}
             </div>
+            {/* Linha 2: Custos e Exceções */}
             <div className="flex items-center gap-4">
-              {["Compras", "Serviços", "Devoluções"].map((kpi) => (
+              {["Compras e Aquisições", "Notas Canceladas"].map((kpi) => (
                 <button
                   key={kpi}
                   className={`w-[220px] px-4 h-[40px] flex items-center justify-center rounded-md border border-neutral-700 text-sm font-semibold leading-tight hover:bg-[var(--color-neutral-700)] hover:text-white cursor-pointer transition-colors ${cairo.className} ${
@@ -733,6 +985,8 @@ export default function DashboardFiscal() {
                   {kpi}
                 </button>
               ))}
+              {/* Botão vazio para manter o layout */}
+              <div className="w-[220px]"></div>
             </div>
           </div>
         </div>
@@ -748,6 +1002,7 @@ export default function DashboardFiscal() {
                 onValueChange={setClienteSelecionado}
                 isOpen={openDropdown === 'cliente'}
                 onToggle={() => handleToggleDropdown('cliente')}
+                areDatesSelected={startDate !== null && endDate !== null}
             />
             <Dropdown
                 options={produtoOptions}
@@ -758,6 +1013,7 @@ export default function DashboardFiscal() {
                 isOpen={openDropdown === 'produto'}
                 onToggle={() => handleToggleDropdown('produto')}
                 disabled={true}
+                areDatesSelected={startDate !== null && endDate !== null}
             />
           </div>
           <Calendar

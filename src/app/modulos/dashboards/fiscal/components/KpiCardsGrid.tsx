@@ -28,7 +28,7 @@ const KpiCardsGrid: React.FC<KpiCardsGridProps> = ({ cardsData }) => {
   const gridColsClass = getGridCols(cardsData.length);
 
   return (
-    <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ${gridColsClass} gap-6 mt-4`}>
+    <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ${gridColsClass} gap-6 mt-4 auto-rows-fr`}>
       {cardsData.map((card, index) => (
         <Card key={index} title={card.title} value={card.value} tooltipText={card.tooltipText} />
       ))}
