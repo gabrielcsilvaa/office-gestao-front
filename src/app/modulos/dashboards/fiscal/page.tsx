@@ -1007,6 +1007,109 @@ export default function DashboardFiscal() {
     }
   };
 
+  // Função auxiliar: Número de Fornecedores Únicos (NOVA - Diversificação)
+  const getNumeroFornecedoresUnicos = (data: any): string => {
+    if (!data || !data.entradas || !Array.isArray(data.entradas)) {
+      return "0";
+    }
+
+    try {
+      let entradasValidas = data.entradas;
+      
+      // Filtrar por fornecedor específico se selecionado
+      if (clienteSelecionado) {
+        entradasValidas = entradasValidas.filter((entrada: EntradaData) => entrada.nome_fornecedor === clienteSelecionado);
+      }
+      
+      const fornecedoresUnicos = new Set(entradasValidas.map((entrada: EntradaData) => entrada.nome_fornecedor));
+      return fornecedoresUnicos.size.toString();
+    } catch (error) {
+      console.error("Erro ao calcular número de fornecedores únicos:", error);
+      return "0";
+    }
+  };
+
+  // Função auxiliar: % do Fornecedor Selecionado (NOVA - Dependência)
+  const getPercentualFornecedorSelecionado = (data: any): string => {
+    if (!data || !data.entradas || !Array.isArray(data.entradas) || !clienteSelecionado) {
+      return "0%";
+    }
+
+    try {
+      const totalGeral = data.entradas.reduce((acc: number, entrada: EntradaData) => acc + parseFloat(entrada.valor || "0"), 0);
+      
+      if (totalGeral === 0) return "0%";
+      
+      const totalFornecedor = data.entradas
+        .filter((entrada: EntradaData) => entrada.nome_fornecedor === clienteSelecionado)
+        .reduce((acc: number, entrada: EntradaData) => acc + parseFloat(entrada.valor || "0"), 0);
+      
+      const percentual = (totalFornecedor / totalGeral) * 100;
+      return `${percentual.toFixed(1)}%`;
+    } catch (error) {
+      console.error("Erro ao calcular percentual do fornecedor:", error);
+      return "0%";
+    }
+  };
+
+  // Função auxiliar: % Top Fornecedor (quando nenhum fornecedor específico selecionado)
+  const getPercentualTopFornecedor = (data: any): string => {
+    if (!data || !data.entradas || !Array.isArray(data.entradas)) {
+      return "0%";
+    }
+
+    try {
+      const totalGeral = data.entradas.reduce((acc: number, entrada: EntradaData) => acc + parseFloat(entrada.valor || "0"), 0);
+      
+      if (totalGeral === 0) return "0%";
+      
+      // Agrupar por fornecedor e calcular totais
+      const fornecedorTotais = data.entradas.reduce((acc: { [key: string]: number }, entrada: EntradaData) => {
+        const fornecedor = entrada.nome_fornecedor;
+        acc[fornecedor] = (acc[fornecedor] || 0) + parseFloat(entrada.valor || "0");
+        return acc;
+      }, {});
+      
+      // Encontrar o fornecedor com maior valor
+      const valores = Object.values(fornecedorTotais) as number[];
+      const maiorValor = Math.max(...valores);
+      const percentual = (maiorValor / totalGeral) * 100;
+      
+      return `${percentual.toFixed(1)}%`;
+    } catch (error) {
+      console.error("Erro ao calcular percentual do top fornecedor:", error);
+      return "0%";
+    }
+  };
+
+  // Função auxiliar: Maior Compra Individual (NOVA - Controle de Outliers)
+  const getMaiorCompraIndividual = (data: any): string => {
+    if (!data || !data.entradas || !Array.isArray(data.entradas)) {
+      return "R$ 0,00";
+    }
+
+    try {
+      let entradasValidas = data.entradas;
+      
+      // Filtrar por fornecedor específico se selecionado
+      if (clienteSelecionado) {
+        entradasValidas = entradasValidas.filter((entrada: EntradaData) => entrada.nome_fornecedor === clienteSelecionado);
+      }
+      
+      if (entradasValidas.length === 0) return "R$ 0,00";
+      
+      const maiorValor = Math.max(...entradasValidas.map((entrada: EntradaData) => parseFloat(entrada.valor || "0")));
+      return new Intl.NumberFormat('pt-BR', { 
+        style: 'currency', 
+        currency: 'BRL',
+        minimumFractionDigits: 2 
+      }).format(maiorValor);
+    } catch (error) {
+      console.error("Erro ao calcular maior compra individual:", error);
+      return "R$ 0,00";
+    }
+  };
+
   const handleMaximizeTopProdutos = () => {
     console.log("Maximizar card TOP 100 Produtos / Serviços");
   };
@@ -1135,6 +1238,9 @@ export default function DashboardFiscal() {
         ];
 
       case "Compras e Aquisições":
+        // Hierarquia Fiscal Estratégica - 6 Cards: Performance + Análise de Risco
+        // Linha 1: Performance da Operação de Compras (Total, Eficiência, Volume)
+        // Linha 2: Análise Estratégica de Fornecedores e Controle de Risco
         return [
           { 
             title: "Compras e Aquisições", 
@@ -1150,6 +1256,23 @@ export default function DashboardFiscal() {
             title: "Nº de Notas", 
             value: getNumeroTransacoes(kpiSelecionado, data), 
             tooltipText: "Quantidade de notas fiscais de entrada recebidas." 
+          },
+          { 
+            title: "Nº de Fornecedores Únicos", 
+            value: getNumeroFornecedoresUnicos(data), 
+            tooltipText: "Quantidade de fornecedores distintos dos quais a empresa comprou no período. Maior diversificação = menor risco." 
+          },
+          { 
+            title: clienteSelecionado ? "% do Fornecedor Selecionado" : "% Top Fornecedor", 
+            value: clienteSelecionado ? getPercentualFornecedorSelecionado(data) : getPercentualTopFornecedor(data), 
+            tooltipText: clienteSelecionado 
+              ? "Percentual que as compras deste fornecedor representam do total. Mede dependência e risco de concentração." 
+              : "Percentual que o maior fornecedor representa no total de compras. Indica nível de concentração e dependência."
+          },
+          { 
+            title: "Maior Compra Individual", 
+            value: getMaiorCompraIndividual(data), 
+            tooltipText: "Valor da maior nota fiscal de entrada individual. Útil para identificar outliers, grandes projetos ou possíveis erros." 
           }
         ];
 
