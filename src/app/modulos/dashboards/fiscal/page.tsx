@@ -621,12 +621,20 @@ export default function DashboardFiscal() {
   const getPercentualCancelamentos = (data: any) => {
     if (!data) return "0,0%";
     
-    // Valor total cancelado
+    // Valor total cancelado (já considera o filtro de cliente)
     const valorCancelado = getFaturamentoValueNumeric("Notas Canceladas", data);
     
-    // Valor total da receita bruta (incluindo canceladas para calcular o percentual correto)
-    const valorSaidasTotal = data.saidas?.reduce((total: number, item: any) => total + parseFloat(item.valor), 0) || 0;
-    const valorServicosTotal = data.servicos?.reduce((total: number, item: any) => total + parseFloat(item.valor), 0) || 0;
+    // Valor total da receita bruta (incluindo canceladas, considerando filtro de cliente)
+    let saidasTotal = data.saidas || [];
+    let servicosTotal = data.servicos || [];
+    
+    if (clienteSelecionado) {
+      saidasTotal = saidasTotal.filter((saida: any) => saida.nome_cliente === clienteSelecionado);
+      servicosTotal = servicosTotal.filter((servico: any) => servico.nome_cliente === clienteSelecionado);
+    }
+    
+    const valorSaidasTotal = saidasTotal.reduce((total: number, item: any) => total + parseFloat(item.valor), 0);
+    const valorServicosTotal = servicosTotal.reduce((total: number, item: any) => total + parseFloat(item.valor), 0);
     const receitaBrutaComCanceladas = valorSaidasTotal + valorServicosTotal;
     
     if (receitaBrutaComCanceladas === 0) return "0,0%";
@@ -640,64 +648,121 @@ export default function DashboardFiscal() {
     
     switch (kpi) {
       case "Receita Bruta Total":
-        const saidasTotal = data.saidas
-          ?.filter((item: any) => item.cancelada !== "S")
-          ?.reduce((total: number, item: any) => total + parseFloat(item.valor), 0) || 0;
-        const servicosTotal = data.servicos
-          ?.filter((item: any) => item.cancelada !== "S")
-          ?.reduce((total: number, item: any) => total + parseFloat(item.valor), 0) || 0;
+        let saidasFiltradas = data.saidas?.filter((item: any) => item.cancelada !== "S") || [];
+        let servicosFiltrados = data.servicos?.filter((item: any) => item.cancelada !== "S") || [];
+        
+        if (clienteSelecionado) {
+          saidasFiltradas = saidasFiltradas.filter((saida: any) => saida.nome_cliente === clienteSelecionado);
+          servicosFiltrados = servicosFiltrados.filter((servico: any) => servico.nome_cliente === clienteSelecionado);
+        }
+        
+        const saidasTotal = saidasFiltradas.reduce((total: number, item: any) => total + parseFloat(item.valor), 0);
+        const servicosTotal = servicosFiltrados.reduce((total: number, item: any) => total + parseFloat(item.valor), 0);
         return saidasTotal + servicosTotal;
       
       case "Vendas de Produtos":
-        return data.saidas
-          ?.filter((item: any) => item.cancelada !== "S")
-          ?.reduce((total: number, item: any) => total + parseFloat(item.valor), 0) || 0;
+        let saidasProdutos = data.saidas?.filter((item: any) => item.cancelada !== "S") || [];
+        if (clienteSelecionado) {
+          saidasProdutos = saidasProdutos.filter((saida: any) => saida.nome_cliente === clienteSelecionado);
+        }
+        return saidasProdutos.reduce((total: number, item: any) => total + parseFloat(item.valor), 0);
       
       case "Serviços Prestados":
-        return data.servicos
-          ?.filter((item: any) => item.cancelada !== "S")
-          ?.reduce((total: number, item: any) => total + parseFloat(item.valor), 0) || 0;
+        let servicosPresados = data.servicos?.filter((item: any) => item.cancelada !== "S") || [];
+        if (clienteSelecionado) {
+          servicosPresados = servicosPresados.filter((servico: any) => servico.nome_cliente === clienteSelecionado);
+        }
+        return servicosPresados.reduce((total: number, item: any) => total + parseFloat(item.valor), 0);
       
       case "Compras e Aquisições":
-        return data.entradas
-          ?.reduce((total: number, item: any) => total + parseFloat(item.valor), 0) || 0;
+        let entradasFiltradas = data.entradas || [];
+        if (clienteSelecionado) {
+          entradasFiltradas = entradasFiltradas.filter((entrada: any) => entrada.nome_fornecedor === clienteSelecionado);
+        }
+        return entradasFiltradas.reduce((total: number, item: any) => total + parseFloat(item.valor), 0);
       
       case "Notas Canceladas":
-        const canceladasSaidas = data.saidas
-          ?.filter((item: any) => item.cancelada === "S")
-          ?.reduce((total: number, item: any) => total + parseFloat(item.valor), 0) || 0;
-        const canceladasServicos = data.servicos
-          ?.filter((item: any) => item.cancelada === "S")
-          ?.reduce((total: number, item: any) => total + parseFloat(item.valor), 0) || 0;
-        return canceladasSaidas + canceladasServicos;
+        let canceladasSaidas = data.saidas?.filter((item: any) => item.cancelada === "S") || [];
+        let canceladasServicos = data.servicos?.filter((item: any) => item.cancelada === "S") || [];
+        
+        if (clienteSelecionado) {
+          const clienteLimpo = clienteSelecionado.replace(/ \((Cliente|Fornecedor)\)$/, '');
+          const tipoSelecionado = clienteSelecionado.includes('(Fornecedor)') ? 'fornecedor' : 'cliente';
+          
+          if (tipoSelecionado === 'cliente') {
+            canceladasSaidas = canceladasSaidas.filter((saida: any) => saida.nome_cliente === clienteLimpo);
+            canceladasServicos = canceladasServicos.filter((servico: any) => servico.nome_cliente === clienteLimpo);
+          } else {
+            // Para fornecedores, não temos cancelamentos de compras
+            return 0;
+          }
+        }
+        
+        const valorCanceladoSaidas = canceladasSaidas.reduce((total: number, item: any) => total + parseFloat(item.valor), 0);
+        const valorCanceladoServicos = canceladasServicos.reduce((total: number, item: any) => total + parseFloat(item.valor), 0);
+        return valorCanceladoSaidas + valorCanceladoServicos;
       
       default:
         return 0;
     }
   };
+
   const getNumeroTransacoes = (kpi: string, data: any) => {
     if (!data) return "0";
     
     switch (kpi) {
       case "Receita Bruta Total":
         // Contar transações de saídas + serviços (não canceladas)
-        const saidasCount = data.saidas?.filter((item: any) => item.cancelada !== "S").length || 0;
-        const servicosCount = data.servicos?.filter((item: any) => item.cancelada !== "S").length || 0;
-        return (saidasCount + servicosCount).toLocaleString();
+        let saidasFiltradas = data.saidas?.filter((item: any) => item.cancelada !== "S") || [];
+        let servicosFiltrados = data.servicos?.filter((item: any) => item.cancelada !== "S") || [];
+        
+        if (clienteSelecionado) {
+          saidasFiltradas = saidasFiltradas.filter((saida: any) => saida.nome_cliente === clienteSelecionado);
+          servicosFiltrados = servicosFiltrados.filter((servico: any) => servico.nome_cliente === clienteSelecionado);
+        }
+        
+        return (saidasFiltradas.length + servicosFiltrados.length).toLocaleString();
       
       case "Vendas de Produtos":
-        return data.saidas?.filter((item: any) => item.cancelada !== "S").length?.toLocaleString() || "0";
+        let saidasProdutos = data.saidas?.filter((item: any) => item.cancelada !== "S") || [];
+        if (clienteSelecionado) {
+          saidasProdutos = saidasProdutos.filter((saida: any) => saida.nome_cliente === clienteSelecionado);
+        }
+        return saidasProdutos.length.toLocaleString();
       
       case "Serviços Prestados":
-        return data.servicos?.filter((item: any) => item.cancelada !== "S").length?.toLocaleString() || "0";
+        let servicosPresados = data.servicos?.filter((item: any) => item.cancelada !== "S") || [];
+        if (clienteSelecionado) {
+          const clienteLimpo = clienteSelecionado.replace(/ \((Cliente|Fornecedor)\)$/, '');
+          servicosPresados = servicosPresados.filter((servico: any) => servico.nome_cliente === clienteLimpo);
+        }
+        return servicosPresados.length.toLocaleString();
       
       case "Compras e Aquisições":
-        return data.entradas?.length?.toLocaleString() || "0";
+        let entradasFiltradas = data.entradas || [];
+        if (clienteSelecionado) {
+          entradasFiltradas = entradasFiltradas.filter((entrada: any) => entrada.nome_fornecedor === clienteSelecionado);
+        }
+        return entradasFiltradas.length.toLocaleString();
       
       case "Notas Canceladas":
-        const canceladasSaidas = data.saidas?.filter((item: any) => item.cancelada === "S").length || 0;
-        const canceladasServicos = data.servicos?.filter((item: any) => item.cancelada === "S").length || 0;
-        return (canceladasSaidas + canceladasServicos).toLocaleString();
+        let canceladasSaidas = data.saidas?.filter((item: any) => item.cancelada === "S") || [];
+        let canceladasServicos = data.servicos?.filter((item: any) => item.cancelada === "S") || [];
+        
+        if (clienteSelecionado) {
+          const clienteLimpo = clienteSelecionado.replace(/ \((Cliente|Fornecedor)\)$/, '');
+          const tipoSelecionado = clienteSelecionado.includes('(Fornecedor)') ? 'fornecedor' : 'cliente';
+          
+          if (tipoSelecionado === 'cliente') {
+            canceladasSaidas = canceladasSaidas.filter((saida: any) => saida.nome_cliente === clienteLimpo);
+            canceladasServicos = canceladasServicos.filter((servico: any) => servico.nome_cliente === clienteLimpo);
+          } else {
+            // Para fornecedores, não temos cancelamentos de compras
+            return "0";
+          }
+        }
+        
+        return (canceladasSaidas.length + canceladasServicos.length).toLocaleString();
       
       default:
         return "0";
@@ -707,13 +772,17 @@ export default function DashboardFiscal() {
   const getMixReceita = (data: any) => {
     if (!data) return { produtos: 0, servicos: 0 };
     
-    const valorSaidas = data.saidas
-      ?.filter((item: any) => item.cancelada !== "S")
-      ?.reduce((total: number, item: any) => total + parseFloat(item.valor), 0) || 0;
+    // Filtrar dados conforme cliente selecionado
+    let saidasFiltradas = data.saidas?.filter((item: any) => item.cancelada !== "S") || [];
+    let servicosFiltrados = data.servicos?.filter((item: any) => item.cancelada !== "S") || [];
     
-    const valorServicos = data.servicos
-      ?.filter((item: any) => item.cancelada !== "S")
-      ?.reduce((total: number, item: any) => total + parseFloat(item.valor), 0) || 0;
+    if (clienteSelecionado) {
+      saidasFiltradas = saidasFiltradas.filter((saida: any) => saida.nome_cliente === clienteSelecionado);
+      servicosFiltrados = servicosFiltrados.filter((servico: any) => servico.nome_cliente === clienteSelecionado);
+    }
+    
+    const valorSaidas = saidasFiltradas.reduce((total: number, item: any) => total + parseFloat(item.valor), 0);
+    const valorServicos = servicosFiltrados.reduce((total: number, item: any) => total + parseFloat(item.valor), 0);
     
     const total = valorSaidas + valorServicos;
     
@@ -729,14 +798,22 @@ export default function DashboardFiscal() {
     if (!data) return "R$ 0,00";
     
     if (tipo === 'produtos') {
-      const valor = data.saidas
-        ?.filter((item: any) => item.cancelada !== "S")
-        ?.reduce((total: number, item: any) => total + parseFloat(item.valor), 0) || 0;
+      let saidasFiltradas = data.saidas?.filter((item: any) => item.cancelada !== "S") || [];
+      
+      if (clienteSelecionado) {
+        saidasFiltradas = saidasFiltradas.filter((saida: any) => saida.nome_cliente === clienteSelecionado);
+      }
+      
+      const valor = saidasFiltradas.reduce((total: number, item: any) => total + parseFloat(item.valor), 0);
       return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     } else {
-      const valor = data.servicos
-        ?.filter((item: any) => item.cancelada !== "S")
-        ?.reduce((total: number, item: any) => total + parseFloat(item.valor), 0) || 0;
+      let servicosFiltrados = data.servicos?.filter((item: any) => item.cancelada !== "S") || [];
+      
+      if (clienteSelecionado) {
+        servicosFiltrados = servicosFiltrados.filter((servico: any) => servico.nome_cliente === clienteSelecionado);
+      }
+      
+      const valor = servicosFiltrados.reduce((total: number, item: any) => total + parseFloat(item.valor), 0);
       return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     }
   };

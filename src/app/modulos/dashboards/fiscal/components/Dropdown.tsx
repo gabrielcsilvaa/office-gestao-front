@@ -42,7 +42,12 @@ export const Dropdown: React.FC<DropdownProps> = ({
   ), [options, searchTerm]);
 
   const handleSelect = (value: string) => {
-    onValueChange(value);
+    // Se a opção clicada já está selecionada, desseleciona (limpa)
+    if (selectedValue === value) {
+      onValueChange("");
+    } else {
+      onValueChange(value);
+    }
     onToggle(); // This will close the dropdown
   };
 
@@ -223,12 +228,16 @@ export const Dropdown: React.FC<DropdownProps> = ({
                           ? 'bg-gray-100 text-gray-900'
                           : 'text-gray-700 hover:text-blue-600'
                     }`}
+                    title={selectedValue === option ? 'Clique para desselecionar' : 'Clique para selecionar'}
                   >
                     <span className="truncate">{option}</span>
                     {selectedValue === option && (
-                      <svg className="w-4 h-4 text-blue-600 flex-shrink-0 ml-2" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
+                      <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                        <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                        <span className="text-xs text-blue-600 opacity-70">Clique para desselecionar</span>
+                      </div>
                     )}
                   </div>
                 ))}
