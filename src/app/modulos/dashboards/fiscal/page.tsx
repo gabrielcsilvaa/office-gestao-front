@@ -441,8 +441,10 @@ export default function DashboardFiscal() {
                   .filter((servico: ServicoData) => servico.cancelada === "S" && servico.nome_cliente === clienteLimpo);
                 total += servicosCancelados.reduce((acc: number, servico: ServicoData) => acc + parseFloat(servico.valor || "0"), 0);
               }
+            } else {
+              // Para fornecedor, não temos dados específicos de cancelamentos de compras
+              return "R$ 0,00";
             }
-            // Para fornecedor, não temos dados específicos de cancelamentos de compras
           } else {
             // Todos os cancelamentos (saídas e serviços cancelados)
             if (data.saidas && Array.isArray(data.saidas)) {
@@ -818,6 +820,121 @@ export default function DashboardFiscal() {
     }
   };
 
+  // Calcula o número de clientes únicos para um KPI específico
+  const getNumeroClientesUnicos = (kpi: string, data: any): string => {
+    if (!data) return "0";
+
+    try {
+      const clientesUnicos = new Set<string>();
+
+      switch (kpi) {
+        case "Vendas de Produtos":
+          // Apenas saídas não canceladas
+          if (data.saidas && Array.isArray(data.saidas)) {
+            let saidasValidas = data.saidas.filter((saida: SaidaData) => saida.cancelada !== "S");
+            
+            // Filtrar por cliente específico se selecionado
+            if (clienteSelecionado) {
+              saidasValidas = saidasValidas.filter((saida: SaidaData) => saida.nome_cliente === clienteSelecionado);
+            }
+            
+            saidasValidas.forEach((saida: SaidaData) => {
+              clientesUnicos.add(saida.nome_cliente);
+            });
+          }
+          break;
+
+        case "Serviços Prestados":
+          // Apenas serviços não cancelados
+          if (data.servicos && Array.isArray(data.servicos)) {
+            let servicosValidos = data.servicos.filter((servico: ServicoData) => servico.cancelada !== "S");
+            
+            // Filtrar por cliente específico se selecionado (remover indicação de tipo)
+            if (clienteSelecionado) {
+              const clienteLimpo = clienteSelecionado.replace(/ \((Cliente|Fornecedor)\)$/, '');
+              servicosValidos = servicosValidos.filter((servico: ServicoData) => servico.nome_cliente === clienteLimpo);
+            }
+            
+            servicosValidos.forEach((servico: ServicoData) => {
+              clientesUnicos.add(servico.nome_cliente);
+            });
+          }
+          break;
+
+        case "Receita Bruta Total":
+          // Saídas + Serviços não cancelados
+          if (data.saidas && Array.isArray(data.saidas)) {
+            let saidasValidas = data.saidas.filter((saida: SaidaData) => saida.cancelada !== "S");
+            
+            if (clienteSelecionado) {
+              saidasValidas = saidasValidas.filter((saida: SaidaData) => saida.nome_cliente === clienteSelecionado);
+            }
+            
+            saidasValidas.forEach((saida: SaidaData) => {
+              clientesUnicos.add(saida.nome_cliente);
+            });
+          }
+          if (data.servicos && Array.isArray(data.servicos)) {
+            let servicosValidos = data.servicos.filter((servico: ServicoData) => servico.cancelada !== "S");
+            
+            if (clienteSelecionado) {
+              servicosValidos = servicosValidos.filter((servico: ServicoData) => servico.nome_cliente === clienteSelecionado);
+            }
+            
+            servicosValidos.forEach((servico: ServicoData) => {
+              clientesUnicos.add(servico.nome_cliente);
+            });
+          }
+          break;
+
+        default:
+          return "0";
+      }
+
+      return clientesUnicos.size.toLocaleString();
+
+    } catch (error) {
+      console.error("Erro ao calcular clientes únicos:", error);
+      return "0";
+    }
+  };
+
+  // Calcula o valor total cancelado de produtos (saídas canceladas)
+  const getValorCanceladoProdutos = (data: any): string => {
+    if (!data || !data.saidas || !Array.isArray(data.saidas)) return "R$ 0,00";
+    
+    try {
+      let saidasCanceladas = data.saidas.filter((saida: SaidaData) => saida.cancelada === "S");
+      
+      // Filtrar por cliente específico se selecionado
+      if (clienteSelecionado) {
+        saidasCanceladas = saidasCanceladas.filter((saida: SaidaData) => saida.nome_cliente === clienteSelecionado);
+      }
+      
+      const total = saidasCanceladas.reduce((acc: number, saida: SaidaData) => acc + parseFloat(saida.valor || "0"), 0);
+      
+      return "R$ " + total.toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    } catch (error) {
+      console.error("Erro ao calcular valor cancelado de produtos:", error);
+      return "R$ 0,00";
+    }
+  };
+
+  const handleMaximizeTopProdutos = () => {
+    console.log("Maximizar card TOP 100 Produtos / Serviços");
+  };
+
+  const handleMaximizeTopClientesFornecedores = () => {
+    console.log("Maximizar card TOP 100 Clientes / Fornecedores");
+  };
+
+  const handleMaximizeValorPorLocal = () => {
+    console.log("Maximizar card Valor por Local");
+  };
+
   // Filtrar cards baseado no KPI selecionado - Nova Arquitetura Fiscal
   const getCardsData = () => {
     const faturamentoCardInfo = getFaturamentoCardInfo(kpiSelecionado);
@@ -860,6 +977,9 @@ export default function DashboardFiscal() {
         ];
 
       case "Vendas de Produtos":
+        // Hierarquia Fiscal Recomendada - 6 Cards em linha única
+        // Linha 1: Performance da Operação (O Sucesso)
+        // Linha 2: Contexto Estratégico e Saúde do Processo
         return [
           { 
             title: "Vendas de Produtos", 
@@ -880,6 +1000,16 @@ export default function DashboardFiscal() {
             title: "% da Receita Total", 
             value: `${getMixReceita(data).produtos}%`, 
             tooltipText: "Percentual que as vendas de produtos representam da receita total." 
+          },
+          { 
+            title: "Nº de Clientes Únicos", 
+            value: getNumeroClientesUnicos(kpiSelecionado, data), 
+            tooltipText: "Quantidade de clientes distintos que compraram produtos no período." 
+          },
+          { 
+            title: "Valor Cancelado", 
+            value: getValorCanceladoProdutos(data), 
+            tooltipText: "Valor total das notas de venda de produtos canceladas." 
           }
         ];
 
@@ -999,18 +1129,6 @@ export default function DashboardFiscal() {
     { name: "F DINART IND. E COM. DE CONFECCOES LTDA", value: "R$ 8.266.838,94", numericValue: 8266838.94, percentage: 5.7, rank: 10 },
     { name: "HOSPITAL UNIMED SUL", value: "R$ 7.668.899,58", numericValue: 7668899.58, percentage: 5.3, rank: 11 }
   ];
-
-  const handleMaximizeTopProdutos = () => {
-    console.log("Maximizar card TOP 100 Produtos / Serviços");
-  };
-
-  const handleMaximizeTopClientesFornecedores = () => {
-    console.log("Maximizar card TOP 100 Clientes / Fornecedores");
-  };
-
-  const handleMaximizeValorPorLocal = () => {
-    console.log("Maximizar card Valor por Local");
-  };
 
   return (
     <div className="bg-[#f7f7f8] flex flex-col flex-1 h-full min-h-0">
