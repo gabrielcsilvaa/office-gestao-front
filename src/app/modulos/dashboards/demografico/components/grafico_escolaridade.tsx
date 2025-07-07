@@ -67,7 +67,7 @@ export default function GraficoEscolaridade({
             dataKey="name"
             tickLine={false}
             width={120} // aumenta espaço lateral pro texto
-            tick={{ fontSize: 10 }} // diminui o tamanho da fonte
+            tick={{ fontSize: 12}} // diminui o tamanho da fonte
           />
           <Tooltip cursor={{ fill: "#f5f5f5" }} />
           <Bar dataKey="colaboradores" barSize={20} fill="#8884d8" />
