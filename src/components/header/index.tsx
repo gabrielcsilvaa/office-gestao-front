@@ -100,7 +100,7 @@ export function Header() {
                   >
                     <span className="inline-flex items-center">
                       <Image
-                        src="/assets/icons/Frame Clientes.svg"
+                        src="/assets/icons/money.svg"
                         alt="Ícone"
                         width={22}
                         height={22}
@@ -123,7 +123,7 @@ export function Header() {
                         height={22}
                         className="mr-2"
                       />
-                      Desempenho de usuários
+                      Desemp. de usuários
                     </span>
                   </Link>
                 </li>
@@ -155,7 +155,7 @@ export function Header() {
                   >
                     <span className="inline-flex items-center">
                       <Image
-                        src="/assets/icons/Frame 28.svg"
+                        src="/assets/icons/Ficha.svg"
                         alt="Ícone"
                         width={22}
                         height={22}
@@ -172,7 +172,7 @@ export function Header() {
                   >
                     <span className="inline-flex items-center">
                       <Image
-                        src="/assets/icons/Frame Escritorio.svg"
+                        src="/assets/icons/Organizacional.svg"
                         alt="Ícone"
                         width={22}
                         height={22}
@@ -189,7 +189,7 @@ export function Header() {
                   >
                     <span className="inline-flex items-center">
                       <Image
-                        src="/assets/icons/Frame Escritorio.svg"
+                        src="/assets/icons/Fiscal.svg"
                         alt="Ícone"
                         width={22}
                         height={22}
@@ -206,7 +206,7 @@ export function Header() {
                   >
                     <span className="inline-flex items-center">
                       <Image
-                        src="/assets/icons/Frame Escritorio.svg"
+                        src="/assets/icons/Contabil.svg"
                         alt="Ícone"
                         width={22}
                         height={22}
