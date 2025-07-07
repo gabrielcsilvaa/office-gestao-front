@@ -478,10 +478,6 @@ export default function DashboardFiscal() {
       if (startDate && endDate) {
         setLoading(true);
         try {
-          console.log("Buscando dados para o dashboard fiscal com as datas:", {
-            startDate,
-            endDate,
-          });
           const response = await fetch("/api/dashboard-fiscal", {
             method: "POST",
             headers: {
@@ -501,7 +497,6 @@ export default function DashboardFiscal() {
             );
           }
 
-          console.log("Dados recebidos da API fiscal:", result);
           setData(result);
 
           // Extrair fornecedores únicos dos dados de entradas
@@ -582,7 +577,6 @@ export default function DashboardFiscal() {
 
   const handleMaximizeEvolucao = () => {
     // Função para maximizar o card de evolução (a ser implementada)
-    console.log("Maximizar card de evolução");
   };
 
   const produtoOptions = [
@@ -1111,15 +1105,15 @@ export default function DashboardFiscal() {
   };
 
   const handleMaximizeTopProdutos = () => {
-    console.log("Maximizar card TOP 100 Produtos / Serviços");
+    // Função para maximizar o card TOP 100 Produtos / Serviços (a ser implementada)
   };
 
   const handleMaximizeTopClientesFornecedores = () => {
-    console.log("Maximizar card TOP 100 Clientes / Fornecedores");
+    // Função para maximizar o card TOP 100 Clientes / Fornecedores (a ser implementada)
   };
 
   const handleMaximizeValorPorLocal = () => {
-    console.log("Maximizar card Valor por Local");
+    // Função para maximizar o card Valor por Local (a ser implementada)
   };
 
   // Filtrar cards baseado no KPI selecionado - Nova Arquitetura Fiscal
@@ -1334,8 +1328,79 @@ export default function DashboardFiscal() {
   ];
 
   // Dados para o primeiro card de barra de progresso - "TOP 100 Produtos / Serviços"
-  // Total dos valores: R$ 166.752.838,30
-  const topProdutosServicosData = [
+  // Agora dinâmico baseado nos dados reais da API para "Receita Bruta Total"
+  const topProdutosServicosData = kpiSelecionado === "Receita Bruta Total" && data
+    ? (() => {
+        try {
+          const itensMap = new Map<string, {total: number, tipo: string}>();
+          
+          // Processar Produtos (saídas não canceladas)
+          const saidasValidas = (data as any).saidas?.filter((item: SaidaData) => item.cancelada !== "S") || [];
+          const saidasFiltradas = clienteSelecionado 
+            ? saidasValidas.filter((saida: SaidaData) => saida.nome_cliente === clienteSelecionado)
+            : saidasValidas;
+          
+          saidasFiltradas.forEach((saida: SaidaData) => {
+            // Usar nome_empresa como identificador do produto por enquanto
+            // TODO: Ajustar quando soubermos o campo correto do produto
+            const chave = `${saida.nome_empresa}`;
+            const valor = parseFloat(saida.valor || "0");
+            
+            if (itensMap.has(chave)) {
+              itensMap.get(chave)!.total += valor;
+            } else {
+              itensMap.set(chave, { total: valor, tipo: "Produto" });
+            }
+          });
+          
+          // Processar Serviços (serviços não cancelados)
+          const servicosValidos = (data as any).servicos?.filter((item: ServicoData) => item.cancelada !== "S") || [];
+          const servicosFiltrados = clienteSelecionado 
+            ? servicosValidos.filter((servico: ServicoData) => servico.nome_cliente === clienteSelecionado)
+            : servicosValidos;
+          
+          servicosFiltrados.forEach((servico: ServicoData) => {
+            // Usar nome_empresa como identificador do serviço
+            const chave = `${servico.nome_empresa}`;
+            const valor = parseFloat(servico.valor || "0");
+            
+            if (itensMap.has(chave)) {
+              itensMap.get(chave)!.total += valor;
+            } else {
+              itensMap.set(chave, { total: valor, tipo: "Serviço" });
+            }
+          });
+          
+          // Calcular total geral para percentuais
+          const totalGeral = Array.from(itensMap.values()).reduce((sum, item) => sum + item.total, 0);
+          
+          // Converter para array e ordenar por valor (maior para menor)
+          const resultado = Array.from(itensMap.entries())
+            .map(([nome, dados]) => ({
+              name: nome,
+              value: new Intl.NumberFormat('pt-BR', { 
+                style: 'currency', 
+                currency: 'BRL',
+                minimumFractionDigits: 2 
+              }).format(dados.total),
+              numericValue: dados.total,
+              percentage: totalGeral > 0 ? Math.round((dados.total / totalGeral) * 1000) / 10 : 0,
+              rank: 0
+            }))
+            .sort((a, b) => b.numericValue - a.numericValue)
+            .slice(0, 100)
+            .map((item, index) => ({
+              ...item,
+              rank: index + 1
+            }));
+          
+          return resultado;
+        } catch (error) {
+          console.error("Erro ao processar ranking de produtos/serviços:", error);
+          return [];
+        }
+      })()
+    : [
     { name: "Produto não informado", value: "R$ 115.439.645,23", numericValue: 115439645.23, percentage: 69.2, rank: 1 },
     { name: "SERVIÇOS TOMADOS (2)", value: "R$ 11.213.561,10", numericValue: 11213561.10, percentage: 6.7, rank: 2 },
     { name: "VASILHAME VAZIO P13 (2)", value: "R$ 6.496.853,83", numericValue: 6496853.83, percentage: 3.9, rank: 3 },

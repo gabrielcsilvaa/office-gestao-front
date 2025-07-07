@@ -198,8 +198,6 @@ export function Header2() {
         }
 
         const data = await response.json();
-        console.log("Dados de aniversários:", data); // Adicionando o console.log para verificar os dados
-
         // Aqui você pode decidir o que fazer com os dados, se necessário
         setAniversariantes(data); // Armazenando os dados dos aniversariantes no estado
       } catch (err: unknown) {
