@@ -147,10 +147,10 @@ export function Header() {
               </ul>
               <ul>
                 <h1 className="text-lg font-bold w-full ml-2">Dashboards</h1>
-                
+
                 <li className="mb-4 mt-4">
                   <Link
-                    href="/modulos/gestao/usuarios"
+                    href="/modulos/dashboards/ficha"
                     className="hover:text-gray-400"
                   >
                     <span className="inline-flex items-center">
@@ -167,7 +167,7 @@ export function Header() {
                 </li>
                 <li className="mb-4">
                   <Link
-                    href="/modulos/gestao/escritorio"
+                    href="/modulos/dashboards/organizacional"
                     className="hover:text-gray-400"
                   >
                     <span className="inline-flex items-center">
@@ -184,7 +184,7 @@ export function Header() {
                 </li>
                 <li className="mb-4">
                   <Link
-                    href="/modulos/gestao/escritorio"
+                    href="/modulos/dashboards/fiscal"
                     className="hover:text-gray-400"
                   >
                     <span className="inline-flex items-center">
@@ -201,7 +201,7 @@ export function Header() {
                 </li>
                 <li className="mb-4">
                   <Link
-                    href="/modulos/gestao/escritorio"
+                    href="/modulos/gestao/carteira"
                     className="hover:text-gray-400"
                   >
                     <span className="inline-flex items-center">
