@@ -75,7 +75,8 @@ export function Header() {
             </Link>
             <nav className={`mt-6 text-[15px]`}>
               <ul>
-                <li className="mb-4">
+                <h1 className="text-lg font-bold w-full ml-2">Gestão</h1>
+                <li className="mb-4 mt-4">
                   <Link
                     href="/modulos/gestao/carteira"
                     className="hover:text-gray-400"
@@ -99,7 +100,7 @@ export function Header() {
                   >
                     <span className="inline-flex items-center">
                       <Image
-                        src="/assets/icons/Frame Clientes.svg"
+                        src="/assets/icons/money.svg"
                         alt="Ícone"
                         width={22}
                         height={22}
@@ -122,7 +123,7 @@ export function Header() {
                         height={22}
                         className="mr-2"
                       />
-                      Desempenho de usuários
+                      Desemp. de usuários
                     </span>
                   </Link>
                 </li>
@@ -140,6 +141,78 @@ export function Header() {
                         className="mr-2"
                       />
                       Perfil Escritório
+                    </span>
+                  </Link>
+                </li>
+              </ul>
+              <ul>
+                <h1 className="text-lg font-bold w-full ml-2">Dashboards</h1>
+
+                <li className="mb-4 mt-4">
+                  <Link
+                    href="/modulos/dashboards/ficha"
+                    className="hover:text-gray-400"
+                  >
+                    <span className="inline-flex items-center">
+                      <Image
+                        src="/assets/icons/Ficha.svg"
+                        alt="Ícone"
+                        width={22}
+                        height={22}
+                        className="mr-2"
+                      />
+                      Ficha
+                    </span>
+                  </Link>
+                </li>
+                <li className="mb-4">
+                  <Link
+                    href="/modulos/dashboards/organizacional"
+                    className="hover:text-gray-400"
+                  >
+                    <span className="inline-flex items-center">
+                      <Image
+                        src="/assets/icons/Organizacional.svg"
+                        alt="Ícone"
+                        width={22}
+                        height={22}
+                        className="mr-2"
+                      />
+                      Organizacional
+                    </span>
+                  </Link>
+                </li>
+                <li className="mb-4">
+                  <Link
+                    href="/modulos/dashboards/fiscal"
+                    className="hover:text-gray-400"
+                  >
+                    <span className="inline-flex items-center">
+                      <Image
+                        src="/assets/icons/Fiscal.svg"
+                        alt="Ícone"
+                        width={22}
+                        height={22}
+                        className="mr-2"
+                      />
+                      Fiscal
+                    </span>
+                  </Link>
+                </li>
+                <li className="mb-4">
+                  <Link
+                    href="/modulos/gestao/carteira"
+                    className="hover:text-gray-400"
+                  >
+                    <span className="inline-flex items-center">
+                      <Image
+                        src="/assets/icons/Contabil.svg"
+                        alt="Ícone"
+                        width={22}
+                        height={22}
+                        className="mr-2"
+                      />
+                      Contábil
                     </span>
                   </Link>
                 </li>
