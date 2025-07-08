@@ -4,14 +4,35 @@ import "../../app/globals.css";
 import { Cairo } from "next/font/google";
 import { useRouter } from "next/navigation";
 import NotificationModal from "../notificacao/modalNotificaçao";
-
+import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { signOut } from "next-auth/react";
+import { DefaultSession } from "next-auth";
+
 // Fonte Cairo configurada
 const cairo = Cairo({
   weight: ["500", "600", "700"],
   subsets: ["latin"],
 });
+
+
+declare module "next-auth" {
+  interface Session {
+    user: {
+      id: string;
+      name: string;
+      email: string;
+      tipo: number;
+    } & DefaultSession["user"];
+  }
+
+  interface User {
+    id: string;
+    name: string;
+    email: string;
+    tipo: number;
+  }
+}
 
 interface Socio {
   id: number;
@@ -19,7 +40,9 @@ interface Socio {
   data_nascimento: string;
 }
 
+
 export function Header() {
+  const { data: session} = useSession();
   const [isHovered, setIsHovered] = useState(false);
 
   // Detecta se o mouse está na área próxima da esquerda da tela
@@ -32,9 +55,17 @@ export function Header() {
         setIsHovered(false);
       }
     }
+    if (session) {
+    console.log("Sessão:", session);
+  }
+
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, []);
+    
+  
+    
+
+  }, [session]);
 
   return (
     <>
@@ -63,6 +94,7 @@ export function Header() {
           ${isHovered ? "w-[180px] opacity-100 pointer-events-auto" : "w-0 opacity-0 pointer-events-none"}
         `}
       >
+        
         {isHovered && (
           <>
             <Link href="/modulos/gestao/carteira">
@@ -145,6 +177,9 @@ export function Header() {
                   </Link>
                 </li>
               </ul>
+            
+            
+            {session?.user.tipo === 1 && (
               <ul>
                 <h1 className="text-lg font-bold w-full ml-2">Dashboards</h1>
 
@@ -217,6 +252,7 @@ export function Header() {
                   </Link>
                 </li>
               </ul>
+              )}
             </nav>
           </>
         )}
