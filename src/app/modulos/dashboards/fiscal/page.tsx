@@ -3,6 +3,8 @@ import { Cairo } from "next/font/google";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Dropdown } from "./components/Dropdown";
+import { VirtualizedDropdown } from "./components/VirtualizedDropdown";
+import { SmartDropdown } from "./components/SmartDropdown";
 import { useDropdown } from "./hooks/useDropdown";
 import Calendar from "@/components/calendar";
 import KpiCardsGrid from "./components/KpiCardsGrid";
@@ -1489,7 +1491,7 @@ export default function DashboardFiscal() {
         {/* Filtros principais e Calendário */}
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <Dropdown
+            <SmartDropdown
                 options={getDropdownOptions()}
                 label={labelClienteFornecedor}
                 widthClass="w-72"
@@ -1498,8 +1500,9 @@ export default function DashboardFiscal() {
                 isOpen={openDropdown === 'cliente'}
                 onToggle={() => handleToggleDropdown('cliente')}
                 areDatesSelected={startDate !== null && endDate !== null}
+                virtualizationThreshold={50}
             />
-            <Dropdown
+            <SmartDropdown
                 options={produtoOptions}
                 label="Produto"
                 widthClass="w-72"
@@ -1509,6 +1512,7 @@ export default function DashboardFiscal() {
                 onToggle={() => handleToggleDropdown('produto')}
                 disabled={true}
                 areDatesSelected={startDate !== null && endDate !== null}
+                virtualizationThreshold={50}
             />
           </div>
           <Calendar
