@@ -1337,21 +1337,241 @@ export default function DashboardFiscal() {
 
   const cardsData = getCardsData();
 
-  // Dados para o gráfico de evolução
-  const evolucaoData = [
-    { month: "Jan/2024", value: 30288035.12 },
-    { month: "Fev/2024", value: 26307276.15 },
-    { month: "Mar/2024", value: 32832801.44 },
-    { month: "Abr/2024", value: 43884300.49 },
-    { month: "Mai/2024", value: 39243554.24 },
-    { month: "Jun/2024", value: 40105421.16 },
-    { month: "Jul/2024", value: 43384822.79 },
-    { month: "Ago/2024", value: 46108634.08 },
-    { month: "Set/2024", value: 47415413.48 },
-    { month: "Out/2024", value: 46454140.89 },
-    { month: "Nov/2024", value: 45986012.62 },
-    { month: "Dez/2024", value: 53602856.14 }
-  ];
+  // 📊 FUNÇÃO: Gerar dados de evolução baseados nos dados reais da API
+  const generateEvolucaoData = (kpi: string, data: any, startDate: string | null, endDate: string | null) => {
+    if (!data || !startDate || !endDate) {
+      return [];
+    }
+
+    console.log(`🎯 Gerando dados de evolução para KPI: ${kpi}, Período: ${startDate} - ${endDate}`);
+
+    try {
+      // Mapa para agrupar valores por mês/ano
+      const monthlyData = new Map<string, number>();
+      
+      // Converter datas de filtro para objetos Date (sem timezone issues)
+      const startDateTime = new Date(startDate + 'T00:00:00');
+      const endDateTime = new Date(endDate + 'T23:59:59');
+      
+      console.log(`📅 Período normalizado: ${startDateTime.toISOString()} - ${endDateTime.toISOString()}`);
+      
+      // Função helper para processar uma transação
+      const processTransaction = (item: any, value: number) => {
+        if (!item.data) return;
+        
+        // Parse da data da transação (assumindo formato YYYY-MM-DD ou similar)
+        let transactionDate: Date;
+        
+        try {
+          // Normalizar a data da transação para início do dia
+          if (typeof item.data === 'string') {
+            // Se é string no formato YYYY-MM-DD
+            if (item.data.includes('-')) {
+              transactionDate = new Date(item.data + 'T00:00:00');
+            } else {
+              // Outros formatos
+              transactionDate = new Date(item.data);
+              transactionDate.setHours(0, 0, 0, 0);
+            }
+          } else {
+            // Se já é um objeto Date
+            transactionDate = new Date(item.data);
+            transactionDate.setHours(0, 0, 0, 0);
+          }
+        } catch (error) {
+          console.warn(`⚠️ Erro ao parsear data: ${item.data}`, error);
+          return;
+        }
+        
+        if (isNaN(transactionDate.getTime())) {
+          console.warn(`⚠️ Data inválida encontrada: ${item.data}`);
+          return;
+        }
+        
+        // Debug: log algumas transações para verificar
+        if (Math.random() < 0.01) { // Log 1% das transações para debug
+          console.log(`🔍 Debug transação: ${item.data} -> ${transactionDate.toISOString()} | Dentro do período: ${transactionDate >= startDateTime && transactionDate <= endDateTime}`);
+        }
+        
+        // Verificar se a transação está dentro do período selecionado
+        if (transactionDate < startDateTime || transactionDate > endDateTime) {
+          return;
+        }
+        
+        // Gerar chave no formato "Jan/2024"
+        const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+        const monthKey = `${monthNames[transactionDate.getMonth()]}/${transactionDate.getFullYear()}`;
+        
+        // Debug: log o mês/ano gerado
+        if (Math.random() < 0.01) {
+          console.log(`📈 Adicionando ao mês: ${monthKey} | Valor: ${value}`);
+        }
+        
+        // Acumular valor
+        monthlyData.set(monthKey, (monthlyData.get(monthKey) || 0) + value);
+      };
+
+      // Processar dados conforme o KPI selecionado
+      switch (kpi) {
+        case "Receita Bruta Total":
+          // Saídas não canceladas
+          if (data.saidas && Array.isArray(data.saidas)) {
+            let saidasValidas = data.saidas.filter((saida: SaidaData) => saida.cancelada === "N");
+            
+            if (clienteSelecionado) {
+              saidasValidas = saidasValidas.filter((saida: SaidaData) => saida.nome_cliente === clienteSelecionado);
+            }
+            
+            console.log(`📊 Processando ${saidasValidas.length} saídas para Receita Bruta Total`);
+            
+            saidasValidas.forEach((saida: SaidaData) => {
+              processTransaction(saida, parseFloat(saida.valor || "0"));
+            });
+          }
+          
+          // Serviços não cancelados
+          if (data.servicos && Array.isArray(data.servicos)) {
+            let servicosValidos = data.servicos.filter((servico: ServicoData) => servico.cancelada === "N");
+            
+            if (clienteSelecionado) {
+              servicosValidos = servicosValidos.filter((servico: ServicoData) => servico.nome_cliente === clienteSelecionado);
+            }
+            
+            console.log(`📊 Processando ${servicosValidos.length} serviços para Receita Bruta Total`);
+            
+            servicosValidos.forEach((servico: ServicoData) => {
+              processTransaction(servico, parseFloat(servico.valor || "0"));
+            });
+          }
+          break;
+
+        case "Vendas de Produtos":
+          if (data.saidas && Array.isArray(data.saidas)) {
+            let saidasValidas = data.saidas.filter((saida: SaidaData) => saida.cancelada === "N");
+            
+            if (clienteSelecionado) {
+              saidasValidas = saidasValidas.filter((saida: SaidaData) => saida.nome_cliente === clienteSelecionado);
+            }
+            
+            console.log(`📊 Processando ${saidasValidas.length} saídas para Vendas de Produtos`);
+            
+            saidasValidas.forEach((saida: SaidaData) => {
+              processTransaction(saida, parseFloat(saida.valor || "0"));
+            });
+          }
+          break;
+
+        case "Serviços Prestados":
+          if (data.servicos && Array.isArray(data.servicos)) {
+            let servicosValidos = data.servicos.filter((servico: ServicoData) => servico.cancelada === "N");
+            
+            if (clienteSelecionado) {
+              servicosValidos = servicosValidos.filter((servico: ServicoData) => servico.nome_cliente === clienteSelecionado);
+            }
+            
+            console.log(`📊 Processando ${servicosValidos.length} serviços para Serviços Prestados`);
+            
+            servicosValidos.forEach((servico: ServicoData) => {
+              processTransaction(servico, parseFloat(servico.valor || "0"));
+            });
+          }
+          break;
+
+        case "Compras e Aquisições":
+          if (data.entradas && Array.isArray(data.entradas)) {
+            let entradasValidas = data.entradas;
+            
+            if (clienteSelecionado) {
+              entradasValidas = entradasValidas.filter((entrada: EntradaData) => entrada.nome_fornecedor === clienteSelecionado);
+            }
+            
+            console.log(`📊 Processando ${entradasValidas.length} entradas para Compras e Aquisições`);
+            
+            entradasValidas.forEach((entrada: EntradaData) => {
+              processTransaction(entrada, parseFloat(entrada.valor || "0"));
+            });
+          }
+          break;
+
+        case "Cancelamentos de Receita":
+          // Saídas canceladas
+          if (data.saidas && Array.isArray(data.saidas)) {
+            let saidasCanceladas = data.saidas.filter((saida: SaidaData) => saida.cancelada === "S");
+            
+            if (clienteSelecionado) {
+              saidasCanceladas = saidasCanceladas.filter((saida: SaidaData) => saida.nome_cliente === clienteSelecionado);
+            }
+            
+            console.log(`📊 Processando ${saidasCanceladas.length} saídas canceladas`);
+            
+            saidasCanceladas.forEach((saida: SaidaData) => {
+              processTransaction(saida, parseFloat(saida.valor || "0"));
+            });
+          }
+          
+          // Serviços cancelados
+          if (data.servicos && Array.isArray(data.servicos)) {
+            let servicosCancelados = data.servicos.filter((servico: ServicoData) => servico.cancelada === "S");
+            
+            if (clienteSelecionado) {
+              servicosCancelados = servicosCancelados.filter((servico: ServicoData) => servico.nome_cliente === clienteSelecionado);
+            }
+            
+            console.log(`📊 Processando ${servicosCancelados.length} serviços cancelados`);
+            
+            servicosCancelados.forEach((servico: ServicoData) => {
+              processTransaction(servico, parseFloat(servico.valor || "0"));
+            });
+          }
+          break;
+
+        default:
+          return [];
+      }
+
+      // Converter Map para array e ordenar por data
+      console.log(`🗂️ Meses encontrados antes da ordenação:`, Array.from(monthlyData.keys()));
+      
+      const sortedData = Array.from(monthlyData.entries())
+        .map(([month, value]) => ({
+          month,
+          value
+        }))
+        .sort((a, b) => {
+          // Ordenar por data
+          const parseMonth = (monthStr: string) => {
+            const [month, year] = monthStr.split('/');
+            const monthNames = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+            const monthIndex = monthNames.indexOf(month.toLowerCase());
+            return new Date(parseInt(year), monthIndex);
+          };
+          
+          return parseMonth(a.month).getTime() - parseMonth(b.month).getTime();
+        });
+
+      console.log(`✅ Dados de evolução gerados (ordenados):`, sortedData);
+      console.log(`📅 Período solicitado era: ${startDate} até ${endDate}`);
+      return sortedData;
+
+    } catch (error) {
+      console.error("❌ Erro ao gerar dados de evolução:", error);
+      return [];
+    }
+  };
+
+  // Dados para o gráfico de evolução - agora dinâmicos baseados na API
+  const evolucaoData = generateEvolucaoData(kpiSelecionado, data, startDate, endDate);
+
+  // 📊 FALLBACK: Se não há dados, mostrar dados de exemplo ou placeholder
+  const evolucaoDataWithFallback = evolucaoData.length > 0 
+    ? evolucaoData 
+    : (!startDate || !endDate) 
+      ? [
+          { month: "Selecione um período", value: 0 }
+        ]
+      : [
+          { month: "Sem dados", value: 0 }
+        ];
 
   // Dados para o primeiro card de barra de progresso - "TOP 100 Produtos / Serviços"
   // Agora dinâmico baseado nos dados reais da API para "Receita Bruta Total"
@@ -1557,7 +1777,7 @@ export default function DashboardFiscal() {
         <div className="mt-6">
           <EvolucaoCard 
             title={getEvolucaoTitle(kpiSelecionado)} 
-            data={evolucaoData}
+            data={evolucaoDataWithFallback}
             onMaximize={handleMaximizeEvolucao}
           />
         </div>
