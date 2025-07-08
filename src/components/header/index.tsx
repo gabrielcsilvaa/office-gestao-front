@@ -15,7 +15,6 @@ const cairo = Cairo({
   subsets: ["latin"],
 });
 
-
 declare module "next-auth" {
   interface Session {
     user: {
@@ -40,9 +39,8 @@ interface Socio {
   data_nascimento: string;
 }
 
-
 export function Header() {
-  const { data: session} = useSession();
+  const { data: session } = useSession();
   const [isHovered, setIsHovered] = useState(false);
 
   // Detecta se o mouse está na área próxima da esquerda da tela
@@ -55,16 +53,9 @@ export function Header() {
         setIsHovered(false);
       }
     }
-    if (session) {
-    console.log("Sessão:", session);
-  }
 
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
-    
-  
-    
-
   }, [session]);
 
   return (
@@ -94,7 +85,6 @@ export function Header() {
           ${isHovered ? "w-[180px] opacity-100 pointer-events-auto" : "w-0 opacity-0 pointer-events-none"}
         `}
       >
-        
         {isHovered && (
           <>
             <Link href="/modulos/gestao/carteira">
@@ -177,82 +167,102 @@ export function Header() {
                   </Link>
                 </li>
               </ul>
-            
-            
-            {session?.user.tipo === 1 && (
-              <ul>
-                <h1 className="text-lg font-bold w-full ml-2">Dashboards</h1>
 
-                <li className="mb-4 mt-4">
-                  <Link
-                    href="/modulos/dashboards/ficha"
-                    className="hover:text-gray-400"
-                  >
-                    <span className="inline-flex items-center">
-                      <Image
-                        src="/assets/icons/Ficha.svg"
-                        alt="Ícone"
-                        width={22}
-                        height={22}
-                        className="mr-2"
-                      />
-                      Ficha
-                    </span>
-                  </Link>
-                </li>
-                <li className="mb-4">
-                  <Link
-                    href="/modulos/dashboards/organizacional"
-                    className="hover:text-gray-400"
-                  >
-                    <span className="inline-flex items-center">
-                      <Image
-                        src="/assets/icons/Organizacional.svg"
-                        alt="Ícone"
-                        width={22}
-                        height={22}
-                        className="mr-2"
-                      />
-                      Organizacional
-                    </span>
-                  </Link>
-                </li>
-                <li className="mb-4">
-                  <Link
-                    href="/modulos/dashboards/fiscal"
-                    className="hover:text-gray-400"
-                  >
-                    <span className="inline-flex items-center">
-                      <Image
-                        src="/assets/icons/Fiscal.svg"
-                        alt="Ícone"
-                        width={22}
-                        height={22}
-                        className="mr-2"
-                      />
-                      Fiscal
-                    </span>
-                  </Link>
-                </li>
-                <li className="mb-4">
-                  <Link
-                    href="/modulos/gestao/carteira"
-                    className="hover:text-gray-400"
-                  >
-                    <span className="inline-flex items-center">
-                      <Image
-                        src="/assets/icons/Contabil.svg"
-                        alt="Ícone"
-                        width={22}
-                        height={22}
-                        className="mr-2"
-                      />
-                      Contábil
-                    </span>
-                  </Link>
-                </li>
+              <ul>
+                {session?.user.tipo === 1 && (
+                  <>
+                    <h1 className="text-lg font-bold w-full ml-2">
+                      Dashboards
+                    </h1>
+
+                    <li className="mb-4 mt-4">
+                      <Link
+                        href="/modulos/dashboards/ficha"
+                        className="hover:text-gray-400"
+                      >
+                        <span className="inline-flex items-center">
+                          <Image
+                            src="/assets/icons/Ficha.svg"
+                            alt="Ícone"
+                            width={22}
+                            height={22}
+                            className="mr-2"
+                          />
+                          Ficha
+                        </span>
+                      </Link>
+                    </li>
+                    <li className="mb-4">
+                      <Link
+                        href="/modulos/dashboards/organizacional"
+                        className="hover:text-gray-400"
+                      >
+                        <span className="inline-flex items-center">
+                          <Image
+                            src="/assets/icons/Organizacional.svg"
+                            alt="Ícone"
+                            width={22}
+                            height={22}
+                            className="mr-2"
+                          />
+                          Organizacional
+                        </span>
+                      </Link>
+                    </li>
+                    <li className="mb-4">
+                      <Link
+                        href="/modulos/dashboards/fiscal"
+                        className="hover:text-gray-400"
+                      >
+                        <span className="inline-flex items-center">
+                          <Image
+                            src="/assets/icons/Fiscal.svg"
+                            alt="Ícone"
+                            width={22}
+                            height={22}
+                            className="mr-2"
+                          />
+                          Fiscal
+                        </span>
+                      </Link>
+                    </li>
+                    <li className="mb-4">
+                      <Link
+                        href="/modulos/gestao/carteira"
+                        className="hover:text-gray-400"
+                      >
+                        <span className="inline-flex items-center">
+                          <Image
+                            src="/assets/icons/Contabil.svg"
+                            alt="Ícone"
+                            width={22}
+                            height={22}
+                            className="mr-2"
+                          />
+                          Contábil
+                        </span>
+                      </Link>
+                    </li>
+                    <li className="mb-4">
+                      <Link
+                        href="/modulos/dashboards/demografico"
+                        className="hover:text-gray-400"
+                      >
+                        <span className="inline-flex items-center">
+                          <Image
+                            src="/assets/icons/demografico.svg"
+                            alt="Ícone"
+                            width={22}
+                            height={22}
+                            className="mr-2"
+                          />
+                          Demográfico
+                        </span>
+                      </Link>
+                    </li>
+                  </>
+                )}
               </ul>
-              )}
             </nav>
           </>
         )}
