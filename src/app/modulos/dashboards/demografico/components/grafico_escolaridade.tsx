@@ -55,7 +55,15 @@ export default function GraficoEscolaridade({
       <h3 className="text-center mb-2 font-bold">
         Colaboradores por Escolaridade
       </h3>
-      <ResponsiveContainer width="100%" height="90%">
+      <div style={{ overflowX: "auto", overflowY: "hidden", width: "100%" }}>
+      <div
+        style={{
+          width: "600px", // força a largura do gráfico
+          minWidth: "600px",
+          height: `${dadosFormatados.length * 40}px`, // altura proporcional ao número de faixas
+        }}
+      >
+      <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={dadosFormatados}
           layout="vertical"
@@ -73,12 +81,14 @@ export default function GraficoEscolaridade({
           <Bar dataKey="colaboradores" barSize={20} fill="#8884d8" />
         </BarChart>
       </ResponsiveContainer>
+      </div>
+    </div>
     </div>
   );
 
   return (
     <>
-      <div className="relative bg-white rounded-xl shadow-md h-[300px]">
+      <div className="relative bg-white rounded-xl shadow-md h-[300px] overflow-y-auto">
         <button
           onClick={() => setIsModalOpen(true)}
           className="absolute top-2 right-2 z-10 p-1"
@@ -130,7 +140,7 @@ export default function GraficoEscolaridade({
                     tickLine={false}
                     axisLine={false}
                     width={180} // mais espaço pro texto
-                    tick={{ fontSize: 12, fill: "#333" }} // fonte um pouco menor
+                    tick={{ fontSize: 15, fill: "#333" }} // fonte um pouco menor
                   />
                   <Tooltip
                     cursor={{ fill: "#f5f5f5" }}
