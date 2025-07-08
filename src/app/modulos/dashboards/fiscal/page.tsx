@@ -1661,20 +1661,131 @@ export default function DashboardFiscal() {
   ];
 
   // Dados para o segundo card de barra de progresso - "TOP 100 Clientes / Fornecedores"
-  // Total dos valores: R$ 145.126.267,43
-  const topClientesFornecedoresData = [
-    { name: "YAMAHA MOTOR DA AMAZONIA LTDA", value: "R$ 21.068.918,95", numericValue: 21068918.95, percentage: 14.5, rank: 1 },
-    { name: "VIBRA ENERGIA S.A", value: "R$ 20.507.156,97", numericValue: 20507156.97, percentage: 14.1, rank: 2 },
-    { name: "F DINARTE IND E COM DE CONFEC", value: "R$ 19.127.937,07", numericValue: 19127937.07, percentage: 13.2, rank: 3 },
-    { name: "DINART IND E COM DE CONFECCOES LTDA", value: "R$ 14.073.792,88", numericValue: 14073792.88, percentage: 9.7, rank: 4 },
-    { name: "TICKET SERVIÇOS SA", value: "R$ 13.703.588,36", numericValue: 13703588.36, percentage: 9.4, rank: 5 },
-    { name: "MALHAS MENEGOTTI INDUSTRIA TEXTIL LTDA", value: "R$ 11.524.068,34", numericValue: 11524068.34, percentage: 7.9, rank: 6 },
-    { name: "BIOSAUDE", value: "R$ 10.180.027,94", numericValue: 10180027.94, percentage: 7.0, rank: 7 },
-    { name: "BAHIANA DISTRIBUIDORA DE GAS LTDA", value: "R$ 9.972.635,56", numericValue: 9972635.56, percentage: 6.9, rank: 8 },
-    { name: "LYCEUM CONSULTORIA EDUCACIONAL", value: "R$ 9.033.402,58", numericValue: 9033402.58, percentage: 6.2, rank: 9 },
-    { name: "F DINART IND. E COM. DE CONFECCOES LTDA", value: "R$ 8.266.838,94", numericValue: 8266838.94, percentage: 5.7, rank: 10 },
-    { name: "HOSPITAL UNIMED SUL", value: "R$ 7.668.899,58", numericValue: 7668899.58, percentage: 5.3, rank: 11 }
-  ];
+  // Agora dinâmico baseado nos dados reais da API e KPI selecionado
+  const topClientesFornecedoresData = data
+    ? (() => {
+        try {
+          const entidadesMap = new Map<string, number>();
+          
+          // Definir quais dados processar baseado no KPI
+          const incluirClientes = ["Receita Bruta Total", "Vendas de Produtos", "Serviços Prestados", "Cancelamentos de Receita"].includes(kpiSelecionado);
+          const incluirFornecedores = ["Compras e Aquisições"].includes(kpiSelecionado);
+          
+          console.log(`[TOP 100] KPI: ${kpiSelecionado}, Incluir Clientes: ${incluirClientes}, Incluir Fornecedores: ${incluirFornecedores}`);
+          
+          // Processar Clientes (saídas e serviços)
+          if (incluirClientes) {
+            let dadosClientes: any[] = [];
+            
+            if (kpiSelecionado === "Receita Bruta Total") {
+              // Combinar saídas e serviços não cancelados
+              const saidasValidas = (data as any).saidas?.filter((item: SaidaData) => item.cancelada !== "S") || [];
+              const servicosValidos = (data as any).servicos?.filter((item: ServicoData) => item.cancelada !== "S") || [];
+              dadosClientes = [...saidasValidas, ...servicosValidos];
+            } else if (kpiSelecionado === "Vendas de Produtos") {
+              // Apenas saídas não canceladas
+              dadosClientes = (data as any).saidas?.filter((item: SaidaData) => item.cancelada !== "S") || [];
+            } else if (kpiSelecionado === "Serviços Prestados") {
+              // Apenas serviços não cancelados
+              dadosClientes = (data as any).servicos?.filter((item: ServicoData) => item.cancelada !== "S") || [];
+            } else if (kpiSelecionado === "Cancelamentos de Receita") {
+              // Combinar saídas e serviços cancelados
+              const saidasCanceladas = (data as any).saidas?.filter((item: SaidaData) => item.cancelada === "S") || [];
+              const servicosCancelados = (data as any).servicos?.filter((item: ServicoData) => item.cancelada === "S") || [];
+              dadosClientes = [...saidasCanceladas, ...servicosCancelados];
+            }
+            
+            // Filtrar por cliente selecionado se houver
+            if (clienteSelecionado) {
+              dadosClientes = dadosClientes.filter((item: any) => item.nome_cliente === clienteSelecionado);
+            }
+            
+            // Agrupar por cliente
+            dadosClientes.forEach((item: any) => {
+              const nomeCliente = item.nome_cliente || "Cliente não informado";
+              const valor = parseFloat(item.valor || "0");
+              
+              if (entidadesMap.has(nomeCliente)) {
+                entidadesMap.set(nomeCliente, entidadesMap.get(nomeCliente)! + valor);
+              } else {
+                entidadesMap.set(nomeCliente, valor);
+              }
+            });
+            
+            console.log(`[TOP 100] Processados ${dadosClientes.length} registros de clientes`);
+          }
+          
+          // Processar Fornecedores (entradas)
+          if (incluirFornecedores) {
+            const entradasValidas = (data as any).entradas || [];
+            
+            // Filtrar por fornecedor selecionado se houver
+            let dadosFornecedores = clienteSelecionado 
+              ? entradasValidas.filter((entrada: any) => entrada.nome_fornecedor === clienteSelecionado)
+              : entradasValidas;
+            
+            // Agrupar por fornecedor
+            dadosFornecedores.forEach((entrada: any) => {
+              const nomeFornecedor = entrada.nome_fornecedor || "Fornecedor não informado";
+              const valor = parseFloat(entrada.valor || "0");
+              
+              if (entidadesMap.has(nomeFornecedor)) {
+                entidadesMap.set(nomeFornecedor, entidadesMap.get(nomeFornecedor)! + valor);
+              } else {
+                entidadesMap.set(nomeFornecedor, valor);
+              }
+            });
+            
+            console.log(`[TOP 100] Processados ${dadosFornecedores.length} registros de fornecedores`);
+          }
+          
+          // Calcular total geral para percentuais
+          const totalGeral = Array.from(entidadesMap.values()).reduce((sum, valor) => sum + valor, 0);
+          
+          console.log(`[TOP 100] Total de entidades únicas: ${entidadesMap.size}, Valor total: R$ ${totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`);
+          
+          // Converter para array e ordenar por valor (maior para menor)
+          const resultado = Array.from(entidadesMap.entries())
+            .map(([nome, valor]) => ({
+              name: nome,
+              value: new Intl.NumberFormat('pt-BR', { 
+                style: 'currency', 
+                currency: 'BRL',
+                minimumFractionDigits: 2 
+              }).format(valor),
+              numericValue: valor,
+              percentage: totalGeral > 0 ? Math.round((valor / totalGeral) * 1000) / 10 : 0,
+              rank: 0
+            }))
+            .sort((a, b) => b.numericValue - a.numericValue)
+            .slice(0, 100)
+            .map((item, index) => ({
+              ...item,
+              rank: index + 1
+            }));
+          
+          console.log(`[TOP 100] Top 5 resultados:`, resultado.slice(0, 5).map(r => `${r.rank}º ${r.name}: ${r.value} (${r.percentage}%)`));
+          
+          return resultado;
+        } catch (error) {
+          console.error("Erro ao processar ranking de clientes/fornecedores:", error);
+          return [];
+        }
+      })()
+    : [
+      // Dados de fallback quando não há dados da API
+      { name: "YAMAHA MOTOR DA AMAZONIA LTDA", value: "R$ 21.068.918,95", numericValue: 21068918.95, percentage: 14.5, rank: 1 },
+      { name: "VIBRA ENERGIA S.A", value: "R$ 20.507.156,97", numericValue: 20507156.97, percentage: 14.1, rank: 2 },
+      { name: "F DINARTE IND E COM DE CONFEC", value: "R$ 19.127.937,07", numericValue: 19127937.07, percentage: 13.2, rank: 3 },
+      { name: "DINART IND E COM DE CONFECCOES LTDA", value: "R$ 14.073.792,88", numericValue: 14073792.88, percentage: 9.7, rank: 4 },
+      { name: "TICKET SERVIÇOS SA", value: "R$ 13.703.588,36", numericValue: 13703588.36, percentage: 9.4, rank: 5 },
+      { name: "MALHAS MENEGOTTI INDUSTRIA TEXTIL LTDA", value: "R$ 11.524.068,34", numericValue: 11524068.34, percentage: 7.9, rank: 6 },
+      { name: "BIOSAUDE", value: "R$ 10.180.027,94", numericValue: 10180027.94, percentage: 7.0, rank: 7 },
+      { name: "BAHIANA DISTRIBUIDORA DE GAS LTDA", value: "R$ 9.972.635,56", numericValue: 9972635.56, percentage: 6.9, rank: 8 },
+      { name: "LYCEUM CONSULTORIA EDUCACIONAL", value: "R$ 9.033.402,58", numericValue: 9033402.58, percentage: 6.2, rank: 9 },
+      { name: "F DINART IND. E COM. DE CONFECCOES LTDA", value: "R$ 8.266.838,94", numericValue: 8266838.94, percentage: 5.7, rank: 10 },
+      { name: "HOSPITAL UNIMED SUL", value: "R$ 7.668.899,58", numericValue: 7668899.58, percentage: 5.3, rank: 11 }
+    ];
 
   return (
     <div className="bg-[#f7f7f8] flex flex-col flex-1 h-full min-h-0">
