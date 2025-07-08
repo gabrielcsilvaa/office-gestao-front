@@ -1573,93 +1573,11 @@ export default function DashboardFiscal() {
           { month: "Sem dados", value: 0 }
         ];
 
-  // Dados para o primeiro card de barra de progresso - "TOP 100 Produtos / Serviços"
-  // Agora dinâmico baseado nos dados reais da API para "Receita Bruta Total"
-  const topProdutosServicosData = kpiSelecionado === "Receita Bruta Total" && data
-    ? (() => {
-        try {
-          const itensMap = new Map<string, {total: number, tipo: string}>();
-          
-          // Processar Produtos (saídas não canceladas)
-          const saidasValidas = (data as any).saidas?.filter((item: SaidaData) => item.cancelada !== "S") || [];
-          const saidasFiltradas = clienteSelecionado 
-            ? saidasValidas.filter((saida: SaidaData) => saida.nome_cliente === clienteSelecionado)
-            : saidasValidas;
-          
-          saidasFiltradas.forEach((saida: SaidaData) => {
-            // Usar nome_empresa como identificador do produto por enquanto
-            // TODO: Ajustar quando soubermos o campo correto do produto
-            const chave = `${saida.nome_empresa}`;
-            const valor = parseFloat(saida.valor || "0");
-            
-            if (itensMap.has(chave)) {
-              itensMap.get(chave)!.total += valor;
-            } else {
-              itensMap.set(chave, { total: valor, tipo: "Produto" });
-            }
-          });
-          
-          // Processar Serviços (serviços não cancelados)
-          const servicosValidos = (data as any).servicos?.filter((item: ServicoData) => item.cancelada !== "S") || [];
-          const servicosFiltrados = clienteSelecionado 
-            ? servicosValidos.filter((servico: ServicoData) => servico.nome_cliente === clienteSelecionado)
-            : servicosValidos;
-          
-          servicosFiltrados.forEach((servico: ServicoData) => {
-            // Usar nome_empresa como identificador do serviço
-            const chave = `${servico.nome_empresa}`;
-            const valor = parseFloat(servico.valor || "0");
-            
-            if (itensMap.has(chave)) {
-              itensMap.get(chave)!.total += valor;
-            } else {
-              itensMap.set(chave, { total: valor, tipo: "Serviço" });
-            }
-          });
-          
-          // Calcular total geral para percentuais
-          const totalGeral = Array.from(itensMap.values()).reduce((sum, item) => sum + item.total, 0);
-          
-          // Converter para array e ordenar por valor (maior para menor)
-          const resultado = Array.from(itensMap.entries())
-            .map(([nome, dados]) => ({
-              name: nome,
-              value: new Intl.NumberFormat('pt-BR', { 
-                style: 'currency', 
-                currency: 'BRL',
-                minimumFractionDigits: 2 
-              }).format(dados.total),
-              numericValue: dados.total,
-              percentage: totalGeral > 0 ? Math.round((dados.total / totalGeral) * 1000) / 10 : 0,
-              rank: 0
-            }))
-            .sort((a, b) => b.numericValue - a.numericValue)
-            .slice(0, 100)
-            .map((item, index) => ({
-              ...item,
-              rank: index + 1
-            }));
-          
-          return resultado;
-        } catch (error) {
-          console.error("Erro ao processar ranking de produtos/serviços:", error);
-          return [];
-        }
-      })()
-    : [
-    { name: "Produto não informado", value: "R$ 115.439.645,23", numericValue: 115439645.23, percentage: 69.2, rank: 1 },
-    { name: "SERVIÇOS TOMADOS (2)", value: "R$ 11.213.561,10", numericValue: 11213561.10, percentage: 6.7, rank: 2 },
-    { name: "VASILHAME VAZIO P13 (2)", value: "R$ 6.496.853,83", numericValue: 6496853.83, percentage: 3.9, rank: 3 },
-    { name: "COTTON ALQUIMIA MENEGOTTI (80000000006084)", value: "R$ 4.694.056,41", numericValue: 4694056.41, percentage: 2.8, rank: 4 },
-    { name: "COTTON ALQUIMIA MENEGOTTI (143580A)", value: "R$ 4.670.102,95", numericValue: 4670102.95, percentage: 2.8, rank: 5 },
-    { name: "COTTON ALQUIMIA MENEGOTTI (143580A)", value: "R$ 4.663.614,92", numericValue: 4663614.92, percentage: 2.8, rank: 6 },
-    { name: "GASOLINA C COMUM (101001)", value: "R$ 4.492.489,40", numericValue: 4492489.40, percentage: 2.7, rank: 7 },
-    { name: "SERVIÇOS TOMADOS SEM CREDITO (9)", value: "R$ 4.450.120,01", numericValue: 4450120.01, percentage: 2.7, rank: 8 },
-    { name: "GASOLINA C COMUM (101001)", value: "R$ 4.365.533,64", numericValue: 4365533.64, percentage: 2.6, rank: 9 },
-    { name: "COTTON ALQUIMIA MENEGOTTI (143580A)", value: "R$ 4.236.279,81", numericValue: 4236279.81, percentage: 2.5, rank: 10 },
-    { name: "GASOLINA C COMUM (101001)", value: "R$ 4.031.582,00", numericValue: 4031582.00, percentage: 2.4, rank: 11 }
-  ];
-
+  // ⚠️ DADOS INDISPONÍVEIS: TOP 100 Produtos/Serviços
+  // O card foi desabilitado por não termos dados específicos de produtos/serviços individuais
+  // Mantemos a consistência com o dropdown "Produto" que também está desabilitado pela mesma razão
+  // Os dados disponíveis agrupam por nome_empresa, não por produto/serviço específico
+  
   // Dados para o segundo card de barra de progresso - "TOP 100 Clientes / Fornecedores"
   // Agora dinâmico baseado nos dados reais da API e KPI selecionado
   const topClientesFornecedoresData = data
@@ -1895,12 +1813,57 @@ export default function DashboardFiscal() {
 
         {/* Novos Cards com Barras de Progresso - 2 por linha */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-          <ProgressBarCard 
-            title={getTopProdutosServicosTitle(kpiSelecionado)} 
-            items={topProdutosServicosData}
-            colorScheme="green"
-            onMaximize={handleMaximizeTopProdutos}
-          />
+          {/* Card TOP 100 Produtos/Serviços - Desabilitado por falta de dados específicos */}
+          <div className="w-full bg-gray-100 rounded-lg shadow-md relative overflow-hidden h-[400px] opacity-60">
+            {/* Barra vertical ao lado do título - cinza para indicar desabilitado */}
+            <div className="w-6 h-0 left-[10px] top-[17px] absolute origin-top-left rotate-90 bg-gray-400 outline-1 outline-offset-[-0.50px] outline-gray-500"></div>
+            
+            {/* Header com título e ícone de maximizar desabilitado */}
+            <div className="flex justify-between items-start pt-[14px] px-5 mb-3 flex-shrink-0">
+              <div className="flex-grow overflow-hidden mr-3">
+                <div title={getTopProdutosServicosTitle(kpiSelecionado)} className={`text-gray-500 text-xl font-semibold leading-normal ${cairo.className} whitespace-nowrap overflow-hidden text-ellipsis`}>
+                  {getTopProdutosServicosTitle(kpiSelecionado)}
+                </div>
+              </div>
+              <div className="flex items-center space-x-2 flex-shrink-0">
+                <div className="p-1 cursor-not-allowed">
+                  <Image
+                    src="/assets/icons/icon-maximize.svg"
+                    alt="Maximize (Indisponível)"
+                    width={16}
+                    height={16}
+                    className="opacity-30"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Conteúdo indicando indisponibilidade */}
+            <div className="absolute inset-x-0 top-[70px] bottom-0 flex items-center justify-center">
+              <div className="text-center p-8">
+                <div className="text-6xl mb-4">📦</div>
+                <div className={`text-gray-600 text-lg font-semibold mb-2 ${cairo.className}`}>
+                  Dados Indisponíveis
+                </div>
+                <div className={`text-gray-500 text-sm leading-relaxed ${cairo.className} max-w-xs`}>
+                  Ranking de produtos e serviços específicos não disponível.
+                  <br/>
+                  Utilize o TOP 100 {labelClienteFornecedorPlural} ao lado para análises detalhadas.
+                </div>
+                <div className="mt-4 inline-flex items-center gap-2 text-xs text-gray-400">
+                  <Image
+                    src="/assets/icons/icon-question-mark.svg"
+                    alt="Info"
+                    width={12}
+                    height={12}
+                    className="opacity-50"
+                  />
+                  Mesma razão do dropdown "Produto" estar desabilitado
+                </div>
+              </div>
+            </div>
+          </div>
+
           <ProgressBarCard 
             title={`TOP 100 ${labelClienteFornecedorPlural}`}
             items={topClientesFornecedoresData}
