@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Dropdown } from "./components/Dropdown";
 import { VirtualizedDropdown } from "./components/VirtualizedDropdown";
 import { SmartDropdown } from "./components/SmartDropdown";
+import { Toast } from "./components/Toast";
 import { useDropdown } from "./hooks/useDropdown";
 import Calendar from "@/components/calendar";
 import KpiCardsGrid from "./components/KpiCardsGrid";
@@ -30,6 +31,10 @@ export default function DashboardFiscal() {
   const [data, setData] = useState(null);
   const [fornecedorOptions, setFornecedorOptions] = useState<string[]>([]);
   const [clienteOptions, setClienteOptions] = useState<string[]>([]);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: 'success' | 'info' | 'warning';
+  } | null>(null);
 
   // Tipo para os dados de entrada
   type EntradaData = {
@@ -101,42 +106,7 @@ export default function DashboardFiscal() {
   
   // Retorna as opções do dropdown conforme o KPI selecionado
   const getDropdownOptions = (): string[] => {
-    // Fornecedor: dinheiro SAINDO da empresa (compras/aquisições)
-    if (["Compras e Aquisições"].includes(kpiSelecionado)) {
-      return fornecedorOptions;
-    }
-    // Cliente: dinheiro ENTRANDO na empresa (vendas/receitas/cancelamentos)
-    if (["Receita Bruta Total", "Vendas de Produtos", "Serviços Prestados"].includes(kpiSelecionado)) {
-      return clienteOptions;
-    }
-    // Para Cancelamentos de Receita, mostrar apenas clientes que têm cancelamentos
-    if (["Cancelamentos de Receita"].includes(kpiSelecionado)) {
-      if (!data) return [];
-      
-      const clientesComCancelamentos = new Set<string>();
-      const dataTyped = data as any;
-      
-      // Adicionar clientes das saídas canceladas
-      if (dataTyped.saidas && Array.isArray(dataTyped.saidas)) {
-        dataTyped.saidas
-          .filter((saida: any) => saida.cancelada === "S")
-          .forEach((saida: any) => {
-            clientesComCancelamentos.add(saida.nome_cliente);
-          });
-      }
-      
-      // Adicionar clientes dos serviços cancelados
-      if (dataTyped.servicos && Array.isArray(dataTyped.servicos)) {
-        dataTyped.servicos
-          .filter((servico: any) => servico.cancelada === "S")
-          .forEach((servico: any) => {
-            clientesComCancelamentos.add(servico.nome_cliente);
-          });
-      }
-      
-      return Array.from(clientesComCancelamentos).sort();
-    }
-    return [];
+    return getDropdownOptionsForKpi(kpiSelecionado);
   };
 
   const labelClienteFornecedor = getClienteFornecedorLabel(kpiSelecionado);
@@ -565,8 +535,62 @@ export default function DashboardFiscal() {
 
   const handleKpiChange = (kpi: string) => {
     setKpiSelecionado(kpi);
-    // Limpar seleção do dropdown quando KPI mudar
-    setClienteSelecionado("");
+    
+    // ✅ MELHORIA UX: Validação inteligente da seleção atual
+    // Só limpa a seleção se ela não for compatível com o novo KPI
+    if (clienteSelecionado) {
+      const currentOptions = getDropdownOptionsForKpi(kpi);
+      const isCurrentSelectionValid = currentOptions.includes(clienteSelecionado);
+      
+      if (!isCurrentSelectionValid) {
+        setClienteSelecionado("");
+        setToast({
+          message: `Seleção de "${clienteSelecionado}" removida (não disponível para ${kpi})`,
+          type: 'warning'
+        });
+      }
+      // Quando a seleção é mantida, não mostra toast (comportamento silencioso)
+    }
+  };
+
+  // Função auxiliar para obter opções de dropdown para um KPI específico
+  const getDropdownOptionsForKpi = (kpi: string): string[] => {
+    // Fornecedor: dinheiro SAINDO da empresa (compras/aquisições)
+    if (["Compras e Aquisições"].includes(kpi)) {
+      return fornecedorOptions;
+    }
+    // Cliente: dinheiro ENTRANDO na empresa (vendas/receitas/cancelamentos)
+    if (["Receita Bruta Total", "Vendas de Produtos", "Serviços Prestados"].includes(kpi)) {
+      return clienteOptions;
+    }
+    // Para Cancelamentos de Receita, mostrar apenas clientes que têm cancelamentos
+    if (["Cancelamentos de Receita"].includes(kpi)) {
+      if (!data) return [];
+      
+      const clientesComCancelamentos = new Set<string>();
+      const dataTyped = data as any;
+      
+      // Adicionar clientes das saídas canceladas
+      if (dataTyped.saidas && Array.isArray(dataTyped.saidas)) {
+        dataTyped.saidas
+          .filter((saida: any) => saida.cancelada === "S")
+          .forEach((saida: any) => {
+            clientesComCancelamentos.add(saida.nome_cliente);
+          });
+      }
+      
+      // Adicionar clientes dos serviços cancelados
+      if (dataTyped.servicos && Array.isArray(dataTyped.servicos)) {
+        dataTyped.servicos
+          .filter((servico: any) => servico.cancelada === "S")
+          .forEach((servico: any) => {
+            clientesComCancelamentos.add(servico.nome_cliente);
+          });
+      }
+      
+      return Array.from(clientesComCancelamentos).sort();
+    }
+    return [];
   };
 
   const handleResetAllFilters = () => {
@@ -1561,6 +1585,16 @@ export default function DashboardFiscal() {
             onMaximize={handleMaximizeValorPorLocal}
           />
         </div>
+        
+        {/* Toast de feedback UX */}
+        {toast && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
+            duration={3000}
+          />
+        )}
         </div>
       </div>
   );

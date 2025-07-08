@@ -1,17 +1,5 @@
 import { useState, useEffect } from 'react';
 
-/**
- * Hook para dados fiscais KPI (DADOS REAIS - SEMPRE ESTRATÉGICOS)
- * 
- * CARACTERÍSTICAS:
- * - Processa dataset completo (81MB) para garantir precisão
- * - Roda em background sem bloquear a interface
- * - Tempo: ~22 segundos (dados reais têm seu custo)
- * - Valor: 100% estratégico e confiável
- * 
- * STRATEGY: Este hook mantém a qualidade dos dados enquanto
- * outros componentes (gráficos) usam dados otimizados para UX
- */
 
 interface FiscalKpiParams {
   startDate: string | null;
