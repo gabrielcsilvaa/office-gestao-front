@@ -1343,8 +1343,6 @@ export default function DashboardFiscal() {
       return [];
     }
 
-    console.log(`🎯 Gerando dados de evolução para KPI: ${kpi}, Período: ${startDate} - ${endDate}`);
-
     try {
       // Mapa para agrupar valores por mês/ano
       const monthlyData = new Map<string, number>();
@@ -1352,8 +1350,6 @@ export default function DashboardFiscal() {
       // Converter datas de filtro para objetos Date (sem timezone issues)
       const startDateTime = new Date(startDate + 'T00:00:00');
       const endDateTime = new Date(endDate + 'T23:59:59');
-      
-      console.log(`📅 Período normalizado: ${startDateTime.toISOString()} - ${endDateTime.toISOString()}`);
       
       // Função helper para processar uma transação
       const processTransaction = (item: any, value: number) => {
@@ -1379,18 +1375,11 @@ export default function DashboardFiscal() {
             transactionDate.setHours(0, 0, 0, 0);
           }
         } catch (error) {
-          console.warn(`⚠️ Erro ao parsear data: ${item.data}`, error);
           return;
         }
         
         if (isNaN(transactionDate.getTime())) {
-          console.warn(`⚠️ Data inválida encontrada: ${item.data}`);
           return;
-        }
-        
-        // Debug: log algumas transações para verificar
-        if (Math.random() < 0.01) { // Log 1% das transações para debug
-          console.log(`🔍 Debug transação: ${item.data} -> ${transactionDate.toISOString()} | Dentro do período: ${transactionDate >= startDateTime && transactionDate <= endDateTime}`);
         }
         
         // Verificar se a transação está dentro do período selecionado
@@ -1401,11 +1390,6 @@ export default function DashboardFiscal() {
         // Gerar chave no formato "Jan/2024"
         const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
         const monthKey = `${monthNames[transactionDate.getMonth()]}/${transactionDate.getFullYear()}`;
-        
-        // Debug: log o mês/ano gerado
-        if (Math.random() < 0.01) {
-          console.log(`📈 Adicionando ao mês: ${monthKey} | Valor: ${value}`);
-        }
         
         // Acumular valor
         monthlyData.set(monthKey, (monthlyData.get(monthKey) || 0) + value);
@@ -1422,8 +1406,6 @@ export default function DashboardFiscal() {
               saidasValidas = saidasValidas.filter((saida: SaidaData) => saida.nome_cliente === clienteSelecionado);
             }
             
-            console.log(`📊 Processando ${saidasValidas.length} saídas para Receita Bruta Total`);
-            
             saidasValidas.forEach((saida: SaidaData) => {
               processTransaction(saida, parseFloat(saida.valor || "0"));
             });
@@ -1436,8 +1418,6 @@ export default function DashboardFiscal() {
             if (clienteSelecionado) {
               servicosValidos = servicosValidos.filter((servico: ServicoData) => servico.nome_cliente === clienteSelecionado);
             }
-            
-            console.log(`📊 Processando ${servicosValidos.length} serviços para Receita Bruta Total`);
             
             servicosValidos.forEach((servico: ServicoData) => {
               processTransaction(servico, parseFloat(servico.valor || "0"));
@@ -1453,8 +1433,6 @@ export default function DashboardFiscal() {
               saidasValidas = saidasValidas.filter((saida: SaidaData) => saida.nome_cliente === clienteSelecionado);
             }
             
-            console.log(`📊 Processando ${saidasValidas.length} saídas para Vendas de Produtos`);
-            
             saidasValidas.forEach((saida: SaidaData) => {
               processTransaction(saida, parseFloat(saida.valor || "0"));
             });
@@ -1469,8 +1447,6 @@ export default function DashboardFiscal() {
               servicosValidos = servicosValidos.filter((servico: ServicoData) => servico.nome_cliente === clienteSelecionado);
             }
             
-            console.log(`📊 Processando ${servicosValidos.length} serviços para Serviços Prestados`);
-            
             servicosValidos.forEach((servico: ServicoData) => {
               processTransaction(servico, parseFloat(servico.valor || "0"));
             });
@@ -1484,8 +1460,6 @@ export default function DashboardFiscal() {
             if (clienteSelecionado) {
               entradasValidas = entradasValidas.filter((entrada: EntradaData) => entrada.nome_fornecedor === clienteSelecionado);
             }
-            
-            console.log(`📊 Processando ${entradasValidas.length} entradas para Compras e Aquisições`);
             
             entradasValidas.forEach((entrada: EntradaData) => {
               processTransaction(entrada, parseFloat(entrada.valor || "0"));
@@ -1502,8 +1476,6 @@ export default function DashboardFiscal() {
               saidasCanceladas = saidasCanceladas.filter((saida: SaidaData) => saida.nome_cliente === clienteSelecionado);
             }
             
-            console.log(`📊 Processando ${saidasCanceladas.length} saídas canceladas`);
-            
             saidasCanceladas.forEach((saida: SaidaData) => {
               processTransaction(saida, parseFloat(saida.valor || "0"));
             });
@@ -1517,8 +1489,6 @@ export default function DashboardFiscal() {
               servicosCancelados = servicosCancelados.filter((servico: ServicoData) => servico.nome_cliente === clienteSelecionado);
             }
             
-            console.log(`📊 Processando ${servicosCancelados.length} serviços cancelados`);
-            
             servicosCancelados.forEach((servico: ServicoData) => {
               processTransaction(servico, parseFloat(servico.valor || "0"));
             });
@@ -1530,8 +1500,6 @@ export default function DashboardFiscal() {
       }
 
       // Converter Map para array e ordenar por data
-      console.log(`🗂️ Meses encontrados antes da ordenação:`, Array.from(monthlyData.keys()));
-      
       const sortedData = Array.from(monthlyData.entries())
         .map(([month, value]) => ({
           month,
@@ -1549,12 +1517,9 @@ export default function DashboardFiscal() {
           return parseMonth(a.month).getTime() - parseMonth(b.month).getTime();
         });
 
-      console.log(`✅ Dados de evolução gerados (ordenados):`, sortedData);
-      console.log(`📅 Período solicitado era: ${startDate} até ${endDate}`);
       return sortedData;
 
     } catch (error) {
-      console.error("❌ Erro ao gerar dados de evolução:", error);
       return [];
     }
   };
@@ -1588,8 +1553,6 @@ export default function DashboardFiscal() {
           // Definir quais dados processar baseado no KPI
           const incluirClientes = ["Receita Bruta Total", "Vendas de Produtos", "Serviços Prestados", "Cancelamentos de Receita"].includes(kpiSelecionado);
           const incluirFornecedores = ["Compras e Aquisições"].includes(kpiSelecionado);
-          
-          console.log(`[TOP 100] KPI: ${kpiSelecionado}, Incluir Clientes: ${incluirClientes}, Incluir Fornecedores: ${incluirFornecedores}`);
           
           // Processar Clientes (saídas e serviços)
           if (incluirClientes) {
@@ -1630,7 +1593,6 @@ export default function DashboardFiscal() {
               }
             });
             
-            console.log(`[TOP 100] Processados ${dadosClientes.length} registros de clientes`);
           }
           
           // Processar Fornecedores (entradas)
@@ -1654,13 +1616,10 @@ export default function DashboardFiscal() {
               }
             });
             
-            console.log(`[TOP 100] Processados ${dadosFornecedores.length} registros de fornecedores`);
           }
           
           // Calcular total geral para percentuais
           const totalGeral = Array.from(entidadesMap.values()).reduce((sum, valor) => sum + valor, 0);
-          
-          console.log(`[TOP 100] Total de entidades únicas: ${entidadesMap.size}, Valor total: R$ ${totalGeral.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`);
           
           // Converter para array e ordenar por valor (maior para menor)
           const resultado = Array.from(entidadesMap.entries())
@@ -1681,8 +1640,6 @@ export default function DashboardFiscal() {
               ...item,
               rank: index + 1
             }));
-          
-          console.log(`[TOP 100] Top 5 resultados:`, resultado.slice(0, 5).map(r => `${r.rank}º ${r.name}: ${r.value} (${r.percentage}%)`));
           
           return resultado;
         } catch (error) {
