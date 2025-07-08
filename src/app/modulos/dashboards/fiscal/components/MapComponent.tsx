@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer } from 'react-leaflet';
 import L from 'leaflet';
 
 // Fix para os ícones do Leaflet em Next.js - necessário para funcionar corretamente
@@ -64,30 +64,6 @@ const MapComponent: React.FC<MapComponentProps> = ({ locations, viewType }) => {
           maxZoom={19}
           minZoom={1}
         />
-        
-        {locations.map((location) => (
-          <Marker 
-            key={location.id} 
-            position={[location.lat, location.lng]}
-          >
-            <Popup>
-              <div className="p-2">
-                <h3 className="font-semibold text-gray-800 mb-1">{location.name}</h3>
-                <div className="text-sm text-gray-600">
-                  <div>
-                    <strong>Quantidade:</strong> {location.quantity.toLocaleString('pt-BR')}
-                  </div>
-                  <div>
-                    <strong>Valor:</strong> R$ {location.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                  </div>
-                  <div className="mt-2 px-2 py-1 bg-blue-100 rounded text-xs">
-                    <strong>Visualizando:</strong> {viewType === 'quantidade' ? 'Quantidade' : 'Valor'}
-                  </div>
-                </div>
-              </div>
-            </Popup>
-          </Marker>
-        ))}
       </MapContainer>
     </div>
   );
