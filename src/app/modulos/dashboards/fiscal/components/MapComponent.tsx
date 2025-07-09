@@ -24,14 +24,14 @@ interface LocationData {
 
 interface MapComponentProps {
   locations: LocationData[];
-  viewType: 'quantidade' | 'valor';
+  viewType?: 'quantidade' | 'valor'; // Agora é opcional - padrão será 'valor'
   kpiSelecionado?: string;
   isLoading?: boolean;
 }
 
 const MapComponent: React.FC<MapComponentProps> = ({ 
   locations, 
-  viewType, 
+  viewType = 'valor', // Padrão é 'valor' para focar nos valores dos KPIs
   kpiSelecionado = "Receita Bruta Total",
   isLoading = false 
 }) => {
@@ -198,10 +198,6 @@ const MapComponent: React.FC<MapComponentProps> = ({
                   <div className="flex justify-between">
                     <span className="text-gray-600">KPI:</span>
                     <span className="font-medium text-xs">{kpiSelecionado}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Visualização:</span>
-                    <span className="font-medium text-xs">{viewType === 'valor' ? 'Por Valor' : 'Por Quantidade'}</span>
                   </div>
                 </div>
               </div>

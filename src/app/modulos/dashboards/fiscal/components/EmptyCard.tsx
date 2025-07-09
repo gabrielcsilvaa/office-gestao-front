@@ -38,8 +38,6 @@ interface EmptyCardProps {
   endDate?: string | null;
 }
 
-type ViewType = 'quantidade' | 'valor';
-
 interface LocationData {
   uf: string;
   nome: string;
@@ -50,7 +48,6 @@ interface LocationData {
 }
 
 const EmptyCard: React.FC<EmptyCardProps> = ({ title, onMaximize, data, kpiSelecionado }) => {
-  const [selectedView, setSelectedView] = useState<ViewType>('quantidade');
   const [locationData, setLocationData] = useState<LocationData[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [currentKpi, setCurrentKpi] = useState(kpiSelecionado || "Receita Bruta Total");
@@ -59,6 +56,7 @@ const EmptyCard: React.FC<EmptyCardProps> = ({ title, onMaximize, data, kpiSelec
   useEffect(() => {
     if (!data) {
       // Dados de exemplo quando não há dados da API
+      console.log("📝 Usando dados de exemplo (sem dados da API)");
       setLocationData([
         { uf: 'CE', nome: 'Ceará', lat: -3.7172, lng: -38.5433, value: 520000, quantity: 6900 }
       ]);
@@ -69,11 +67,18 @@ const EmptyCard: React.FC<EmptyCardProps> = ({ title, onMaximize, data, kpiSelec
       setIsProcessing(true);
       
       try {
-        console.log(`� Processando dados para KPI: "${currentKpi}"`);
+        console.log(`🎯 [DEBUG] Processando dados para KPI: "${currentKpi}"`);
+        console.log(`📊 [DEBUG] Dados recebidos:`, {
+          saidas: data.saidas?.length || 0,
+          servicos: data.servicos?.length || 0,
+          entradas: data.entradas?.length || 0
+        });
 
         // 🗺️ USAR O NOVO PROCESSADOR DE DADOS GEOGRÁFICOS
         // Este é o coração da análise geoestratégica interativa
         const mapStateData: MapStateData[] = await processDataForMap(data, currentKpi);
+
+        console.log(`📍 [DEBUG] Estados processados:`, mapStateData.map(s => `${s.uf}(${s.valorPrincipal})`));
 
         // Converter MapStateData para o formato esperado pelo MapComponent
         const mapData: LocationData[] = mapStateData.map(state => ({
@@ -90,14 +95,15 @@ const EmptyCard: React.FC<EmptyCardProps> = ({ title, onMaximize, data, kpiSelec
         // Log da configuração ativa
         const config = getKpiConfig(currentKpi);
         if (config) {
-          console.log(`✅ Mapa atualizado para "${currentKpi}"`);
-          console.log(`📊 Legenda: ${config.legend}`);
-          console.log(`🎨 Tema: ${config.color}`);
-          console.log(`📍 Estados identificados: ${mapData.length}`);
+          console.log(`✅ [DEBUG] Mapa atualizado para "${currentKpi}"`);
+          console.log(`📊 [DEBUG] Legenda: ${config.legend}`);
+          console.log(`🎨 [DEBUG] Tema: ${config.color}`);
+          console.log(`📍 [DEBUG] Estados identificados: ${mapData.length}`);
+          console.log(`🔢 [DEBUG] Valores por estado:`, mapData.map(m => `${m.uf}: R$ ${m.value.toFixed(2)}`));
         }
 
       } catch (error) {
-        console.error('❌ Erro ao processar dados geográficos:', error);
+        console.error('❌ [ERROR] Erro ao processar dados geográficos:', error);
         // Em caso de erro, usar dados de exemplo
         setLocationData([
           { uf: 'CE', nome: 'Ceará', lat: -3.7172, lng: -38.5433, value: 520000, quantity: 6900 }
@@ -137,30 +143,6 @@ const EmptyCard: React.FC<EmptyCardProps> = ({ title, onMaximize, data, kpiSelec
               </span>
             </div>
           )}
-          
-          {/* Switch Quantidade/Valor */}
-          <div className="flex bg-gray-100 rounded-lg p-1">
-            <button
-              onClick={() => setSelectedView('quantidade')}
-              className={`px-3 py-1 rounded-md text-xs font-medium transition-all duration-200 ${cairo.className} ${
-                selectedView === 'quantidade'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Quantidade
-            </button>
-            <button
-              onClick={() => setSelectedView('valor')}
-              className={`px-3 py-1 rounded-md text-xs font-medium transition-all duration-200 ${cairo.className} ${
-                selectedView === 'valor'
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              Valor
-            </button>
-          </div>
         </div>
         
         <div className="flex items-center space-x-2 flex-shrink-0">
@@ -217,7 +199,7 @@ const EmptyCard: React.FC<EmptyCardProps> = ({ title, onMaximize, data, kpiSelec
             </div>
           )}
           
-          <MapComponent locations={locationData} viewType={selectedView} />
+          <MapComponent locations={locationData} kpiSelecionado={currentKpi} />
         </div>
       </div>
     </div>
