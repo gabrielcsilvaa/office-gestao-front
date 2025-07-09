@@ -22,13 +22,21 @@ const cairo = Cairo({
 export default function DashboardFiscal() {
   const { openDropdown, handleToggleDropdown } = useDropdown();
 
+  // Tipos para os dados do dashboard
+  type DashboardData = {
+    saidas?: any[];
+    servicos?: any[];
+    entradas?: EntradaData[];
+  };
+
+  // Estados do componente
   const [clienteSelecionado, setClienteSelecionado] = useState("");
   const [produtoSelecionado, setProdutoSelecionado] = useState("");
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [kpiSelecionado, setKpiSelecionado] = useState("Receita Bruta Total");
-  const [data, setData] = useState(null);
+  const [data, setData] = useState<DashboardData | null>(null);
   const [fornecedorOptions, setFornecedorOptions] = useState<string[]>([]);
   const [clienteOptions, setClienteOptions] = useState<string[]>([]);
   const [toast, setToast] = useState<{
@@ -1833,6 +1841,10 @@ export default function DashboardFiscal() {
         <div className="mt-6">
           <EmptyCard 
             title="Valor por Local" 
+            data={data}
+            kpiSelecionado={kpiSelecionado}
+            startDate={startDate}
+            endDate={endDate}
             onMaximize={handleMaximizeValorPorLocal}
           />
         </div>

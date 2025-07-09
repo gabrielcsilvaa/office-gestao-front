@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Image from "next/image";
 import { Cairo } from "next/font/google";
 import dynamic from 'next/dynamic';
+import { processDataForMap, getKpiConfig, MapStateData } from '@/utils/mapDataProcessor';
 
 // Carregamento dinâmico dos componentes do mapa com estado de carregamento
 const MapComponent = dynamic(() => import('./MapComponent'), { 
@@ -27,37 +28,115 @@ const cairo = Cairo({
 interface EmptyCardProps {
   title: string;
   onMaximize?: () => void;
+  data?: {
+    saidas?: any[];
+    servicos?: any[];
+    entradas?: any[];
+  } | null;
+  kpiSelecionado?: string;
+  startDate?: string | null;
+  endDate?: string | null;
 }
 
 type ViewType = 'quantidade' | 'valor';
 
 interface LocationData {
-  id: string;
-  name: string;
+  uf: string;
+  nome: string;
   lat: number;
   lng: number;
   value: number;
   quantity: number;
 }
 
-const EmptyCard: React.FC<EmptyCardProps> = ({ title, onMaximize }) => {
+const EmptyCard: React.FC<EmptyCardProps> = ({ title, onMaximize, data, kpiSelecionado }) => {
   const [selectedView, setSelectedView] = useState<ViewType>('quantidade');
+  const [locationData, setLocationData] = useState<LocationData[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [currentKpi, setCurrentKpi] = useState(kpiSelecionado || "Receita Bruta Total");
 
-  // Dados fictícios de localização para demonstração - apenas Fortaleza
-  const locationData: LocationData[] = [
-    { id: '6', name: 'Fortaleza - CE', lat: -3.7172, lng: -38.5433, value: 520000, quantity: 6900 }
-  ];
+  // Efeito para processar os dados quando chegarem ou quando o KPI mudar
+  useEffect(() => {
+    if (!data) {
+      // Dados de exemplo quando não há dados da API
+      setLocationData([
+        { uf: 'CE', nome: 'Ceará', lat: -3.7172, lng: -38.5433, value: 520000, quantity: 6900 }
+      ]);
+      return;
+    }
+
+    const processData = async () => {
+      setIsProcessing(true);
+      
+      try {
+        console.log(`� Processando dados para KPI: "${currentKpi}"`);
+
+        // 🗺️ USAR O NOVO PROCESSADOR DE DADOS GEOGRÁFICOS
+        // Este é o coração da análise geoestratégica interativa
+        const mapStateData: MapStateData[] = await processDataForMap(data, currentKpi);
+
+        // Converter MapStateData para o formato esperado pelo MapComponent
+        const mapData: LocationData[] = mapStateData.map(state => ({
+          uf: state.uf,
+          nome: state.nome,
+          lat: state.lat,
+          lng: state.lng,
+          value: state.valorPrincipal,
+          quantity: state.contagem
+        }));
+
+        setLocationData(mapData);
+        
+        // Log da configuração ativa
+        const config = getKpiConfig(currentKpi);
+        if (config) {
+          console.log(`✅ Mapa atualizado para "${currentKpi}"`);
+          console.log(`📊 Legenda: ${config.legend}`);
+          console.log(`🎨 Tema: ${config.color}`);
+          console.log(`📍 Estados identificados: ${mapData.length}`);
+        }
+
+      } catch (error) {
+        console.error('❌ Erro ao processar dados geográficos:', error);
+        // Em caso de erro, usar dados de exemplo
+        setLocationData([
+          { uf: 'CE', nome: 'Ceará', lat: -3.7172, lng: -38.5433, value: 520000, quantity: 6900 }
+        ]);
+      } finally {
+        setIsProcessing(false);
+      }
+    };
+
+    processData();
+  }, [data, currentKpi]); // Re-processar quando dados ou KPI mudarem
+
+  // Sincronizar KPI selecionado externamente
+  useEffect(() => {
+    if (kpiSelecionado && kpiSelecionado !== currentKpi) {
+      setCurrentKpi(kpiSelecionado);
+    }
+  }, [kpiSelecionado, currentKpi]);
   return (
     <div className="w-full bg-white rounded-lg shadow-md relative overflow-hidden h-[500px]">
       {/* Barra vertical ao lado do título */}
       <div className="w-6 h-0 left-[10px] top-[17px] absolute origin-top-left rotate-90 bg-zinc-300 outline-1 outline-offset-[-0.50px] outline-neutral-700"></div>
       
-      {/* Header com título, switch e ícone de maximizar */}
+      {/* Header com título, KPI ativo, switch e ícone de maximizar */}
       <div className="flex justify-between items-center pt-[14px] px-5 mb-3 flex-shrink-0">
         <div className="flex items-center space-x-4">
           <div title={title} className={`text-black text-xl font-semibold leading-normal ${cairo.className} whitespace-nowrap`}>
             {title}
           </div>
+          
+          {/* Indicador do KPI Ativo */}
+          {currentKpi && (
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+              <span className={`text-sm text-gray-600 ${cairo.className}`}>
+                {currentKpi}
+              </span>
+            </div>
+          )}
           
           {/* Switch Quantidade/Valor */}
           <div className="flex bg-gray-100 rounded-lg p-1">
@@ -98,9 +177,46 @@ const EmptyCard: React.FC<EmptyCardProps> = ({ title, onMaximize }) => {
         </div>
       </div>
 
-      {/* Conteúdo do card - Mapa */}
+      {/* Conteúdo do card - Mapa com Legenda */}
       <div className="flex-1 px-5 pb-5 min-h-0">
-        <div className="h-full w-full rounded-lg overflow-hidden bg-gray-50" style={{ minHeight: '420px', height: '420px' }}>
+        <div className="h-full w-full rounded-lg overflow-hidden bg-gray-50 relative" style={{ minHeight: '420px', height: '420px' }}>
+          {/* Overlay de processamento */}
+          {isProcessing && (
+            <div className="absolute inset-0 bg-white bg-opacity-80 flex items-center justify-center z-10">
+              <div className="text-center">
+                <div className="text-gray-600 mb-2">� Processando análise para "{currentKpi}"...</div>
+                <div className="animate-spin w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
+              </div>
+            </div>
+          )}
+          
+          {/* Legenda do KPI Ativo */}
+          {!isProcessing && currentKpi && (() => {
+            const config = getKpiConfig(currentKpi);
+            return config ? (
+              <div className="absolute top-3 left-3 z-20 bg-white bg-opacity-90 rounded-lg px-3 py-2 shadow-md">
+                <div className="flex items-center space-x-2">
+                  <div 
+                    className="w-3 h-3 rounded-full" 
+                    style={{ backgroundColor: config.color }}
+                  ></div>
+                  <span className={`text-xs text-gray-700 ${cairo.className}`}>
+                    {config.legend}
+                  </span>
+                </div>
+              </div>
+            ) : null;
+          })()}
+          
+          {/* Contador de Estados */}
+          {!isProcessing && locationData.length > 0 && (
+            <div className="absolute top-3 right-3 z-20 bg-white bg-opacity-90 rounded-lg px-3 py-2 shadow-md">
+              <span className={`text-xs text-gray-700 ${cairo.className}`}>
+                {locationData.length} estado{locationData.length !== 1 ? 's' : ''} identificado{locationData.length !== 1 ? 's' : ''}
+              </span>
+            </div>
+          )}
+          
           <MapComponent locations={locationData} viewType={selectedView} />
         </div>
       </div>
