@@ -145,36 +145,69 @@ export async function processDataForMap(
   apiData: DashboardData,
   activeKpi: string
 ): Promise<MapStateData[]> {
-  console.log(`🗺️ Processando dados para KPI: "${activeKpi}"`);
+  console.log(`🗺️ [START] Processando dados para KPI: "${activeKpi}"`);
+  console.log(`📊 [DATA] Dados recebidos:`, {
+    saidas: apiData.saidas?.length || 0,
+    servicos: apiData.servicos?.length || 0,
+    entradas: apiData.entradas?.length || 0
+  });
 
   // Verificar se o KPI é válido
   if (!KPI_CONFIG[activeKpi as keyof typeof KPI_CONFIG]) {
-    console.warn(`❌ KPI "${activeKpi}" não reconhecido. Usando dados vazios.`);
+    console.warn(`❌ KPI "${activeKpi}" não reconhecido. KPIs disponíveis:`, Object.keys(KPI_CONFIG));
     return [];
   }
 
   const config = KPI_CONFIG[activeKpi as keyof typeof KPI_CONFIG];
+  console.log(`⚙️ [CONFIG] Configuração do KPI:`, {
+    dataSources: config.dataSources,
+    color: config.color,
+    legend: config.legend
+  });
   
   // 1. SELEÇÃO: Coletar dados das fontes apropriadas
   let rawData: any[] = [];
   for (const source of config.dataSources) {
     const sourceData = apiData[source as keyof DashboardData] || [];
+    console.log(`📂 [SOURCE] ${source}: ${sourceData.length} registros`);
+    if (source === 'entradas' && sourceData.length > 0) {
+      console.log(`📄 [SAMPLE] Primeiro registro de ${source}:`, sourceData[0]);
+    }
     rawData = [...rawData, ...sourceData];
   }
 
-  console.log(`📊 Coletados ${rawData.length} registros de [${config.dataSources.join(', ')}]`);
+  console.log(`📊 [COLLECTION] Coletados ${rawData.length} registros de [${config.dataSources.join(', ')}]`);
 
   // 2. FILTRAGEM: Aplicar filtros específicos do KPI
   const filteredData = rawData.filter(config.filter);
-  console.log(`🔍 Após filtragem: ${filteredData.length} registros`);
+  console.log(`🔍 [FILTER] Após filtragem: ${filteredData.length} registros`);
+  
+  if (filteredData.length === 0) {
+    console.warn(`⚠️ [WARNING] Nenhum registro passou pelo filtro do KPI "${activeKpi}"`);
+    return [];
+  }
 
   // 3. ENRIQUECIMENTO GEOGRÁFICO: Determinar UF para cada registro
   const enrichedData: Array<{ item: any; uf: string }> = [];
   
+  console.log(`🌍 Iniciando enriquecimento geográfico...`);
+  
   for (const item of filteredData) {
-    const uf = await determineUf(item);
-    enrichedData.push({ item, uf });
+    try {
+      const uf = await determineUf(item);
+      enrichedData.push({ item, uf });
+      
+      // Log de progresso (apenas para debug)
+      if (enrichedData.length % 5 === 0 || enrichedData.length === filteredData.length) {
+        console.log(`📍 Enriquecimento: ${enrichedData.length}/${filteredData.length} processados`);
+      }
+    } catch (error) {
+      console.error(`❌ Erro no enriquecimento do item:`, item, error);
+      enrichedData.push({ item, uf: 'Desconhecido' });
+    }
   }
+  
+  console.log(`✅ Enriquecimento geográfico concluído: ${enrichedData.length} registros processados`);
 
   // 4. AGREGAÇÃO: Agrupar por UF
   const agregacaoPorUf: Record<string, { valorTotal: number; contagem: number }> = {};
@@ -218,7 +251,13 @@ export async function processDataForMap(
     })
     .sort((a, b) => b.valorPrincipal - a.valorPrincipal); // Ordenar por valor (maior primeiro)
 
-  console.log(`✅ Processamento concluído! ${mapData.length} estados com dados para "${activeKpi}"`);
+  console.log(`✅ [FINISH] Processamento concluído! ${mapData.length} estados com dados para "${activeKpi}"`);
+  
+  if (mapData.length === 0) {
+    console.warn(`⚠️ [RESULT] Nenhum estado foi processado para o KPI "${activeKpi}". Verifique os dados de entrada.`);
+  } else {
+    console.log(`📍 [RESULT] Estados processados:`, mapData.map(s => `${s.uf}(R$${s.valorPrincipal.toFixed(2)})`));
+  }
   
   return mapData;
 }
