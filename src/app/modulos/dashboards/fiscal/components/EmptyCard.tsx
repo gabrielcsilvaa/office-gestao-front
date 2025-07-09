@@ -76,7 +76,7 @@ const EmptyCard: React.FC<EmptyCardProps> = ({ title, onMaximize, data, kpiSelec
 
         // 🗺️ USAR O NOVO PROCESSADOR DE DADOS GEOGRÁFICOS
         // Este é o coração da análise geoestratégica interativa
-        const mapStateData: MapStateData[] = await processDataForMap(data, currentKpi);
+        const mapStateData: MapStateData[] = processDataForMap(data, currentKpi);
 
         console.log(`📍 [DEBUG] Estados processados:`, mapStateData.map(s => `${s.uf}(${s.valorPrincipal})`));
 

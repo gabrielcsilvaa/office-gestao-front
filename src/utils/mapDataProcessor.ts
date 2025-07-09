@@ -79,6 +79,18 @@ const KPI_CONFIG = {
       'Compra Média': `R$ ${formatCurrency(data.valorPrincipal / data.contagem)}`
     })
   },
+  "Cancelamentos de Receita": {
+    dataSources: ['saidas', 'servicos'],
+    filter: (item: any) => item.cancelada === 'S',
+    color: '#DC3545',
+    fillColor: '#DC3545',
+    legend: 'Raio = Valor de Cancelamentos',
+    popupTemplate: (data: any) => ({
+      'Valor Cancelado': `R$ ${formatCurrency(data.valorPrincipal)}`,
+      'Cancelamentos': data.contagem,
+      'Cancelamento Médio': `R$ ${formatCurrency(data.valorPrincipal / data.contagem)}`
+    })
+  },
   "Notas Canceladas": {
     dataSources: ['saidas', 'servicos'],
     filter: (item: any) => item.cancelada === 'S',
@@ -120,7 +132,8 @@ const ESTADO_COORDINATES: Record<string, { nome: string; lat: number; lng: numbe
   'SC': { nome: 'Santa Catarina', lat: -27.5954, lng: -48.5480 },
   'SP': { nome: 'São Paulo', lat: -23.5505, lng: -46.6333 },
   'SE': { nome: 'Sergipe', lat: -10.9472, lng: -37.0731 },
-  'TO': { nome: 'Tocantins', lat: -10.2128, lng: -48.3603 }
+  'TO': { nome: 'Tocantins', lat: -10.2128, lng: -48.3603 },
+  'Desconhecido': { nome: 'Localização Desconhecida', lat: -15.7942, lng: -47.8825 }
 };
 
 // Utilitário para formatação de moeda
@@ -141,10 +154,10 @@ function formatCurrency(value: number): string {
  * @param activeKpi - KPI ativo selecionado pelo usuário
  * @returns Array de dados processados para renderização no mapa
  */
-export async function processDataForMap(
+export function processDataForMap(
   apiData: DashboardData,
   activeKpi: string
-): Promise<MapStateData[]> {
+): MapStateData[] {
   console.log(`🗺️ [START] Processando dados para KPI: "${activeKpi}"`);
   console.log(`📊 [DATA] Dados recebidos:`, {
     saidas: apiData.saidas?.length || 0,
@@ -194,7 +207,7 @@ export async function processDataForMap(
   
   for (const item of filteredData) {
     try {
-      const uf = await determineUf(item);
+      const uf = determineUf(item); // Removido await já que é síncrono
       enrichedData.push({ item, uf });
       
       // Log de progresso (apenas para debug)
@@ -213,8 +226,9 @@ export async function processDataForMap(
   const agregacaoPorUf: Record<string, { valorTotal: number; contagem: number }> = {};
 
   enrichedData.forEach(({ item, uf }) => {
-    if (uf === 'Desconhecido') return; // Ignorar dados sem localização
-
+    // Aceitar todos os dados, incluindo "Desconhecido"
+    // Para KPIs que não sejam "Compras e Aquisições", ainda mostrar dados "Desconhecido" 
+    // mas em uma localização central do Brasil
     if (!agregacaoPorUf[uf]) {
       agregacaoPorUf[uf] = { valorTotal: 0, contagem: 0 };
     }
@@ -226,9 +240,13 @@ export async function processDataForMap(
 
   // 5. TRANSFORMAÇÃO: Converter em dados para o mapa
   const mapData: MapStateData[] = Object.entries(agregacaoPorUf)
-    .filter(([uf]) => ESTADO_COORDINATES[uf]) // Apenas UFs válidas
     .map(([uf, dados]) => {
-      const coordenadas = ESTADO_COORDINATES[uf];
+      // Para UF "Desconhecido", usar coordenadas do centro do Brasil
+      const coordenadas = ESTADO_COORDINATES[uf] || {
+        nome: 'Localização Desconhecida',
+        lat: -15.7942, // Centro do Brasil (Brasília aproximadamente)
+        lng: -47.8825
+      };
       
       const stateData = {
         uf,
