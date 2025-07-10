@@ -94,11 +94,16 @@ export default function DashboardFiscalImposto() {
     }
     
     return [
-      { empresa: "YAMAHA MOTOR DA AMAZONIA LTDA", valor: "R$ 25.000,00", numericValue: 25000, percentage: 100 },
-      { empresa: "VIBRA ENERGIA S.A", valor: "R$ 22.000,00", numericValue: 22000, percentage: 88 },
-      { empresa: "F DINARTE IND E COM DE CONFEC", valor: "R$ 18.000,00", numericValue: 18000, percentage: 72 },
-      { empresa: "DINART IND E COM DE CONFECCOES LTDA", valor: "R$ 15.000,00", numericValue: 15000, percentage: 60 },
-      { empresa: "TICKET SERVIÇOS SA", valor: "R$ 12.000,00", numericValue: 12000, percentage: 48 }
+      { empresa: "SIMPLES NACIONAL", valor: "R$ 9.300.000,00", numericValue: 9300000, percentage: 100 },
+      { empresa: "COFINS", valor: "R$ 8.400.000,00", numericValue: 8400000, percentage: 90.3 },
+      { empresa: "IRPJ-LP", valor: "R$ 6.800.000,00", numericValue: 6800000, percentage: 73.1 },
+      { empresa: "ISS", valor: "R$ 4.500.000,00", numericValue: 4500000, percentage: 48.4 },
+      { empresa: "CONTRIBUIÇÃO SOCIAL", valor: "R$ 4.100.000,00", numericValue: 4100000, percentage: 44.1 },
+      { empresa: "COFINS(NÃO CUMULATIVA)", valor: "R$ 3.000.000,00", numericValue: 3000000, percentage: 32.3 },
+      { empresa: "ICMS", valor: "R$ 2.200.000,00", numericValue: 2200000, percentage: 23.7 },
+      { empresa: "PIS", valor: "R$ 1.800.000,00", numericValue: 1800000, percentage: 19.4 },
+      { empresa: "ICMS ST ANTECIPAÇÃO TOTAL", valor: "R$ 1.700.000,00", numericValue: 1700000, percentage: 18.3 },
+      { empresa: "CONTRIBUIÇÃO PREVIDENCIÁRIA SOBRE A RECEITA BRUTA", valor: "R$ 1.000.000,00", numericValue: 1000000, percentage: 10.8 }
     ];
   };
 
@@ -110,34 +115,104 @@ export default function DashboardFiscalImposto() {
     
     return [
       {
-        imposto: "ICMS - Imposto sobre Circulação de Mercadorias e Serviços",
-        impostoDevido: "R$ 45.000,00",
+        imposto: "COFINS",
+        impostoDevido: "R$ 8.390.386,75",
         periodicidade: "Mensal",
-        saldoAnteriorRecuperar: "R$ 8.000,00",
-        movimentoCredor: "R$ 12.000,00",
-        saldoRecuperar: "R$ 20.000,00",
-        percentual: "18,00%",
-        cargaTributariaEfetiva: "15,30%"
+        saldoAnteriorRecuperar: "R$ 0,00",
+        movimentoCredor: "R$ 0,00",
+        saldoRecuperar: "R$ 0,00",
+        percentual: "0,00%",
+        cargaTributariaEfetiva: "1,35%"
       },
       {
-        imposto: "IPI - Imposto sobre Produtos Industrializados",
-        impostoDevido: "R$ 15.000,00",
+        imposto: "COFINS Entidades Financeiras e Equiparadas",
+        impostoDevido: "R$ 96.150,52",
         periodicidade: "Mensal",
-        saldoAnteriorRecuperar: "R$ 3.000,00",
-        movimentoCredor: "R$ 5.000,00",
-        saldoRecuperar: "R$ 8.000,00",
-        percentual: "10,00%",
+        saldoAnteriorRecuperar: "R$ 0,00",
+        movimentoCredor: "R$ 0,00",
+        saldoRecuperar: "R$ 0,00",
+        percentual: "0,00%",
+        cargaTributariaEfetiva: "1,35%"
+      },
+      {
+        imposto: "PIS/PASEP",
+        impostoDevido: "R$ 1.850.200,45",
+        periodicidade: "Mensal",
+        saldoAnteriorRecuperar: "R$ 15.500,00",
+        movimentoCredor: "R$ 8.200,00",
+        saldoRecuperar: "R$ 23.700,00",
+        percentual: "1,65%",
+        cargaTributariaEfetiva: "1,42%"
+      },
+      {
+        imposto: "ICMS - Imposto sobre Circulação de Mercadorias",
+        impostoDevido: "R$ 2.200.850,30",
+        periodicidade: "Mensal",
+        saldoAnteriorRecuperar: "R$ 125.000,00",
+        movimentoCredor: "R$ 78.500,00",
+        saldoRecuperar: "R$ 203.500,00",
+        percentual: "18,00%",
+        cargaTributariaEfetiva: "16,80%"
+      },
+      {
+        imposto: "ISS - Imposto Sobre Serviços",
+        impostoDevido: "R$ 4.500.720,80",
+        periodicidade: "Mensal",
+        saldoAnteriorRecuperar: "R$ 0,00",
+        movimentoCredor: "R$ 0,00",
+        saldoRecuperar: "R$ 0,00",
+        percentual: "5,00%",
+        cargaTributariaEfetiva: "4,85%"
+      },
+      {
+        imposto: "IRPJ - Imposto de Renda Pessoa Jurídica",
+        impostoDevido: "R$ 6.800.960,15",
+        periodicidade: "Trimestral",
+        saldoAnteriorRecuperar: "R$ 45.000,00",
+        movimentoCredor: "R$ 22.000,00",
+        saldoRecuperar: "R$ 67.000,00",
+        percentual: "15,00%",
+        cargaTributariaEfetiva: "14,20%"
+      },
+      {
+        imposto: "CSLL - Contribuição Social sobre Lucro Líquido",
+        impostoDevido: "R$ 4.100.575,60",
+        periodicidade: "Trimestral",
+        saldoAnteriorRecuperar: "R$ 18.500,00",
+        movimentoCredor: "R$ 11.200,00",
+        saldoRecuperar: "R$ 29.700,00",
+        percentual: "9,00%",
         cargaTributariaEfetiva: "8,75%"
       },
       {
-        imposto: "PIS - Programa de Integração Social",
-        impostoDevido: "R$ 8.500,00",
+        imposto: "IPI - Imposto sobre Produtos Industrializados",
+        impostoDevido: "R$ 890.340,25",
         periodicidade: "Mensal",
-        saldoAnteriorRecuperar: "R$ 1.500,00",
-        movimentoCredor: "R$ 2.800,00",
-        saldoRecuperar: "R$ 4.300,00",
-        percentual: "1,65%",
-        cargaTributariaEfetiva: "1,42%"
+        saldoAnteriorRecuperar: "R$ 35.800,00",
+        movimentoCredor: "R$ 28.400,00",
+        saldoRecuperar: "R$ 64.200,00",
+        percentual: "10,00%",
+        cargaTributariaEfetiva: "9,20%"
+      },
+      {
+        imposto: "IOF - Imposto sobre Operações Financeiras",
+        impostoDevido: "R$ 125.480,90",
+        periodicidade: "Diário",
+        saldoAnteriorRecuperar: "R$ 0,00",
+        movimentoCredor: "R$ 0,00",
+        saldoRecuperar: "R$ 0,00",
+        percentual: "0,38%",
+        cargaTributariaEfetiva: "0,32%"
+      },
+      {
+        imposto: "INSS Patronal",
+        impostoDevido: "R$ 1.000.760,85",
+        periodicidade: "Mensal",
+        saldoAnteriorRecuperar: "R$ 12.300,00",
+        movimentoCredor: "R$ 9.800,00",
+        saldoRecuperar: "R$ 22.100,00",
+        percentual: "20,00%",
+        cargaTributariaEfetiva: "19,50%"
       }
     ];
   };

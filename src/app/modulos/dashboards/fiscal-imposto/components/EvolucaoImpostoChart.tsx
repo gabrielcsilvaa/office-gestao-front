@@ -9,6 +9,12 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
+import { Cairo } from "next/font/google";
+
+const cairo = Cairo({
+  weight: ["500", "600", "700"],
+  subsets: ["latin"],
+});
 
 interface ChartDataPoint {
   month: string;
@@ -24,7 +30,7 @@ const EvolucaoImpostoChart: React.FC<EvolucaoImpostoChartProps> = ({ data }) => 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-3 border border-gray-200 rounded shadow-lg">
+        <div className={`bg-white p-3 border border-gray-200 rounded shadow-lg ${cairo.className}`}>
           <p className="text-xs text-gray-600 mb-2">{`${label}`}</p>
           {payload.map((entry: any, index: number) => (
             <p key={index} className="text-sm font-medium" style={{ color: entry.color }}>
@@ -66,11 +72,21 @@ const EvolucaoImpostoChart: React.FC<EvolucaoImpostoChartProps> = ({ data }) => 
           dataKey="month" 
           axisLine={false}
           tickLine={false}
-          tick={{ fontSize: 12, fill: "#6B7280" }}
+          tick={{ 
+            fontSize: 12, 
+            fill: "#6B7280",
+            fontFamily: cairo.style.fontFamily,
+            fontWeight: "500"
+          }}
         />
         <Tooltip content={<CustomTooltip />} />
         <Legend 
-          wrapperStyle={{ paddingTop: "20px" }}
+          wrapperStyle={{ 
+            paddingTop: "20px",
+            fontFamily: cairo.style.fontFamily,
+            fontSize: "12px",
+            fontWeight: "500"
+          }}
           iconType="line"
         />
         <Line 

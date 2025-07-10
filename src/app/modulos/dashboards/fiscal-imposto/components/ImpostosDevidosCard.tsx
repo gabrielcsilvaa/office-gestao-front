@@ -27,10 +27,8 @@ const ImpostosDevidosCard: React.FC<ImpostosDevidosCardProps> = ({
 }) => {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
-  const getBarColor = (percentage: number, isHovered: boolean) => {
-    const opacity = isHovered ? 0.9 : 0.7;
-    const intensity = Math.max(0.4, percentage / 100);
-    return `rgba(249, 115, 22, ${opacity * intensity})`; // Cor laranja
+  const getBarColor = () => {
+    return "rgba(59, 130, 246, 0.28)"; // Cor padrão azul sem variação de opacidade
   };
 
   return (
@@ -62,38 +60,49 @@ const ImpostosDevidosCard: React.FC<ImpostosDevidosCardProps> = ({
       {/* Conteúdo do card */}
       <div className="flex-1 px-5 pb-5 min-h-0 overflow-y-auto">
         {items.length > 0 ? (
-          <div className="space-y-4">
-            {items.map((item, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors"
-                onMouseEnter={() => setHoveredIndex(index)}
-                onMouseLeave={() => setHoveredIndex(null)}
-              >
-                <div className="flex-1 min-w-0 mr-4">
-                  {/* Nome da empresa */}
-                  <div className={`text-sm font-medium text-gray-900 truncate ${cairo.className}`}>
-                    {item.empresa}
+          <div className="flex flex-col gap-3">
+            {items.map((item, index) => {
+              const isHovered = hoveredIndex === index;
+              
+              return (
+                <div
+                  key={index}
+                  className={`group relative flex items-center gap-3 p-2 rounded-lg transition-all duration-200 hover:bg-gray-50 ${cairo.className}`}
+                  onMouseEnter={() => setHoveredIndex(index)}
+                  onMouseLeave={() => setHoveredIndex(null)}
+                >
+                  {/* Nome */}
+                  <div className="flex-shrink-0 w-48">
+                    <div 
+                      className={`text-xs font-medium text-gray-700 leading-tight ${isHovered ? 'text-gray-900' : ''}`}
+                      title={item.empresa}
+                    >
+                      {item.empresa.length > 35 ? `${item.empresa.substring(0, 35)}...` : item.empresa}
+                    </div>
                   </div>
-                  
-                  {/* Barra de progresso */}
-                  <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
-                    <div
-                      className="h-2 rounded-full transition-all duration-300"
-                      style={{
-                        width: `${item.percentage}%`,
-                        backgroundColor: getBarColor(item.percentage, hoveredIndex === index),
-                      }}
-                    />
+
+                  {/* Barra */}
+                  <div className="flex-1 flex items-center gap-2">
+                    <div className="flex-1 bg-gray-200 rounded-full h-3 relative overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-500 ease-out"
+                        style={{
+                          width: `${item.percentage}%`,
+                          backgroundColor: getBarColor()
+                        }}
+                      />
+                    </div>
+                    
+                    {/* Valor */}
+                    <div className="flex-shrink-0 w-28 text-right flex items-center justify-end">
+                      <div className={`text-xs font-semibold text-gray-800 ${isHovered ? 'text-gray-900' : ''}`}>
+                        {item.valor}
+                      </div>
+                    </div>
                   </div>
                 </div>
-                
-                {/* Valor em reais */}
-                <div className={`text-sm font-semibold text-gray-900 whitespace-nowrap ${cairo.className}`}>
-                  {item.valor}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <div className="flex items-center justify-center h-full text-gray-500">
