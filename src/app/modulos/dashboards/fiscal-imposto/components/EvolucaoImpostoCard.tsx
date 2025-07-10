@@ -22,7 +22,7 @@ interface EvolucaoImpostoCardProps {
 
 const EvolucaoImpostoCard: React.FC<EvolucaoImpostoCardProps> = ({ title, data, onMaximize }) => {
   return (
-    <div className="w-full h-[360px] bg-white rounded-lg shadow-md relative overflow-hidden">
+    <div className="w-full h-[360px] bg-white rounded-lg shadow-md relative overflow-hidden flex flex-col">
       {/* Barra vertical ao lado do título */}
       <div className="w-6 h-0 left-[10px] top-[17px] absolute origin-top-left rotate-90 bg-zinc-300 outline-1 outline-offset-[-0.50px] outline-neutral-700"></div>
       

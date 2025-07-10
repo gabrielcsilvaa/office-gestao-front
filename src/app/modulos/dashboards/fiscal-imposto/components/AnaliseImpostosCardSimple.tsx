@@ -24,7 +24,7 @@ interface AnaliseImpostosCardProps {
   onMaximize?: () => void;
 }
 
-const AnaliseImpostosCard: React.FC<AnaliseImpostosCardProps> = ({ 
+const AnaliseImpostosCardSimple: React.FC<AnaliseImpostosCardProps> = ({ 
   title, 
   items,
   onMaximize 
@@ -41,7 +41,7 @@ const AnaliseImpostosCard: React.FC<AnaliseImpostosCardProps> = ({
   };
 
   return (
-    <div className="w-full h-[489px] bg-white rounded-lg shadow-md relative overflow-hidden flex flex-col">
+    <div className="w-full h-[489px] bg-white rounded-lg shadow-md relative overflow-hidden">
       {/* Barra vertical ao lado do título */}
       <div className="w-6 h-0 left-[10px] top-[17px] absolute origin-top-left rotate-90 bg-zinc-300 outline-1 outline-offset-[-0.50px] outline-neutral-700"></div>
       
@@ -140,10 +140,8 @@ const AnaliseImpostosCard: React.FC<AnaliseImpostosCardProps> = ({
             ))}
           </div>
         ) : (
-          <div className="flex items-center justify-center h-full text-gray-500">
-            <p className={`text-center ${cairo.className}`}>
-              Selecione um período para visualizar os dados
-            </p>
+          <div className={`flex items-center justify-center h-full text-gray-500 text-center ${cairo.className}`}>
+            Selecione um período para visualizar os dados
           </div>
         )}
       </div>
@@ -151,4 +149,4 @@ const AnaliseImpostosCard: React.FC<AnaliseImpostosCardProps> = ({
   );
 };
 
-export default AnaliseImpostosCard;
+export default AnaliseImpostosCardSimple;

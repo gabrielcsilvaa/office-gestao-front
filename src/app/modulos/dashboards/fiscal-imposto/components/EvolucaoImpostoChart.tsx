@@ -40,6 +40,17 @@ const EvolucaoImpostoChart: React.FC<EvolucaoImpostoChartProps> = ({ data }) => 
     return null;
   };
 
+  // Estado vazio quando não há dados
+  if (!data || data.length === 0) {
+    return (
+      <div className="h-full flex items-center justify-center">
+        <p className="text-gray-500 text-center">
+          Selecione um período para visualizar os dados
+        </p>
+      </div>
+    );
+  }
+
   return (
     <ResponsiveContainer width="100%" height="100%">
       <LineChart

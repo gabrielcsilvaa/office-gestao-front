@@ -34,7 +34,7 @@ const ImpostosDevidosCard: React.FC<ImpostosDevidosCardProps> = ({
   };
 
   return (
-    <div className="w-full h-[489px] bg-white rounded-lg shadow-md relative overflow-hidden">
+    <div className="w-full h-[489px] bg-white rounded-lg shadow-md relative overflow-hidden flex flex-col">
       {/* Barra vertical ao lado do título */}
       <div className="w-6 h-0 left-[10px] top-[17px] absolute origin-top-left rotate-90 bg-zinc-300 outline-1 outline-offset-[-0.50px] outline-neutral-700"></div>
       
@@ -96,8 +96,10 @@ const ImpostosDevidosCard: React.FC<ImpostosDevidosCardProps> = ({
             ))}
           </div>
         ) : (
-          <div className={`flex items-center justify-center h-full text-gray-500 text-center ${cairo.className}`}>
-            Selecione um período para visualizar os dados
+          <div className="flex items-center justify-center h-full text-gray-500">
+            <p className={`text-center ${cairo.className}`}>
+              Selecione um período para visualizar os dados
+            </p>
           </div>
         )}
       </div>

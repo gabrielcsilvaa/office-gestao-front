@@ -74,9 +74,7 @@ export default function DashboardFiscalImposto() {
   // Dados do gráfico de evolução
   const getEvolucaoImpostoData = () => {
     if (!areDatesSelected) {
-      return [
-        { month: "Selecione um período", impostoDevido: 0, saldoRecuperar: 0 }
-      ];
+      return [];
     }
     
     return [
