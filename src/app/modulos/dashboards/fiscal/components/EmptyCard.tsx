@@ -137,7 +137,6 @@ const EmptyCard: React.FC<EmptyCardProps> = ({ title, onMaximize, data, kpiSelec
           {/* Indicador do KPI Ativo */}
           {currentKpi && (
             <div className="flex items-center space-x-2">
-              <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
               <span className={`text-sm text-gray-600 ${cairo.className}`}>
                 {currentKpi}
               </span>
