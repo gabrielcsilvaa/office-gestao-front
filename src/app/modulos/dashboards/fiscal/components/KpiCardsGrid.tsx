@@ -21,6 +21,7 @@ const KpiCardsGrid: React.FC<KpiCardsGridProps> = ({ cardsData }) => {
       case 4: return "lg:grid-cols-4";
       case 5: return "lg:grid-cols-5";
       case 6: return "lg:grid-cols-6";
+      case 7: return "lg:grid-cols-7";
       default: return "lg:grid-cols-6"; // fallback para 6 ou mais cards
     }
   };
@@ -28,7 +29,7 @@ const KpiCardsGrid: React.FC<KpiCardsGridProps> = ({ cardsData }) => {
   const gridColsClass = getGridCols(cardsData.length);
 
   return (
-    <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ${gridColsClass} gap-6 mt-4 auto-rows-fr`}>
+    <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7 ${gridColsClass} gap-6 mt-4 auto-rows-fr`}>
       {cardsData.map((card, index) => (
         <Card key={index} title={card.title} value={card.value} tooltipText={card.tooltipText} />
       ))}
