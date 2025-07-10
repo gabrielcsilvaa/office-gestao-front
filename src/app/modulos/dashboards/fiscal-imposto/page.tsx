@@ -6,8 +6,9 @@ import { Toast } from "../fiscal/components/Toast";
 import { useDropdown } from "../fiscal/hooks/useDropdown";
 import Calendar from "@/components/calendar";
 import KpiCardsGrid from "../fiscal/components/KpiCardsGrid";
-import EvolucaoCard from "../fiscal/components/EvolucaoCard";
-import ProgressBarCard from "../fiscal/components/ProgressBarCard";
+import EvolucaoImpostoCard from "./components/EvolucaoImpostoCard";
+import ImpostosDevidosCard from "./components/ImpostosDevidosCard";
+import AnaliseImpostosCard from "./components/AnaliseImpostosCard";
 import Loading from "@/app/loading";
 import Image from "next/image";
 
@@ -66,6 +67,79 @@ export default function DashboardFiscalImposto() {
         title: "Carga Tributária Efetiva",
         value: "0,00%",
         tooltipText: "Percentual efetivo da carga tributária sobre o faturamento."
+      }
+    ];
+  };
+
+  // Dados do gráfico de evolução
+  const getEvolucaoImpostoData = () => {
+    if (!areDatesSelected) {
+      return [
+        { month: "Selecione um período", impostoDevido: 0, saldoRecuperar: 0 }
+      ];
+    }
+    
+    return [
+      { month: "Jan/2024", impostoDevido: 15000, saldoRecuperar: 8000 },
+      { month: "Fev/2024", impostoDevido: 18000, saldoRecuperar: 12000 },
+      { month: "Mar/2024", impostoDevido: 22000, saldoRecuperar: 15000 },
+      { month: "Abr/2024", impostoDevido: 25000, saldoRecuperar: 18000 },
+      { month: "Mai/2024", impostoDevido: 19000, saldoRecuperar: 13000 },
+      { month: "Jun/2024", impostoDevido: 23000, saldoRecuperar: 16000 }
+    ];
+  };
+
+  // Dados das empresas com impostos devidos
+  const getImpostosDevidosData = () => {
+    if (!areDatesSelected) {
+      return [];
+    }
+    
+    return [
+      { empresa: "YAMAHA MOTOR DA AMAZONIA LTDA", valor: "R$ 25.000,00", numericValue: 25000, percentage: 100 },
+      { empresa: "VIBRA ENERGIA S.A", valor: "R$ 22.000,00", numericValue: 22000, percentage: 88 },
+      { empresa: "F DINARTE IND E COM DE CONFEC", valor: "R$ 18.000,00", numericValue: 18000, percentage: 72 },
+      { empresa: "DINART IND E COM DE CONFECCOES LTDA", valor: "R$ 15.000,00", numericValue: 15000, percentage: 60 },
+      { empresa: "TICKET SERVIÇOS SA", valor: "R$ 12.000,00", numericValue: 12000, percentage: 48 }
+    ];
+  };
+
+  // Dados da análise de impostos
+  const getAnaliseImpostosData = () => {
+    if (!areDatesSelected) {
+      return [];
+    }
+    
+    return [
+      {
+        imposto: "ICMS - Imposto sobre Circulação de Mercadorias e Serviços",
+        impostoDevido: "R$ 45.000,00",
+        periodicidade: "Mensal",
+        saldoAnteriorRecuperar: "R$ 8.000,00",
+        movimentoCredor: "R$ 12.000,00",
+        saldoRecuperar: "R$ 20.000,00",
+        percentual: "18,00%",
+        cargaTributariaEfetiva: "15,30%"
+      },
+      {
+        imposto: "IPI - Imposto sobre Produtos Industrializados",
+        impostoDevido: "R$ 15.000,00",
+        periodicidade: "Mensal",
+        saldoAnteriorRecuperar: "R$ 3.000,00",
+        movimentoCredor: "R$ 5.000,00",
+        saldoRecuperar: "R$ 8.000,00",
+        percentual: "10,00%",
+        cargaTributariaEfetiva: "8,75%"
+      },
+      {
+        imposto: "PIS - Programa de Integração Social",
+        impostoDevido: "R$ 8.500,00",
+        periodicidade: "Mensal",
+        saldoAnteriorRecuperar: "R$ 1.500,00",
+        movimentoCredor: "R$ 2.800,00",
+        saldoRecuperar: "R$ 4.300,00",
+        percentual: "1,65%",
+        cargaTributariaEfetiva: "1,42%"
       }
     ];
   };
@@ -148,28 +222,24 @@ export default function DashboardFiscalImposto() {
         
         {/* Card de Evolução - Largura Total */}
         <div className="mt-6">
-          <EvolucaoCard 
+          <EvolucaoImpostoCard 
             title="Evolução Mensal do Imposto Devido" 
-            data={[
-              { month: "Selecione um período", value: 0 }
-            ]} 
+            data={getEvolucaoImpostoData()}
           />
         </div>
 
-        {/* Cards com Barras de Progresso - 2 por linha */}
+        {/* Cards com Barras de Progresso e Análise - 2 por linha */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
           <div className="w-full">
-            <ProgressBarCard 
+            <ImpostosDevidosCard 
               title="Impostos Devidos" 
-              items={[]}
-              colorScheme="orange"
+              items={getImpostosDevidosData()}
             />
           </div>
           <div className="w-full">
-            <ProgressBarCard 
-              title="Análise dos Impostos" 
-              items={[]}
-              colorScheme="purple"
+            <AnaliseImpostosCard 
+              title="Análise de Impostos" 
+              items={getAnaliseImpostosData()}
             />
           </div>
         </div>
