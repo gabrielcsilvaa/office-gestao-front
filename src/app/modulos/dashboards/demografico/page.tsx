@@ -1,4 +1,3 @@
-
 "use client";
 import { useState, useEffect } from "react";
 import GraficoLinha from "./components/grafico_linha";
@@ -115,7 +114,9 @@ const filtrarFuncionarios = (
         return admissao >= startDate && admissao <= endDate;
 
       case "Demissões":
-        return demissao !== null && demissao >= startDate && demissao <= endDate;
+        return (
+          demissao !== null && demissao >= startDate && demissao <= endDate
+        );
 
       case "Más Contratações":
         if (!demissao) return false;
@@ -159,11 +160,17 @@ export default function Demografico() {
   };
 
   // Armazena todos os dados da API para o período
-  const [todosFuncionariosAPI, setTodosFuncionariosAPI] = useState<Funcionario[]>([]);
+  const [todosFuncionariosAPI, setTodosFuncionariosAPI] = useState<
+    Funcionario[]
+  >([]);
 
   // Estados para os dados dos gráficos
-  const [dadosDemograficos, setDadosDemograficos] = useState<DadosEscolaridade[]>([]);
-  const [dadosFaixaEtaria, setDadosFaixaEtaria] = useState<DadosFaixaEtaria[]>([]);
+  const [dadosDemograficos, setDadosDemograficos] = useState<
+    DadosEscolaridade[]
+  >([]);
+  const [dadosFaixaEtaria, setDadosFaixaEtaria] = useState<DadosFaixaEtaria[]>(
+    []
+  );
   const [percentualMasculino, setPercentualMasculino] = useState<number>(0);
   const [percentualFeminino, setPercentualFeminino] = useState<number>(0);
   const [dadosCargo, setDadosCargo] = useState<DadosCargo[]>([]);
@@ -284,15 +291,28 @@ export default function Demografico() {
           demissoesCard = 0,
           afastamentosCard = 0;
 
+        const normalizarData = (data: Date) => {
+          const nova = new Date(data);
+          nova.setHours(0, 0, 0, 0);
+          return nova;
+        };
+
+        const start = normalizarData(startDate);
+        const end = normalizarData(endDate);
+
         funcionariosParaCards.forEach((func: any) => {
           const admissao = new Date(func.admissao);
           const demissaoData = func.demissao ? new Date(func.demissao) : null;
 
-          if (
-            admissao <= endDate &&
-            (!demissaoData || demissaoData > endDate)
-          ) {
+          const esteveAtivo =
+            admissao <= endDate && (!demissaoData || demissaoData >= endDate);
+          console.log(
+            `Contratado no período: ${func.nome} - ${admissao.toLocaleDateString()}`
+          );
+          if (esteveAtivo) {
             ativosCard++;
+
+            console.log(`Ativo no período: ${func.nome}`);
           }
 
           if (admissao >= startDate && admissao <= endDate) {
@@ -308,15 +328,61 @@ export default function Demografico() {
           }
 
           if (Array.isArray(func.afastamentos)) {
+            console.log(`Afastamentos do ${func.nome}:`, func.afastamentos);
+
             func.afastamentos.forEach((afast: any) => {
               const ini = new Date(afast.data_inicio);
-              const fim = afast.data_fim ? new Date(afast.data_fim) : null;
-              const dentroPeriodo =
-                ini <= endDate && (!fim || fim >= startDate);
-              if (dentroPeriodo) afastamentosCard++;
+              const dentroPeriodo = ini >= start && ini <= end;
+
+              if (dentroPeriodo) {
+                afastamentosCard++;
+                console.log("Afastamento contado:", afastamentosCard);
+              }
             });
           }
         });
+
+        //       funcionariosParaCards.forEach((func: any) => {
+        //         const admissao = new Date(func.admissao);
+        //         const demissaoData = func.demissao ? new Date(func.demissao) : null;
+
+        //         const esteveAtivo =
+        //           admissao <= endDate && (!demissaoData || demissaoData >= startDate);
+
+        // //             if (
+        // //   admissao <= endDate &&
+        // //   (!demissaoData || demissaoData > endDate)
+        // // ) {
+        // //   ativosCard++;
+        // // }
+
+        //         if (esteveAtivo) {
+        //           ativosCard++;
+        //         }
+
+        //         if (admissao >= startDate && admissao <= endDate) {
+        //           contratacoesCard++;
+        //         }
+
+        //         if (
+        //           demissaoData &&
+        //           demissaoData >= startDate &&
+        //           demissaoData <= endDate
+        //         ) {
+        //           demissoesCard++;
+        //         }
+
+        //         if (Array.isArray(func.afastamentos)) {
+        //           console.log(`Afastamentos do ${func.nome}:`, func.afastamentos)
+        //           func.afastamentos.forEach((afast: any) => {
+        //             const ini = new Date(afast.data_inicio);
+        //             const fim = afast.data_fim ? new Date(afast.data_fim) : null;
+        //             const dentroPeriodo =
+        //               ini >= startDate && ini  <= endDate;
+        //             if (dentroPeriodo) afastamentosCard++;
+        //           });
+        //         }
+        //       });
 
         //  Só uma vez!
         const turnoverCard =
