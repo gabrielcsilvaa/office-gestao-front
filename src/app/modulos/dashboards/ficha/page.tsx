@@ -879,7 +879,7 @@ export default function FichaPessoalPage() {
         </div>
 
         {/* Evolução & Valor por Grupo */}
-        {/* <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 h-[400px]">
+        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 h-[400px]">
           <div className="w-full h-full flex flex-col shadow-md overflow-auto min-h-0 rounded-lg">
             <EvolucaoCard
               kpiSelecionado={evolucaoCardTitle}
@@ -930,7 +930,7 @@ export default function FichaPessoalPage() {
               }
             />
           </div>
-        </div> */}
+        </div>
 
         {/* Tabelas */}
         <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6 h-[450px]"> 
