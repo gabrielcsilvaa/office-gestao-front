@@ -343,49 +343,7 @@ export default function Demografico() {
           }
         });
 
-        //       funcionariosParaCards.forEach((func: any) => {
-        //         const admissao = new Date(func.admissao);
-        //         const demissaoData = func.demissao ? new Date(func.demissao) : null;
-
-        //         const esteveAtivo =
-        //           admissao <= endDate && (!demissaoData || demissaoData >= startDate);
-
-        // //             if (
-        // //   admissao <= endDate &&
-        // //   (!demissaoData || demissaoData > endDate)
-        // // ) {
-        // //   ativosCard++;
-        // // }
-
-        //         if (esteveAtivo) {
-        //           ativosCard++;
-        //         }
-
-        //         if (admissao >= startDate && admissao <= endDate) {
-        //           contratacoesCard++;
-        //         }
-
-        //         if (
-        //           demissaoData &&
-        //           demissaoData >= startDate &&
-        //           demissaoData <= endDate
-        //         ) {
-        //           demissoesCard++;
-        //         }
-
-        //         if (Array.isArray(func.afastamentos)) {
-        //           console.log(`Afastamentos do ${func.nome}:`, func.afastamentos)
-        //           func.afastamentos.forEach((afast: any) => {
-        //             const ini = new Date(afast.data_inicio);
-        //             const fim = afast.data_fim ? new Date(afast.data_fim) : null;
-        //             const dentroPeriodo =
-        //               ini >= startDate && ini  <= endDate;
-        //             if (dentroPeriodo) afastamentosCard++;
-        //           });
-        //         }
-        //       });
-
-        //  Só uma vez!
+      
         const turnoverCard =
           (demissoesCard / (ativosCard + demissoesCard)) * 100 || 0;
 
@@ -465,7 +423,7 @@ export default function Demografico() {
             colaboradores: total,
           })
         );
-        console.log("Dados de categoria:", dadosCategoria);
+
         setDadosCategoria(dadosCategoria);
 
         // Gênero (para gráficos)
@@ -488,7 +446,7 @@ export default function Demografico() {
         const dadosEscolaridade = Array.from(escolaridadeMap.entries()).map(
           ([escolaridade, total]) => ({ escolaridade, total })
         );
-        console.log("Dados de escolaridade:", dadosEscolaridade);
+      
         setDadosDemograficos(dadosEscolaridade);
 
         // Cargo (para gráficos)
@@ -500,7 +458,7 @@ export default function Demografico() {
         const dadosCargo = Array.from(cargoMap.entries()).map(
           ([cargo, total]) => ({ cargo, total })
         );
-        console.log("Dados de cargo:", dadosCargo);
+      
         setDadosCargo(dadosCargo);
 
         // Faixa etária (para gráficos)
@@ -533,7 +491,7 @@ export default function Demografico() {
         const dadosFaixa = Array.from(faixaEtariaMap.entries()).map(
           ([name, colaboradores]) => ({ name, colaboradores })
         );
-        console.log("Dados de faixa etária:", dadosFaixa);
+      
         setDadosFaixaEtaria(dadosFaixa);
 
         // Gráfico de linha (dados para Ativos, Contratações, Demissões por mês)
@@ -622,10 +580,7 @@ export default function Demografico() {
           Contratações: monthlyDataMap.get(monthKey)!.Contratações,
           Demissões: monthlyDataMap.get(monthKey)!.Demissões,
         }));
-        console.log(
-          " Dados gerados para o gráfico de linha:",
-          dadosParaGraficoLinha
-        );
+      
         setDadosEmpresas(dadosParaGraficoLinha);
       } catch (error) {
         console.error("Erro ao buscar dados:", error);
