@@ -301,11 +301,13 @@ export default function Demografico() {
         const end = normalizarData(endDate);
 
         funcionariosParaCards.forEach((func: any) => {
-          const admissao = new Date(func.admissao);
-          const demissaoData = func.demissao ? new Date(func.demissao) : null;
+          const admissao = normalizarData(new Date(func.admissao));
+          const demissaoData = func.demissao
+            ? normalizarData(new Date(func.demissao))
+            : null;
 
           const esteveAtivo =
-            admissao <= endDate && (!demissaoData || demissaoData >= endDate);
+            admissao <= end && (!demissaoData ||demissaoData >= start);
           console.log(
             `Contratado no período: ${func.nome} - ${admissao.toLocaleDateString()}`
           );
@@ -315,15 +317,11 @@ export default function Demografico() {
             console.log(`Ativo no período: ${func.nome}`);
           }
 
-          if (admissao >= startDate && admissao <= endDate) {
+          if (admissao >= start && admissao <= end) {
             contratacoesCard++;
           }
 
-          if (
-            demissaoData &&
-            demissaoData >= startDate &&
-            demissaoData <= endDate
-          ) {
+          if (demissaoData && demissaoData >= start && demissaoData <= end) {
             demissoesCard++;
           }
 
@@ -331,10 +329,13 @@ export default function Demografico() {
             console.log(`Afastamentos do ${func.nome}:`, func.afastamentos);
 
             func.afastamentos.forEach((afast: any) => {
-              const ini = new Date(afast.data_inicio);
-              const dentroPeriodo = ini >= start && ini <= end;
+              const ini = normalizarData(new Date(afast.data_inicio));
+              const fim = afast.data_fim
+                ? normalizarData(new Date(afast.data_fim))
+                : null;
+              const sobrepoePeriodo = ini <= end && (!fim || fim >= start);
 
-              if (dentroPeriodo) {
+              if (sobrepoePeriodo) {
                 afastamentosCard++;
                 console.log("Afastamento contado:", afastamentosCard);
               }
