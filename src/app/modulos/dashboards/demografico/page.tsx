@@ -264,7 +264,7 @@ export default function Demografico() {
 
         const funcionariosParaCards = filtros.empresa
           ? todosFuncionariosRespostaAPI.filter(
-              (f: any) => f.empresa === filtros.empresa
+              (f) => f.empresa === filtros.empresa
             )
           : todosFuncionariosRespostaAPI;
 
@@ -297,7 +297,7 @@ export default function Demografico() {
         const start = normalizarData(startDate);
         const end = normalizarData(endDate);
 
-        funcionariosParaCards.forEach((func: any) => {
+        funcionariosParaCards.forEach((func: any ) => {
           const admissao = normalizarData(new Date(func.admissao));
           const demissaoData = func.demissao
             ? normalizarData(new Date(func.demissao))
@@ -399,7 +399,7 @@ export default function Demografico() {
 
         // Colaboradores para a tabela
         const colaboradoresExtraidos = funcionariosParaGraficos.map(
-          (func: any) => ({
+          (func) => ({
             nome: func.nome,
             departamento: func.departamento || "Não informado",
             faturamento: "-", // Verifique a fonte deste dado
@@ -409,7 +409,7 @@ export default function Demografico() {
 
         // Categoria (para gráficos)
         const categoriaContagem: { [key: string]: number } = {};
-        funcionariosParaGraficos.forEach((funcionario: any) => {
+        funcionariosParaGraficos.forEach((funcionario) => {
           const categoria = funcionario.categoria || "Não Informado";
           categoriaContagem[categoria] =
             (categoriaContagem[categoria] || 0) + 1;
@@ -426,17 +426,17 @@ export default function Demografico() {
         // Gênero (para gráficos)
         const totalGraficos = funcionariosParaGraficos.length;
         const totalMasculino = funcionariosParaGraficos.filter(
-          (f: any) => f.sexo === "M"
+          (f) => f.sexo === "M"
         ).length;
         const totalFeminino = funcionariosParaGraficos.filter(
-          (f: any) => f.sexo === "F"
+          (f) => f.sexo === "F"
         ).length;
         setPercentualMasculino((totalMasculino / totalGraficos) * 100 || 0);
         setPercentualFeminino((totalFeminino / totalGraficos) * 100 || 0);
 
         // Escolaridade (para gráficos)
         const escolaridadeMap = new Map<string, number>();
-        funcionariosParaGraficos.forEach((f: any) => {
+        funcionariosParaGraficos.forEach((f) => {
           const esc = f.escolaridade || "Não informado";
           escolaridadeMap.set(esc, (escolaridadeMap.get(esc) || 0) + 1);
         });
@@ -449,7 +449,7 @@ export default function Demografico() {
 
         // Cargo (para gráficos)
         const cargoMap = new Map<string, number>();
-        funcionariosParaGraficos.forEach((f: any) => {
+        funcionariosParaGraficos.forEach((f) => {
           const cargo = f.cargo || "Não informado";
           cargoMap.set(cargo, (cargoMap.get(cargo) || 0) + 1);
         });
@@ -479,7 +479,7 @@ export default function Demografico() {
         };
 
         const faixaEtariaMap = new Map<string, number>();
-        funcionariosParaGraficos.forEach((f: any) => {
+        funcionariosParaGraficos.forEach((f) => {
           if (f.data_nascimento) {
             const idade = calcularIdade(f.data_nascimento);
             const faixa = getFaixaEtaria(idade);
