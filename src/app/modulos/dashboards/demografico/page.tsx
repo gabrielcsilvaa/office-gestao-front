@@ -127,7 +127,6 @@ const filtrarFuncionarios = (
         );
 
       default:
-      
         return admissao <= endDate && (!demissao || demissao >= startDate);
     }
   });
@@ -249,13 +248,17 @@ export default function Demografico() {
 
         const resultado = await response.json();
 
-        const todosFuncionariosRespostaAPI = resultado.dados.flatMap(
-          (empresa: any) =>
-            empresa.funcionarios.map((func: any) => ({
-              ...func,
-              empresa: empresa.nome_empresa, // adiciona nome_empresa ao funcionário
-            }))
-        );
+        const todosFuncionariosRespostaAPI: Funcionario[] =
+          resultado.dados.flatMap(
+            (empresa: {
+              nome_empresa: string;
+              funcionarios: Omit<Funcionario, "empresa">[];
+            }) =>
+              empresa.funcionarios.map((func) => ({
+                ...func,
+                empresa: empresa.nome_empresa,
+              }))
+          );
         // Armazena todos os funcionários do período, sem filtros de botão
         setTodosFuncionariosAPI(todosFuncionariosRespostaAPI);
 
@@ -297,14 +300,14 @@ export default function Demografico() {
         const start = normalizarData(startDate);
         const end = normalizarData(endDate);
 
-        funcionariosParaCards.forEach((func: any ) => {
+        funcionariosParaCards.forEach((func: Funcionario) => {
           const admissao = normalizarData(new Date(func.admissao));
           const demissaoData = func.demissao
             ? normalizarData(new Date(func.demissao))
             : null;
 
           const esteveAtivo =
-            admissao <= end && (!demissaoData ||demissaoData >= start);
+            admissao <= end && (!demissaoData || demissaoData >= start);
           console.log(
             `Contratado no período: ${func.nome} - ${admissao.toLocaleDateString()}`
           );
@@ -325,7 +328,7 @@ export default function Demografico() {
           if (Array.isArray(func.afastamentos)) {
             console.log(`Afastamentos do ${func.nome}:`, func.afastamentos);
 
-            func.afastamentos.forEach((afast: any) => {
+            func.afastamentos.forEach((afast) => {
               const ini = normalizarData(new Date(afast.data_inicio));
               const fim = afast.data_fim
                 ? normalizarData(new Date(afast.data_fim))
@@ -340,7 +343,6 @@ export default function Demografico() {
           }
         });
 
-      
         const turnoverCard =
           (demissoesCard / (ativosCard + demissoesCard)) * 100 || 0;
 
@@ -357,28 +359,28 @@ export default function Demografico() {
         const empresasUnicas = Array.from(
           new Set(
             todosFuncionariosRespostaAPI.map(
-              (f: any) => f.empresa || "Não informado"
+              (f) => f.empresa || "Não informado"
             )
           )
         );
         const departamentosUnicos = Array.from(
           new Set(
             todosFuncionariosRespostaAPI.map(
-              (f: any) => f.departamento || "Não informado"
+              (f) => f.departamento || "Não informado"
             )
           )
         );
         const cargosUnicos = Array.from(
           new Set(
             todosFuncionariosRespostaAPI.map(
-              (f: any) => f.cargo || "Não informado"
+              (f) => f.cargo || "Não informado"
             )
           )
         );
         const categoriasUnicas = Array.from(
           new Set(
             todosFuncionariosRespostaAPI.map(
-              (f: any) => f.categoria || "Não informado"
+              (f) => f.categoria || "Não informado"
             )
           )
         );
@@ -386,11 +388,11 @@ export default function Demografico() {
         setEmpresas(empresasUnicas);
         setDepartamentos(departamentosUnicos);
         setCargos(cargosUnicos);
-        setCategorias(categoriasUnicas); 
+        setCategorias(categoriasUnicas);
 
         // --- CÁLCULO DOS DADOS PARA OS GRÁFICOS (APLICA TODOS OS FILTROS) ---
         const funcionariosParaGraficos = filtrarFuncionarios(
-          todosFuncionariosRespostaAPI, 
+          todosFuncionariosRespostaAPI,
           botaoSelecionado,
           startDate,
           endDate,
@@ -398,13 +400,11 @@ export default function Demografico() {
         );
 
         // Colaboradores para a tabela
-        const colaboradoresExtraidos = funcionariosParaGraficos.map(
-          (func) => ({
-            nome: func.nome,
-            departamento: func.departamento || "Não informado",
-            faturamento: "-", // Verifique a fonte deste dado
-          })
-        );
+        const colaboradoresExtraidos = funcionariosParaGraficos.map((func) => ({
+          nome: func.nome,
+          departamento: func.departamento || "Não informado",
+          faturamento: "-", // Verifique a fonte deste dado
+        }));
         setColaboradores(colaboradoresExtraidos);
 
         // Categoria (para gráficos)
@@ -444,7 +444,6 @@ export default function Demografico() {
           ([escolaridade, total]) => ({ escolaridade, total })
         );
 
-      
         setDadosDemograficos(dadosEscolaridade);
 
         // Cargo (para gráficos)
@@ -456,7 +455,7 @@ export default function Demografico() {
         const dadosCargo = Array.from(cargoMap.entries()).map(
           ([cargo, total]) => ({ cargo, total })
         );
-      
+
         setDadosCargo(dadosCargo);
 
         // Faixa etária (para gráficos)
@@ -489,7 +488,7 @@ export default function Demografico() {
         const dadosFaixa = Array.from(faixaEtariaMap.entries()).map(
           ([name, colaboradores]) => ({ name, colaboradores })
         );
-      
+
         setDadosFaixaEtaria(dadosFaixa);
 
         // Gráfico de linha (dados para Ativos, Contratações, Demissões por mês)
@@ -558,7 +557,6 @@ export default function Demografico() {
               demissaoDate <= monthEnd
             ) {
               monthlyDataMap.get(monthKey)!.Demissões++;
-              
             }
 
             // Ativos no final do mês (para o gráfico de linha)
@@ -579,7 +577,7 @@ export default function Demografico() {
           Contratações: monthlyDataMap.get(monthKey)!.Contratações,
           Demissões: monthlyDataMap.get(monthKey)!.Demissões,
         }));
-      
+
         setDadosEmpresas(dadosParaGraficoLinha);
       } catch (error) {
         console.error("Erro ao buscar dados:", error);
