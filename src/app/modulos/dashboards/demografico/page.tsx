@@ -127,10 +127,7 @@ const filtrarFuncionarios = (
         );
 
       default:
-        // Se nenhum botão de filtro específico estiver selecionado,
-        // retorna funcionários que estavam ativos em algum momento no período.
-        // A lógica original parecia ser "ativos no final do período ou que se demitiram depois do início".
-        // Mantive a lógica original, mas vale a pena revisar se o "default" deve ser apenas funcionários no período geral.
+      
         return admissao <= endDate && (!demissao || demissao >= startDate);
     }
   });
@@ -389,11 +386,11 @@ export default function Demografico() {
         setEmpresas(empresasUnicas);
         setDepartamentos(departamentosUnicos);
         setCargos(cargosUnicos);
-        setCategorias(categoriasUnicas);
+        setCategorias(categoriasUnicas); 
 
         // --- CÁLCULO DOS DADOS PARA OS GRÁFICOS (APLICA TODOS OS FILTROS) ---
         const funcionariosParaGraficos = filtrarFuncionarios(
-          todosFuncionariosRespostaAPI, // Usa todos os dados da API
+          todosFuncionariosRespostaAPI, 
           botaoSelecionado,
           startDate,
           endDate,
@@ -446,6 +443,7 @@ export default function Demografico() {
         const dadosEscolaridade = Array.from(escolaridadeMap.entries()).map(
           ([escolaridade, total]) => ({ escolaridade, total })
         );
+
       
         setDadosDemograficos(dadosEscolaridade);
 
@@ -560,6 +558,7 @@ export default function Demografico() {
               demissaoDate <= monthEnd
             ) {
               monthlyDataMap.get(monthKey)!.Demissões++;
+              
             }
 
             // Ativos no final do mês (para o gráfico de linha)
