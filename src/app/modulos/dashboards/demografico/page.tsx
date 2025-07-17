@@ -108,7 +108,7 @@ const filtrarFuncionarios = (
 
     switch (filtroBotao) {
       case "Ativos":
-        return admissao <= endDate && (!demissao || demissao > endDate);
+        return admissao <= endDate && (!demissao || demissao >= endDate);
 
       case "Contratações":
         return admissao >= startDate && admissao <= endDate;
@@ -228,12 +228,7 @@ export default function Demografico() {
         const apiStartDate = startDate.toISOString().split("T")[0];
         const apiEndDate = endDate.toISOString().split("T")[0];
 
-        console.log("🔍 Iniciando fetch com:");
-        console.log("Start:", startDate);
-        console.log("End:", endDate);
-        console.log("Botão selecionado:", botaoSelecionado);
-        console.log("Filtros:", filtros);
-
+      
         const response = await fetch("/api/dashboards-demografico", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -307,7 +302,7 @@ export default function Demografico() {
             : null;
 
           const esteveAtivo =
-            admissao <= end && (!demissaoData || demissaoData >= start);
+            admissao <= end && (!demissaoData || demissaoData >= end);
           console.log(
             `Contratado no período: ${func.nome} - ${admissao.toLocaleDateString()}`
           );
@@ -354,7 +349,7 @@ export default function Demografico() {
           turnover: `${turnoverCard.toFixed(1)}%`,
         });
 
-        // --- FILTROS PARA OS SELECTS (APENAS COM BASE EM TODOS OS DADOS DA API) ---
+        // --- FILTROS PARA OS SELECTS 
         // Isso garante que as opções nos selects não mudem conforme o filtro de botão
         const empresasUnicas = Array.from(
           new Set(
