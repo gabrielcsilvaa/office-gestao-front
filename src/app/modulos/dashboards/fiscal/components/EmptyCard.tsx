@@ -193,7 +193,7 @@ const EmptyCard: React.FC<EmptyCardProps> = ({ title, onMaximize, data, kpiSelec
           {!isProcessing && locationData.length > 0 && (
             <div className="absolute top-3 right-3 z-20 bg-white bg-opacity-90 rounded-lg px-3 py-2 shadow-md">
               <span className={`text-xs text-gray-700 ${cairo.className}`}>
-                {locationData.length} estado{locationData.length !== 1 ? 's' : ''} identificado{locationData.length !== 1 ? 's' : ''}
+                {locationData.length} Estado{locationData.length !== 1 ? 's' : ''} identificado{locationData.length !== 1 ? 's' : ''}
               </span>
             </div>
           )}
