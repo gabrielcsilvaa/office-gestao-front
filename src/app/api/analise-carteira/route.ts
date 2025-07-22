@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
+import redis from "@/utils/redis"; // Certifique-se de criar src/utils/redis.ts conforme instruído
 
 export async function POST() {
   try {
-
-    const baseUrl = process.env.LOCAL_API_URL?.trim(); // sem NEXT_PUBLIC
+    const baseUrl = process.env.LOCAL_API_URL?.trim();
     const apiToken = process.env.API_TOKEN?.trim();
 
     if (!baseUrl || !apiToken) {
@@ -13,6 +13,13 @@ export async function POST() {
       );
     }
 
+    const cacheKey = `analise-carteira`;
+    const cached = await redis.get(cacheKey);
+
+    if (cached) {
+      return NextResponse.json(JSON.parse(cached));
+    }
+
     const response = await fetch(`${baseUrl}/empresa/listar`, {
       method: "POST",
       headers: {
@@ -20,7 +27,6 @@ export async function POST() {
       },
       body: JSON.stringify({
         api_token: apiToken,
-
       }),
     });
 
@@ -32,6 +38,8 @@ export async function POST() {
         { status: response.status }
       );
     }
+
+    await redis.set(cacheKey, JSON.stringify(data), "EX", 600); // cache por 10 minutos
 
     return NextResponse.json(data);
   } catch (err) {

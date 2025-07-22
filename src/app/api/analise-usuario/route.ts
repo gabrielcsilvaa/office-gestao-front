@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
+import redis from "@/utils/redis"; // Certifique-se de criar src/utils/redis.ts conforme instruído
 
 export async function POST(req: Request) {
   try {
     const { start_date, end_date } = await req.json();
 
-    const baseUrl = process.env.LOCAL_API_URL?.trim(); // sem NEXT_PUBLIC
+    const baseUrl = process.env.LOCAL_API_URL?.trim();
     const apiToken = process.env.API_TOKEN?.trim();
 
     if (!baseUrl || !apiToken) {
@@ -12,6 +13,13 @@ export async function POST(req: Request) {
         { error: "Variáveis de ambiente faltando." },
         { status: 500 }
       );
+    }
+
+    const cacheKey = `analise-usuario:${start_date}:${end_date}`;
+    const cached = await redis.get(cacheKey);
+
+    if (cached) {
+      return NextResponse.json(JSON.parse(cached));
     }
 
     const response = await fetch(`${baseUrl}/main/usuario`, {
@@ -34,6 +42,8 @@ export async function POST(req: Request) {
         { status: response.status }
       );
     }
+
+    await redis.set(cacheKey, JSON.stringify(data), "EX", 600); // cache por 10 minutos
 
     return NextResponse.json(data);
   } catch (err) {

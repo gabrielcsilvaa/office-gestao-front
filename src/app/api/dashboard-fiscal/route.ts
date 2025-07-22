@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import redis from "@/utils/redis"; // Certifique-se de criar src/utils/redis.ts conforme instruído
 
 export async function POST(req: Request) {
   try {
@@ -12,6 +13,13 @@ export async function POST(req: Request) {
         { error: "Variáveis de ambiente faltando." },
         { status: 500 }
       );
+    }
+
+    const cacheKey = `dashboard-fiscal:${start_date}:${end_date}`;
+    const cached = await redis.get(cacheKey);
+
+    if (cached) {
+      return NextResponse.json(JSON.parse(cached));
     }
 
     const response = await fetch(`${baseUrl}/main/fiscal`, {
@@ -34,6 +42,8 @@ export async function POST(req: Request) {
         { status: response.status }
       );
     }
+
+    await redis.set(cacheKey, JSON.stringify(data), "EX", 600); // cache por 10 minutos
 
     return NextResponse.json(data);
   } catch (err) {
