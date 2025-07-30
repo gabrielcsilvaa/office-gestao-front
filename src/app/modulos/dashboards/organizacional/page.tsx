@@ -2,7 +2,7 @@
 import { Cairo } from "next/font/google";
 import SelecaoIndicadores from "./components/SelecaoIndicadores";
 import SecaoFiltros, { SecaoFiltrosRef } from "./components/SecaoFiltros";
-import { useState, useMemo, useRef } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import Modal from "./components/Modal";
 import EvolucaoChart from "./components/EvolucaoChart";
 import ValorPorGrupoChart from "./components/ValorPorGrupoChart";
@@ -25,6 +25,18 @@ import { formatDateToBR } from "@/utils/formatters";
 import DetalhesModal, { ExportConfig } from "../ficha/components/DetalhesModal";
 import * as XLSX from 'xlsx';
 
+interface FetchDataParams {
+  startDate: string;
+  endDate: string;
+}
+
+interface Empregado {
+  dissidio: string;
+  mes_base: string;
+  // outros campos para KPIs, etc, você pode adicionar depois
+}
+
+
 const cairo = Cairo({
   weight: ["500", "600", "700"],
   subsets: ["latin"],
@@ -40,7 +52,6 @@ const parseCurrency = (currencyString: string): number => {
       .trim()
   );
 };
-
 
 const rawChartDataEntries = [
   "Jan/2024: R$ 5.462.280,00",
@@ -126,6 +137,57 @@ export default function DashboardOrganizacional() {
   const [selectedCentroCusto, setSelectedCentroCusto] = useState<string[]>([]);
   const [selectedDepartamento, setSelectedDepartamento] = useState<string[]>([]);
   const [selectedServico, setSelectedServico] = useState<string[]>([]);
+  const [dissidioData, setDissidioData] = useState<{ sindicato: string; mesBase: string }[]>([]);
+
+  useEffect(() => {
+  fetchData({ startDate: "2025-01-01", endDate: "2025-12-31" })
+    .then((data) => {
+      setDissidioData(data.dissidios);
+    });
+}, []);
+
+
+const fetchData = async (body: FetchDataParams): Promise<{
+  dissidios: { sindicato: string; mesBase: string }[];
+}> => {
+  try {
+    const response = await fetch("/api/dashboard-organizacional", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) throw new Error("Erro ao buscar dados");
+
+    const result = await response.json();
+
+    // CORREÇÃO: acessar result.dados e extrair empregados de cada empresa
+    const empregados: Empregado[] = result?.dados?.flatMap((empresa: any) => empresa.empregados || []) || [];
+
+    const dissidiosMap = new Map<string, string>();
+
+    empregados.forEach((emp) => {
+      if (emp.dissidio && emp.mes_base) {
+        dissidiosMap.set(emp.dissidio, emp.mes_base);
+      }
+    });
+
+    const dissidios = Array.from(dissidiosMap.entries()).map(
+      ([sindicato, mesBase]) => ({ sindicato, mesBase })
+    );
+
+    console.log("✅ Dissídios carregados:", dissidios);
+
+    return { dissidios };
+  } catch (err) {
+    console.error("❌ Erro ao buscar dados do dashboard:", err);
+    return { dissidios: [] };
+  }
+};
+
+
+fetchData({ startDate: "2025-01-01", endDate: "2025-12-31" });
+
 
   // � Ref para os filtros
   const secaoFiltrosRef = useRef<SecaoFiltrosRef>(null);
@@ -222,14 +284,14 @@ export default function DashboardOrganizacional() {
        rank: idx + 1
      }));
    }, []);   // State and handlers for Dissídio modal
-   const [sortedDissidioData, setSortedDissidioData] = useState<typeof dissidioTableData>([]);
+   const [sortedDissidioData, setSortedDissidioData] = useState<typeof dissidioData>([]);
    const [dissidioSortInfo, setDissidioSortInfo] = useState<string>("Padrão (sem ordenação específica)");
    // Sort info for bar chart modals (no sorting functionality, but used for export info)
    const [valorPorPessoaSortInfo, setValorPorPessoaSortInfo] = useState<string>("Por valor (maior para menor)");
    const [valorPorCalculoSortInfo, setValorPorCalculoSortInfo] = useState<string>("Por valor (maior para menor)");
 
    const exportDissidioToPDF = (
-     data: typeof dissidioTableData,
+     data: typeof dissidioData,
      reportName: string,
      sortInfo?: string
    ) => {
@@ -278,7 +340,7 @@ export default function DashboardOrganizacional() {
        }
      });
      doc.save(`${reportName}.pdf`);
-   };   const exportDissidioToExcel = (data: typeof dissidioTableData, fileName: string) => {
+   };   const exportDissidioToExcel = (data: typeof dissidioData, fileName: string) => {
      // Prepare data for Excel
      const worksheetData = [
        ['Sindicato', 'Mês Base'], // Header
@@ -590,6 +652,7 @@ export default function DashboardOrganizacional() {
              sectionIcons={sectionIcons.filter(icon => icon.alt === "Maximize")}
              cairoClassName={cairo.className}
              onMaximize={() => setModalAberto('dissidio')}
+             dissidioData={dissidioData}
            />
            <ValorPorPessoaCard
              sectionIcons={sectionIcons.filter(icon => icon.alt === "Maximize")}
@@ -610,14 +673,14 @@ export default function DashboardOrganizacional() {
            onClose={() => setModalAberto(null)}
            title="Dissídio"
            subtitle="Visualização completa dos dissídios"
-           data={dissidioTableData}
+           data={dissidioData}
            sortedData={sortedDissidioData}
            sortInfo={dissidioSortInfo}
            exportConfig={exportConfigs.dissidio}
            cairoClassName={cairo.className}
          >
            <DissidioModalTable
-             data={dissidioTableData}
+             data={dissidioData} 
              cairoClassName={cairo.className}
              onSortedDataChange={setSortedDissidioData}
              onSortInfoChange={setDissidioSortInfo}

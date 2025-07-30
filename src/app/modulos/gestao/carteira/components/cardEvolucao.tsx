@@ -46,7 +46,7 @@ function nomeParaTimestamp(nome: string): number {
 
   const mes = mesesMap[mesStr];
   const ano = parseInt(anoStr, 10);
-
+  
   if (mes === undefined || isNaN(ano)) return NaN;
 
   // Cria timestamp do primeiro dia do mês e ano
