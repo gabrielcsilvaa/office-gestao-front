@@ -1,38 +1,141 @@
-import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+"use client";
+import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
-const data = [
-  { name: '00 a 25', colaboradores: 414 },
-  { name: '26 a 35', colaboradores: 885 },
-  { name: '36 a 45', colaboradores: 775 },
-  { name: '46 a 55', colaboradores: 518 },
-  { name: '55+', colaboradores: 387 },
-];
+interface GraficoFaixaEtariaProps {
+  dados: {
+    name: string;
+    colaboradores: number;
+  }[];
+}
 
-const GraficoFaixaEtaria = () => {
-  return (
-    <div style={{ width: '100%', height: 250 }}>
-      <h3 style={{ textAlign: 'center', marginBottom: '10px' , fontWeight:'bold',}}>Colaboradores por Faixa Etária</h3>
-      <ResponsiveContainer>
+export default function GraficoFaixaEtaria({ dados }: GraficoFaixaEtariaProps) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === "Escape") {
+      setIsModalOpen(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isModalOpen) {
+      document.addEventListener("keydown", handleKeyDown);
+    } else {
+      document.removeEventListener("keydown", handleKeyDown);
+    }
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isModalOpen, handleKeyDown]);
+
+  const GraficoPequeno = () => (
+    <div className="w-full h-full pt-2">
+      <h3
+        style={{
+          textAlign: "center",
+          marginBottom: "10px",
+          fontWeight: "bold",
+        }}
+      >
+        Colaboradores por Faixa Etária
+      </h3>
+      <ResponsiveContainer width="100%" height="90%">
         <BarChart
-          data={data}
+          data={dados}
           layout="vertical"
-          margin={{
-            top: 5,
-            right: 20,
-            left: 20,
-            bottom: 5,
-          }}
+          margin={{ top: 5, right: 20, left: 20, bottom: 5 }}
         >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis type="number" />
-          <YAxis type="category" dataKey="name" />
-          <Tooltip />
-          <Bar dataKey="colaboradores" fill="#8884d8" />
+          <XAxis type="number" hide />
+          <YAxis type="category" dataKey="name" tickLine={false} />
+          <Tooltip cursor={{ fill: "#f5f5f5" }} />
+          <Bar dataKey="colaboradores" barSize={20} fill="#8884d8" />
         </BarChart>
       </ResponsiveContainer>
     </div>
   );
-};
 
-export default GraficoFaixaEtaria;
+  return (
+    <>
+      <div className="relative bg-white rounded-xl shadow-md h-[300px]">
+        <button
+          onClick={() => setIsModalOpen(true)}
+          className="absolute top-2 right-2 z-10 p-1"
+        >
+          <Image
+            src="/assets/icons/icon-maximize.svg"
+            alt="Maximizar"
+            width={24}
+            height={24}
+            className="w-6 h-6"
+          />
+        </button>
+        <div className="p-2 h-full">
+          <GraficoPequeno />
+        </div>
+      </div>
+
+      {isModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          onClick={() => setIsModalOpen(false)}
+        >
+          <div
+            className="bg-white p-6 rounded-lg shadow-2xl w-[90vw] h-[90vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="relative flex justify-center items-center mb-4 flex-shrink-0">
+              <h2 className="w-full text-xl font-bold text-gray-800 text-center">
+                Colaboradores por Faixa Etária
+              </h2>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="absolute right-0 top-1/2 -translate-y-1/2 text-3xl text-gray-500 hover:text-gray-900"
+                aria-label="Fechar modal"
+              >
+                &times;
+              </button>
+            </div>
+
+            <div className="flex-grow w-full h-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={dados}
+                  layout="vertical"
+                  margin={{ top: 20, right: 30, left: 40, bottom: 20 }}
+                >
+                  <XAxis type="number" hide />
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    tickLine={false}
+                    axisLine={false}
+                    tick={{ fontSize: 14, fill: "#333" }}
+                  />
+                  <Tooltip
+                    cursor={{ fill: "#f5f5f5" }}
+                    contentStyle={{
+                      borderRadius: "8px",
+                      boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
+                      border: "1px solid #ddd",
+                    }}
+                  />
+                  <Bar dataKey="colaboradores" barSize={35} fill="#8884d8" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}

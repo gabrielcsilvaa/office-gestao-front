@@ -3,6 +3,9 @@ import { Cairo } from "next/font/google";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Dropdown } from "./components/Dropdown";
+import { VirtualizedDropdown } from "./components/VirtualizedDropdown";
+import { SmartDropdown } from "./components/SmartDropdown";
+import { Toast } from "./components/Toast";
 import { useDropdown } from "./hooks/useDropdown";
 import Calendar from "@/components/calendar";
 import KpiCardsGrid from "./components/KpiCardsGrid";
@@ -19,15 +22,27 @@ const cairo = Cairo({
 export default function DashboardFiscal() {
   const { openDropdown, handleToggleDropdown } = useDropdown();
 
+  // Tipos para os dados do dashboard
+  type DashboardData = {
+    saidas?: any[];
+    servicos?: any[];
+    entradas?: EntradaData[];
+  };
+
+  // Estados do componente
   const [clienteSelecionado, setClienteSelecionado] = useState("");
   const [produtoSelecionado, setProdutoSelecionado] = useState("");
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [kpiSelecionado, setKpiSelecionado] = useState("Receita Bruta Total");
-  const [data, setData] = useState(null);
+  const [data, setData] = useState<DashboardData | null>(null);
   const [fornecedorOptions, setFornecedorOptions] = useState<string[]>([]);
   const [clienteOptions, setClienteOptions] = useState<string[]>([]);
+  const [toast, setToast] = useState<{
+    message: string;
+    type: 'success' | 'info' | 'warning';
+  } | null>(null);
 
   // Tipo para os dados de entrada
   type EntradaData = {
@@ -99,42 +114,7 @@ export default function DashboardFiscal() {
   
   // Retorna as opções do dropdown conforme o KPI selecionado
   const getDropdownOptions = (): string[] => {
-    // Fornecedor: dinheiro SAINDO da empresa (compras/aquisições)
-    if (["Compras e Aquisições"].includes(kpiSelecionado)) {
-      return fornecedorOptions;
-    }
-    // Cliente: dinheiro ENTRANDO na empresa (vendas/receitas/cancelamentos)
-    if (["Receita Bruta Total", "Vendas de Produtos", "Serviços Prestados"].includes(kpiSelecionado)) {
-      return clienteOptions;
-    }
-    // Para Cancelamentos de Receita, mostrar apenas clientes que têm cancelamentos
-    if (["Cancelamentos de Receita"].includes(kpiSelecionado)) {
-      if (!data) return [];
-      
-      const clientesComCancelamentos = new Set<string>();
-      const dataTyped = data as any;
-      
-      // Adicionar clientes das saídas canceladas
-      if (dataTyped.saidas && Array.isArray(dataTyped.saidas)) {
-        dataTyped.saidas
-          .filter((saida: any) => saida.cancelada === "S")
-          .forEach((saida: any) => {
-            clientesComCancelamentos.add(saida.nome_cliente);
-          });
-      }
-      
-      // Adicionar clientes dos serviços cancelados
-      if (dataTyped.servicos && Array.isArray(dataTyped.servicos)) {
-        dataTyped.servicos
-          .filter((servico: any) => servico.cancelada === "S")
-          .forEach((servico: any) => {
-            clientesComCancelamentos.add(servico.nome_cliente);
-          });
-      }
-      
-      return Array.from(clientesComCancelamentos).sort();
-    }
-    return [];
+    return getDropdownOptionsForKpi(kpiSelecionado);
   };
 
   const labelClienteFornecedor = getClienteFornecedorLabel(kpiSelecionado);
@@ -478,10 +458,6 @@ export default function DashboardFiscal() {
       if (startDate && endDate) {
         setLoading(true);
         try {
-          console.log("Buscando dados para o dashboard fiscal com as datas:", {
-            startDate,
-            endDate,
-          });
           const response = await fetch("/api/dashboard-fiscal", {
             method: "POST",
             headers: {
@@ -501,7 +477,6 @@ export default function DashboardFiscal() {
             );
           }
 
-          console.log("Dados recebidos da API fiscal:", result);
           setData(result);
 
           // Extrair fornecedores únicos dos dados de entradas
@@ -568,8 +543,62 @@ export default function DashboardFiscal() {
 
   const handleKpiChange = (kpi: string) => {
     setKpiSelecionado(kpi);
-    // Limpar seleção do dropdown quando KPI mudar
-    setClienteSelecionado("");
+    
+    // ✅ MELHORIA UX: Validação inteligente da seleção atual
+    // Só limpa a seleção se ela não for compatível com o novo KPI
+    if (clienteSelecionado) {
+      const currentOptions = getDropdownOptionsForKpi(kpi);
+      const isCurrentSelectionValid = currentOptions.includes(clienteSelecionado);
+      
+      if (!isCurrentSelectionValid) {
+        setClienteSelecionado("");
+        setToast({
+          message: `Seleção de "${clienteSelecionado}" removida (não disponível para ${kpi})`,
+          type: 'warning'
+        });
+      }
+      // Quando a seleção é mantida, não mostra toast (comportamento silencioso)
+    }
+  };
+
+  // Função auxiliar para obter opções de dropdown para um KPI específico
+  const getDropdownOptionsForKpi = (kpi: string): string[] => {
+    // Fornecedor: dinheiro SAINDO da empresa (compras/aquisições)
+    if (["Compras e Aquisições"].includes(kpi)) {
+      return fornecedorOptions;
+    }
+    // Cliente: dinheiro ENTRANDO na empresa (vendas/receitas/cancelamentos)
+    if (["Receita Bruta Total", "Vendas de Produtos", "Serviços Prestados"].includes(kpi)) {
+      return clienteOptions;
+    }
+    // Para Cancelamentos de Receita, mostrar apenas clientes que têm cancelamentos
+    if (["Cancelamentos de Receita"].includes(kpi)) {
+      if (!data) return [];
+      
+      const clientesComCancelamentos = new Set<string>();
+      const dataTyped = data as any;
+      
+      // Adicionar clientes das saídas canceladas
+      if (dataTyped.saidas && Array.isArray(dataTyped.saidas)) {
+        dataTyped.saidas
+          .filter((saida: any) => saida.cancelada === "S")
+          .forEach((saida: any) => {
+            clientesComCancelamentos.add(saida.nome_cliente);
+          });
+      }
+      
+      // Adicionar clientes dos serviços cancelados
+      if (dataTyped.servicos && Array.isArray(dataTyped.servicos)) {
+        dataTyped.servicos
+          .filter((servico: any) => servico.cancelada === "S")
+          .forEach((servico: any) => {
+            clientesComCancelamentos.add(servico.nome_cliente);
+          });
+      }
+      
+      return Array.from(clientesComCancelamentos).sort();
+    }
+    return [];
   };
 
   const handleResetAllFilters = () => {
@@ -582,7 +611,6 @@ export default function DashboardFiscal() {
 
   const handleMaximizeEvolucao = () => {
     // Função para maximizar o card de evolução (a ser implementada)
-    console.log("Maximizar card de evolução");
   };
 
   const produtoOptions = [
@@ -1111,15 +1139,15 @@ export default function DashboardFiscal() {
   };
 
   const handleMaximizeTopProdutos = () => {
-    console.log("Maximizar card TOP 100 Produtos / Serviços");
+    // Função para maximizar o card TOP 100 Produtos / Serviços (a ser implementada)
   };
 
   const handleMaximizeTopClientesFornecedores = () => {
-    console.log("Maximizar card TOP 100 Clientes / Fornecedores");
+    // Função para maximizar o card TOP 100 Clientes / Fornecedores (a ser implementada)
   };
 
   const handleMaximizeValorPorLocal = () => {
-    console.log("Maximizar card Valor por Local");
+    // Função para maximizar o card Valor por Local (a ser implementada)
   };
 
   // Filtrar cards baseado no KPI selecionado - Nova Arquitetura Fiscal
@@ -1317,53 +1345,330 @@ export default function DashboardFiscal() {
 
   const cardsData = getCardsData();
 
-  // Dados para o gráfico de evolução
-  const evolucaoData = [
-    { month: "Jan/2024", value: 30288035.12 },
-    { month: "Fev/2024", value: 26307276.15 },
-    { month: "Mar/2024", value: 32832801.44 },
-    { month: "Abr/2024", value: 43884300.49 },
-    { month: "Mai/2024", value: 39243554.24 },
-    { month: "Jun/2024", value: 40105421.16 },
-    { month: "Jul/2024", value: 43384822.79 },
-    { month: "Ago/2024", value: 46108634.08 },
-    { month: "Set/2024", value: 47415413.48 },
-    { month: "Out/2024", value: 46454140.89 },
-    { month: "Nov/2024", value: 45986012.62 },
-    { month: "Dez/2024", value: 53602856.14 }
-  ];
+  // 📊 FUNÇÃO: Gerar dados de evolução baseados nos dados reais da API
+  const generateEvolucaoData = (kpi: string, data: any, startDate: string | null, endDate: string | null) => {
+    if (!data || !startDate || !endDate) {
+      return [];
+    }
 
-  // Dados para o primeiro card de barra de progresso - "TOP 100 Produtos / Serviços"
-  // Total dos valores: R$ 166.752.838,30
-  const topProdutosServicosData = [
-    { name: "Produto não informado", value: "R$ 115.439.645,23", numericValue: 115439645.23, percentage: 69.2, rank: 1 },
-    { name: "SERVIÇOS TOMADOS (2)", value: "R$ 11.213.561,10", numericValue: 11213561.10, percentage: 6.7, rank: 2 },
-    { name: "VASILHAME VAZIO P13 (2)", value: "R$ 6.496.853,83", numericValue: 6496853.83, percentage: 3.9, rank: 3 },
-    { name: "COTTON ALQUIMIA MENEGOTTI (80000000006084)", value: "R$ 4.694.056,41", numericValue: 4694056.41, percentage: 2.8, rank: 4 },
-    { name: "COTTON ALQUIMIA MENEGOTTI (143580A)", value: "R$ 4.670.102,95", numericValue: 4670102.95, percentage: 2.8, rank: 5 },
-    { name: "COTTON ALQUIMIA MENEGOTTI (143580A)", value: "R$ 4.663.614,92", numericValue: 4663614.92, percentage: 2.8, rank: 6 },
-    { name: "GASOLINA C COMUM (101001)", value: "R$ 4.492.489,40", numericValue: 4492489.40, percentage: 2.7, rank: 7 },
-    { name: "SERVIÇOS TOMADOS SEM CREDITO (9)", value: "R$ 4.450.120,01", numericValue: 4450120.01, percentage: 2.7, rank: 8 },
-    { name: "GASOLINA C COMUM (101001)", value: "R$ 4.365.533,64", numericValue: 4365533.64, percentage: 2.6, rank: 9 },
-    { name: "COTTON ALQUIMIA MENEGOTTI (143580A)", value: "R$ 4.236.279,81", numericValue: 4236279.81, percentage: 2.5, rank: 10 },
-    { name: "GASOLINA C COMUM (101001)", value: "R$ 4.031.582,00", numericValue: 4031582.00, percentage: 2.4, rank: 11 }
-  ];
+    try {
+      // Mapa para agrupar valores por mês/ano
+      const monthlyData = new Map<string, number>();
+      
+      // Converter datas de filtro para objetos Date (sem timezone issues)
+      const startDateTime = new Date(startDate + 'T00:00:00');
+      const endDateTime = new Date(endDate + 'T23:59:59');
+      
+      // Função helper para processar uma transação
+      const processTransaction = (item: any, value: number) => {
+        if (!item.data) return;
+        
+        // Parse da data da transação (assumindo formato YYYY-MM-DD ou similar)
+        let transactionDate: Date;
+        
+        try {
+          // Normalizar a data da transação para início do dia
+          if (typeof item.data === 'string') {
+            // Se é string no formato YYYY-MM-DD
+            if (item.data.includes('-')) {
+              transactionDate = new Date(item.data + 'T00:00:00');
+            } else {
+              // Outros formatos
+              transactionDate = new Date(item.data);
+              transactionDate.setHours(0, 0, 0, 0);
+            }
+          } else {
+            // Se já é um objeto Date
+            transactionDate = new Date(item.data);
+            transactionDate.setHours(0, 0, 0, 0);
+          }
+        } catch (error) {
+          return;
+        }
+        
+        if (isNaN(transactionDate.getTime())) {
+          return;
+        }
+        
+        // Verificar se a transação está dentro do período selecionado
+        if (transactionDate < startDateTime || transactionDate > endDateTime) {
+          return;
+        }
+        
+        // Gerar chave no formato "Jan/2024"
+        const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+        const monthKey = `${monthNames[transactionDate.getMonth()]}/${transactionDate.getFullYear()}`;
+        
+        // Acumular valor
+        monthlyData.set(monthKey, (monthlyData.get(monthKey) || 0) + value);
+      };
 
+      // Processar dados conforme o KPI selecionado
+      switch (kpi) {
+        case "Receita Bruta Total":
+          // Saídas não canceladas
+          if (data.saidas && Array.isArray(data.saidas)) {
+            let saidasValidas = data.saidas.filter((saida: SaidaData) => saida.cancelada === "N");
+            
+            if (clienteSelecionado) {
+              saidasValidas = saidasValidas.filter((saida: SaidaData) => saida.nome_cliente === clienteSelecionado);
+            }
+            
+            saidasValidas.forEach((saida: SaidaData) => {
+              processTransaction(saida, parseFloat(saida.valor || "0"));
+            });
+          }
+          
+          // Serviços não cancelados
+          if (data.servicos && Array.isArray(data.servicos)) {
+            let servicosValidos = data.servicos.filter((servico: ServicoData) => servico.cancelada === "N");
+            
+            if (clienteSelecionado) {
+              servicosValidos = servicosValidos.filter((servico: ServicoData) => servico.nome_cliente === clienteSelecionado);
+            }
+            
+            servicosValidos.forEach((servico: ServicoData) => {
+              processTransaction(servico, parseFloat(servico.valor || "0"));
+            });
+          }
+          break;
+
+        case "Vendas de Produtos":
+          if (data.saidas && Array.isArray(data.saidas)) {
+            let saidasValidas = data.saidas.filter((saida: SaidaData) => saida.cancelada === "N");
+            
+            if (clienteSelecionado) {
+              saidasValidas = saidasValidas.filter((saida: SaidaData) => saida.nome_cliente === clienteSelecionado);
+            }
+            
+            saidasValidas.forEach((saida: SaidaData) => {
+              processTransaction(saida, parseFloat(saida.valor || "0"));
+            });
+          }
+          break;
+
+        case "Serviços Prestados":
+          if (data.servicos && Array.isArray(data.servicos)) {
+            let servicosValidos = data.servicos.filter((servico: ServicoData) => servico.cancelada === "N");
+            
+            if (clienteSelecionado) {
+              servicosValidos = servicosValidos.filter((servico: ServicoData) => servico.nome_cliente === clienteSelecionado);
+            }
+            
+            servicosValidos.forEach((servico: ServicoData) => {
+              processTransaction(servico, parseFloat(servico.valor || "0"));
+            });
+          }
+          break;
+
+        case "Compras e Aquisições":
+          if (data.entradas && Array.isArray(data.entradas)) {
+            let entradasValidas = data.entradas;
+            
+            if (clienteSelecionado) {
+              entradasValidas = entradasValidas.filter((entrada: EntradaData) => entrada.nome_fornecedor === clienteSelecionado);
+            }
+            
+            entradasValidas.forEach((entrada: EntradaData) => {
+              processTransaction(entrada, parseFloat(entrada.valor || "0"));
+            });
+          }
+          break;
+
+        case "Cancelamentos de Receita":
+          // Saídas canceladas
+          if (data.saidas && Array.isArray(data.saidas)) {
+            let saidasCanceladas = data.saidas.filter((saida: SaidaData) => saida.cancelada === "S");
+            
+            if (clienteSelecionado) {
+              saidasCanceladas = saidasCanceladas.filter((saida: SaidaData) => saida.nome_cliente === clienteSelecionado);
+            }
+            
+            saidasCanceladas.forEach((saida: SaidaData) => {
+              processTransaction(saida, parseFloat(saida.valor || "0"));
+            });
+          }
+          
+          // Serviços cancelados
+          if (data.servicos && Array.isArray(data.servicos)) {
+            let servicosCancelados = data.servicos.filter((servico: ServicoData) => servico.cancelada === "S");
+            
+            if (clienteSelecionado) {
+              servicosCancelados = servicosCancelados.filter((servico: ServicoData) => servico.nome_cliente === clienteSelecionado);
+            }
+            
+            servicosCancelados.forEach((servico: ServicoData) => {
+              processTransaction(servico, parseFloat(servico.valor || "0"));
+            });
+          }
+          break;
+
+        default:
+          return [];
+      }
+
+      // Converter Map para array e ordenar por data
+      const sortedData = Array.from(monthlyData.entries())
+        .map(([month, value]) => ({
+          month,
+          value
+        }))
+        .sort((a, b) => {
+          // Ordenar por data
+          const parseMonth = (monthStr: string) => {
+            const [month, year] = monthStr.split('/');
+            const monthNames = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+            const monthIndex = monthNames.indexOf(month.toLowerCase());
+            return new Date(parseInt(year), monthIndex);
+          };
+          
+          return parseMonth(a.month).getTime() - parseMonth(b.month).getTime();
+        });
+
+      return sortedData;
+
+    } catch (error) {
+      return [];
+    }
+  };
+
+  // Dados para o gráfico de evolução - agora dinâmicos baseados na API
+  const evolucaoData = generateEvolucaoData(kpiSelecionado, data, startDate, endDate);
+
+  // 📊 FALLBACK: Se não há dados, mostrar dados de exemplo ou placeholder
+  const evolucaoDataWithFallback = evolucaoData.length > 0 
+    ? evolucaoData 
+    : (!startDate || !endDate) 
+      ? [
+          { month: "Selecione um período", value: 0 }
+        ]
+      : [
+          { month: "Sem dados", value: 0 }
+        ];
+
+  // ⚠️ DADOS INDISPONÍVEIS: TOP 100 Produtos/Serviços
+  // O card foi desabilitado por não termos dados específicos de produtos/serviços individuais
+  // Mantemos a consistência com o dropdown "Produto" que também está desabilitado pela mesma razão
+  // Os dados disponíveis agrupam por nome_empresa, não por produto/serviço específico
+  
   // Dados para o segundo card de barra de progresso - "TOP 100 Clientes / Fornecedores"
-  // Total dos valores: R$ 145.126.267,43
-  const topClientesFornecedoresData = [
-    { name: "YAMAHA MOTOR DA AMAZONIA LTDA", value: "R$ 21.068.918,95", numericValue: 21068918.95, percentage: 14.5, rank: 1 },
-    { name: "VIBRA ENERGIA S.A", value: "R$ 20.507.156,97", numericValue: 20507156.97, percentage: 14.1, rank: 2 },
-    { name: "F DINARTE IND E COM DE CONFEC", value: "R$ 19.127.937,07", numericValue: 19127937.07, percentage: 13.2, rank: 3 },
-    { name: "DINART IND E COM DE CONFECCOES LTDA", value: "R$ 14.073.792,88", numericValue: 14073792.88, percentage: 9.7, rank: 4 },
-    { name: "TICKET SERVIÇOS SA", value: "R$ 13.703.588,36", numericValue: 13703588.36, percentage: 9.4, rank: 5 },
-    { name: "MALHAS MENEGOTTI INDUSTRIA TEXTIL LTDA", value: "R$ 11.524.068,34", numericValue: 11524068.34, percentage: 7.9, rank: 6 },
-    { name: "BIOSAUDE", value: "R$ 10.180.027,94", numericValue: 10180027.94, percentage: 7.0, rank: 7 },
-    { name: "BAHIANA DISTRIBUIDORA DE GAS LTDA", value: "R$ 9.972.635,56", numericValue: 9972635.56, percentage: 6.9, rank: 8 },
-    { name: "LYCEUM CONSULTORIA EDUCACIONAL", value: "R$ 9.033.402,58", numericValue: 9033402.58, percentage: 6.2, rank: 9 },
-    { name: "F DINART IND. E COM. DE CONFECCOES LTDA", value: "R$ 8.266.838,94", numericValue: 8266838.94, percentage: 5.7, rank: 10 },
-    { name: "HOSPITAL UNIMED SUL", value: "R$ 7.668.899,58", numericValue: 7668899.58, percentage: 5.3, rank: 11 }
-  ];
+  // Agora dinâmico baseado nos dados reais da API e KPI selecionado
+  const topClientesFornecedoresData = data
+    ? (() => {
+        try {
+          const entidadesMap = new Map<string, number>();
+          
+          // Definir quais dados processar baseado no KPI
+          const incluirClientes = ["Receita Bruta Total", "Vendas de Produtos", "Serviços Prestados", "Cancelamentos de Receita"].includes(kpiSelecionado);
+          const incluirFornecedores = ["Compras e Aquisições"].includes(kpiSelecionado);
+          
+          // Processar Clientes (saídas e serviços)
+          if (incluirClientes) {
+            let dadosClientes: any[] = [];
+            
+            if (kpiSelecionado === "Receita Bruta Total") {
+              // Combinar saídas e serviços não cancelados
+              const saidasValidas = (data as any).saidas?.filter((item: SaidaData) => item.cancelada !== "S") || [];
+              const servicosValidos = (data as any).servicos?.filter((item: ServicoData) => item.cancelada !== "S") || [];
+              dadosClientes = [...saidasValidas, ...servicosValidos];
+            } else if (kpiSelecionado === "Vendas de Produtos") {
+              // Apenas saídas não canceladas
+              dadosClientes = (data as any).saidas?.filter((item: SaidaData) => item.cancelada !== "S") || [];
+            } else if (kpiSelecionado === "Serviços Prestados") {
+              // Apenas serviços não cancelados
+              dadosClientes = (data as any).servicos?.filter((item: ServicoData) => item.cancelada !== "S") || [];
+            } else if (kpiSelecionado === "Cancelamentos de Receita") {
+              // Combinar saídas e serviços cancelados
+              const saidasCanceladas = (data as any).saidas?.filter((item: SaidaData) => item.cancelada === "S") || [];
+              const servicosCancelados = (data as any).servicos?.filter((item: ServicoData) => item.cancelada === "S") || [];
+              dadosClientes = [...saidasCanceladas, ...servicosCancelados];
+            }
+            
+            // Filtrar por cliente selecionado se houver
+            if (clienteSelecionado) {
+              dadosClientes = dadosClientes.filter((item: any) => item.nome_cliente === clienteSelecionado);
+            }
+            
+            // Agrupar por cliente
+            dadosClientes.forEach((item: any) => {
+              const nomeCliente = item.nome_cliente || "Cliente não informado";
+              const valor = parseFloat(item.valor || "0");
+              
+              if (entidadesMap.has(nomeCliente)) {
+                entidadesMap.set(nomeCliente, entidadesMap.get(nomeCliente)! + valor);
+              } else {
+                entidadesMap.set(nomeCliente, valor);
+              }
+            });
+            
+          }
+          
+          // Processar Fornecedores (entradas)
+          if (incluirFornecedores) {
+            const entradasValidas = (data as any).entradas || [];
+            
+            // Filtrar por fornecedor selecionado se houver
+            let dadosFornecedores = clienteSelecionado 
+              ? entradasValidas.filter((entrada: any) => entrada.nome_fornecedor === clienteSelecionado)
+              : entradasValidas;
+            
+            // Agrupar por fornecedor
+            dadosFornecedores.forEach((entrada: any) => {
+              const nomeFornecedor = entrada.nome_fornecedor || "Fornecedor não informado";
+              const valor = parseFloat(entrada.valor || "0");
+              
+              if (entidadesMap.has(nomeFornecedor)) {
+                entidadesMap.set(nomeFornecedor, entidadesMap.get(nomeFornecedor)! + valor);
+              } else {
+                entidadesMap.set(nomeFornecedor, valor);
+              }
+            });
+            
+          }
+          
+          // Calcular total geral para percentuais
+          const totalGeral = Array.from(entidadesMap.values()).reduce((sum, valor) => sum + valor, 0);
+          
+          // Converter para array e ordenar por valor (maior para menor)
+          const resultado = Array.from(entidadesMap.entries())
+            .map(([nome, valor]) => ({
+              name: nome,
+              value: new Intl.NumberFormat('pt-BR', { 
+                style: 'currency', 
+                currency: 'BRL',
+                minimumFractionDigits: 2 
+              }).format(valor),
+              numericValue: valor,
+              percentage: totalGeral > 0 ? Math.round((valor / totalGeral) * 1000) / 10 : 0,
+              rank: 0
+            }))
+            .sort((a, b) => b.numericValue - a.numericValue)
+            .slice(0, 100)
+            .map((item, index) => ({
+              ...item,
+              rank: index + 1
+            }));
+          
+          return resultado;
+        } catch (error) {
+          console.error("Erro ao processar ranking de clientes/fornecedores:", error);
+          return [];
+        }
+      })()
+    : [
+      // Dados de fallback quando não há dados da API
+      { name: "YAMAHA MOTOR DA AMAZONIA LTDA", value: "R$ 21.068.918,95", numericValue: 21068918.95, percentage: 14.5, rank: 1 },
+      { name: "VIBRA ENERGIA S.A", value: "R$ 20.507.156,97", numericValue: 20507156.97, percentage: 14.1, rank: 2 },
+      { name: "F DINARTE IND E COM DE CONFEC", value: "R$ 19.127.937,07", numericValue: 19127937.07, percentage: 13.2, rank: 3 },
+      { name: "DINART IND E COM DE CONFECCOES LTDA", value: "R$ 14.073.792,88", numericValue: 14073792.88, percentage: 9.7, rank: 4 },
+      { name: "TICKET SERVIÇOS SA", value: "R$ 13.703.588,36", numericValue: 13703588.36, percentage: 9.4, rank: 5 },
+      { name: "MALHAS MENEGOTTI INDUSTRIA TEXTIL LTDA", value: "R$ 11.524.068,34", numericValue: 11524068.34, percentage: 7.9, rank: 6 },
+      { name: "BIOSAUDE", value: "R$ 10.180.027,94", numericValue: 10180027.94, percentage: 7.0, rank: 7 },
+      { name: "BAHIANA DISTRIBUIDORA DE GAS LTDA", value: "R$ 9.972.635,56", numericValue: 9972635.56, percentage: 6.9, rank: 8 },
+      { name: "LYCEUM CONSULTORIA EDUCACIONAL", value: "R$ 9.033.402,58", numericValue: 9033402.58, percentage: 6.2, rank: 9 },
+      { name: "F DINART IND. E COM. DE CONFECCOES LTDA", value: "R$ 8.266.838,94", numericValue: 8266838.94, percentage: 5.7, rank: 10 },
+      { name: "HOSPITAL UNIMED SUL", value: "R$ 7.668.899,58", numericValue: 7668899.58, percentage: 5.3, rank: 11 }
+    ];
 
   return (
     <div className="bg-[#f7f7f8] flex flex-col flex-1 h-full min-h-0">
@@ -1424,7 +1729,7 @@ export default function DashboardFiscal() {
         {/* Filtros principais e Calendário */}
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
-            <Dropdown
+            <SmartDropdown
                 options={getDropdownOptions()}
                 label={labelClienteFornecedor}
                 widthClass="w-72"
@@ -1433,8 +1738,9 @@ export default function DashboardFiscal() {
                 isOpen={openDropdown === 'cliente'}
                 onToggle={() => handleToggleDropdown('cliente')}
                 areDatesSelected={startDate !== null && endDate !== null}
+                virtualizationThreshold={50}
             />
-            <Dropdown
+            <SmartDropdown
                 options={produtoOptions}
                 label="Produto"
                 widthClass="w-72"
@@ -1444,6 +1750,7 @@ export default function DashboardFiscal() {
                 onToggle={() => handleToggleDropdown('produto')}
                 disabled={true}
                 areDatesSelected={startDate !== null && endDate !== null}
+                virtualizationThreshold={50}
             />
           </div>
           <Calendar
@@ -1464,19 +1771,64 @@ export default function DashboardFiscal() {
         <div className="mt-6">
           <EvolucaoCard 
             title={getEvolucaoTitle(kpiSelecionado)} 
-            data={evolucaoData}
+            data={evolucaoDataWithFallback}
             onMaximize={handleMaximizeEvolucao}
           />
         </div>
 
         {/* Novos Cards com Barras de Progresso - 2 por linha */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-          <ProgressBarCard 
-            title={getTopProdutosServicosTitle(kpiSelecionado)} 
-            items={topProdutosServicosData}
-            colorScheme="green"
-            onMaximize={handleMaximizeTopProdutos}
-          />
+          {/* Card TOP 100 Produtos/Serviços - Desabilitado por falta de dados específicos */}
+          <div className="w-full bg-gray-100 rounded-lg shadow-md relative overflow-hidden h-[400px] opacity-60">
+            {/* Barra vertical ao lado do título - cinza para indicar desabilitado */}
+            <div className="w-6 h-0 left-[10px] top-[17px] absolute origin-top-left rotate-90 bg-gray-400 outline-1 outline-offset-[-0.50px] outline-gray-500"></div>
+            
+            {/* Header com título e ícone de maximizar desabilitado */}
+            <div className="flex justify-between items-start pt-[14px] px-5 mb-3 flex-shrink-0">
+              <div className="flex-grow overflow-hidden mr-3">
+                <div title={getTopProdutosServicosTitle(kpiSelecionado)} className={`text-gray-500 text-xl font-semibold leading-normal ${cairo.className} whitespace-nowrap overflow-hidden text-ellipsis`}>
+                  {getTopProdutosServicosTitle(kpiSelecionado)}
+                </div>
+              </div>
+              <div className="flex items-center space-x-2 flex-shrink-0">
+                <div className="p-1 cursor-not-allowed">
+                  <Image
+                    src="/assets/icons/icon-maximize.svg"
+                    alt="Maximize (Indisponível)"
+                    width={16}
+                    height={16}
+                    className="opacity-30"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Conteúdo indicando indisponibilidade */}
+            <div className="absolute inset-x-0 top-[70px] bottom-0 flex items-center justify-center">
+              <div className="text-center p-8">
+                <div className="text-6xl mb-4">📦</div>
+                <div className={`text-gray-600 text-lg font-semibold mb-2 ${cairo.className}`}>
+                  Dados Indisponíveis
+                </div>
+                <div className={`text-gray-500 text-sm leading-relaxed ${cairo.className} max-w-xs`}>
+                  Ranking de produtos e serviços específicos não disponível.
+                  <br/>
+                  Utilize o TOP 100 {labelClienteFornecedorPlural} ao lado para análises detalhadas.
+                </div>
+                <div className="mt-4 inline-flex items-center gap-2 text-xs text-gray-400">
+                  <Image
+                    src="/assets/icons/icon-question-mark.svg"
+                    alt="Info"
+                    width={12}
+                    height={12}
+                    className="opacity-50"
+                  />
+                  Mesma razão do dropdown "Produto" estar desabilitado
+                </div>
+              </div>
+            </div>
+          </div>
+
           <ProgressBarCard 
             title={`TOP 100 ${labelClienteFornecedorPlural}`}
             items={topClientesFornecedoresData}
@@ -1489,9 +1841,23 @@ export default function DashboardFiscal() {
         <div className="mt-6">
           <EmptyCard 
             title="Valor por Local" 
+            data={data}
+            kpiSelecionado={kpiSelecionado}
+            startDate={startDate}
+            endDate={endDate}
             onMaximize={handleMaximizeValorPorLocal}
           />
         </div>
+        
+        {/* Toast de feedback UX */}
+        {toast && (
+          <Toast
+            message={toast.message}
+            type={toast.type}
+            onClose={() => setToast(null)}
+            duration={3000}
+          />
+        )}
         </div>
       </div>
   );
