@@ -162,7 +162,9 @@ const fetchData = async (body: FetchDataParams): Promise<{
     const result = await response.json();
 
     // CORREÇÃO: acessar result.dados e extrair empregados de cada empresa
-    const empregados: Empregado[] = result?.dados?.flatMap((empresa: any) => empresa.empregados || []) || [];
+    const empregados: Empregado[] = Array.isArray(result?.dados)
+      ? result.dados.flatMap((empresa: any) => Array.isArray(empresa.empregados) ? empresa.empregados : [])
+      : [];
 
     const dissidiosMap = new Map<string, string>();
 
@@ -184,9 +186,6 @@ const fetchData = async (body: FetchDataParams): Promise<{
     return { dissidios: [] };
   }
 };
-
-
-fetchData({ startDate: "2025-01-01", endDate: "2025-12-31" });
 
 
   // � Ref para os filtros

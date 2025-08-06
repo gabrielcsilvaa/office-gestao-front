@@ -225,7 +225,7 @@ export default function ListaEmpresasRamoAtividade({
 
         return nomeMatch || cnpjMatch;
       });
-    }
+    } 
 
     return filteredEmpresas;
   };

@@ -27,7 +27,7 @@ const DissidioCard: React.FC<DissidioCardProps> = ({
   const handleScroll = () => {
     const el = containerRef.current;
     if (!el) return;
-    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 1) {
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 5) {
       setVisibleCount(prev => Math.min(prev + 10, dissidioData.length));
     }
   };
@@ -46,7 +46,7 @@ const DissidioCard: React.FC<DissidioCardProps> = ({
       observer.observe(containerRef.current);
     }
     return () => observer.disconnect();
-  }, [visibleCount]);
+  }, []);
 
   return (
     <div className="flex-1 bg-white rounded-lg h-[489px] relative overflow-hidden shadow-md">
