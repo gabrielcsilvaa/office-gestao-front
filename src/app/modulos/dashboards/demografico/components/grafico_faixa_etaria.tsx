@@ -10,15 +10,24 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+interface FuncionarioDetalhado {
+  nome: string;
+  data_nascimento: string;
+}
+
 interface GraficoFaixaEtariaProps {
   dados: {
     name: string;
     colaboradores: number;
   }[];
+  detalhes: FuncionarioDetalhado[];
 }
 
-export default function GraficoFaixaEtaria({ dados }: GraficoFaixaEtariaProps) {
+
+export default function GraficoFaixaEtaria({ dados, detalhes }: GraficoFaixaEtariaProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === "Escape") {
@@ -38,6 +47,18 @@ export default function GraficoFaixaEtaria({ dados }: GraficoFaixaEtariaProps) {
     };
   }, [isModalOpen, handleKeyDown]);
 
+  const calcularIdade = (dataNascimento: string): number => {
+    const hoje = new Date();
+    const nascimento = new Date(dataNascimento);
+    let idade = hoje.getFullYear() - nascimento.getFullYear();
+    const mes = hoje.getMonth() - nascimento.getMonth();
+
+    if (mes < 0 || (mes === 0 && hoje.getDate() < nascimento.getDate())) {
+      idade--;
+    }
+
+    return idade;
+  };
   const GraficoPequeno = () => (
     <div className="w-full h-full pt-2">
       <h3
@@ -64,7 +85,15 @@ export default function GraficoFaixaEtaria({ dados }: GraficoFaixaEtariaProps) {
     </div>
   );
 
+
+  const filteredColaboradores = detalhes.filter((colab) =>
+    colab.nome.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+
   return (
+
+
     <>
       <div className="relative bg-white rounded-xl shadow-md h-[300px]">
         <button
@@ -90,48 +119,83 @@ export default function GraficoFaixaEtaria({ dados }: GraficoFaixaEtariaProps) {
           onClick={() => setIsModalOpen(false)}
         >
           <div
-            className="bg-white p-6 rounded-lg shadow-2xl w-[90vw] h-[90vh] flex flex-col"
+            className="bg-white p-6 rounded-lg shadow-2xl w-[95vw] h-[90vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="relative flex justify-center items-center mb-4 flex-shrink-0">
-              <h2 className="w-full text-xl font-bold text-gray-800 text-center">
+            {/* Cabeçalho */}
+            <div className="flex items-center justify-between p-4 bg-white shadow rounded-md mb-4">
+              <h1 className="text-2xl font-bold font-cairo text-gray-800">
                 Colaboradores por Faixa Etária
-              </h2>
+              </h1>
+
+              <input
+                type="text"
+                placeholder="Pesquisar por nome..."
+                className="border border-gray-300 rounded-md p-2 w-96 text-sm ml-auto"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="absolute right-0 top-1/2 -translate-y-1/2 text-3xl text-gray-500 hover:text-gray-900"
+                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                 aria-label="Fechar modal"
               >
-                &times;
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-gray-500"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
               </button>
             </div>
 
-            <div className="flex-grow w-full h-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={dados}
-                  layout="vertical"
-                  margin={{ top: 20, right: 30, left: 40, bottom: 20 }}
-                >
-                  <XAxis type="number" hide />
-                  <YAxis
-                    type="category"
-                    dataKey="name"
-                    tickLine={false}
-                    axisLine={false}
-                    tick={{ fontSize: 14, fill: "#333" }}
-                  />
-                  <Tooltip
-                    cursor={{ fill: "#f5f5f5" }}
-                    contentStyle={{
-                      borderRadius: "8px",
-                      boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-                      border: "1px solid #ddd",
-                    }}
-                  />
-                  <Bar dataKey="colaboradores" barSize={35} fill="#8884d8" />
-                </BarChart>
-              </ResponsiveContainer>
+            {/* Tabela */}
+            <div className="overflow-auto flex-grow pt-4">
+              <table className="w-full border border-gray-300 text-sm font-cairo">
+                <thead>
+                  <tr className="bg-gray-200 border-b border-gray-400 text-center">
+                    <th className="px-4 py-2 border-r">#</th>
+                    <th className="px-4 py-2 border-r">Nome</th>
+                    <th className="px-4 py-2 border-r">Data de Nascimento</th>
+                    <th className="px-4 py-2">Idade</th>
+                  </tr>
+                </thead>
+                <tbody className="text-center">
+                  {filteredColaboradores.map((func, index) => {
+                    const idade = calcularIdade(func.data_nascimento);
+                    const dataFormatada = new Date(func.data_nascimento)
+                      .toLocaleDateString("pt-BR", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "numeric",
+                      });
+
+                    const rowClass =
+                      index % 2 === 0 ? "bg-white" : "bg-gray-100";
+
+                    return (
+                      <tr
+                        key={index}
+                        className={`${rowClass} border-b border-gray-300`}
+                      >
+                        <td className="px-4 py-2">{index + 1}</td>
+                        <td className="px-4 py-2">{func.nome.toUpperCase()}</td>
+                        <td className="px-4 py-2">{dataFormatada}</td>
+                        <td className="px-4 py-2">{idade} anos</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>

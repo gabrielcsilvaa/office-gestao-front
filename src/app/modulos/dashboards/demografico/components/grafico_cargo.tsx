@@ -133,7 +133,7 @@ const GraficoCargo: React.FC<GraficoCargoProps> = ({ dados }) => {
             className="w-6 h-6"
           />
         </button>
-        <div className="p-0 flex-grow overflow-y-auto max-h-[650px] relative">
+        <div className="p-0 flex-grow max-h-[650px] relative">
           <div className="sticky top-0 z-10 bg-white p-4 border-b">
             <h3 className="text-center font-bold text-lg ">
               Colaboradores por Cargo

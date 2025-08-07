@@ -15,9 +15,24 @@ interface CategoriaData {
   colaboradores: number;
 }
 
+interface FuncionarioDetalhado {
+  nome: string;
+  categoria: string;
+}
 
-export default function GraficoCategoria({dados}: { dados: CategoriaData[] }) {
+interface GraficoCategoriaProps {
+  dados: CategoriaData[];
+  detalhes: FuncionarioDetalhado[];
+}
+
+export default function GraficoCategoria({ dados, detalhes }: GraficoCategoriaProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const filteredColaboradores = detalhes.filter((colab) =>
+    colab.nome.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === "Escape") {
@@ -96,47 +111,68 @@ export default function GraficoCategoria({dados}: { dados: CategoriaData[] }) {
           onClick={() => setIsModalOpen(false)}
         >
           <div
-            className="bg-white p-6 rounded-lg shadow-2xl w-[90vw] h-[90vh] flex flex-col"
+            className="bg-white p-6 rounded-lg shadow-2xl w-[95vw] h-[90vh] flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="relative flex justify-center items-center mb-4 flex-shrink-0">
-              <h2 className="w-full text-xl font-bold text-gray-800 text-center">
+            {/* Cabeçalho com pesquisa */}
+            <div className="flex items-center justify-between p-4 bg-white shadow rounded-md mb-4">
+              <h1 className="text-2xl font-bold font-cairo text-gray-800">
                 Colaboradores por Categoria
-              </h2>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="absolute right-0 top-1/2 -translate-y-1/2 text-3xl text-gray-500 hover:text-gray-900"
-                aria-label="Fechar modal"
-              >
-                &times;
-              </button>
-            </div>
-            <div className="flex-grow w-full h-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={dados}
-                  layout="vertical"
-                  margin={{ top: 20, right: 30, left: 70, bottom: 20 }}
+              </h1>
+              <div className="flex items-center gap-4 ml-auto">
+                <input
+                  type="text"
+                  placeholder="Pesquisar por nome..."
+                  className="border border-gray-300 rounded-md p-2 w-96 text-sm"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <button
+                  onClick={() => setIsModalOpen(false)}
+                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  aria-label="Fechar modal"
                 >
-                  <XAxis type="number" hide />
-                  <YAxis
-                    type="category"
-                    dataKey="name"
-                    tickLine={false}
-                    axisLine={false}
-                    tick={{ fontSize: 14, fill: "#333" }}
-                  />
-                  <Tooltip
-                    cursor={{ fill: "#f5f5f5" }}
-                    contentStyle={{
-                      borderRadius: "8px",
-                      boxShadow: "0 2px 10px rgba(0,0,0,0.1)",
-                      border: "1px solid #ddd",
-                    }}
-                  />
-                  <Bar dataKey="colaboradores" barSize={35} fill="#8884d8" />
-                </BarChart>
-              </ResponsiveContainer>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 text-gray-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Tabela */}
+            <div className="overflow-auto flex-grow pt-4">
+              <table className="w-full border border-gray-300 text-sm font-cairo">
+                <thead>
+                  <tr className="bg-gray-200 border-b border-gray-400 text-center">
+                    <th className="px-4 py-2 border-r">#</th>
+                    <th className="px-4 py-2 border-r">Nome</th>
+                    <th className="px-4 py-2">Categoria</th>
+                  </tr>
+                </thead>
+                <tbody className="text-center">
+                  {filteredColaboradores.map((func, index) => (
+                    <tr
+                      key={index}
+                      className={index % 2 === 0 ? "bg-white" : "bg-gray-100 border-b border-gray-300"}
+                    >
+                      <td className="px-4 py-2">{index + 1}</td>
+                      <td className="px-4 py-2">{func.nome.toUpperCase()}</td>
+                      <td className="px-4 py-2">{func.categoria}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>

@@ -228,7 +228,7 @@ export default function Demografico() {
         const apiStartDate = startDate.toISOString().split("T")[0];
         const apiEndDate = endDate.toISOString().split("T")[0];
 
-      
+
         const response = await fetch("/api/dashboards-demografico", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -262,8 +262,8 @@ export default function Demografico() {
 
         const funcionariosParaCards = filtros.empresa
           ? todosFuncionariosRespostaAPI.filter(
-              (f) => f.empresa === filtros.empresa
-            )
+            (f) => f.empresa === filtros.empresa
+          )
           : todosFuncionariosRespostaAPI;
 
         // Usa a mesma base dos cards, a menos que um botão esteja selecionado
@@ -271,12 +271,12 @@ export default function Demografico() {
           botaoSelecionado === ""
             ? funcionariosParaCards
             : filtrarFuncionarios(
-                todosFuncionariosRespostaAPI,
-                botaoSelecionado,
-                startDate,
-                endDate,
-                filtros
-              );
+              todosFuncionariosRespostaAPI,
+              botaoSelecionado,
+              startDate,
+              endDate,
+              filtros
+            );
 
         // --- CÁLCULO DOS CARDS ---
         // Se tiver empresa selecionada, filtra só ela. Se não, usa todos.
@@ -689,13 +689,48 @@ export default function Demografico() {
                 />
               </div>
               <div className="aspect-[4/3]  w-full h-[300px]">
-                <GraficoFaixaEtaria dados={dadosFaixaEtaria} />
+                <GraficoFaixaEtaria
+                  dados={dadosFaixaEtaria}
+                  detalhes={filtrarFuncionarios(
+                    todosFuncionariosAPI,
+                    botaoSelecionado,
+                    startDate ?? new Date(),
+                    endDate ?? new Date(),
+                    filtros
+                  ).filter((f) => f.data_nascimento)}
+                />
+
               </div>
               <div className="aspect-[4/3]  w-full h-[300px]">
-                <GraficoCategoria dados={dadosCategoria} />
+                <GraficoCategoria
+                  dados={dadosCategoria}
+                  detalhes={filtrarFuncionarios(
+                    todosFuncionariosAPI,
+                    botaoSelecionado,
+                    startDate ?? new Date(),
+                    endDate ?? new Date(),
+                    filtros
+                  ).map((f) => ({
+                    nome: f.nome,
+                    categoria: f.categoria || "Não informado"
+                  }))}
+                />
               </div>
               <div className="aspect-[4/3]  w-full h-[300px]">
-                <GraficoEscolaridade dados={dadosDemograficos} />
+                <GraficoEscolaridade
+                  dados={dadosDemograficos}
+                  detalhes={filtrarFuncionarios(
+                    todosFuncionariosAPI,
+                    botaoSelecionado,
+                    startDate ?? new Date(),
+                    endDate ?? new Date(),
+                    filtros
+                  ).map((f) => ({
+                    nome: f.nome,
+                    escolaridade: f.escolaridade || "Não informado",
+                  }))}
+                />
+
               </div>
             </div>
           </div>
