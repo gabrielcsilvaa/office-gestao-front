@@ -46,7 +46,7 @@ export default function GraficoLinha({ dados }: GraficoLinhaProps) {
 
   return (
     <>
-      <div className="relative bg-white p-1 rounded shadow h-[500px] w-[675px] flex flex-col ">
+      <div className="relative bg-white p-1 rounded shadow h-[500px] w-full flex flex-col">
         {/* Botão de maximizar */}
         <button
           onClick={() => setIsModalOpen(true)}
