@@ -92,23 +92,20 @@ const Menu: React.FC<MenuProps> = ({
 
             {/* Botões de status */}
             <div className="flex flex-wrap gap-2">
-              {["Ativos", "Contratações", "Demissões", "Más Contratações"].map(
-                (nome) => (
-                  <button
-                    key={nome}
-                    onClick={() => setBotaoSelecionado(nome)}
-                    className={`px-4 py-2 rounded border text-sm transition-all ${botaoSelecionado === nome
-                      ? "bg-black text-white"
-                      : "bg-white text-black hover:bg-gray-50"
-                      }`}
-                  >
-                    {nome}
-                  </button>
-                )
-              )}
+              {["Ativos", "Contratações", "Demissões", "Más Contratações"].map((nome) => (
+                <button
+                  key={nome}
+                  onClick={() => setBotaoSelecionado(nome)}
+                  className={`px-4 py-2 flex items-center justify-center rounded-md border border-neutral-700 text-sm font-semibold leading-tight transition-colors cursor-pointer ${botaoSelecionado === nome
+                      ? "bg-[var(--color-neutral-700)] text-white"
+                      : "bg-white text-neutral-700 hover:bg-[var(--color-neutral-700)] hover:text-white"
+                    }`}
+                >
+                  {nome}
+                </button>
+              ))}
             </div>
           </div>
-
           {/* DIREITA: Calendário */}
           <div className="ml-auto">
             <Calendar
@@ -299,7 +296,6 @@ const Menu: React.FC<MenuProps> = ({
               </div>
             )}
           </div>
-
           {/* CARGO */}
           <div className="relative w-full md:w-[232px]">
             <div onClick={() => setIsCargoOpen(!isCargoOpen)} className="flex justify-between items-center p-2 border rounded-md cursor-pointer bg-white hover:bg-gray-50 transition">
