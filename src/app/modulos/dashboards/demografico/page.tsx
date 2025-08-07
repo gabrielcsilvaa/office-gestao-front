@@ -717,7 +717,20 @@ export default function Demografico() {
                 />
               </div>
               <div className="aspect-[4/3]  w-full h-[300px]">
-                <GraficoEscolaridade dados={dadosDemograficos} />
+                <GraficoEscolaridade
+                  dados={dadosDemograficos}
+                  detalhes={filtrarFuncionarios(
+                    todosFuncionariosAPI,
+                    botaoSelecionado,
+                    startDate ?? new Date(),
+                    endDate ?? new Date(),
+                    filtros
+                  ).map((f) => ({
+                    nome: f.nome,
+                    escolaridade: f.escolaridade || "Não informado",
+                  }))}
+                />
+
               </div>
             </div>
           </div>
