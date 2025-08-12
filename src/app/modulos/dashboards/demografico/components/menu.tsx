@@ -4,23 +4,17 @@ import Calendar from "@/components/calendar";
 import { RotateCcw } from "lucide-react";
 import React from "react";
 
+// ---- Tipos ----
+export interface FiltrosSelecionados {
+  empresa: string;
+  departamento: string;
+  cargo: string;
+  categoria: string;
+}
+
 interface MenuProps {
-  filtros: {
-    empresa: string;
-    startDate: Date | null;
-    endDate: Date | null;
-    departamento: string;
-    cargo: string;
-    categoria: string;
-  };
-  setFiltros: React.Dispatch<
-    React.SetStateAction<{
-      empresa: string;
-      departamento: string;
-      cargo: string;
-      categoria: string;
-    }>
-  >;
+  filtros: FiltrosSelecionados;
+  setFiltros: React.Dispatch<React.SetStateAction<FiltrosSelecionados>>;
   botaoSelecionado: string;
   setBotaoSelecionado: (botao: string) => void;
   resetarFiltros: () => void;
@@ -34,6 +28,7 @@ interface MenuProps {
   onStartDateChange: (dateString: string | null) => void;
   onEndDateChange: (dateString: string | null) => void;
 }
+
 
 const Menu: React.FC<MenuProps> = ({
   filtros,

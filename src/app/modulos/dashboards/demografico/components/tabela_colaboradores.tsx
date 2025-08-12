@@ -174,8 +174,6 @@ export default function TabelaColaboradores({ colaboradores }: Props) {
           </div>
         </div>
       )}
-
-
     </>
   );
 }

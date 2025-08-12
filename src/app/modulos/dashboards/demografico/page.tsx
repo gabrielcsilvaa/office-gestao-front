@@ -743,7 +743,19 @@ export default function Demografico() {
           <TabelaColaboradores colaboradores={colaboradores} />
         </div>
         <div className="w-full lg:w-1/2 bg-white rounded shadow ">
-          <GraficoCargo dados={dadosCargo} />
+          <GraficoCargo
+            dados={dadosCargo}
+            detalhes={filtrarFuncionarios(
+              todosFuncionariosAPI,
+              botaoSelecionado,
+              startDate ?? new Date(),
+              endDate ?? new Date(),
+              filtros
+            ).map((f) => ({
+              nome: f.nome,
+              cargo: f.cargo || "Não informado",
+            }))}
+          />
         </div>
       </div>
     </div>
