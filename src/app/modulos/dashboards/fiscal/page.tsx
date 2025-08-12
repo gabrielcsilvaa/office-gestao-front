@@ -2,8 +2,6 @@
 import { Cairo } from "next/font/google";
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { Dropdown } from "./components/Dropdown";
-import { VirtualizedDropdown } from "./components/VirtualizedDropdown";
 import { SmartDropdown } from "./components/SmartDropdown";
 import { Toast } from "./components/Toast";
 import { useDropdown } from "./hooks/useDropdown";
@@ -31,7 +29,6 @@ export default function DashboardFiscal() {
 
   // Estados do componente
   const [clienteSelecionado, setClienteSelecionado] = useState("");
-  const [produtoSelecionado, setProdutoSelecionado] = useState("");
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -147,33 +144,6 @@ export default function DashboardFiscal() {
       return "TOP 100 Produtos / Serviços";
     }
     return "TOP 100 Produtos / Serviços";
-  };
-
-  // Funções para título e tooltip dinâmicos do card de ticket médio/compra média
-  const getTicketMedioTitle = (kpi: string): string => {
-    switch (kpi) {
-      case "Compras e Aquisições":
-        return "Compra Média";
-      case "Vendas de Produtos":
-      case "Serviços Prestados":
-      case "Receita Bruta Total":
-        return "Ticket Médio";
-      default:
-        return "Ticket Médio";
-    }
-  };
-
-  const getTicketMedioTooltip = (kpi: string): string => {
-    switch (kpi) {
-      case "Compras e Aquisições":
-        return "Valor médio por pedido de compra no período analisado.";
-      case "Vendas de Produtos":
-      case "Serviços Prestados":
-      case "Receita Bruta Total":
-        return "Valor médio por transação de receita no período analisado.";
-      default:
-        return "Valor médio por transação no período analisado.";
-    }
   };
 
   // Calcula dinamicamente o ticket médio conforme o KPI selecionado
@@ -603,7 +573,6 @@ export default function DashboardFiscal() {
 
   const handleResetAllFilters = () => {
     setClienteSelecionado("");
-    setProdutoSelecionado("");
     setStartDate(null);
     setEndDate(null);
     setKpiSelecionado("Compras e Aquisições");
@@ -613,18 +582,6 @@ export default function DashboardFiscal() {
     // Função para maximizar o card de evolução (a ser implementada)
   };
 
-  const produtoOptions = [
-    "GASOLINA COMUM",
-    "GASOLINA ADITIVADA (Ex: DT CLEAN)",
-    "ETANOL HIDRATADO COMUM",
-    "DIESEL S10 COMUM",
-    "DIESEL S10 ADITIVADO (Ex: RENDMAX)",
-    "GNV (GÁS NATURAL VEICULAR)",
-    "ÓLEO LUBRIFICANTE 15W40 SEMISSINTÉTICO",
-    "LAVAGEM COMPLETA DE VEÍCULO",
-    "ÁGUA MINERAL S/ GÁS 500ML",
-    "PÃO DE QUEIJO (Unidade)"
-  ];
 
   const getPercentualCancelamentos = (data: any) => {
     if (!data) return "0,0%";
@@ -1138,10 +1095,6 @@ export default function DashboardFiscal() {
     }
   };
 
-  const handleMaximizeTopProdutos = () => {
-    // Função para maximizar o card TOP 100 Produtos / Serviços (a ser implementada)
-  };
-
   const handleMaximizeTopClientesFornecedores = () => {
     // Função para maximizar o card TOP 100 Clientes / Fornecedores (a ser implementada)
   };
@@ -1608,7 +1561,7 @@ export default function DashboardFiscal() {
             const entradasValidas = (data as any).entradas || [];
             
             // Filtrar por fornecedor selecionado se houver
-            let dadosFornecedores = clienteSelecionado 
+            const dadosFornecedores = clienteSelecionado 
               ? entradasValidas.filter((entrada: any) => entrada.nome_fornecedor === clienteSelecionado)
               : entradasValidas;
             
@@ -1655,21 +1608,7 @@ export default function DashboardFiscal() {
           return [];
         }
       })()
-    : [
-      // Dados de fallback quando não há dados da API
-      { name: "YAMAHA MOTOR DA AMAZONIA LTDA", value: "R$ 21.068.918,95", numericValue: 21068918.95, percentage: 14.5, rank: 1 },
-      { name: "VIBRA ENERGIA S.A", value: "R$ 20.507.156,97", numericValue: 20507156.97, percentage: 14.1, rank: 2 },
-      { name: "F DINARTE IND E COM DE CONFEC", value: "R$ 19.127.937,07", numericValue: 19127937.07, percentage: 13.2, rank: 3 },
-      { name: "DINART IND E COM DE CONFECCOES LTDA", value: "R$ 14.073.792,88", numericValue: 14073792.88, percentage: 9.7, rank: 4 },
-      { name: "TICKET SERVIÇOS SA", value: "R$ 13.703.588,36", numericValue: 13703588.36, percentage: 9.4, rank: 5 },
-      { name: "MALHAS MENEGOTTI INDUSTRIA TEXTIL LTDA", value: "R$ 11.524.068,34", numericValue: 11524068.34, percentage: 7.9, rank: 6 },
-      { name: "BIOSAUDE", value: "R$ 10.180.027,94", numericValue: 10180027.94, percentage: 7.0, rank: 7 },
-      { name: "BAHIANA DISTRIBUIDORA DE GAS LTDA", value: "R$ 9.972.635,56", numericValue: 9972635.56, percentage: 6.9, rank: 8 },
-      { name: "LYCEUM CONSULTORIA EDUCACIONAL", value: "R$ 9.033.402,58", numericValue: 9033402.58, percentage: 6.2, rank: 9 },
-      { name: "F DINART IND. E COM. DE CONFECCOES LTDA", value: "R$ 8.266.838,94", numericValue: 8266838.94, percentage: 5.7, rank: 10 },
-      { name: "HOSPITAL UNIMED SUL", value: "R$ 7.668.899,58", numericValue: 7668899.58, percentage: 5.3, rank: 11 }
-    ];
-
+    : [];
   return (
     <div className="bg-[#f7f7f8] flex flex-col flex-1 h-full min-h-0">
       {/* Header de Filtros - Fixo */}
@@ -1680,7 +1619,7 @@ export default function DashboardFiscal() {
             src="/assets/icons/icon-reset-kpi.svg"
             alt="Reset KPI Icon"
             width={20}
-            height={20}
+            height={20}f
             className="cursor-pointer hover:opacity-75 transition-opacity"
             onClick={handleResetAllFilters}
             title="Resetar todos os filtros"
@@ -1737,18 +1676,6 @@ export default function DashboardFiscal() {
                 onValueChange={setClienteSelecionado}
                 isOpen={openDropdown === 'cliente'}
                 onToggle={() => handleToggleDropdown('cliente')}
-                areDatesSelected={startDate !== null && endDate !== null}
-                virtualizationThreshold={50}
-            />
-            <SmartDropdown
-                options={produtoOptions}
-                label="Produto"
-                widthClass="w-72"
-                selectedValue={produtoSelecionado}
-                onValueChange={setProdutoSelecionado}
-                isOpen={openDropdown === 'produto'}
-                onToggle={() => handleToggleDropdown('produto')}
-                disabled={true}
                 areDatesSelected={startDate !== null && endDate !== null}
                 virtualizationThreshold={50}
             />
@@ -1823,7 +1750,7 @@ export default function DashboardFiscal() {
                     height={12}
                     className="opacity-50"
                   />
-                  Mesma razão do dropdown "Produto" estar desabilitado
+                  Mesma razão do dropdown Produto estar desabilitado
                 </div>
               </div>
             </div>
@@ -1861,4 +1788,4 @@ export default function DashboardFiscal() {
         </div>
       </div>
   );
-}
+} 
