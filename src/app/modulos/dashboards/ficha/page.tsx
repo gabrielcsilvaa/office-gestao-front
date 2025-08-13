@@ -1,25 +1,21 @@
 "use client";
 import { Cairo } from "next/font/google";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect} from "react";
 import SecaoFiltros from "./components/SecaoFiltros";
 import KpiCardsGrid from "./components/KpiCardsGrid";
-import EvolucaoCard from "./components/EvolucaoCard";
-import ValorPorGrupoCard from "./components/ValorPorGrupoCard";
+
 import AtestadosTable from "./components/AtestadosTable";
 import AfastamentosTable from "./components/AfastamentosTable";
 import ContratosTable from "./components/ContratosTable";
 import FeriasDetalheCard from "./components/FeriasDetalheCard";
 import AlteracoesSalariaisDetalheCard from "./components/AlteracoesSalariaisDetalheCard";
-import Modal from "../organizacional/components/Modal";
 import DetalhesModal, { ExportConfig } from "./components/DetalhesModal";
-import EvolucaoChart from "./components/EvolucaoChart";
-import ValorPorGrupoChart from "./components/ValorPorGrupoChart";
 import Calendar from "@/components/calendar";
 import Loading from "@/app/loading";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
 import { EmpresaFicha, FeriasPorEmpresa, AlteracoesPorEmpresa, FormattedFerias, FormattedAlteracao, Afastamento, Exame, Contrato } from "@/types/fichaPessoal.types";
-import { formatDate, formatDateToBR, parseCurrency } from "@/utils/formatters";
+import { formatDate, formatDateToBR} from "@/utils/formatters";
 import { useFichaPessoalData } from "@/hooks/useFichaPessoalData";
 
 // Importe os novos componentes de tabela para o modal
@@ -35,60 +31,7 @@ const cairo = Cairo({
   variable: "--font-cairo",
 });
 
-const rawChartDataEntriesFicha = [
-  "Jan/2024: R$ 1.896,58",
-  "Fev/2024: R$ 2.200,00",
-  "Mar/2024: R$ 2.050,75",
-  "Abr/2024: R$ 2.350,00",
-  "Mai/2024: R$ 2.100,50",
-  "Jun/2024: R$ 2.600,00",
-  "Jul/2024: R$ 2.450,25",
-  "Ago/2024: R$ 2.850,00",
-  "Set/2024: R$ 2.700,80",
-  "Out/2024: R$ 3.000,00", 
-  "Nov/2024: R$ 2.900,90", 
-  "Dez/2024: R$ 3.134,66",
-];
 
-const sectionIconsFicha = [
-  { src: "/assets/icons/icon-lay-down.svg", alt: "Lay Down", adjustSize: true },
-  { src: "/assets/icons/icon-lay-up.svg", alt: "Lay Up", adjustSize: true },
-  { src: "/assets/icons/icon-hierarchy.svg", alt: "Hierarchy" },
-  { src: "/assets/icons/icon-filter-layers.svg", alt: "Filter Layers" },
-  { src: "/assets/icons/icon-maximize.svg", alt: "Maximize" },
-  { src: "/assets/icons/icon-more-options.svg", alt: "More Options" },
-];
-
-const tableHeaderIcons = sectionIconsFicha.slice(-3);
-
-const valorPorGrupoDataFicha = [
-  { name: "Salário Base", value: 5000.00 },
-  { name: "Horas Extras (50%)", value: 350.75 },
-  { name: "Adicional Noturno", value: 120.20 },
-  { name: "Comissões", value: 850.00 },
-  { name: "DSR sobre Horas Extras", value: 70.15 },
-  { name: "DSR sobre Comissões", value: 170.00 },
-  { name: "Gratificação de Função", value: 600.00 },
-  { name: "Ajuda de Custo - Alimentação", value: 450.00 },
-  { name: "Ajuda de Custo - Transporte", value: 180.00 },
-  { name: "Prêmio por Desempenho", value: 1200.00 },
-  { name: "Participação nos Lucros (PLR)", value: 2500.00 },
-  { name: "Abono Pecuniário de Férias", value: 1666.67 },
-  { name: "1/3 Constitucional de Férias", value: 555.56 },
-  { name: "Salário Família", value: 90.78 },
-  { name: "Adicional de Insalubridade", value: 282.40 },
-  { name: "Adicional de Periculosidade", value: 1500.00 },
-  { name: "Quebra de Caixa", value: 150.00 },
-  { name: "INSS (Desconto)", value: -550.00 },
-  { name: "IRRF (Desconto)", value: -320.50 },
-  { name: "Contribuição Sindical (Desconto)", value: -50.00 },
-  { name: "Vale Transporte (Desconto)", value: -90.00 },
-  { name: "Vale Refeição (Desconto)", value: -70.00 },
-  { name: "Plano de Saúde (Desconto)", value: -250.00 },
-  { name: "Pensão Alimentícia (Desconto)", value: -750.00 },
-  { name: "Faltas e Atrasos (Desconto)", value: -120.00 },
-  { name: "Empréstimo Consignado (Desconto)", value: -400.00 },
-];
 
 // Helper function to add a common header to PDF documents
 const addHeaderToPDF = (
@@ -146,7 +89,7 @@ export default function FichaPessoalPage() {
   // 🎛️ Estados de filtros e controle da UI
   const [selectedEmpresa, setSelectedEmpresa] = useState<string>("");
   const [selectedColaborador, setSelectedColaborador] = useState<string>("");
-  
+
   // 🔄 Sistema de modais tipado
   type ModalType = 'exames' | 'afastamentos' | 'contratos' | 'ferias' | 'alteracoes' | 'evolucao' | 'valorPorGrupo' | null;
   const [modalAberto, setModalAberto] = useState<ModalType>(null);
@@ -154,7 +97,7 @@ export default function FichaPessoalPage() {
   // 📅 Estados de data
   const [startDate, setStartDate] = useState<string | null>(null);
   const [endDate, setEndDate] = useState<string | null>(null);
-  
+
   // 📊 Estados de dados brutos da API  
   const [dados, setDados] = useState<EmpresaFicha[] | null>(null);
   const [loading, setLoading] = useState(true);
@@ -166,7 +109,7 @@ export default function FichaPessoalPage() {
   const [sortedExamesData, setSortedExamesData] = useState<any[]>([]);
   const [sortedAfastamentosData, setSortedAfastamentosData] = useState<any[]>([]);
   const [sortedContratosData, setSortedContratosData] = useState<any[]>([]);
-  const [sortedFeriasData, setSortedFeriasData] = useState<any[]>([]);  const [sortedAlteracoesData, setSortedAlteracoesData] = useState<any[]>([]);
+  const [sortedFeriasData, setSortedFeriasData] = useState<any[]>([]); const [sortedAlteracoesData, setSortedAlteracoesData] = useState<any[]>([]);
 
   // 📋 Estados para informações de ordenação (para contextualizar PDFs)
   const [examesSortInfo, setExamesSortInfo] = useState<string>('Padrão (sem ordenação específica)');
@@ -247,12 +190,12 @@ export default function FichaPessoalPage() {
 
         // Console.log para exibir funcionários com exames não vazios
         if (rawDados.length > 0) {
-          const funcionariosComExames = rawDados.flatMap(empresa => 
-            empresa.funcionarios?.filter(funcionario => 
+          const funcionariosComExames = rawDados.flatMap(empresa =>
+            empresa.funcionarios?.filter(funcionario =>
               funcionario.exames && funcionario.exames.length > 0
             ) || []
           );
-          
+
           if (funcionariosComExames.length > 0) {
             console.log("Funcionários com exames:", funcionariosComExames);
           } else {
@@ -284,29 +227,11 @@ export default function FichaPessoalPage() {
     };
 
     fetchClientData();
-  }, [startDate, endDate]); 
+  }, [startDate, endDate]);
   // 🔄 Reset colaborador quando empresa muda
   useEffect(() => {
     setSelectedColaborador("");
   }, [selectedEmpresa]);
-
-  // 📊 Título da evolução e dados processados para gráficos
-  const evolucaoCardTitle = "Evolução de Custo Total";
-
-  const processedEvolucaoChartDataFicha = useMemo(() => {
-    return rawChartDataEntriesFicha.map(entry => {
-      const [month, valueString] = entry.split(": ");
-      return { month, value: parseCurrency(valueString) };
-    });
-  }, []);
-
-  // 📋 Dados de tabela processados (removendo lógica de padding)
-  const processedTableData = useMemo(() => {
-    return {
-      contratos: contratosData,
-    };
-  }, [contratosData]);
-  // 🔄 Loading state
   if (loading) {
     return <Loading />;
   }
@@ -331,7 +256,7 @@ export default function FichaPessoalPage() {
     ];
 
     autoTable(doc, {
-      startY: tableStartY, 
+      startY: tableStartY,
       head: [tableHeaders],
       body: tableData,
       theme: 'grid',
@@ -427,7 +352,7 @@ export default function FichaPessoalPage() {
     ];
 
     autoTable(doc, {
-      startY: tableStartY, 
+      startY: tableStartY,
       head: [tableHeaders],
       body: tableData,
       theme: 'grid',
@@ -520,7 +445,7 @@ export default function FichaPessoalPage() {
     ];
 
     autoTable(doc, {
-      startY: tableStartY, 
+      startY: tableStartY,
       head: [tableHeaders],
       body: tableData,
       theme: 'grid',
@@ -592,7 +517,7 @@ export default function FichaPessoalPage() {
   };
   // Função para exportar férias para PDF (padrão carteira, colunas mais compactas)
   const exportFeriasToPDF = (data: FormattedFerias[], reportName: string, sortInfo?: string) => {
-    const doc = new jsPDF({ orientation: "landscape" }); 
+    const doc = new jsPDF({ orientation: "landscape" });
     const tableStartY = addHeaderToPDF(doc, reportName, selectedEmpresa, startDate, endDate, sortInfo);
 
     const tableData = data.map((f) => [
@@ -732,7 +657,7 @@ export default function FichaPessoalPage() {
     ];
 
     autoTable(doc, {
-      startY: tableStartY, 
+      startY: tableStartY,
       head: [tableHeaders],
       body: tableData,
       theme: 'grid',
@@ -868,13 +793,13 @@ export default function FichaPessoalPage() {
 
       {/* Contéudo rolável */}
       <div className="flex-1 p-4 overflow-y-auto min-h-0">
-         {/* KPIs: animação de slide down/up */}
-         {/* This div with `transform` creates a stacking context. Its children (tooltips z-50) will be stacked relative to it. */}
-         {/* This container itself needs to be effectively above the header's z-[40]. */}
-         <div className={`transition-all duration-200 ease-in-out transform origin-top
+        {/* KPIs: animação de slide down/up */}
+        {/* This div with `transform` creates a stacking context. Its children (tooltips z-50) will be stacked relative to it. */}
+        {/* This container itself needs to be effectively above the header's z-[40]. */}
+        <div className={`transition-all duration-200 ease-in-out transform origin-top
              ${selectedColaborador
-               ? 'max-h-[800px] opacity-100 translate-y-0'
-               : 'max-h-0 opacity-0 -translate-y-4'}`}>
+            ? 'max-h-[800px] opacity-100 translate-y-0'
+            : 'max-h-0 opacity-0 -translate-y-4'}`}>
           <KpiCardsGrid cardsData={kpiCardData} />
         </div>
 
@@ -933,21 +858,21 @@ export default function FichaPessoalPage() {
         </div> */}
 
         {/* Tabelas */}
-        <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6 h-[450px]"> 
-          <div className="lg:col-span-1 h-full shadow-md overflow-auto min-h-0 rounded-lg">            <AtestadosTable 
-              atestadosData={examesData} 
-              cairoClassName={cairo.className} 
-              headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")}
-              title="Histórico de Exames"
-              onMaximize={() => setModalAberto('exames')}
-            />
+        <div className="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6 h-[450px]">
+          <div className="lg:col-span-1 h-full shadow-md overflow-auto min-h-0 rounded-lg">            <AtestadosTable
+            atestadosData={examesData}
+            cairoClassName={cairo.className}
+            headerIcons={[]}
+            title="Histórico de Exames"
+            onMaximize={() => setModalAberto('exames')}
+          />
           </div>
 
           <div className="lg:col-span-1 h-full shadow-md overflow-auto min-h-0 rounded-lg">
-            <AfastamentosTable 
+            <AfastamentosTable
               afastamentosData={afastamentosData}
-              cairoClassName={cairo.className} 
-              headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")}
+              cairoClassName={cairo.className}
+              headerIcons={[]}
               onMaximize={() => setModalAberto('afastamentos')}
             />
           </div>
@@ -956,7 +881,7 @@ export default function FichaPessoalPage() {
             <ContratosTable
               contratosData={contratosData}
               cairoClassName={cairo.className}
-              headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")}
+              headerIcons={[]}
               onMaximize={() => setModalAberto('contratos')}
             />
           </div>
@@ -968,16 +893,16 @@ export default function FichaPessoalPage() {
             <FeriasDetalheCard
               feriasData={feriasData}
               cairoClassName={cairo.className}
-              headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")}
-              title="Detalhes de Férias"              onMaximize={() => setModalAberto('ferias')}
+              headerIcons={[]}
+              title="Detalhes de Férias" onMaximize={() => setModalAberto('ferias')}
             />
           </div>
           <div className="h-full shadow-md overflow-auto min-h-0 rounded-lg">
             <AlteracoesSalariaisDetalheCard
               alteracoesData={alteracoesData}
               cairoClassName={cairo.className}
-              headerIcons={tableHeaderIcons.filter(icon => icon.alt === "Maximize")}
-              title="Detalhes de Alterações Salariais"              onMaximize={() => setModalAberto('alteracoes')}
+              headerIcons={[]}
+              title="Detalhes de Alterações Salariais" onMaximize={() => setModalAberto('alteracoes')}
             />
           </div>
         </div>
@@ -986,7 +911,7 @@ export default function FichaPessoalPage() {
       {modalAberto && (
         <DetalhesModal
           isOpen={modalAberto !== null}
-          onClose={handleCloseModal}          title={getModalConfig(modalAberto).title}
+          onClose={handleCloseModal} title={getModalConfig(modalAberto).title}
           subtitle={getModalConfig(modalAberto).subtitle}
           data={getModalConfig(modalAberto).data}
           sortedData={getModalConfig(modalAberto).sortedData}
@@ -1003,68 +928,74 @@ export default function FichaPessoalPage() {
   function getModalConfig(tipo: ModalType) {
     switch (tipo) {
       case 'exames':
-        return {          title: "Histórico de Exames Detalhado",
+        return {
+          title: "Histórico de Exames Detalhado",
           subtitle: "Visualização completa dos exames por funcionário",
           data: examesData,
           sortedData: sortedExamesData,
           sortInfo: examesSortInfo,
           exportConfig: exportConfigs.exames,
-          component: <AtestadosModalTable 
-            atestadosData={examesData} 
-            cairoClassName={cairo.className} 
+          component: <AtestadosModalTable
+            atestadosData={examesData}
+            cairoClassName={cairo.className}
             onSortedDataChange={setSortedExamesData}
             onSortInfoChange={setExamesSortInfo}
           />
         };
       case 'afastamentos':
-        return {          title: "Histórico de Afastamentos Detalhado",
+        return {
+          title: "Histórico de Afastamentos Detalhado",
           subtitle: "Visualização completa dos afastamentos por funcionário",
           data: afastamentosData,
           sortedData: sortedAfastamentosData,
           sortInfo: afastamentosSortInfo,
           exportConfig: exportConfigs.afastamentos,
-          component: <AfastamentosModalTable 
-            afastamentosData={afastamentosData} 
+          component: <AfastamentosModalTable
+            afastamentosData={afastamentosData}
             cairoClassName={cairo.className}
             onSortedDataChange={setSortedAfastamentosData}
             onSortInfoChange={setAfastamentosSortInfo}
           />
         };
       case 'contratos':
-        return {          title: "Histórico de Contratos Detalhado",
+        return {
+          title: "Histórico de Contratos Detalhado",
           subtitle: "Visualização completa dos contratos por funcionário",
           data: contratosData,
           sortedData: sortedContratosData,
           sortInfo: contratosSortInfo,
           exportConfig: exportConfigs.contratos,
-          component: <ContratosModalTable 
-            contratosData={contratosData} 
+          component: <ContratosModalTable
+            contratosData={contratosData}
             cairoClassName={cairo.className}
             onSortedDataChange={setSortedContratosData}
             onSortInfoChange={setContratosSortInfo}
           />
-        };      case 'ferias':
-        return {          title: "Detalhes de Férias",
+        }; case 'ferias':
+        return {
+          title: "Detalhes de Férias",
           subtitle: "Visualização completa das férias por funcionário",
           data: feriasData,
           sortedData: sortedFeriasData,
           sortInfo: feriasSortInfo,
           exportConfig: exportConfigs.ferias,
-          component: <FeriasModalTable 
-            feriasData={feriasData} 
+          component: <FeriasModalTable
+            feriasData={feriasData}
             cairoClassName={cairo.className}
             onSortedDataChange={setSortedFeriasData}
             onSortInfoChange={setFeriasSortInfo}
-          />};
+          />
+        };
       case 'alteracoes':
-        return {          title: "Detalhes de Alterações Salariais",
+        return {
+          title: "Detalhes de Alterações Salariais",
           subtitle: "Visualização completa das alterações salariais por funcionário",
           data: alteracoesData,
           sortedData: sortedAlteracoesData,
           sortInfo: alteracoesSortInfo,
           exportConfig: exportConfigs.alteracoes,
-          component: <AlteracoesSalariaisModalTable 
-            alteracoesData={alteracoesData} 
+          component: <AlteracoesSalariaisModalTable
+            alteracoesData={alteracoesData}
             cairoClassName={cairo.className}
             onSortedDataChange={setSortedAlteracoesData}
             onSortInfoChange={setAlteracoesSortInfo}

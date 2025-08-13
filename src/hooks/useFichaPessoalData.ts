@@ -1,10 +1,8 @@
 // 🧠 Hook Customizado - Cérebro de Dados da Ficha Pessoal
-// Este hook centraliza toda a lógica de transformação, filtragem e ordenação de dados
-
 import { useMemo } from "react";
-import { 
-  EmpresaFicha, 
-  FeriasPorEmpresa, 
+import {
+  EmpresaFicha,
+  FeriasPorEmpresa,
   AlteracoesPorEmpresa,
   FormattedFerias,
   FormattedAlteracao,
@@ -13,12 +11,12 @@ import {
   Contrato,
   Funcionario
 } from "@/types/fichaPessoal.types";
-import { 
-  formatDateToBR, 
-  formatCurrencyValue, 
-  capitalizeWords, 
-  calculateAge, 
-  diffDays 
+import {
+  formatDateToBR,
+  formatCurrencyValue,
+  capitalizeWords,
+  calculateAge,
+  diffDays
 } from "@/utils/formatters";
 
 interface UseFichaPessoalDataProps {
@@ -55,25 +53,26 @@ export const useFichaPessoalData = ({
   selectedColaborador
 }: UseFichaPessoalDataProps): FichaPessoalData => {
 
-  // 🏢 Empresa selecionada - Encontra a empresa baseada no nome
-  const empresaSelecionada = useMemo(() => {
-    if (!selectedEmpresa || !dados) return null;
-    return dados.find(emp => emp.nome_empresa.trim() === selectedEmpresa) || null;
-  }, [selectedEmpresa, dados]);
+  // ★ 1) Base de empresas: todas quando não há filtro, apenas a escolhida quando há
+  const empresasBase = useMemo<EmpresaFicha[]>(() => {
+    const arr = Array.isArray(dados) ? dados : [];
+    return selectedEmpresa
+      ? arr.filter(e => e.nome_empresa.trim() === selectedEmpresa.trim())
+      : arr;
+  }, [dados, selectedEmpresa]);
 
-  // 👥 Opções de colaboradores filtrados por empresa
+  // ★ (opcional) primeira empresa da base quando houver filtro (útil para id_empresa)
+  const primeiraEmpresaSelecionada = empresasBase[0] ?? null;
+
+  // ★ 2) Opções de colaboradores: de TODAS as empresas quando não há filtro
   const colaboradorOptions = useMemo(() => {
-    if (!empresaSelecionada?.funcionarios) return [];
-    
-    return [...empresaSelecionada.funcionarios].sort((a, b) =>
-      a.nome.localeCompare(b.nome)
-    );
-  }, [empresaSelecionada]);
+    const funcs = empresasBase.flatMap(e => e.funcionarios ?? []);
+    return [...funcs].sort((a, b) => a.nome.localeCompare(b.nome));
+  }, [empresasBase]);
 
-  // 🏢 Opções de empresas com dados completos
+  // Opções de empresas (sem mudança, apenas lendo de dados)
   const empresaOptionsData = useMemo(() => {
     if (!dados || dados.length === 0) return [];
-    
     return dados
       .map(item => ({
         id_empresa: item.id_empresa,
@@ -82,16 +81,15 @@ export const useFichaPessoalData = ({
       .sort((a, b) => a.nome_empresa.localeCompare(b.nome_empresa));
   }, [dados]);
 
-  // 🎯 Funcionários filtrados (baseado na seleção do funcionário)
+  // ★ 3) Funcionários filtrados: todos ou apenas o colaborador escolhido
   const funcionariosFiltrados = useMemo(() => {
-    if (!empresaSelecionada?.funcionarios) return [];
-    
-    return selectedColaborador 
-      ? empresaSelecionada.funcionarios.filter(func => func.nome === selectedColaborador)
-      : empresaSelecionada.funcionarios;
-  }, [empresaSelecionada, selectedColaborador]);
+    const todos = empresasBase.flatMap(e => e.funcionarios ?? []);
+    return selectedColaborador
+      ? todos.filter(func => func.nome === selectedColaborador)
+      : todos;
+  }, [empresasBase, selectedColaborador]);
 
-  // 📊 Dados dos KPIs - Informações do funcionário selecionado
+  // KPIs do colaborador selecionado (passam a considerar colaboradorOptions global)
   const kpiCardData = useMemo(() => {
     const initialKpiCardData = [
       { title: "Data de Admissão", value: "N/A", tooltipText: "Data de início do funcionário na empresa." },
@@ -108,82 +106,80 @@ export const useFichaPessoalData = ({
     const funcionarioSelecionado = colaboradorOptions.find(
       func => func.nome === selectedColaborador
     );
-
     if (!funcionarioSelecionado) return initialKpiCardData;
 
     return [
-      { 
-        title: "Data de Admissão", 
-        value: formatDateToBR(funcionarioSelecionado.admissao), 
-        tooltipText: "Data de início do funcionário na empresa." 
+      {
+        title: "Data de Admissão",
+        value: formatDateToBR(funcionarioSelecionado.admissao),
+        tooltipText: "Data de início do funcionário na empresa."
       },
-      { 
-        title: "Salário Base", 
-        value: formatCurrencyValue(funcionarioSelecionado.salario), 
-        tooltipText: "Salário bruto mensal do funcionário." 
+      {
+        title: "Salário Base",
+        value: formatCurrencyValue(funcionarioSelecionado.salario),
+        tooltipText: "Salário bruto mensal do funcionário."
       },
-      { 
-        title: "Cargo", 
-        value: capitalizeWords(funcionarioSelecionado.cargo), 
-        tooltipText: "Cargo atual do funcionário." 
+      {
+        title: "Cargo",
+        value: capitalizeWords(funcionarioSelecionado.cargo),
+        tooltipText: "Cargo atual do funcionário."
       },
-      { 
-        title: "Escolaridade", 
-        value: capitalizeWords(funcionarioSelecionado.escolaridade), 
-        tooltipText: "Nível de escolaridade do funcionário." 
+      {
+        title: "Escolaridade",
+        value: capitalizeWords(funcionarioSelecionado.escolaridade),
+        tooltipText: "Nível de escolaridade do funcionário."
       },
-      { 
-        title: "Idade", 
-        value: calculateAge(funcionarioSelecionado.data_nascimento), 
-        tooltipText: "Idade atual do funcionário." 
+      {
+        title: "Idade",
+        value: calculateAge(funcionarioSelecionado.data_nascimento),
+        tooltipText: "Idade atual do funcionário."
       },
     ];
   }, [selectedColaborador, colaboradorOptions]);
 
-  // 📝 Dados de contratos formatados e ordenados
+  // ★ 4) Contratos: iterar empresasBase (para manter o nome da empresa) e aplicar filtro de colaborador
   const contratosData = useMemo(() => {
-    if (!empresaSelecionada?.funcionarios) return [];
+    if (!empresasBase.length) return [];
 
     const todosContratos: Contrato[] = [];
 
-    funcionariosFiltrados.forEach((funcionario) => {
-      const contrato: Contrato = {
-        id: `${funcionario.id_empregado}`,
-        empresa: empresaSelecionada.nome_empresa,
-        colaborador: funcionario.nome,
-        dataAdmissao: formatDateToBR(funcionario.admissao),
-        dataRescisao: funcionario.demissao ? formatDateToBR(funcionario.demissao) : "",
-        salarioBase: formatCurrencyValue(funcionario.salario),
-      };
-      todosContratos.push(contrato);
+    empresasBase.forEach((empresa) => {
+      (empresa.funcionarios ?? []).forEach((funcionario) => {
+        if (selectedColaborador && funcionario.nome !== selectedColaborador) return;
+
+        const contrato: Contrato = {
+          id: `${funcionario.id_empregado}`,
+          empresa: empresa.nome_empresa,
+          colaborador: funcionario.nome,
+          dataAdmissao: formatDateToBR(funcionario.admissao),
+          dataRescisao: funcionario.demissao ? formatDateToBR(funcionario.demissao) : "",
+          salarioBase: formatCurrencyValue(funcionario.salario),
+        };
+        todosContratos.push(contrato);
+      });
     });
 
-    // 🔄 Ordenação multi-critério: Nome → Status → Data Admissão
+    // Ordenação: Nome → Ativos primeiro → Admissão mais recente
     return todosContratos.sort((a, b) => {
-      // 1º critério: Nome do funcionário (alfabética)
       const nomeComparison = a.colaborador.localeCompare(b.colaborador);
       if (nomeComparison !== 0) return nomeComparison;
-      
-      // 2º critério: Status do contrato (ativos primeiro)
+
       const aAtivo = a.dataRescisao === "" ? 1 : 0;
       const bAtivo = b.dataRescisao === "" ? 1 : 0;
       if (aAtivo !== bAtivo) return bAtivo - aAtivo;
 
-      // 3º critério: Data de admissão (mais recente primeiro)
       try {
         const dataA = new Date(a.dataAdmissao.split('/').reverse().join('-'));
         const dataB = new Date(b.dataAdmissao.split('/').reverse().join('-'));
         return dataB.getTime() - dataA.getTime();
-      } catch (e) {
+      } catch {
         return 0;
       }
     });
-  }, [empresaSelecionada, funcionariosFiltrados]);
+  }, [empresasBase, selectedColaborador]);
 
-  // 🏥 Dados de exames formatados e ordenados
+  // Exames: agora parte de funcionariosFiltrados (que já agrega todas as empresas quando não há filtro)
   const examesData = useMemo(() => {
-    if (!empresaSelecionada?.funcionarios) return [];
-
     const todosExames: Exame[] = [];
 
     funcionariosFiltrados.forEach((funcionario) => {
@@ -199,13 +195,10 @@ export const useFichaPessoalData = ({
       }
     });
 
-    // 🔄 Ordenação multi-critério: Nome → Vencimento Urgente → Data Exame
     return todosExames.sort((a, b) => {
-      // 1º critério: Nome do funcionário (alfabética)
       const nomeComparison = a.nomeColaborador.localeCompare(b.nomeColaborador);
       if (nomeComparison !== 0) return nomeComparison;
-      
-      // 2º critério: Data de vencimento mais urgente (mais próxima de hoje)
+
       try {
         const now = Date.now();
         const vencA = new Date(a.vencimento.split('/').reverse().join('-')).getTime();
@@ -213,32 +206,31 @@ export const useFichaPessoalData = ({
         const diffA = Math.abs(vencA - now);
         const diffB = Math.abs(vencB - now);
         if (diffA !== diffB) return diffA - diffB;
-      } catch (e) {
-        // falha na conversão da data, ignora e segue
-      }
+      } catch {}
 
-      // 3º critério: Data do exame (mais recente primeiro)
       try {
         const dataExameA = new Date(a.dataExame.split('/').reverse().join('-')).getTime();
         const dataExameB = new Date(b.dataExame.split('/').reverse().join('-')).getTime();
         return dataExameB - dataExameA;
-      } catch (e) {
+      } catch {
         return 0;
       }
     });
-  }, [empresaSelecionada, funcionariosFiltrados]);
+  }, [funcionariosFiltrados]);
 
-  // 🏖️ Dados de férias formatados e ordenados
+  // Férias: agrega TODAS as empresas quando não há filtro
   const feriasData = useMemo(() => {
-    if (!empresaSelecionada || !feriasRaw.length) return [];
+    if (!feriasRaw.length) return [];
 
-    const feriasEmpresa = feriasRaw.find(f => f.id_empresa === empresaSelecionada.id_empresa);
-    if (!feriasEmpresa) return [];
+    const fonte = selectedEmpresa && primeiraEmpresaSelecionada
+      ? feriasRaw.filter(f => f.id_empresa === primeiraEmpresaSelecionada.id_empresa)
+      : feriasRaw;
 
-    // Filtrar férias por funcionário selecionado se houver
-    const feriasFiltradas = selectedColaborador 
-      ? feriasEmpresa.ferias.filter(f => f.nome === selectedColaborador)
-      : feriasEmpresa.ferias;
+    const lista = fonte.flatMap(f => f.ferias);
+
+    const feriasFiltradas = selectedColaborador
+      ? lista.filter(f => f.nome === selectedColaborador)
+      : lista;
 
     const feriasFormatadas = feriasFiltradas.map(f => ({
       nomeColaborador: f.nome,
@@ -250,18 +242,14 @@ export const useFichaPessoalData = ({
       diasDeDireito: diffDays(f.inicio_aquisitivo, f.fim_aquisitivo),
       diasGozados: diffDays(f.inicio_gozo, f.fim_gozo),
       diasDeSaldo: diffDays(f.inicio_aquisitivo, f.fim_aquisitivo) - diffDays(f.inicio_gozo, f.fim_gozo),
-      // Propriedades auxiliares para ordenação
       _dataVencimento: f.fim_aquisitivo,
       _dataInicioAquisitivo: f.inicio_aquisitivo,
     }));
 
-    // 🔄 Ordenação multi-critério: Nome → Vencimento Urgente → Data Início
     const feriasOrdenadas = feriasFormatadas.sort((a, b) => {
-      // 1º critério: Nome do funcionário (alfabética)
       const nomeComparison = a.nomeColaborador.localeCompare(b.nomeColaborador);
       if (nomeComparison !== 0) return nomeComparison;
 
-      // 2º critério: Data de vencimento mais urgente (mais próxima de hoje)
       try {
         const now = Date.now();
         const vencA = new Date(a._dataVencimento).getTime();
@@ -269,35 +257,33 @@ export const useFichaPessoalData = ({
         const diffA = Math.abs(vencA - now);
         const diffB = Math.abs(vencB - now);
         if (diffA !== diffB) return diffA - diffB;
-      } catch (e) {
-        // falha na conversão da data, ignora e segue
-      }
+      } catch {}
 
-      // 3º critério: Data de início do período aquisitivo (mais antigo primeiro)
       try {
         const inicioA = new Date(a._dataInicioAquisitivo).getTime();
         const inicioB = new Date(b._dataInicioAquisitivo).getTime();
         return inicioA - inicioB;
-      } catch (e) {
+      } catch {
         return 0;
       }
     });
 
-    // Remover as propriedades auxiliares antes de retornar
     return feriasOrdenadas.map(({ _dataVencimento, _dataInicioAquisitivo, ...ferias }) => ferias);
-  }, [empresaSelecionada, feriasRaw, selectedColaborador]);
+  }, [feriasRaw, selectedEmpresa, primeiraEmpresaSelecionada, selectedColaborador]);
 
-  // 💰 Dados de alterações salariais formatados e ordenados
+  // Alterações salariais: agrega TODAS as empresas quando não há filtro
   const alteracoesData = useMemo(() => {
-    if (!empresaSelecionada || !alteracoesRaw.length) return [];
+    if (!alteracoesRaw.length) return [];
 
-    const alteracoesEmpresa = alteracoesRaw.find(a => a.id_empresa === empresaSelecionada.id_empresa);
-    if (!alteracoesEmpresa) return [];
+    const fonte = selectedEmpresa && primeiraEmpresaSelecionada
+      ? alteracoesRaw.filter(a => a.id_empresa === primeiraEmpresaSelecionada.id_empresa)
+      : alteracoesRaw;
 
-    // Filtrar alterações por funcionário selecionado se houver
-    const alteracoesFiltradas = selectedColaborador 
-      ? alteracoesEmpresa.alteracoes.filter(a => a.nome === selectedColaborador)
-      : alteracoesEmpresa.alteracoes;
+    const lista = fonte.flatMap(a => a.alteracoes);
+
+    const alteracoesFiltradas = selectedColaborador
+      ? lista.filter(a => a.nome === selectedColaborador)
+      : lista;
 
     const alteracoesFormatadas = alteracoesFiltradas.map(a => {
       const anterior = a.salario_anterior ? parseFloat(a.salario_anterior) : null;
@@ -305,7 +291,7 @@ export const useFichaPessoalData = ({
       const perc = anterior
         ? `${(((novo - anterior) / anterior) * 100).toFixed(1)}%`
         : "";
-      
+
       return {
         nomeColaborador: a.nome,
         competencia: formatDateToBR(a.competencia),
@@ -313,39 +299,29 @@ export const useFichaPessoalData = ({
         salarioNovo: novo,
         motivo: a.motivo === 0 ? "Primeira Contratação" : "Ajuste",
         percentual: perc,
-        // Propriedade auxiliar para ordenação
         _dataCompetencia: a.competencia,
       };
     });
 
-    // 🔄 Ordenação multi-critério: Nome → Data Competência → Valor Salário
     const alteracoesOrdenadas = alteracoesFormatadas.sort((a, b) => {
-      // 1º critério: Nome do funcionário (alfabética)
       const nomeComparison = a.nomeColaborador.localeCompare(b.nomeColaborador);
       if (nomeComparison !== 0) return nomeComparison;
 
-      // 2º critério: Data da competência (mais recente primeiro)
       try {
         const dataCompetenciaA = new Date(a._dataCompetencia);
         const dataCompetenciaB = new Date(b._dataCompetencia);
         const competenciaComparison = dataCompetenciaB.getTime() - dataCompetenciaA.getTime();
         if (competenciaComparison !== 0) return competenciaComparison;
-      } catch (e) {
-        // Em caso de erro na conversão de data, continua para o próximo critério
-      }
+      } catch {}
 
-      // 3º critério: Valor do salário novo (maior para menor)
       return b.salarioNovo - a.salarioNovo;
     });
 
-    // Remover a propriedade auxiliar antes de retornar
     return alteracoesOrdenadas.map(({ _dataCompetencia, ...alteracao }) => alteracao);
-  }, [empresaSelecionada, alteracoesRaw, selectedColaborador]);
+  }, [alteracoesRaw, selectedEmpresa, primeiraEmpresaSelecionada, selectedColaborador]);
 
-  // 🚫 Dados de afastamentos formatados e ordenados
+  // Afastamentos: parte de funcionariosFiltrados (todas as empresas quando não há filtro)
   const afastamentosData = useMemo(() => {
-    if (!empresaSelecionada?.funcionarios) return [];
-
     const todosAfastamentos: Afastamento[] = [];
 
     funcionariosFiltrados.forEach((funcionario) => {
@@ -361,27 +337,23 @@ export const useFichaPessoalData = ({
       }
     });
 
-    // 🔄 Ordenação multi-critério: Nome → Status → Data Início
     return todosAfastamentos.sort((a, b) => {
-      // 1º critério: Nome do funcionário (alfabética)
       const nomeComparison = a.nomeColaborador.localeCompare(b.nomeColaborador);
       if (nomeComparison !== 0) return nomeComparison;
 
-      // 2º critério: Status do afastamento (ativos primeiro)
       const aAtivo = a.termino === "N/A" ? 1 : 0;
       const bAtivo = b.termino === "N/A" ? 1 : 0;
       if (aAtivo !== bAtivo) return bAtivo - aAtivo;
 
-      // 3º critério: Data de início (mais recente primeiro)
       try {
         const dataInicioA = new Date(a.inicio.split('/').reverse().join('-')).getTime();
         const dataInicioB = new Date(b.inicio.split('/').reverse().join('-')).getTime();
         return dataInicioB - dataInicioA;
-      } catch (e) {
+      } catch {
         return 0;
       }
     });
-  }, [empresaSelecionada, funcionariosFiltrados]);
+  }, [funcionariosFiltrados]);
 
   return {
     kpiCardData,
