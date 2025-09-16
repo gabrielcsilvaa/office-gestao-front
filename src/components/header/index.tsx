@@ -227,7 +227,7 @@ export function Header() {
                   >
                     <span className="inline-flex items-center">
                       <Image
-                        src="/assets/icons/"
+                        src="/assets/icons/calculator.svg"
                         alt="Ícone"
                         width={22}
                         height={22}
