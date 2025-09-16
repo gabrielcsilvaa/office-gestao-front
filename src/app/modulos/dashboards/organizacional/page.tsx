@@ -596,7 +596,6 @@ const fetchData = async (body: FetchDataParams): Promise<{
              <KpiCardsGrid cardsData={cardsData} />
            </div>
          </div>
-
          {/* 📊 GRÁFICOS TEMPORARIAMENTE COMENTADOS - Aguardando integração com API
          <div className="mt-6 flex flex-row gap-6">
            <EvolucaoCard

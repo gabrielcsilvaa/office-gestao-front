@@ -217,6 +217,27 @@ export function Header() {
                   </Link>
                 </li>
               </ul>
+              <ul>
+                <h1 className="text-lg font-bold w-full ml-2">Simulações</h1>
+
+                <li className="mb-4 mt-4">
+                  <Link
+                    href="/modulos/simulacoes/calculadora"
+                    className="hover:text-gray-400"
+                  >
+                    <span className="inline-flex items-center">
+                      <Image
+                        src="/assets/icons/"
+                        alt="Ícone"
+                        width={22}
+                        height={22}
+                        className="mr-2"
+                      />
+                      Calculadora
+                    </span>
+                  </Link>
+                </li>
+              </ul>
             </nav>
           </>
         )}
